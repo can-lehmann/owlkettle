@@ -1,5 +1,5 @@
 # Owlkettle
-### Freshly brewed user interfaces.
+*Freshly brewed user interfaces.*
 
 Owlkettle is a declarative user interface framework based on GTK.
 
