@@ -270,6 +270,9 @@ proc gtk_switch_set_state*(widget: GtkWidget, state: cbool)
 proc gtk_toggle_button_new*(): GtkWidget
 proc gtk_toggle_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_toggle_button_get_active*(widget: GtkWidget): cbool
+
+# Gtk.CheckButton
+proc gtk_check_button_new*(): GtkWidget
 {.pop.}
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =

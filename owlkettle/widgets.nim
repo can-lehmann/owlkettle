@@ -758,5 +758,22 @@ proc `has_text=`*(button: ToggleButton, value: bool) = button.has_child = value
 proc `val_text=`*(button: ToggleButton, value: string) =
   button.val_child = Label(has_text: true, val_text: value)
 
+renderable CheckButton:
+  state: bool
+  
+  proc changed(state: bool)
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_check_button_new()
+    connect_events:
+      state.internal_widget.connect(state.changed, "toggled", toggle_button_event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.changed)
+  
+  hooks state:
+    property:
+      gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
-export Paned, DrawingArea, ColorButton, Switch, ToggleButton
+export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton

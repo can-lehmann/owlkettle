@@ -54,6 +54,11 @@ method view(app: AppState): Widget =
         
         for it, todo in app.todos:
           Box {.expand: false.}:
+            spacing = 6
+            CheckButton {.expand: false.}:
+              state = todo.done
+              proc changed(state: bool) =
+                app.todos[it].done = state
             Label:
               text = todo.text
               x_align = 0
