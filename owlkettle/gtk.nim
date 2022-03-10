@@ -273,6 +273,16 @@ proc gtk_toggle_button_get_active*(widget: GtkWidget): cbool
 
 # Gtk.CheckButton
 proc gtk_check_button_new*(): GtkWidget
+
+# Gtk.Popover
+proc gtk_popover_new*(relative_to: GtkWidget): GtkWidget
+proc gtk_popover_popup*(popover: GtkWidget)
+proc gtk_popover_popdown*(popover: GtkWidget)
+proc gtk_popover_set_relative_to*(popover, widget: GtkWidget)
+
+# Gtk.MenuButton
+proc gtk_menu_button_new*(): GtkWidget
+proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
 {.pop.}
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =

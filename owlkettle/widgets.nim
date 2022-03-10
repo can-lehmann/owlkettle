@@ -326,13 +326,14 @@ renderable Icon:
       gtk_image_set_from_icon_name(state.internal_widget, state.name.cstring, GTK_ICON_SIZE_BUTTON)
 
 type ButtonStyle* = enum
-  ButtonSuggested, ButtonDestructive
+  ButtonSuggested, ButtonDestructive, ButtonFlat
 
 iterator classes(styles: set[ButtonStyle]): string =
   for style in styles:
     yield [
       ButtonSuggested: "suggested-action",
-      ButtonDestructive: "destructive-action"
+      ButtonDestructive: "destructive-action",
+      ButtonFlat: "flat"
     ][style]
 
 renderable Button:
@@ -775,5 +776,108 @@ renderable CheckButton:
     property:
       gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
 
+renderable Popover:
+  child: Widget
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_popover_new(nil)
+  
+  hooks child:
+    build:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        state.child = widget.val_child.build()
+        let child_widget = unwrap_renderable(state.child).internal_widget
+        gtk_container_add(state.internal_widget, child_widget)
+        gtk_widget_show_all(child_widget)
+    update:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        let new_child = widget.val_child.update(state.child)
+        if not new_child.is_nil:
+          if not state.child.is_nil:
+            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
+          let child_widget = new_child.unwrap_renderable().internal_widget
+          gtk_container_add(state.internal_widget, child_widget)
+          gtk_widget_show_all(child_widget)
+          state.child = new_child
+
+proc add*(popover: Popover, child: Widget) =
+  if popover.has_child:
+    raise new_exception(ValueError, "Unable to add multiple children to a Popover. Use a Box widget to display multiple widgets in a popover.")
+  popover.has_child = true
+  popover.val_child = child
+
+
+renderable MenuButton:
+  child: Widget
+  style: set[ButtonStyle]
+  popover: Widget
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_menu_button_new()
+  
+  hooks child:
+    build:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        state.child = widget.val_child.build()
+        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
+    update:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        let new_child = widget.val_child.update(state.child)
+        if not new_child.is_nil:
+          if not state.child.is_nil:
+            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
+          let child_widget = new_child.unwrap_renderable().internal_widget
+          gtk_container_add(state.internal_widget, child_widget)
+          gtk_widget_show_all(child_widget)
+          state.child = new_child
+  
+  hooks popover:
+    build:
+      if widget.has_popover:
+        widget.val_popover.assign_app(state.app)
+        state.popover = widget.val_popover.build()
+        let popover_widget = unwrap_renderable(state.popover).internal_widget
+        gtk_menu_button_set_popover(state.internal_widget, popover_widget)
+        gtk_popover_set_relative_to(popover_widget, state.internal_widget)
+    update:
+      if widget.has_popover:
+        widget.val_popover.assign_app(state.app)
+        let new_popover = widget.val_popover.update(state.popover)
+        if not new_popover.is_nil:
+          let popover_widget = new_popover.unwrap_renderable().internal_widget
+          gtk_menu_button_set_popover(state.internal_widget, popover_widget)
+          gtk_popover_set_relative_to(popover_widget, state.internal_widget)
+          gtk_widget_show_all(popover_widget)
+          state.popover = new_popover
+  
+  hooks style:
+    (build, update):
+      update_style(state, widget)
+
+proc `has_text=`*(button: MenuButton, value: bool) = button.has_child = value
+proc `val_text=`*(button: MenuButton, value: string) =
+  button.val_child = Label(has_text: true, val_text: value)
+
+proc `has_icon=`*(button: MenuButton, value: bool) = button.has_child = value
+proc `val_icon=`*(button: MenuButton, name: string) =
+  button.val_child = Icon(has_name: true, val_name: name)
+
+proc add*(button: MenuButton, child: Widget) =
+  if not button.has_child:
+    button.has_child = true
+    button.val_child = child
+  elif not button.has_popover:
+    button.has_popover = true
+    button.val_popover = child
+  else:
+    raise new_exception(ValueError, "Unable to add more than two children to MenuButton")
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
+export MenuButton, Popover

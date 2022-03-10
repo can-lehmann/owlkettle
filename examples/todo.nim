@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
+import std/sequtils
 import owlkettle
 
 type TodoItem = object
@@ -38,6 +39,16 @@ method view(app: AppState): Widget =
       HeaderBar {.add_titlebar.}:
         title = "Todo"
         subtitle = $app.todos.len & " item(s)"
+        
+        MenuButton {.add_right.}:
+          icon = "open-menu-symbolic"
+          Popover:
+            Box(orient=OrientY, spacing=6, border_width=12):
+              Button:
+                icon = "user-trash-symbolic"
+                style = {ButtonDestructive}
+                proc clicked() =
+                  app.todos = app.todos.filter_it(not it.done)
       
       Box(orient = OrientY, spacing = 6):
         Box(orient = OrientX, spacing = 6) {.expand: false.}:
