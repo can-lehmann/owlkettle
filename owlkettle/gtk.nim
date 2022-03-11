@@ -60,9 +60,13 @@ type
     PANGO_ELLIPSIZE_END
 
 type
+  GtkTextBuffer* = distinct pointer
+  GtkTextIter* = distinct pointer
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
 
+proc is_nil*(widget: GtkTextBuffer): bool {.borrow.}
+proc is_nil*(widget: GtkTextIter): bool {.borrow.}
 proc is_nil*(widget: GtkAdjustment): bool {.borrow.}
 proc is_nil*(widget: GtkStyleContext): bool {.borrow.}
 
@@ -158,6 +162,7 @@ proc g_signal_connect_data*(widget: GtkWidget,
                             name: cstring,
                             callback, data, destroy_data: pointer,
                             flags: GConnectFlags): culong
+proc g_object_unref*(obj: pointer)
 
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
@@ -283,6 +288,29 @@ proc gtk_popover_set_relative_to*(popover, widget: GtkWidget)
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
 proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
+
+# Gtk.TextBuffer
+proc gtk_text_buffer_new*(table: pointer): GtkTextBuffer
+proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
+proc gtk_text_buffer_get_char_count*(buffer: GtkTextBuffer): cint
+proc gtk_text_buffer_get_modified*(buffer: GtkTextBuffer): cbool
+proc gtk_text_buffer_insert*(buffer: GtkTextBuffer, iter: GtkTextIter, text: cstring, len: cint)
+proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, start, stop: GtkTextIter)
+proc gtk_text_buffer_set_text*(buffer: GtkTextBuffer, text: cstring, len: cint)
+proc gtk_text_buffer_get_text*(buffer: GtkTextBuffer,
+                               start, stop: GtkTextIter,
+                               include_hidden_chars: cbool): cstring
+proc gtk_text_buffer_begin_user_action*(buffer: GtkTextBuffer)
+proc gtk_text_buffer_end_user_action*(buffer: GtkTextBuffer)
+proc gtk_text_buffer_get_start_iter*(buffer: GtkTextBuffer, iter: GtkTextIter)
+proc gtk_text_buffer_get_end_iter*(buffer: GtkTextBuffer, iter: GtkTextIter)
+proc gtk_text_buffer_get_iter_at_line*(buffer: GtkTextBuffer, iter: GtkTextIter, line: cint)
+proc gtk_text_buffer_get_iter_at_offset*(buffer: GtkTextBuffer, iter: GtkTextIter, offset: cint)
+
+# Gtk.TextView
+proc gtk_text_view_new*(): GtkWidget
+proc gtk_text_view_set_buffer*(text_view: GtkWidget, buffer: GtkTextBuffer)
+proc gtk_text_view_set_monospace*(text_view: GtkWidget, monospace: cbool)
 {.pop.}
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =

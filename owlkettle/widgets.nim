@@ -759,7 +759,50 @@ proc add*(button: MenuButton, child: Widget) =
   else:
     raise new_exception(ValueError, "Unable to add more than two children to MenuButton")
 
+type
+  TextBufferObj = object
+    gtk: GtkTextBuffer
+  
+  TextBuffer* = ref TextBufferObj
+
+proc finalizer(buffer: TextBuffer) =
+  gobject_unref(pointer(buffer.gtk))
+
+proc new_text_buffer*(): TextBuffer =
+  new(result, finalizer=finalizer)
+  result.gtk = gtk_text_buffer_new(nil)
+
+proc count_lines*(buffer: TextBuffer): int =
+  result = int(gtk_text_buffer_get_line_count(buffer.gtk))
+
+proc `text=`*(buffer: TextBuffer, text: string) =
+  gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
+
+renderable TextView:
+  buffer: TextBuffer
+  monospace: bool
+  
+  proc changed()
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_text_view_new()
+    connect_events:
+      GtkWidget(state.buffer.gtk).connect(state.changed, "changed", event_callback)
+    disconnect_events:
+      GtkWidget(state.buffer.gtk).disconnect(state.changed)
+  
+  hooks monospace:
+    property:
+      gtk_text_view_set_monospace(state.internal_widget, cbool(ord(state.monospace)))
+  
+  hooks buffer:
+    property:
+      if state.buffer.is_nil:
+        raise new_exception(ValueError, "TextView.buffer must not be nil")
+      gtk_text_view_set_buffer(state.internal_widget, state.buffer.gtk)
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
-export MenuButton, Popover
+export MenuButton, Popover, TextView
 export build_state, update_state, assign_app_events
