@@ -89,12 +89,44 @@ proc update_style[State, Widget](state: State, widget: Widget) =
       gtk_style_context_add_class(ctx, class_name.cstring)
     state.style = widget.val_style
 
-renderable Window:
+renderable Container:
+  border_width: int
+  
+  hooks border_width:
+    property:
+      gtk_container_set_border_width(state.internal_widget, state.border_width.cuint)
+
+renderable Bin of Container:
+  child: Widget
+  
+  hooks child:
+    build:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        state.child = widget.val_child.build()
+        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
+    update:
+      if widget.has_child:
+        widget.val_child.assign_app(state.app)
+        let new_child = widget.val_child.update(state.child)
+        if not new_child.is_nil:
+          if not state.child.is_nil:
+            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
+          let child_widget = new_child.unwrap_renderable().internal_widget
+          gtk_container_add(state.internal_widget, child_widget)
+          gtk_widget_show_all(child_widget)
+          state.child = new_child
+
+proc add*(bin: Bin, child: Widget) =
+  if bin.has_child:
+    raise new_exception(ValueError, "Unable to add multiple children to a Bin. Use a Box widget to display multiple widgets in a Bin.")
+  bin.has_child = true
+  bin.val_child = child
+
+renderable Window of Bin:
   title: string
   titlebar: Widget
-  border_width: int
   default_size: tuple[width, height: int] = (800, 600)
-  child: Widget
   
   hooks:
     before_build:
@@ -125,40 +157,12 @@ renderable Window:
             state.titlebar.unwrap_renderable().internal_widget
           )
   
-  hooks border_width:
-    property:
-      gtk_container_set_border_width(state.internal_widget, state.border_width.cuint)
-  
   hooks default_size:
     property:
       gtk_window_set_default_size(state.internal_widget,
         state.default_size.width.cint,
         state.default_size.height.cint
       )
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
-
-proc add*(window: Window, child: Widget) =
-  if window.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a window.")
-  window.has_child = true
-  window.val_child = child
 
 proc add_titlebar*(window: Window, titlebar: Widget) =
   window.has_titlebar = true
@@ -186,10 +190,9 @@ iterator classes(styles: set[BoxStyle]): string =
       BoxLinked: "linked"
     ][style]
 
-renderable Box:
+renderable Box of Container:
   orient: Orient
   spacing: int
-  border_width: int
   children: seq[PackedChild[Widget]]
   style: set[BoxStyle]
   
@@ -199,10 +202,6 @@ renderable Box:
         to_gtk(widget.val_orient),
         widget.val_spacing.cint
       )
-  
-  hooks border_width:
-    property:
-      gtk_container_set_border_width(state.internal_widget, state.border_width.cuint)
   
   hooks spacing:
     property:
@@ -336,8 +335,7 @@ iterator classes(styles: set[ButtonStyle]): string =
       ButtonFlat: "flat"
     ][style]
 
-renderable Button:
-  child: Widget
+renderable Button of Bin:
   style: set[ButtonStyle]
   
   proc clicked()
@@ -349,24 +347,6 @@ renderable Button:
       state.internal_widget.connect(state.clicked, "clicked", event_callback)
     disconnect_events:
       state.internal_widget.disconnect(state.clicked)
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
   
   hooks style:
     (build, update):
@@ -453,41 +433,10 @@ proc add_right*(header_bar: HeaderBar, child: Widget) =
   header_bar.has_right = true
   header_bar.val_right.add(child)
 
-renderable ScrolledWindow:
-  border_width: int
-  child: Widget
-  
+renderable ScrolledWindow of Bin:
   hooks:
     before_build:
       state.internal_widget = gtk_scrolled_window_new(nil, nil)
-  
-  hooks border_width:
-    property:
-      gtk_container_set_border_width(state.internal_widget, state.border_width.cuint)
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
-
-proc add*(window: ScrolledWindow, child: Widget) =
-  if window.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a ScrolledWindow. Use a Box widget to display multiple widgets in a scrolled window.")
-  window.has_child = true
-  window.val_child = child
 
 renderable Entry:
   text: string
@@ -719,9 +668,8 @@ renderable Switch:
     property:
       gtk_switch_set_state(state.internal_widget, cbool(ord(state.state)))
 
-renderable ToggleButton:
+renderable ToggleButton of Button:
   state: bool
-  child: Widget
   
   proc changed(state: bool)
   
@@ -736,45 +684,11 @@ renderable ToggleButton:
   hooks state:
     property:
       gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
 
-proc `has_text=`*(button: ToggleButton, value: bool) = button.has_child = value
-proc `val_text=`*(button: ToggleButton, value: string) =
-  button.val_child = Label(has_text: true, val_text: value)
-
-renderable CheckButton:
-  state: bool
-  
-  proc changed(state: bool)
-  
+renderable CheckButton of ToggleButton:
   hooks:
     before_build:
       state.internal_widget = gtk_check_button_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "toggled", toggle_button_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
-  
-  hooks state:
-    property:
-      gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
 
 renderable Popover:
   child: Widget
@@ -809,33 +723,12 @@ proc add*(popover: Popover, child: Widget) =
   popover.has_child = true
   popover.val_child = child
 
-
-renderable MenuButton:
-  child: Widget
-  style: set[ButtonStyle]
+renderable MenuButton of Button:
   popover: Widget
   
   hooks:
     before_build:
       state.internal_widget = gtk_menu_button_new()
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
   
   hooks popover:
     build:
@@ -855,18 +748,6 @@ renderable MenuButton:
           gtk_popover_set_relative_to(popover_widget, state.internal_widget)
           gtk_widget_show_all(popover_widget)
           state.popover = new_popover
-  
-  hooks style:
-    (build, update):
-      update_style(state, widget)
-
-proc `has_text=`*(button: MenuButton, value: bool) = button.has_child = value
-proc `val_text=`*(button: MenuButton, value: string) =
-  button.val_child = Label(has_text: true, val_text: value)
-
-proc `has_icon=`*(button: MenuButton, value: bool) = button.has_child = value
-proc `val_icon=`*(button: MenuButton, name: string) =
-  button.val_child = Icon(has_name: true, val_name: name)
 
 proc add*(button: MenuButton, child: Widget) =
   if not button.has_child:
@@ -881,3 +762,4 @@ proc add*(button: MenuButton, child: Widget) =
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, Popover
+export build_state, update_state, assign_app_events

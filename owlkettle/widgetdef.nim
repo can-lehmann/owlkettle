@@ -275,20 +275,16 @@ proc gen_state(def: WidgetDef): NimNode =
     ])
   ])
 
-proc gen_build(def: WidgetDef): NimNode =
+proc gen_build_state(def: WidgetDef): NimNode =
   let (state, widget) = (ident("state"), ident("widget"))
-  result = new_stmt_list(new_var_stmt(state, new_call(ident(def.state_name))))
-  for body in def.hooks[HookBeforeBuild]:
-    result.add(body)
-  result.add: quote:
-    `state`.app = `widget`.app
-  if def.kind == WidgetViewable:
-    result.add: quote:
-      if is_nil(`state`.app):
-        `state`.app = Viewable(`state`)
+  result = new_stmt_list()
+  
+  if def.base.len > 0:
+    result.add(new_call(ident("build_state"), state, new_call(def.widget_base, widget)))
+  
   for field in def.fields:
     if not field.hooks[HookBuild].is_nil:
-      result.add(field.hooks[HookBuild])
+      result.add(field.hooks[HookBuild].clone())
     else:
       var cond = new_tree(nnkIfStmt, [
         new_tree(nnkElifBranch, [
@@ -306,14 +302,37 @@ proc gen_build(def: WidgetDef): NimNode =
         ))))
       result.add(cond)
       if not field.hooks[HookProperty].is_nil:
-        result.add(field.hooks[HookProperty])
+        result.add(field.hooks[HookProperty].clone())
   for event in def.events:
     result.add(new_assignment(
       new_dot_expr(state, event.name),
       new_dot_expr(widget, event.name)
     ))
   for body in def.hooks[HookConnectEvents]:
+    result.add(body.clone())
+  
+  result = new_proc(
+    proc_type=nnkProcDef,
+    name=ident("build_state"),
+    params=[new_empty_node(),
+      new_ident_defs(state, ident(def.state_name)),
+      new_ident_defs(widget, ident(def.name))
+    ],
+    body = result
+  )
+
+proc gen_build(def: WidgetDef): NimNode =
+  let (state, widget) = (ident("state"), ident("widget"))
+  result = new_stmt_list(new_var_stmt(state, new_call(ident(def.state_name))))
+  for body in def.hooks[HookBeforeBuild]:
     result.add(body)
+  result.add: quote:
+    `state`.app = `widget`.app
+  if def.kind == WidgetViewable:
+    result.add: quote:
+      if is_nil(`state`.app):
+        `state`.app = Viewable(`state`)
+  result.add(new_call(ident("build_state"), state, widget))
   for body in def.hooks[HookAfterBuild]:
     result.add(body)
   if def.kind == WidgetViewable:
@@ -331,17 +350,18 @@ proc gen_build(def: WidgetDef): NimNode =
     body = result
   )
 
-proc gen_update(def: WidgetDef): NimNode =
-  let
-    widget_typ = ident(def.name)
-    state_typ = ident(def.state_name)
-    (widget, state) = (ident("widget"), ident("state"))
-    body = new_stmt_list()
+proc gen_update_state(def: WidgetDef): NimNode =
+  let (widget, state) = (ident("widget"), ident("state"))
+  result = new_stmt_list()
+  
+  if def.base.len > 0:
+    result.add(new_call(ident("update_state"), state, new_call(def.widget_base, widget)))
+  
   for hook in def.hooks[HookDisconnectEvents]:
-    body.add(hook)
+    result.add(hook.clone())
   for field in def.fields:
     if not field.hooks[HookUpdate].is_nil:
-      body.add(field.hooks[HookUpdate])
+      result.add(field.hooks[HookUpdate])
     else:
       let update = new_stmt_list(new_assignment(
         new_dot_expr(state, field.name),
@@ -349,7 +369,7 @@ proc gen_update(def: WidgetDef): NimNode =
       ))
       var cond = new_dot_expr(widget, "has_" & field.name)
       if not field.hooks[HookProperty].is_nil:
-        update.add(field.hooks[HookProperty])
+        update.add(field.hooks[HookProperty].clone())
         cond = new_call(bind_sym("and"), [
           cond,
           new_call(bind_sym("!="), [
@@ -357,45 +377,77 @@ proc gen_update(def: WidgetDef): NimNode =
             new_dot_expr(widget, "val_" & field.name)
           ])
         ])
-      body.add(new_tree(nnkIfStmt, new_tree(nnkElifBranch, [
+      result.add(new_tree(nnkIfStmt, new_tree(nnkElifBranch, [
         cond, update
       ])))
   for event in def.events:
-    body.add(new_assignment(
+    result.add(new_assignment(
       new_dot_expr(state, event.name),
       new_dot_expr(widget, event.name)
     ))
   for hook in def.hooks[HookUpdate]:
-    body.add(hook)
+    result.add(hook.clone())
   for hook in def.hooks[HookConnectEvents]:
-    body.add(hook)
-  if def.kind == WidgetViewable:
-    body.add(new_call(bind_sym("redraw"), state))
-  result = quote:
-    method update(`widget`: `widget_typ`, state: WidgetState): WidgetState =
-      if not (state of `state_typ`):
-        return `widget`.build()
-      let `state` = `state_typ`(state)
-      `state`.app = `widget`.app
-      `body`
+    result.add(hook.clone())
+  
+  result = new_proc(
+    proc_type=nnkProcDef,
+    name=ident("update_state"),
+    params=[new_empty_node(),
+      new_ident_defs(state, ident(def.state_name)),
+      new_ident_defs(widget, ident(def.name))
+    ],
+    body = result
+  )
 
-proc gen_assign_app(def: WidgetDef): NimNode =
+proc gen_update(def: WidgetDef): NimNode =
   let
     widget_typ = ident(def.name)
-    (widget, app) = (ident("widget"), ident("app"))
-    body = new_stmt_list()
+    state_typ = ident(def.state_name)
+    update_state = ident("update_state")
+    is_viewable = new_lit(def.kind == WidgetViewable)
+  result = quote:
+    method update(widget: `widget_typ`, widget_state: WidgetState): WidgetState =
+      if not (widget_state of `state_typ`):
+        return widget.build()
+      let state = `state_typ`(widget_state)
+      state.app = widget.app
+      `update_state`(state, widget)
+      when `is_viewable`:
+        redraw(state)
+
+proc gen_assign_app_events(def: WidgetDef): NimNode =
+  let (widget, app) = (ident("widget"), ident("app"))
+  result = new_stmt_list()
+  
+  if def.base.len > 0:
+    result.add(new_call(ident("assign_app_events"), new_call(def.widget_base, widget), app))
+  
   for event in def.events:
     let event = widget.new_dot_expr(event.name)
-    body.add(new_tree(nnkIfStmt, new_tree(nnkElifBranch, [
+    result.add(new_tree(nnkIfStmt, new_tree(nnkElifBranch, [
       new_call(bind_sym("not"), new_call(bind_sym("is_nil"), event)),
       new_stmt_list(new_assignment(
         event.new_dot_expr("app"), app
       ))
     ])))
+  
+  result = new_proc(
+    proc_type=nnkProcDef,
+    name=ident("assign_app_events"),
+    params=[new_empty_node(),
+      new_ident_defs(widget, ident(def.name)),
+      new_ident_defs(app, bind_sym("Viewable"))
+    ],
+    body = result
+  )
+
+proc gen_assign_app(def: WidgetDef): NimNode =
+  let widget_typ = ident(def.name)  
   result = quote:
-    method assign_app(`widget`: `widget_typ`, `app`: Viewable) =
-      `widget`.app = `app`
-      `body`
+    method assign_app(widget: `widget_typ`, app: Viewable) =
+      widget.app = app
+      assign_app_events(widget, app)
 
 proc gen(widget: WidgetDef): NimNode =
   result = new_stmt_list([
@@ -403,8 +455,11 @@ proc gen(widget: WidgetDef): NimNode =
       widget.gen_widget(),
       widget.gen_state()
     ] & widget.types),
+    widget.gen_build_state(),
     widget.gen_build(),
+    widget.gen_update_state(),
     widget.gen_update(),
+    widget.gen_assign_app_events(),
     widget.gen_assign_app()
   ])
 

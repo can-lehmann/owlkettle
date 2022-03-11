@@ -38,3 +38,15 @@ proc new_bracket_expr*(node, index: NimNode): NimNode =
 
 proc new_export*(node: NimNode): NimNode =
   result = new_tree(nnkPostfix, ident("*"), node)
+
+proc clone*(node: NimNode): NimNode =
+  case node.kind:
+    of nnkIdent, nnkSym:
+      result = ident(node.str_val)
+    of nnkLiterals:
+      result = node
+    else:
+      result = new_nim_node(node.kind)
+      for child in node:
+        result.add(child.clone()) 
+
