@@ -802,7 +802,63 @@ renderable TextView:
         raise new_exception(ValueError, "TextView.buffer must not be nil")
       gtk_text_view_set_buffer(state.internal_widget, state.buffer.gtk)
 
+renderable ListBoxRow of Bin:
+  hooks:
+    before_build:
+      state.internal_widget = gtk_list_box_row_new()
+
+type SelectionMode* = enum
+  SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
+
+renderable ListBox:
+  rows: seq[Widget]
+  selection_mode: SelectionMode
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_list_box_new()
+  
+  hooks selection_mode:
+    property:
+      gtk_list_box_set_selection_mode(state.internal_widget,
+        GtkSelectionMode(ord(state.selection_mode))
+      )
+  
+  hooks rows:
+    build:
+      for row in widget.val_rows:
+        row.assign_app(widget.app)
+        let row_state = row.build()
+        state.rows.add(row_state)
+        let row_widget = row_state.unwrap_renderable().internal_widget
+        gtk_container_add(state.internal_widget, row_widget)
+    update:
+      var it = 0
+      while it < widget.val_rows.len and it < state.rows.len:
+        widget.val_rows[it].assign_app(state.app)
+        let new_row = widget.val_rows[it].update(state.rows[it])
+        assert new_row.is_nil
+        it += 1
+      
+      while it < widget.val_rows.len:
+        widget.val_rows[it].assign_app(state.app)
+        let
+          row_state = widget.val_rows[it].build()
+          row_widget = row_state.unwrap_renderable().internal_widget
+        state.rows.add(row_state)
+        gtk_container_add(state.internal_widget, row_widget)
+        gtk_widget_show_all(row_widget)
+        it += 1
+      
+      while it < state.rows.len:
+        let row = unwrap_renderable(state.rows.pop()).internal_widget
+        gtk_container_remove(state.internal_widget, row)
+
+proc add*(list_box: ListBox, row: ListBoxRow) =
+  list_box.has_rows = true
+  list_box.val_rows.add(row)
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
-export MenuButton, Popover, TextView
+export MenuButton, Popover, TextView, ListBox, ListBoxRow
 export build_state, update_state, assign_app_events

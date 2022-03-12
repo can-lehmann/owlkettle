@@ -63,15 +63,19 @@ method view(app: AppState): Widget =
               app.todos.add(TodoItem(text: app.query))
               app.query = ""
         
-        for it, todo in app.todos:
-          Box {.expand: false.}:
-            spacing = 6
-            CheckButton {.expand: false.}:
-              state = todo.done
-              proc changed(state: bool) =
-                app.todos[it].done = state
-            Label:
-              text = todo.text
-              x_align = 0
+        ScrolledWindow:
+          ListBox:
+            selection_mode = SelectionNone
+            for it, todo in app.todos:
+              ListBoxRow:
+                Box:
+                  spacing = 6
+                  CheckButton {.expand: false.}:
+                    state = todo.done
+                    proc changed(state: bool) =
+                      app.todos[it].done = state
+                  Label:
+                    text = todo.text
+                    x_align = 0
 
 brew(gui(App()))

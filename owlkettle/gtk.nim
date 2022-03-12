@@ -53,6 +53,12 @@ type
     GTK_ICON_SIZE_DND,
     GTK_ICON_SIZE_DIALOG
   
+  GtkSelectionMode* = enum
+    GTK_SELECTION_NONE,
+    GTK_SELECTION_SINGLE,
+    GTK_SELECTION_BROWSE,
+    GTK_SELECTION_MULTIPLE
+  
   PangoEllipsizeMode* = enum
     PANGO_ELLIPSIZE_NONE,
     PANGO_ELLIPSIZE_START,
@@ -311,6 +317,13 @@ proc gtk_text_buffer_get_iter_at_offset*(buffer: GtkTextBuffer, iter: GtkTextIte
 proc gtk_text_view_new*(): GtkWidget
 proc gtk_text_view_set_buffer*(text_view: GtkWidget, buffer: GtkTextBuffer)
 proc gtk_text_view_set_monospace*(text_view: GtkWidget, monospace: cbool)
+
+# Gtk.ListBox
+proc gtk_list_box_new*(): GtkWidget
+proc gtk_list_box_set_selection_mode*(list_box: GtkWidget, mode: GtkSelectionMode)
+
+# Gtk.ListBoxRow
+proc gtk_list_box_row_new*(): GtkWidget
 {.pop.}
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
