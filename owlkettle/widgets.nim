@@ -858,7 +858,38 @@ proc add*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
 
+type FileChooserAction* = enum
+  FileChooserOpen,
+  FileChooserSave,
+  FileChooserSelectFolder,
+  FileChooserCreateFolder
+
+renderable FileChooserDialog of Dialog:
+  title: string = ""
+  action: FileChooserAction
+  filename: string = ""
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_file_chooser_dialog_new(
+        widget.val_title.cstring,
+        nil,
+        GtkFileChooserAction(ord(widget.val_action))
+      )
+      discard gtk_dialog_add_button(state.internal_widget, "Cancel", -6)
+      let
+        open_button = gtk_dialog_add_button(state.internal_widget, "Open", -3)
+        open_ctx = gtk_widget_get_style_context(open_button)
+      gtk_style_context_add_class(open_ctx, "suggested-action")
+    after_build:
+      gtk_widget_show_all(state.internal_widget)
+  
+  hooks filename:
+    read:
+      state.filename = $gtk_file_chooser_get_filename(state.internal_widget)
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, Popover, TextView, ListBox, ListBoxRow
+export FileChooserDialog, FileChooserDialogState
 export build_state, update_state, assign_app_events

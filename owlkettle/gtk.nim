@@ -64,6 +64,12 @@ type
     PANGO_ELLIPSIZE_START,
     PANGO_ELLIPSIZE_MIDDLE,
     PANGO_ELLIPSIZE_END
+  
+  GtkFileChooserAction* = enum
+    GTK_FILE_CHOOSER_ACTION_OPEN,
+    GTK_FILE_CHOOSER_ACTION_SAVE,
+    GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+    GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER
 
 type
   GtkTextBuffer* = distinct pointer
@@ -185,6 +191,7 @@ proc gtk_widget_get_style_context*(widget: GtkWidget): GtkStyleContext
 proc gtk_widget_set_events*(widget: GtkWidget, events: GdkEventMask)
 proc gtk_widget_get_events*(widget: GtkWidget): GdkEventMask
 proc gtk_widget_queue_draw*(widget: GtkWidget)
+proc gtk_widget_destroy*(widget: GtkWidget)
 
 # Gtk.StyleContext
 proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)
@@ -204,6 +211,8 @@ proc gtk_window_new*(window_type: GtkWindowType): GtkWidget
 proc gtk_window_set_title*(window: GtkWidget, title: cstring)
 proc gtk_window_set_titlebar*(window, titlebar: GtkWidget)
 proc gtk_window_set_default_size*(window: GtkWidget, width, height: cint)
+proc gtk_window_set_transient_for*(window, parent: GtkWidget)
+proc gtk_window_set_modal*(window: GtkWidget, modal: cbool)
 
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
@@ -324,6 +333,18 @@ proc gtk_list_box_set_selection_mode*(list_box: GtkWidget, mode: GtkSelectionMod
 
 # Gtk.ListBoxRow
 proc gtk_list_box_row_new*(): GtkWidget
+
+# Gtk.Dialog
+proc gtk_dialog_run*(dialog: GtkWidget): cint
+proc gtk_dialog_add_button*(dialog: GtkWidget, text: cstring, response: cint): GtkWidget
+
+# Gtk.FileChooser
+proc gtk_file_chooser_get_filename*(file_chooser: GtkWidget): cstring
+
+# Gtk.FileChooserDialog
+proc gtk_file_chooser_dialog_new*(title: cstring,
+                                  parent: GtkWidget,
+                                  action: GtkFileChooserAction): GtkWidget {.varargs.}
 {.pop.}
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =

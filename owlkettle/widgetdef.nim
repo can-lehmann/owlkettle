@@ -48,7 +48,12 @@ type
 method build*(widget: Widget): WidgetState {.base.} = discard
 method update*(widget: Widget, state: WidgetState): WidgetState {.base.} = discard
 method view*(viewable: Viewable): Widget {.base.} = discard
+method read*(state: WidgetState) {.base.} = discard
 method assign_app*(widget: Widget, app: Viewable) {.base.} = discard
+
+method read(state: Viewable) =
+  if not state.viewed.is_nil:
+    state.viewed.read()
 
 proc assign_app*[T](items: seq[T], app: Viewable) =
   mixin assign_app
@@ -74,7 +79,8 @@ type
   HookKind = enum
     HookProperty, HookAfterBuild, HookUpdate,
     HookBuild, HookBeforeBuild,
-    HookConnectEvents, HookDisconnectEvents
+    HookConnectEvents, HookDisconnectEvents,
+    HookRead
   
   Field = object
     name: string
@@ -138,6 +144,7 @@ proc parse_hook_kind(name: string): HookKind =
     of "afterbuild": HookAfterBuild
     of "connectevents": HookConnectEvents
     of "disconnectevents": HookDisconnectEvents
+    of "read": HookRead
     else:
       error(name & " is not a valid hook")
       HookProperty
@@ -259,7 +266,7 @@ proc gen_state(def: WidgetDef): NimNode =
     if def.kind == WidgetRenderable:
       field_type = substitute_widgets(field_type)
     result.add(new_tree(nnkIdentDefs, [
-      ident(field.name), field_type, new_empty_node()
+      ident(field.name).new_export(), field_type, new_empty_node()
     ]))
   for event in def.events:
     result.add(event.gen_ident_defs())
@@ -449,6 +456,25 @@ proc gen_assign_app(def: WidgetDef): NimNode =
       widget.app = app
       assign_app_events(widget, app)
 
+proc gen_read(def: WidgetDef): NimNode =
+  let
+    state = ident("state")
+    state_typ = ident(def.state_name)
+    body = new_stmt_list()
+  
+  if def.base.len > 0:
+    body.add(new_call(bind_sym("proc_call"),
+      new_call(ident("read"), new_call(ident(def.base & "State"), state))
+    ))
+  
+  for field in def.fields:
+    if not field.hooks[HookRead].is_nil:
+      body.add(field.hooks[HookRead].clone())
+  
+  result = quote:
+    method read(`state`: `state_typ`) =
+      `body`
+
 proc gen(widget: WidgetDef): NimNode =
   result = new_stmt_list([
     new_tree(nnkTypeSection, @[
@@ -460,7 +486,8 @@ proc gen(widget: WidgetDef): NimNode =
     widget.gen_update_state(),
     widget.gen_update(),
     widget.gen_assign_app_events(),
-    widget.gen_assign_app()
+    widget.gen_assign_app(),
+    widget.gen_read()
   ])
 
 macro renderable*(name, body: untyped): untyped =
@@ -472,6 +499,37 @@ macro viewable*(name, body: untyped): untyped =
   let widget = parse_widget_def(WidgetViewable, name, body)
   result = widget.gen()
   echo result.repr
+
+type
+  DialogResponseKind* = enum
+    DialogCustom, DialogAccept, DialogCancel
+  
+  DialogResponse* = object
+    case kind*: DialogResponseKind:
+      of DialogCustom: id*: int
+      else: discard
+
+proc to_dialog_response(id: cint): DialogResponse =
+  case id:
+    of -3: result = DialogResponse(kind: DialogAccept)
+    of -6: result = DialogResponse(kind: DialogCancel)
+    else: result = DialogResponse(kind: DialogCustom, id: int(id))
+
+renderable Dialog:
+  discard
+
+export Dialog, DialogState, build_state, update_state, assign_app_events
+
+proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: WidgetState] =
+  let
+    state = DialogState(widget.build())
+    window = app.unwrap_renderable().internal_widget
+    dialog = state.unwrap_renderable().internal_widget
+  gtk_window_set_transient_for(dialog, window)
+  let res = gtk_dialog_run(dialog)
+  state.read()
+  gtk_widget_destroy(dialog)
+  result = (to_dialog_response(res), state)
 
 proc brew*(widget: Widget) =
   gtk_init()
