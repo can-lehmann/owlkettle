@@ -28,7 +28,7 @@ import common, widgetdef
 type
   NodeKind = enum
     NodeWidget, NodeAttribute, NodeEvent,
-    NodeBlock, NodeFor, NodeIf,
+    NodeBlock, NodeFor, NodeIf, NodeCase,
     NodeInsert
   
   Adder = object
@@ -53,6 +53,10 @@ type
       of NodeIf:
         branches: seq[(NimNode, Node)]
         otherwise: Node
+      of NodeCase:
+        discr: NimNode
+        patterns: seq[(NimNode, Node)]
+        default: Node
       of NodeInsert:
         insert: NimNode
         insert_adder: Adder
@@ -72,7 +76,7 @@ proc parse_adder(node: NimNode): Adder =
 proc parse_gui(node: NimNode): Node =
   case node.kind:
     of nnkCallKinds:
-      if node[0].is_name("insert"):
+      if node[0].unwrap_name().is_name("insert"):
         return Node(kind: NodeInsert, insert: node[1])
       elif node[0].is_name:
         result = Node(kind: NodeWidget, widget: node[0].str_val)
@@ -124,7 +128,19 @@ proc parse_gui(node: NimNode): Node =
               error("There may be at most one else branch in an if statement")
             result.otherwise = child[0].parse_gui()
           else:
-            error($node.kind & " is not a valid gui tree inside an if statement.")
+            error($child.kind & " is not a valid gui tree inside an if statement.")
+    of nnkCaseStmt:
+      result = Node(kind: NodeCase, discr: node[0])
+      for it in 1..<node.len:
+        let child = node[it]
+        case child.kind:
+          of nnkOfBranch:
+            assert child.len == 2
+            result.patterns.add((child[0], child[1].parse_gui()))
+          of nnkElse:
+            result.default = child[0].parse_gui()
+          else:
+            error($child.kind & " is not a valid gui tree inside a case statement.")
     else: error($node.kind & " is not a valid gui tree.")
 
 proc gen(adder: Adder, name, parent: NimNode): NimNode =
@@ -188,6 +204,17 @@ proc gen(node: Node, stmts, parent: NimNode) =
       if not node.otherwise.is_nil:
         var body_stmts = new_stmt_list()
         node.otherwise.gen(body_stmts, parent)
+        stmt.add(new_tree(nnkElse, body_stmts))
+      stmts.add(stmt)
+    of NodeCase:
+      let stmt = new_tree(nnkCaseStmt, node.discr)
+      for (pattern, body) in node.patterns:
+        let body_stmts = new_stmt_list()
+        body.gen(body_stmts, parent)
+        stmt.add(new_tree(nnkOfBranch, pattern, body_stmts))
+      if not node.default.is_nil:
+        let body_stmts = new_stmt_list()
+        node.default.gen(body_stmts, parent)
         stmt.add(new_tree(nnkElse, body_stmts))
       stmts.add(stmt)
     of NodeInsert:

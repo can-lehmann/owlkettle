@@ -25,10 +25,21 @@
 import std/[macros, strutils]
 
 proc is_name*(node: NimNode): bool =
+  if node.is_nil:
+    return false
   result = node.kind == nnkIdent or node.kind == nnkSym
 
 proc is_name*(node: NimNode, name: string): bool =
   result = node.is_name and nim_ident_normalize(node.str_val) == nim_ident_normalize(name)
+
+proc unwrap_name*(node: NimNode): NimNode =
+  result = node
+  while not result.is_name:
+    case result.kind:
+      of nnkOpenSymChoice, nnkClosedSymChoice:
+        result = result[0]
+      else:
+        return nil
 
 proc new_dot_expr*(node: NimNode, field: string): NimNode =
   result = new_tree(nnkDotExpr, [node, ident(field)])
