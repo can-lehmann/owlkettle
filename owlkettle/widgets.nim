@@ -166,6 +166,10 @@ renderable Window of Bin:
         state.default_size.width.cint,
         state.default_size.height.cint
       )
+  
+  example:
+    Window:
+      Label(text = "Hello, world")
 
 proc add_titlebar*(window: Window, titlebar: Widget) =
   window.has_titlebar = true
@@ -276,7 +280,12 @@ renderable Box of Container:
   hooks style:
     (build, update):
       update_style(state, widget)
-
+  
+  example:
+    Box:
+      orient = OrientX
+      Label(text = "Label")
+      Button(text = "Button") {.expand: false.}
 
 proc add*(box: Box, child: Widget, expand: bool = true, fill: bool = true) =
   box.has_children = true
@@ -314,7 +323,12 @@ renderable Label:
   hooks ellipsize:
     property:
       gtk_label_set_ellipsize(state.internal_widget, PangoEllipsizeMode(ord(state.ellipsize)))
-
+  
+  example:
+    Label:
+      text = "Hello, world!"
+      x_align = 0.0
+      ellipsize = EllipsizeEnd
 
 renderable Icon:
   name: string
@@ -326,6 +340,10 @@ renderable Icon:
   hooks name:
     property:
       gtk_image_set_from_icon_name(state.internal_widget, state.name.cstring, GTK_ICON_SIZE_BUTTON)
+  
+  example:
+    Icon:
+      name = "list-add-symbolic"
 
 type ButtonStyle* = enum
   ButtonSuggested, ButtonDestructive, ButtonFlat
@@ -354,6 +372,18 @@ renderable Button of Bin:
   hooks style:
     (build, update):
       update_style(state, widget)
+  
+  example:
+    Button:
+      icon = "list-add-symbolic"
+      style = {ButtonSuggested}
+      proc clicked() =
+        echo "clicked"
+  
+  example:
+    Button:
+      text = "Delete"
+      style = {ButtonDestructive}
 
 proc `has_text=`*(button: Button, value: bool) = button.has_child = value
 proc `val_text=`*(button: Button, value: string) =
@@ -427,6 +457,20 @@ renderable HeaderBar:
           state.right, widget.val_right,
           gtk_header_bar_pack_end
         )
+  
+  example:
+    Window:
+      border_width = 12
+      
+      HeaderBar {.add_titlebar.}:
+        title = "Title"
+        subtitle = "Subtitle"
+        
+        Button {.add_left.}:
+          icon = "list-add-symbolic"
+        
+        Button {.add_right.}:
+          icon = "open-menu-symbolic"
 
 proc add_left*(header_bar: HeaderBar, child: Widget) =
   header_bar.has_left = true
@@ -472,7 +516,12 @@ renderable Entry:
   hooks x_align:
     property:
       gtk_entry_set_alignment(state.internal_widget, state.x_align.cfloat)
-
+  
+  example:
+    Entry:
+      text = app.text
+      proc changed(text: string) =
+        app.text = text
 
 type PanedChild[T] = object
   widget: T

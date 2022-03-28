@@ -37,6 +37,13 @@ renderable Window of Bin
 - `titlebar: Widget`
 - `default_size: tuple[width, height: int] = (800, 600)`
 
+### Example
+
+```nim
+Window:
+  Label(text = "Hello, world")
+```
+
 
 ## Box
 
@@ -52,6 +59,15 @@ renderable Box of Container
 - `children: seq[PackedChild[Widget]]`
 - `style: set[BoxStyle]`
 
+### Example
+
+```nim
+Box:
+  orient = OrientX
+  Label(text = "Label")
+  Button(text = "Button") {.expand: false.}
+```
+
 
 ## Label
 
@@ -66,6 +82,15 @@ renderable Label
 - `y_align: float = 0.5`
 - `ellipsize: EllipsizeMode`
 
+### Example
+
+```nim
+Label:
+  text = "Hello, world!"
+  x_align = 0.0
+  ellipsize = EllipsizeEnd
+```
+
 
 ## Icon
 
@@ -76,6 +101,13 @@ renderable Icon
 ### Fields
 
 - `name: string`
+
+### Example
+
+```nim
+Icon:
+  name = "list-add-symbolic"
+```
 
 
 ## Button
@@ -93,6 +125,23 @@ renderable Button of Bin
 
 - clicked: `proc ()`
 
+### Example
+
+```nim
+Button:
+  icon = "list-add-symbolic"
+  style = {ButtonSuggested}
+  proc clicked() =
+    echo "clicked"
+
+```
+
+```nim
+Button:
+  text = "Delete"
+  style = {ButtonDestructive}
+```
+
 
 ## HeaderBar
 
@@ -107,6 +156,20 @@ renderable HeaderBar
 - `show_close_button: bool = true`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
+
+### Example
+
+```nim
+Window:
+  border_width = 12
+  HeaderBar {.add_titlebar.}:
+    title = "Title"
+    subtitle = "Subtitle"
+    Button {.add_left.}:
+      icon = "list-add-symbolic"
+    Button {.add_right.}:
+      icon = "open-menu-symbolic"
+```
 
 
 ## ScrolledWindow
@@ -136,6 +199,16 @@ renderable Entry
 ### Events
 
 - changed: `proc (text: string)`
+
+### Example
+
+```nim
+Entry:
+  text = app.text
+  proc changed(text: string) =
+    app.text = text
+
+```
 
 
 ## Paned

@@ -100,6 +100,7 @@ type
     fields: seq[Field]
     hooks: array[HookKind, seq[NimNode]]
     types: seq[NimNode]
+    examples: seq[NimNode]
 
 proc state_name(def: WidgetDef): string = def.name & "State"
 
@@ -192,6 +193,8 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
             for kind, body in hooks:
               if not body.is_nil:
                 def.fields[field_id].hooks[kind] = body
+        elif child[0].is_name("example"):
+          def.examples.add(child[1])
         else:
           var field = Field(name: child[0].str_val)
           case child[1][0].kind:
@@ -498,6 +501,10 @@ proc format_reference(widget: WidgetDef): string =
     for event in widget.events:
       result &= "- " & event.name & ": `proc " & event.signature.repr & "`\n"
     result &= "\n"
+  if widget.examples.len > 0:
+    result &= "### Example\n\n"
+    for example in widget.examples:
+      result &= "```nim" & example.repr & "\n```\n\n"
 
 proc gen_docs(widget: WidgetDef): NimNode =
   result = new_call(bind_sym("echo"),
