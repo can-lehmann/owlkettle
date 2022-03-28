@@ -2,4 +2,5 @@ examples/counter
 examples/todo
 examples/text_view
 examples/file_dialog
+build_docs
 .git-old

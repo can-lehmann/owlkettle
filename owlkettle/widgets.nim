@@ -24,6 +24,9 @@
 
 import gtk, widgetdef, cairo
 
+when defined(owlkettle_docs):
+  echo "# Widgets\n\n"
+
 proc event_callback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
   if data[].app.is_nil:

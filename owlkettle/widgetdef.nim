@@ -475,6 +475,35 @@ proc gen_read(def: WidgetDef): NimNode =
     method read(`state`: `state_typ`) =
       `body`
 
+proc format_reference(widget: WidgetDef): string =
+  result = "## " & widget.name & "\n\n"
+  result &= "```nim\n"
+  result &= ["renderable", "viewable"][ord(widget.kind)] & " "
+  result &= widget.name
+  if widget.base.len > 0:
+    result &= " of " & widget.base
+  result &= "\n```\n\n"
+  if widget.fields.len > 0 or widget.base.len > 0:
+    result &= "### Fields\n\n"
+    if widget.base.len > 0:
+      result &= "- All fields from [" & widget.base & "](#" & widget.base & ")\n"
+    for field in widget.fields:
+      result &= "- `" & field.name & ": " & field.typ.repr
+      if not field.default.is_nil:
+        result &= " = " & field.default.repr
+      result &= "`\n"
+    result &= "\n"
+  if widget.events.len > 0:
+    result &= "### Events\n\n"
+    for event in widget.events:
+      result &= "- " & event.name & ": `proc " & event.signature.repr & "`\n"
+    result &= "\n"
+
+proc gen_docs(widget: WidgetDef): NimNode =
+  result = new_call(bind_sym("echo"),
+    new_lit(widget.format_reference())
+  )
+
 proc gen(widget: WidgetDef): NimNode =
   result = new_stmt_list([
     new_tree(nnkTypeSection, @[
@@ -489,6 +518,8 @@ proc gen(widget: WidgetDef): NimNode =
     widget.gen_assign_app(),
     widget.gen_read()
   ])
+  when defined(owlkettle_docs):
+    result.add(widget.gen_docs())
 
 macro renderable*(name, body: untyped): untyped =
   let widget = parse_widget_def(WidgetRenderable, name, body)
