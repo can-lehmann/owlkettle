@@ -487,7 +487,7 @@ proc format_reference(widget: WidgetDef): string =
     result &= " of " & widget.base
   result &= "\n```\n\n"
   if widget.fields.len > 0 or widget.base.len > 0:
-    result &= "### Fields\n\n"
+    result &= "###### Fields\n\n"
     if widget.base.len > 0:
       result &= "- All fields from [" & widget.base & "](#" & widget.base & ")\n"
     for field in widget.fields:
@@ -497,12 +497,12 @@ proc format_reference(widget: WidgetDef): string =
       result &= "`\n"
     result &= "\n"
   if widget.events.len > 0:
-    result &= "### Events\n\n"
+    result &= "###### Events\n\n"
     for event in widget.events:
       result &= "- " & event.name & ": `proc " & event.signature.repr & "`\n"
     result &= "\n"
   if widget.examples.len > 0:
-    result &= "### Example\n\n"
+    result &= "###### Example\n\n"
     for example in widget.examples:
       result &= "```nim" & example.repr & "\n```\n\n"
 

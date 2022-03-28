@@ -7,7 +7,7 @@
 renderable Container
 ```
 
-### Fields
+###### Fields
 
 - `border_width: int`
 
@@ -18,7 +18,7 @@ renderable Container
 renderable Bin of Container
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Container](#Container)
 - `child: Widget`
@@ -30,14 +30,14 @@ renderable Bin of Container
 renderable Window of Bin
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Bin](#Bin)
 - `title: string`
 - `titlebar: Widget`
 - `default_size: tuple[width, height: int] = (800, 600)`
 
-### Example
+###### Example
 
 ```nim
 Window:
@@ -51,7 +51,7 @@ Window:
 renderable Box of Container
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Container](#Container)
 - `orient: Orient`
@@ -59,7 +59,7 @@ renderable Box of Container
 - `children: seq[PackedChild[Widget]]`
 - `style: set[BoxStyle]`
 
-### Example
+###### Example
 
 ```nim
 Box:
@@ -75,14 +75,14 @@ Box:
 renderable Label
 ```
 
-### Fields
+###### Fields
 
 - `text: string`
 - `x_align: float = 0.5`
 - `y_align: float = 0.5`
 - `ellipsize: EllipsizeMode`
 
-### Example
+###### Example
 
 ```nim
 Label:
@@ -98,11 +98,11 @@ Label:
 renderable Icon
 ```
 
-### Fields
+###### Fields
 
 - `name: string`
 
-### Example
+###### Example
 
 ```nim
 Icon:
@@ -116,16 +116,16 @@ Icon:
 renderable Button of Bin
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Bin](#Bin)
 - `style: set[ButtonStyle]`
 
-### Events
+###### Events
 
 - clicked: `proc ()`
 
-### Example
+###### Example
 
 ```nim
 Button:
@@ -149,7 +149,7 @@ Button:
 renderable HeaderBar
 ```
 
-### Fields
+###### Fields
 
 - `title: string`
 - `subtitle: string`
@@ -157,7 +157,7 @@ renderable HeaderBar
 - `left: seq[Widget]`
 - `right: seq[Widget]`
 
-### Example
+###### Example
 
 ```nim
 Window:
@@ -178,7 +178,7 @@ Window:
 renderable ScrolledWindow of Bin
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Bin](#Bin)
 
@@ -189,18 +189,18 @@ renderable ScrolledWindow of Bin
 renderable Entry
 ```
 
-### Fields
+###### Fields
 
 - `text: string`
 - `placeholder: string`
 - `width: int = -1`
 - `x_align: float = 0.0`
 
-### Events
+###### Events
 
 - changed: `proc (text: string)`
 
-### Example
+###### Example
 
 ```nim
 Entry:
@@ -217,7 +217,7 @@ Entry:
 renderable Paned
 ```
 
-### Fields
+###### Fields
 
 - `orient: Orient`
 - `initial_position: int`
@@ -231,7 +231,7 @@ renderable Paned
 renderable DrawingArea
 ```
 
-### Events
+###### Events
 
 - draw: `proc (ctx: CairoContext; size: (int, int))`
 - mouse_pressed: `proc (event: ButtonEvent)`
@@ -245,12 +245,12 @@ renderable DrawingArea
 renderable ColorButton
 ```
 
-### Fields
+###### Fields
 
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
 - `use_alpha: bool = false`
 
-### Events
+###### Events
 
 - changed: `proc (color: tuple[r, g, b, a: float])`
 
@@ -261,11 +261,11 @@ renderable ColorButton
 renderable Switch
 ```
 
-### Fields
+###### Fields
 
 - `state: bool`
 
-### Events
+###### Events
 
 - changed: `proc (state: bool)`
 
@@ -276,12 +276,12 @@ renderable Switch
 renderable ToggleButton of Button
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Button](#Button)
 - `state: bool`
 
-### Events
+###### Events
 
 - changed: `proc (state: bool)`
 
@@ -292,7 +292,7 @@ renderable ToggleButton of Button
 renderable CheckButton of ToggleButton
 ```
 
-### Fields
+###### Fields
 
 - All fields from [ToggleButton](#ToggleButton)
 
@@ -303,7 +303,7 @@ renderable CheckButton of ToggleButton
 renderable Popover
 ```
 
-### Fields
+###### Fields
 
 - `child: Widget`
 
@@ -314,7 +314,7 @@ renderable Popover
 renderable MenuButton of Button
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Button](#Button)
 - `popover: Widget`
@@ -326,12 +326,12 @@ renderable MenuButton of Button
 renderable TextView
 ```
 
-### Fields
+###### Fields
 
 - `buffer: TextBuffer`
 - `monospace: bool`
 
-### Events
+###### Events
 
 - changed: `proc ()`
 
@@ -342,7 +342,7 @@ renderable TextView
 renderable ListBoxRow of Bin
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Bin](#Bin)
 
@@ -353,7 +353,7 @@ renderable ListBoxRow of Bin
 renderable ListBox
 ```
 
-### Fields
+###### Fields
 
 - `rows: seq[Widget]`
 - `selection_mode: SelectionMode`
@@ -365,7 +365,7 @@ renderable ListBox
 renderable Frame of Bin
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Bin](#Bin)
 - `label: string`
@@ -378,7 +378,7 @@ renderable Frame of Bin
 renderable DialogButton
 ```
 
-### Fields
+###### Fields
 
 - `text: string`
 - `response: DialogResponse`
@@ -391,7 +391,7 @@ renderable DialogButton
 renderable Dialog
 ```
 
-### Fields
+###### Fields
 
 - `buttons: seq[DialogButton]`
 
@@ -402,7 +402,7 @@ renderable Dialog
 renderable FileChooserDialog of Dialog
 ```
 
-### Fields
+###### Fields
 
 - All fields from [Dialog](#Dialog)
 - `title: string = ""`
