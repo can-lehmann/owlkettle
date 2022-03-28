@@ -499,39 +499,3 @@ macro viewable*(name, body: untyped): untyped =
   let widget = parse_widget_def(WidgetViewable, name, body)
   result = widget.gen()
   echo result.repr
-
-type
-  DialogResponseKind* = enum
-    DialogCustom, DialogAccept, DialogCancel
-  
-  DialogResponse* = object
-    case kind*: DialogResponseKind:
-      of DialogCustom: id*: int
-      else: discard
-
-proc to_dialog_response(id: cint): DialogResponse =
-  case id:
-    of -3: result = DialogResponse(kind: DialogAccept)
-    of -6: result = DialogResponse(kind: DialogCancel)
-    else: result = DialogResponse(kind: DialogCustom, id: int(id))
-
-renderable Dialog:
-  discard
-
-export Dialog, DialogState, build_state, update_state, assign_app_events
-
-proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: WidgetState] =
-  let
-    state = DialogState(widget.build())
-    window = app.unwrap_renderable().internal_widget
-    dialog = state.unwrap_renderable().internal_widget
-  gtk_window_set_transient_for(dialog, window)
-  let res = gtk_dialog_run(dialog)
-  state.read()
-  gtk_widget_destroy(dialog)
-  result = (to_dialog_response(res), state)
-
-proc brew*(widget: Widget) =
-  gtk_init()
-  let state = widget.build()
-  gtk_main()

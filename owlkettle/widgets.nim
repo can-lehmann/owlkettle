@@ -858,6 +858,57 @@ proc add*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
 
+type
+  DialogResponseKind* = enum
+    DialogCustom, DialogAccept, DialogCancel
+  
+  DialogResponse* = object
+    case kind*: DialogResponseKind:
+      of DialogCustom: id*: int
+      else: discard
+
+proc to_dialog_response*(id: cint): DialogResponse =
+  case id:
+    of -3: result = DialogResponse(kind: DialogAccept)
+    of -6: result = DialogResponse(kind: DialogCancel)
+    else: result = DialogResponse(kind: DialogCustom, id: int(id))
+
+proc to_gtk(resp: DialogResponse): cint =
+  case resp.kind:
+    of DialogCustom: result = resp.id.cint
+    of DialogAccept: result = -3
+    of DialogCancel: result = -6
+
+renderable DialogButton:
+  text: string
+  response: DialogResponse
+  style: set[ButtonStyle]
+
+proc `has_res=`*(button: DialogButton, value: bool) =
+  button.has_response = value
+
+proc `val_res=`*(button: DialogButton, kind: DialogResponseKind) =
+  button.val_response = DialogResponse(kind: kind)
+
+renderable Dialog:
+  buttons: seq[DialogButton]
+  
+  hooks buttons:
+    build:
+      for button in widget.val_buttons:
+        let
+          button_widget = gtk_dialog_add_button(state.internal_widget,
+            button.val_text.cstring,
+            button.val_response.to_gtk
+          )
+          ctx = gtk_widget_get_style_context(button_widget)
+        for class in classes(button.val_style):
+          gtk_style_context_add_class(ctx, class.cstring)
+
+proc add_button*(dialog: Dialog, button: DialogButton) =
+  dialog.has_buttons = true
+  dialog.val_buttons.add(button)
+
 type FileChooserAction* = enum
   FileChooserOpen,
   FileChooserSave,
@@ -876,11 +927,6 @@ renderable FileChooserDialog of Dialog:
         nil,
         GtkFileChooserAction(ord(widget.val_action))
       )
-      discard gtk_dialog_add_button(state.internal_widget, "Cancel", -6)
-      let
-        open_button = gtk_dialog_add_button(state.internal_widget, "Open", -3)
-        open_ctx = gtk_widget_get_style_context(open_button)
-      gtk_style_context_add_class(open_ctx, "suggested-action")
     after_build:
       gtk_widget_show_all(state.internal_widget)
   
@@ -891,5 +937,6 @@ renderable FileChooserDialog of Dialog:
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, Popover, TextView, ListBox, ListBoxRow
+export Dialog, DialogState, DialogButton
 export FileChooserDialog, FileChooserDialogState
 export build_state, update_state, assign_app_events

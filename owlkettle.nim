@@ -20,5 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle/[widgetdef, widgets, guidsl]
+import owlkettle/[gtk, widgetdef, widgets, guidsl]
 export widgetdef, widgets, guidsl
+
+proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: WidgetState] =
+  let
+    state = DialogState(widget.build())
+    window = app.unwrap_renderable().internal_widget
+    dialog = state.unwrap_renderable().internal_widget
+  gtk_window_set_transient_for(dialog, window)
+  let res = gtk_dialog_run(dialog)
+  state.read()
+  gtk_widget_destroy(dialog)
+  result = (to_dialog_response(res), state)
+
+proc brew*(widget: Widget) =
+  gtk_init()
+  let state = widget.build()
+  gtk_main()

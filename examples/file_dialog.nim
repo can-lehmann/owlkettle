@@ -41,6 +41,15 @@ method view(app: AppState): Widget =
               FileChooserDialog:
                 title = "Open a File"
                 action = FileChooserOpen
+                
+                DialogButton {.add_button.}:
+                  text = "Cancel"
+                  res = DialogCancel
+                
+                DialogButton {.add_button.}:
+                  text = "Open"
+                  res = DialogAccept
+                  style = {ButtonSuggested}
             
             if res.kind == DialogAccept:
               app.path = FileChooserDialogState(state).filename
