@@ -858,6 +858,27 @@ proc add*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
 
+renderable Frame of Bin:
+  label: string
+  align: tuple[x, y: float] = (0.0, 0.0)
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_frame_new(nil)
+  
+  hooks label:
+    property:
+      if state.label.len == 0:
+        gtk_frame_set_label(state.internal_widget, nil)
+      else:
+        gtk_frame_set_label(state.internal_widget, state.label.cstring)
+  
+  hooks align:
+    property:
+      gtk_frame_set_label_align(state.internal_widget,
+        state.align.x.cfloat, state.align.y.cfloat
+      )
+
 type
   DialogResponseKind* = enum
     DialogCustom, DialogAccept, DialogCancel
@@ -936,7 +957,7 @@ renderable FileChooserDialog of Dialog:
 
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
-export MenuButton, Popover, TextView, ListBox, ListBoxRow
+export MenuButton, Popover, TextView, ListBox, ListBoxRow, Frame
 export Dialog, DialogState, DialogButton
 export FileChooserDialog, FileChooserDialogState
 export build_state, update_state, assign_app_events

@@ -65,6 +65,13 @@ type
     PANGO_ELLIPSIZE_MIDDLE,
     PANGO_ELLIPSIZE_END
   
+  GtkShadowType* = enum
+    GTK_SHADOW_NOME,
+    GTK_SHADOW_IN,
+    GTK_SHADOW_OUT,
+    GTK_SHADOW_ETCHED_IN,
+    GTK_SHADOW_ETCHED_OUT
+  
   GtkFileChooserAction* = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -333,6 +340,12 @@ proc gtk_list_box_set_selection_mode*(list_box: GtkWidget, mode: GtkSelectionMod
 
 # Gtk.ListBoxRow
 proc gtk_list_box_row_new*(): GtkWidget
+
+# Gtk.Frame
+proc gtk_frame_new*(label: cstring): GtkWidget
+proc gtk_frame_set_label*(frame: GtkWidget, label: cstring)
+proc gtk_frame_set_label_align*(frame: GtkWidget, x, y: cfloat)
+proc gtk_frame_set_shadow_type*(frame: GtkWidget, shadow: GtkShadowType)
 
 # Gtk.Dialog
 proc gtk_dialog_run*(dialog: GtkWidget): cint
