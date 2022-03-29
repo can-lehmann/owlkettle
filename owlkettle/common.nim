@@ -38,6 +38,8 @@ proc unwrap_name*(node: NimNode): NimNode =
     case result.kind:
       of nnkOpenSymChoice, nnkClosedSymChoice:
         result = result[0]
+      of nnkHiddenDeref:
+        result = result[0]
       else:
         return nil
 

@@ -22,7 +22,7 @@
 
 # Domain-specific language for specifying GUI layouts
 
-import std/[macros, sugar]
+import std/[macros]
 import common, widgetdef
 
 type
@@ -151,6 +151,23 @@ proc gen(adder: Adder, name, parent: NimNode): NimNode =
   for (key, value) in adder.args:
     result.add(new_tree(nnkExprEqExpr, [ident(key), value]))
 
+macro custom_capture(vars: varargs[typed], body: untyped): untyped =
+  var
+    params = @[new_empty_node()]
+    args: seq[NimNode] = @[]
+  for variable in vars:
+    let name = variable.unwrap_name()
+    assert name.is_name
+    params.add(new_ident_defs(
+      ident(name.str_val),
+      variable.get_type_inst()
+    ))
+    args.add(variable)
+  result = new_proc(
+    params = params,
+    body = body
+  ).new_call(args)
+
 proc gen(node: Node, stmts, parent: NimNode) =
   case node.kind:
     of NodeWidget:
@@ -193,7 +210,9 @@ proc gen(node: Node, stmts, parent: NimNode) =
       node.children[0].gen(body, parent)
       stmts.add(new_tree(nnkForStmt, node.vars & @[
         node.iter,
-        new_tree(nnkCommand, @[bind_sym("capture")] & node.vars & @[body])
+        new_stmt_list(
+          new_call(bind_sym("custom_capture"), node.vars & @[body])
+        )
       ]))
     of NodeIf:
       var stmt = new_tree(nnkIfStmt)
