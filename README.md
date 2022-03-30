@@ -37,7 +37,7 @@ Owlkettle requires GTK 3 to be installed on your system.
 You can install it by running `dnf install gtk3-devel` on Fedora or `apt install libgtk-3-dev` on Ubuntu.
 
 ```bash
-$ nimble install https://github.com/can-lehmann/owlkettle
+$ nimble install owlkettle
 ```
 
 ## Documentation
