@@ -1,6 +1,6 @@
 version = "1.0.0"
 author = "Can Joshua Lehmann"
-description = "Freshly brewed user interfaces"
+description = "A declarative user interface framework based on GTK"
 license = "MIT"
 
 requires "nim >= 1.6.0"
