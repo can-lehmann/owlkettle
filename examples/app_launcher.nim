@@ -23,7 +23,7 @@
 # Example contributed by @beef331
 
 import owlkettle
-import std/[os, strscans, strutils, algorithm, osproc]
+import std/[os, strscans, strutils, algorithm, osproc, sequtils, sugar]
 
 const app_path = "share" / "applications"
 let application_paths = [
@@ -59,30 +59,27 @@ iterator desktop_files(): DesktopFile =
         yield result
 
 func similarity(needle, haystack: string): int =
+  result = low(int)
   for hay_ind, _ in haystack:
-    var found = 0
+    var found = -hay_ind
     for needle_ind, need in needle:
-      if needle_ind + hay_ind < haystack.len:
-        let
-          need = need.to_lower_ascii()
-          hay = haystack[needle_ind + hay_ind].to_lower_ascii()
-        if need == hay:
-          dec found
-      else:
+      if needle_ind + hay_ind >= haystack.len:
         break
-    result = min(found, result)
+      let
+        need = need.to_lower_ascii()
+        hay = haystack[needle_ind + hay_ind].to_lower_ascii()
+      if need == hay:
+        found += 1
+    if found > -hay_ind:
+      result = max(found, result)
+
+proc sort_default(desktop_files: var seq[(int, DesktopFile)]) =
+  for it, _ in desktop_files:
+    desktop_files[it][0] = 0
+  desktop_files.sort((x, y) => cmp(x[1].name.to_lower_ascii(), y[1].name.to_lower_ascii()))
 
 viewable App:
   desktop_files: seq[(int, DesktopFile)]
-
-proc get_desktop_files(str: string): seq[(int, DesktopFile)] =
-  for desktop_file in desktop_files():
-    if str.len > 0:
-      let similarity = str.similarity(desktop_file.name)
-      if similarity < 0:
-        result.add (similarity, desktop_file)
-    else:
-      result.add (0, desktop_file)
 
 method view(app: AppState): Widget =
   result = gui:
@@ -95,26 +92,30 @@ method view(app: AppState): Widget =
       
       Box(orient = OrientY, spacing = 6):
         Entry {.expand: false.}:
-          proc changed(str: string) =
-            app.desktop_files = str.get_desktop_files()
-            app.desktop_files.sort proc(x, y: (int, DesktopFile)): int = cmp(x[0], y[0])
+          proc changed(query: string) =
+            app.desktop_files.sort_default()
+            if query.len > 0:
+              for it, (_, desktop_file) in app.desktop_files:
+                app.desktop_files[it][0] = query.similarity(desktop_file.name)
+              app.desktop_files.sort((x, y) => cmp(y[0], x[0]))
 
         ScrolledWindow:
           ListBox:
             selection_mode = SelectionNone
-            for desktop_file in app.desktop_files:
-              ListBoxRow:
-                Button:
-                  Box(orient = OrientX, spacing = 30):
-                    Icon {.expand: false.}:
-                      name = desktop_file[1].icon
-                      pixel_size = 32
-                    Label:
-                      text = desktop_file[1].name
-                      x_align = 0
-                  
-                  proc clicked() =
-                    discard start_process(desktop_file[1].exec, options = {poEvalCommand})
-                    quit(1)
+            for (similarity, desktop_file) in app.desktop_files:
+              if similarity > low(int):
+                ListBoxRow:
+                  Button:
+                    Box(orient = OrientX, spacing = 12):
+                      Icon {.expand: false.}:
+                        name = desktop_file.icon
+                        pixel_size = 32
+                      Label:
+                        text = desktop_file.name
+                        x_align = 0
+                    
+                    proc clicked() =
+                      discard start_process(desktop_file.exec, options = {poEvalCommand})
+                      quit(1)
 
-brew(gui(App(desktop_files = get_desktop_files(""))))
+brew(gui(App(desktop_files = to_seq(desktop_files()).map_it((1, it)).dup(sort_default))))

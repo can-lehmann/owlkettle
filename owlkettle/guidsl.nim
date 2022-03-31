@@ -168,6 +168,19 @@ macro custom_capture(vars: varargs[typed], body: untyped): untyped =
     body = body
   ).new_call(args)
 
+proc find_variables(node: NimNode): seq[NimNode] =
+  case node.kind:
+    of nnkIdent, nnkSym:
+      result = @[ident(node.str_val)]
+    of nnkTupleConstr, nnkVarTuple:
+      for child in node:
+        result.add(child.find_variables())
+    else: echo node.kind
+
+proc find_variables(nodes: seq[NimNode]): seq[NimNode] =
+  for child in nodes:
+    result.add(child.find_variables())
+
 proc gen(node: Node, stmts, parent: NimNode) =
   case node.kind:
     of NodeWidget:
@@ -211,7 +224,9 @@ proc gen(node: Node, stmts, parent: NimNode) =
       stmts.add(new_tree(nnkForStmt, node.vars & @[
         node.iter,
         new_stmt_list(
-          new_call(bind_sym("custom_capture"), node.vars & @[body])
+          new_call(bind_sym("custom_capture"),
+            node.vars.find_variables() & @[body]
+          )
         )
       ]))
     of NodeIf:
