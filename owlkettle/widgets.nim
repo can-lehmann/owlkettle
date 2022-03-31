@@ -131,11 +131,17 @@ renderable Window of Bin:
   titlebar: Widget
   default_size: tuple[width, height: int] = (800, 600)
   
+  proc close()
+  
   hooks:
     before_build:
       state.internal_widget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
     after_build:
       gtk_widget_show_all(state.internal_widget)
+    connect_events:
+      state.internal_widget.connect(state.close, "destroy", event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.close)
   
   hooks title:
     property:
@@ -169,6 +175,13 @@ renderable Window of Bin:
   
   example:
     Window:
+      Label(text = "Hello, world")
+  
+  example:
+    Window:
+      proc close() =
+        quit()
+      
       Label(text = "Hello, world")
 
 proc add_titlebar*(window: Window, titlebar: Widget) =

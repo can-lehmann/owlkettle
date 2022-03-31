@@ -37,10 +37,22 @@ renderable Window of Bin
 - `titlebar: Widget`
 - `default_size: tuple[width, height: int] = (800, 600)`
 
+###### Events
+
+- close: `proc ()`
+
 ###### Example
 
 ```nim
 Window:
+  Label(text = "Hello, world")
+```
+
+```nim
+Window:
+  proc close() =
+    quit()
+
   Label(text = "Hello, world")
 ```
 
