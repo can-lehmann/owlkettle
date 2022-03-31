@@ -20,59 +20,52 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Example contributed by @beef331
 
 import owlkettle
 import std/[os, strscans, strutils, algorithm, osproc]
 
-const
-  appPath = "share" / "applications"
-  iconPath = "share" / "icons"
-
-let
-  applicationPaths = [
-    "/usr" / appPath,
-    getHomeDir() / ".local" / appPath
-  ]
-  iconPaths = [
-    getHomeDir() / ".icon",
-    getHomeDir() / ".local" / iconPath,
-    "/usr" / iconPath
-  ]
+const app_path = "share" / "applications"
+let application_paths = [
+  "/usr" / app_path,
+  get_home_dir() / ".local" / app_path
+]
 
 type DesktopFile = ref object
   name, exec, icon: string
-  useTerminal: bool
+  use_terminal: bool
 
-iterator desktopFiles: DesktopFile =
+iterator desktop_files(): DesktopFile =
   type ParseVal = enum
-    parsedName, parsedExec, parsedUseTerm
-  for path in applicationPaths:
-    for file in walkPattern(path / "*.desktop"):
+    ParsedName, ParsedExec, ParsedUseTerm
+  
+  for path in application_paths:
+    for file in walk_pattern(path / "*.desktop"):
       var
         result = DesktopFile()
-        parsedVals: set[ParseVal]
+        parsed_vals: set[ParseVal]
       for line in lines(file):
-        if parsedName notin parsedVals and line.scanf("Name=$+", result.name):
-          parsedVals.incl parsedName
-        if parsedExec notin parsedVals and line.scanf("Exec=$+ ", result.exec):
-          parsedVals.incl parsedExec
-        var useTerm = ""
-        if parsedUseTerm notin parsedVals and line.scanf("Terminal=$+", useTerm):
-          if useTerm.parseBool():
-            parsedVals.incl parsedUseTerm
+        if ParsedName notin parsed_vals and line.scanf("Name=$+", result.name):
+          parsed_vals.incl ParsedName
+        if ParsedExec notin parsed_vals and line.scanf("Exec=$+ ", result.exec):
+          parsed_vals.incl ParsedExec
+        var use_term = ""
+        if ParsedUseTerm notin parsed_vals and line.scanf("Terminal=$+", use_term):
+          if use_term.parse_bool():
+            parsed_vals.incl ParsedUseTerm
         discard line.scanf("Icon=$+", result.icon)
-      if {parsedName, parsedExec}  * parsedVals == {parsedName, parsedExec} and parsedUseTerm notin parsedVals:
+      if {ParsedName, ParsedExec}  * parsed_vals == {ParsedName, ParsedExec} and
+         ParsedUseTerm notin parsed_vals:
         yield result
 
-
 func similarity(needle, haystack: string): int =
-  for hayInd, _ in haystack:
+  for hay_ind, _ in haystack:
     var found = 0
-    for needleInd, need in needle:
-      if needleInd + hayInd < haystack.len:
+    for needle_ind, need in needle:
+      if needle_ind + hay_ind < haystack.len:
         let
-          need = need.toLowerAscii()
-          hay = haystack[needleInd + hayInd].toLowerAscii()
+          need = need.to_lower_ascii()
+          hay = haystack[needle_ind + hay_ind].to_lower_ascii()
         if need == hay:
           dec found
       else:
@@ -80,44 +73,48 @@ func similarity(needle, haystack: string): int =
     result = min(found, result)
 
 viewable App:
-  desktopFiles: seq[(int, DesktopFile)]
+  desktop_files: seq[(int, DesktopFile)]
 
-
-proc getDesktopFiles(str: string): seq[(int, DesktopFile)] =
-  for desktopFile in desktopFiles():
+proc get_desktop_files(str: string): seq[(int, DesktopFile)] =
+  for desktop_file in desktop_files():
     if str.len > 0:
-      let similarity = str.similarity(desktopFile.name)
+      let similarity = str.similarity(desktop_file.name)
       if similarity < 0:
-        result.add (similarity, desktopFile)
+        result.add (similarity, desktop_file)
     else:
-      result.add (0, desktopFile)
+      result.add (0, desktop_file)
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (600, 400)
-      borderWidth = 10
-      Box(orient = OrientY):
-        Entry{.expand: false.}:
+      title = "App Launcher"
+      default_size = (600, 400)
+      border_width = 12
+      
+      proc close() = quit()
+      
+      Box(orient = OrientY, spacing = 6):
+        Entry {.expand: false.}:
           proc changed(str: string) =
-            app.desktopFiles = str.getDesktopFiles()
-            app.desktopFiles.sort proc(x, y: (int, DesktopFile)): int = cmp(x[0], y[0])
+            app.desktop_files = str.get_desktop_files()
+            app.desktop_files.sort proc(x, y: (int, DesktopFile)): int = cmp(x[0], y[0])
 
         ScrolledWindow:
           ListBox:
-            selectionMode = SelectionNone
-            for desktopFile in app.desktopFiles:
+            selection_mode = SelectionNone
+            for desktop_file in app.desktop_files:
               ListBoxRow:
                 Button:
                   Box(orient = OrientX, spacing = 30):
-                    Icon{.expand: false.}:
-                      name = desktopFile[1].icon
-                      pixelSize = 32
+                    Icon {.expand: false.}:
+                      name = desktop_file[1].icon
+                      pixel_size = 32
                     Label:
-                      text = desktopFile[1].name
-                      xAlign = 0
+                      text = desktop_file[1].name
+                      x_align = 0
+                  
                   proc clicked() =
-                    discard startProcess(desktopFile[1].exec, options = {poEvalCommand})
+                    discard start_process(desktop_file[1].exec, options = {poEvalCommand})
                     quit(1)
 
-brew(gui(App(desktopFiles = getDesktopFiles(""))))
+brew(gui(App(desktop_files = get_desktop_files(""))))
