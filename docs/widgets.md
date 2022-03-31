@@ -101,12 +101,19 @@ renderable Icon
 ###### Fields
 
 - `name: string`
+- `pixel_size: int = -1`
 
 ###### Example
 
 ```nim
 Icon:
   name = "list-add-symbolic"
+```
+
+```nim
+Icon:
+  name = "object-select-symbolic"
+  pixel_size = 100
 ```
 
 

@@ -332,6 +332,7 @@ renderable Label:
 
 renderable Icon:
   name: string
+  pixel_size: int = -1
   
   hooks:
     before_build:
@@ -341,9 +342,18 @@ renderable Icon:
     property:
       gtk_image_set_from_icon_name(state.internal_widget, state.name.cstring, GTK_ICON_SIZE_BUTTON)
   
+  hooks pixel_size:
+    property:
+      gtk_image_set_pixel_size(state.internal_widget, state.pixel_size.cint)
+  
   example:
     Icon:
       name = "list-add-symbolic"
+  
+  example:
+    Icon:
+      name = "object-select-symbolic"
+      pixel_size = 100
 
 type ButtonStyle* = enum
   ButtonSuggested, ButtonDestructive, ButtonFlat

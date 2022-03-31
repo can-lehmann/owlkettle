@@ -271,6 +271,7 @@ proc gtk_scrolled_window_new*(h_adjustment, v_adjustment: GtkAdjustment): GtkWid
 # Gtk.Image
 proc gtk_image_new*(): GtkWidget
 proc gtk_image_set_from_icon_name*(image: GtkWidget, icon_name: cstring, size: GtkIconSize)
+proc gtk_image_set_pixel_size*(image: GtkWidget, pixel_size: cint)
 
 # Gtk.Paned
 proc gtk_paned_new*(orientation: GtkOrientation): GtkWidget
