@@ -444,6 +444,7 @@ renderable HeaderBar:
   show_close_button: bool = true
   left: seq[Widget]
   right: seq[Widget]
+  custom_title: Widget
   
   hooks:
     before_build:
@@ -481,6 +482,29 @@ renderable HeaderBar:
           gtk_header_bar_pack_end
         )
   
+  hooks custom_title:
+    build:
+      if not widget.val_custom_title.is_nil:
+        widget.val_custom_title.assign_app(state.app)
+        state.custom_title = widget.val_custom_title.build()
+        gtk_header_bar_set_custom_title(state.internal_widget,
+          state.custom_title.unwrap_renderable().internal_widget
+        )
+    update:
+      if widget.val_custom_title.is_nil:
+        gtk_header_bar_set_custom_title(state.internal_widget, nil)
+      else:
+        widget.val_custom_title.assign_app(state.app)
+        if state.custom_title.is_nil:
+          state.custom_title = widget.val_custom_title.build()
+        else:
+          let new_title = widget.val_custom_title.update(state.custom_title)
+          if not new_title.is_nil:
+            state.custom_title = new_title
+        gtk_header_bar_set_custom_title(state.internal_widget,
+          state.custom_title.unwrap_renderable().internal_widget
+        )
+  
   example:
     Window:
       border_width = 12
@@ -502,6 +526,10 @@ proc add_left*(header_bar: HeaderBar, child: Widget) =
 proc add_right*(header_bar: HeaderBar, child: Widget) =
   header_bar.has_right = true
   header_bar.val_right.add(child)
+
+proc add_custom_title*(header_bar: HeaderBar, title: Widget) =
+  header_bar.has_custom_title = true
+  header_bar.val_custom_title = title
 
 renderable ScrolledWindow of Bin:
   hooks:

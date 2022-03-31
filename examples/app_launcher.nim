@@ -105,31 +105,32 @@ method view(app: AppState): Widget =
     Window:
       title = "App Launcher"
       default_size = (600, 400)
-      border_width = 12
       
       proc close() = quit()
       
-      Box(orient = OrientY, spacing = 6):
-        Entry {.expand: false.}:
+      HeaderBar {.add_titlebar.}:
+        Entry {.add_custom_title.}:
+          placeholder = "Search..."
+          width = 40
           proc changed(query: string) =
             app.query = query
-
-        ScrolledWindow:
-          SearchList:
-            query = app.query
-            
-            for desktop_file in app.desktop_files:
-              Button {.name: desktop_file.name.}:
-                Box(orient = OrientX, spacing = 12):
-                  Icon {.expand: false.}:
-                    name = desktop_file.icon
-                    pixel_size = 32
-                  Label:
-                    text = desktop_file.name
-                    x_align = 0
-                
-                proc clicked() =
-                  discard start_process(desktop_file.exec, options = {poEvalCommand})
-                  quit(1)
+      
+      ScrolledWindow:
+        SearchList:
+          query = app.query
+          
+          for desktop_file in app.desktop_files:
+            Button {.name: desktop_file.name.}:
+              Box(orient = OrientX, spacing = 12):
+                Icon {.expand: false.}:
+                  name = desktop_file.icon
+                  pixel_size = 32
+                Label:
+                  text = desktop_file.name
+                  x_align = 0
+              
+              proc clicked() =
+                discard start_process(desktop_file.exec, options = {poEvalCommand})
+                quit()
 
 brew(gui(App(desktop_files = to_seq(desktop_files()).dup(sort_default))))

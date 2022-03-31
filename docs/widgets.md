@@ -175,6 +175,7 @@ renderable HeaderBar
 - `show_close_button: bool = true`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
+- `custom_title: Widget`
 
 ###### Example
 
