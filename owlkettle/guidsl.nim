@@ -71,7 +71,7 @@ proc parse_adder(node: NimNode): Adder =
       of nnkIdent, nnkSym:
         result.name = child.str_val
       else:
-        error("Unable to parse adder argument from " & $child.kind)
+        error("Unable to parse adder argument from " & $child.kind, child)
 
 proc parse_gui(node: NimNode): Node =
   case node.kind:
@@ -93,7 +93,7 @@ proc parse_gui(node: NimNode): Node =
       case result.kind:
         of NodeInsert: result.insert_adder = adder
         of NodeWidget: result.adder = adder
-        else: error("Unable to add adder to " & $result.kind)
+        else: error("Unable to add adder to " & $result.kind, node[1])
     of nnkStmtList:
       result = Node(kind: NodeBlock)
       for child in node:
@@ -125,10 +125,10 @@ proc parse_gui(node: NimNode): Node =
             result.branches.add((child[0], child[1].parse_gui()))
           of nnkElse:
             if not result.otherwise.is_nil:
-              error("There may be at most one else branch in an if statement")
+              error("There may be at most one else branch in an if statement", child)
             result.otherwise = child[0].parse_gui()
           else:
-            error($child.kind & " is not a valid gui tree inside an if statement.")
+            error($child.kind & " is not a valid gui tree inside an if statement.", child)
     of nnkCaseStmt:
       result = Node(kind: NodeCase, discr: node[0])
       for it in 1..<node.len:
@@ -140,8 +140,8 @@ proc parse_gui(node: NimNode): Node =
           of nnkElse:
             result.default = child[0].parse_gui()
           else:
-            error($child.kind & " is not a valid gui tree inside a case statement.")
-    else: error($node.kind & " is not a valid gui tree.")
+            error($child.kind & " is not a valid gui tree inside a case statement.", child)
+    else: error($node.kind & " is not a valid gui tree.", node)
 
 proc gen(adder: Adder, name, parent: NimNode): NimNode =
   var callee = ident("add")
