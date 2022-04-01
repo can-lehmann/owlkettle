@@ -531,9 +531,11 @@ proc gen(widget: WidgetDef): NimNode =
 macro renderable*(name, body: untyped): untyped =
   let widget = parse_widget_def(WidgetRenderable, name, body)
   result = widget.gen()
-  echo result.repr
+  when defined owlkettle_debug:
+    echo result.repr
 
 macro viewable*(name, body: untyped): untyped =
   let widget = parse_widget_def(WidgetViewable, name, body)
   result = widget.gen()
-  echo result.repr
+  when defined owlkettle_debug:
+    echo result.repr
