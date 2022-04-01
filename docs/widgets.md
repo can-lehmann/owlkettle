@@ -366,6 +366,22 @@ renderable ListBoxRow of Bin
 
 - All fields from [Bin](#Bin)
 
+###### Events
+
+- activate: `proc ()`
+
+###### Example
+
+```nim
+ListBox:
+  for it in 0 ..< 10:
+    ListBoxRow:
+      proc activate() =
+        echo it
+
+      Label(text = $it)
+```
+
 
 ## ListBox
 

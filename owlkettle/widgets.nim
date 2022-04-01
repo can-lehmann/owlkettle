@@ -906,9 +906,23 @@ renderable TextView:
       gtk_text_view_set_buffer(state.internal_widget, state.buffer.gtk)
 
 renderable ListBoxRow of Bin:
+  proc activate()
+  
   hooks:
     before_build:
       state.internal_widget = gtk_list_box_row_new()
+    connect_events:
+      state.internal_widget.connect(state.activate, "activate", event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.activate)
+  
+  example:
+    ListBox:
+      for it in 0..<10:
+        ListBoxRow:
+          proc activate() =
+            echo it
+          Label(text = $it)
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple

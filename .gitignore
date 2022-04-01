@@ -4,5 +4,6 @@ examples/text_view
 examples/file_dialog
 examples/introduction
 examples/app_launcher
+docs/social/
 build_docs
 .git-old
