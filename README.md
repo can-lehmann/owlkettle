@@ -44,6 +44,8 @@ $ nimble install owlkettle
 
 You can find a reference of all widgets in [docs/widgets.md](docs/widgets.md).
 
+If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
+
 Additional examples can be found in the [examples](examples) folder.
 
 ## License
