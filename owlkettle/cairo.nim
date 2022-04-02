@@ -33,6 +33,18 @@ type
     yy*: cdouble
     x0*: cdouble
     y0*: cdouble
+  
+  CairoSurface* = distinct pointer
+  CairoFormat* = enum
+    FormatInvalid,
+    FormatARGB32,
+    FormatRGB24,
+    FormatA8,
+    FormatA1,
+    FormatRGB16_565,
+    FormatRGB30
+  
+  CairoStatus = cint # TODO
 
 {.passl: gorge("pkg-config --libs cairo").}
 
@@ -50,10 +62,21 @@ proc cairo_set_source_rgba(ctx: CairoContext, r, g, b, a: cdouble)
 proc cairo_fill(ctx: CairoContext)
 proc cairo_stroke(ctx: CairoContext)
 
-proc cairo_get_matrix*(ctx: CairoContext, mat: ptr CairoMatrix)
-proc cairo_set_matrix*(ctx: CairoContext, mat: ptr CairoMatrix)
-proc cairo_translate*(ctx: CairoContext, dx, dy: cdouble)
-proc cairo_scale*(ctx: CairoContext, sx, sy: cdouble)
+proc cairo_get_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
+proc cairo_set_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
+proc cairo_translate(ctx: CairoContext, dx, dy: cdouble)
+proc cairo_scale(ctx: CairoContext, sx, sy: cdouble)
+
+proc cairo_image_surface_create(format: CairoFormat, width, height: cint): CairoSurface
+proc cairo_image_surface_create_for_data(data: ptr UncheckedArray[uint8],
+                                         format: CairoFormat,
+                                         width, height, stride: cint): CairoSurface
+proc cairo_image_surface_get_data(surface: CairoSurface): ptr UncheckedArray[uint8]
+proc cairo_surface_flush(surface: CairoSurface)
+proc cairo_surface_mark_dirty(surface: CairoSurface)
+proc cairo_surface_destroy(surface: CairoSurface)
+proc cairo_image_surface_create_from_png(path: cstring): CairoSurface
+proc cairo_surface_write_to_png(surface: CairoSurface, path: cstring): CairoStatus
 {.pop.}
 
 {.push inline.}
@@ -100,6 +123,23 @@ proc matrix*(ctx: CairoContext): CairoMatrix = cairo_get_matrix(ctx, result.addr
 proc `matrix=`*(ctx: CairoContext, mat: CairoMatrix) = cairo_set_matrix(ctx, mat.unsafe_addr)
 proc scale*(ctx: CairoContext, x, y: float) = cairo_scale(ctx, x.cdouble, y.cdouble)
 proc translate*(ctx: CairoContext, x, y: float) = cairo_translate(ctx, x.cdouble, y.cdouble)
+
+proc new_image_surface*(format: CairoFormat, width, height: int): CairoSurface =
+  result = cairo_image_surface_create(format, width.cint, height.cint)
+
+proc new_image_surface*(format: CairoFormat,
+                        width, height, stride: int,
+                        data: ptr UncheckedArray[uint8]): CairoSurface =
+  result = cairo_image_surface_create_for_data(data, format, width.cint, height.cint, stride.cint)
+
+proc load_image_surface*(path: string): CairoSurface =
+  result = cairo_image_surface_create_from_png(path.cstring)
+
+proc data*(surface: CairoSurface): ptr UncheckedArray[uint8] = cairo_image_surface_get_data(surface)
+proc flush*(surface: CairoSurface) = cairo_surface_flush(surface)
+proc mark_dirty*(surface: CairoSurface) = cairo_surface_mark_dirty(surface)
+proc save*(surface: CairoSurface, path: string) =
+  discard cairo_surface_write_to_png(surface, path.cstring)
 {.pop.}
 
 template with_matrix*(ctx: CairoContext, body: untyped) =
@@ -107,3 +147,10 @@ template with_matrix*(ctx: CairoContext, body: untyped) =
     let mat = ctx.matrix
     defer: ctx.matrix = mat
     body
+
+template modify*(surface: CairoSurface, pixels, body: untyped) =
+  block:
+    surface.flush()
+    let pixels {.inject.} = surface.data
+    body
+    surface.mark_dirty()
