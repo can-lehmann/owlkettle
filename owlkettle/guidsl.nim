@@ -258,4 +258,5 @@ macro gui*(tree: untyped): untyped =
   let gui = tree.parse_gui()
   result = new_nim_node(nnkStmtListExpr)
   gui.gen(result, nil)
-  echo result.repr
+  when defined owlkettle_debug:
+    echo result.repr
