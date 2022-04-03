@@ -24,13 +24,9 @@
 
 import std/[macros, strutils]
 
-proc is_name*(node: NimNode): bool =
-  if node.is_nil:
-    return false
-  result = node.kind == nnkIdent or node.kind == nnkSym
+proc is_name*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
 
-proc is_name*(node: NimNode, name: string): bool =
-  result = node.is_name and nim_ident_normalize(node.str_val) == nim_ident_normalize(name)
+proc is_name*(node: NimNode, name: string): bool = node.is_name and node.eq_ident(name)
 
 proc unwrap_name*(node: NimNode): NimNode =
   result = node
