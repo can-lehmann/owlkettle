@@ -253,7 +253,7 @@ proc gen_widget(def: WidgetDef): NimNode =
 proc substitute_widgets(node: NimNode): NimNode =
   case node.kind:
     of nnkSym, nnkIdent:
-      if nim_ident_normalize(node.str_val) == "Widget":
+      if node.eq_ident"Widget":
         result = bind_sym("WidgetState")
       else:
         result = node
