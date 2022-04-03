@@ -30,10 +30,21 @@ All examples you add to widgets in this way will also be included in the widget 
 
 ## Style Guide
 
+This style guide is supposed to provide some guidelines for developing owlkettle.
+It is currently still under construction and should therefore **not** be viewed as a strict set of rules to follow.
+
 ### Identifiers
 
 Owlkettle uses `snake_case` instead of `camelCase` for identifiers.
 The names of types and widgets are in `PascalCase`.
+
+### Constructors
+
+The names of constructor procedures for `ref object` types should start with the prefix `new_` while constructor procedures for `object` types should start with the prefix `init_`.
+For example the constructor for a type named `MyType` would be called `new_my_type` if it is a `ref object` and `init_my_type` if it is an `object`.
+
+Procedures which load data from disk should start with the prefix `load_` and take a path as their first argument.
+A procedure which loads `MyType` from disk may for example have the signature `proc load_my_type(path: string): MyType`.
 
 ### Procedure Calls
 
