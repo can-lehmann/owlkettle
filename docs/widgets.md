@@ -1,14 +1,26 @@
 # Widgets
 
 
-## Container
+## BaseWidget
 
 ```nim
-renderable Container
+renderable BaseWidget
 ```
 
 ###### Fields
 
+- `sensitive: bool = true`
+
+
+## Container
+
+```nim
+renderable Container of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
 - `border_width: int`
 
 
@@ -84,11 +96,12 @@ Box:
 ## Label
 
 ```nim
-renderable Label
+renderable Label of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `text: string`
 - `x_align: float = 0.5`
 - `y_align: float = 0.5`
@@ -107,11 +120,12 @@ Label:
 ## Icon
 
 ```nim
-renderable Icon
+renderable Icon of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `name: string`
 - `pixel_size: int = -1`
 
@@ -161,15 +175,22 @@ Button:
   style = {ButtonDestructive}
 ```
 
+```nim
+Button:
+  text = "Inactive Button"
+  sensitive = false
+```
+
 
 ## HeaderBar
 
 ```nim
-renderable HeaderBar
+renderable HeaderBar of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `title: string`
 - `subtitle: string`
 - `show_close_button: bool = true`
@@ -206,11 +227,12 @@ renderable ScrolledWindow of Bin
 ## Entry
 
 ```nim
-renderable Entry
+renderable Entry of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `text: string`
 - `placeholder: string`
 - `width: int = -1`
@@ -257,11 +279,12 @@ Entry:
 ## Paned
 
 ```nim
-renderable Paned
+renderable Paned of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `orient: Orient`
 - `initial_position: int`
 - `first: PanedChild[Widget]`
@@ -271,8 +294,12 @@ renderable Paned
 ## DrawingArea
 
 ```nim
-renderable DrawingArea
+renderable DrawingArea of BaseWidget
 ```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
 
 ###### Events
 
@@ -285,11 +312,12 @@ renderable DrawingArea
 ## ColorButton
 
 ```nim
-renderable ColorButton
+renderable ColorButton of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
 - `use_alpha: bool = false`
 
@@ -301,11 +329,12 @@ renderable ColorButton
 ## Switch
 
 ```nim
-renderable Switch
+renderable Switch of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `state: bool`
 
 ###### Events
@@ -343,11 +372,12 @@ renderable CheckButton of ToggleButton
 ## Popover
 
 ```nim
-renderable Popover
+renderable Popover of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 
 
@@ -366,11 +396,12 @@ renderable MenuButton of Button
 ## TextView
 
 ```nim
-renderable TextView
+renderable TextView of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `buffer: TextBuffer`
 - `monospace: bool`
 
@@ -409,11 +440,12 @@ ListBox:
 ## ListBox
 
 ```nim
-renderable ListBox
+renderable ListBox of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
 - `selection_mode: SelectionMode`
 

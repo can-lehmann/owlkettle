@@ -93,7 +93,14 @@ proc update_style[State, Widget](state: State, widget: Widget) =
       gtk_style_context_add_class(ctx, class_name.cstring)
     state.style = widget.val_style
 
-renderable Container:
+renderable BaseWidget:
+  sensitive: bool = true
+  
+  hooks sensitive:
+    property:
+      gtk_widget_set_sensitive(state.internal_widget, cbool(ord(state.sensitive)))
+
+renderable Container of BaseWidget:
   border_width: int
   
   hooks border_width:
@@ -312,7 +319,7 @@ proc add*(box: Box, child: Widget, expand: bool = true, fill: bool = true) =
 type EllipsizeMode* = enum
   EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
 
-renderable Label:
+renderable Label of BaseWidget:
   text: string
   x_align: float = 0.5
   y_align: float = 0.5
@@ -344,7 +351,7 @@ renderable Label:
       x_align = 0.0
       ellipsize = EllipsizeEnd
 
-renderable Icon:
+renderable Icon of BaseWidget:
   name: string
   pixel_size: int = -1
   
@@ -408,6 +415,11 @@ renderable Button of Bin:
     Button:
       text = "Delete"
       style = {ButtonDestructive}
+  
+  example:
+    Button:
+      text = "Inactive Button"
+      sensitive = false
 
 proc `has_text=`*(button: Button, value: bool) = button.has_child = value
 proc `val_text=`*(button: Button, value: string) =
@@ -439,7 +451,7 @@ proc update_header_bar(internal_widget: GtkWidget,
     gtk_container_remove(internal_widget, children[it].unwrap_renderable().internal_widget)
     children.del(it)
 
-renderable HeaderBar:
+renderable HeaderBar of BaseWidget:
   title: string
   subtitle: string
   show_close_button: bool = true
@@ -537,7 +549,7 @@ renderable ScrolledWindow of Bin:
     before_build:
       state.internal_widget = gtk_scrolled_window_new(nil, nil)
 
-renderable Entry:
+renderable Entry of BaseWidget:
   text: string
   placeholder: string
   width: int = -1
@@ -637,7 +649,7 @@ proc update_paned_child(state: var PanedChild[WidgetState],
   assert new_child.is_nil
 
 
-renderable Paned:
+renderable Paned of BaseWidget:
   orient: Orient
   initial_position: int
   first: PanedChild[Widget]
@@ -717,7 +729,7 @@ proc motion_event_callback(widget: GtkWidget,
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
 
-renderable DrawingArea:
+renderable DrawingArea of BaseWidget:
   proc draw(ctx: CairoContext, size: (int, int))
   proc mouse_pressed(event: ButtonEvent)
   proc mouse_released(event: ButtonEvent)
@@ -758,7 +770,7 @@ proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false
     paned.has_first = true
     paned.val_first = paned_child
 
-renderable ColorButton:
+renderable ColorButton of BaseWidget:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
   use_alpha: bool = false
   
@@ -786,7 +798,7 @@ renderable ColorButton:
     property:
       gtk_color_button_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
 
-renderable Switch:
+renderable Switch of BaseWidget:
   state: bool
   
   proc changed(state: bool)
@@ -825,7 +837,7 @@ renderable CheckButton of ToggleButton:
     before_build:
       state.internal_widget = gtk_check_button_new()
 
-renderable Popover:
+renderable Popover of BaseWidget:
   child: Widget
   
   hooks:
@@ -913,7 +925,7 @@ proc count_lines*(buffer: TextBuffer): int =
 proc `text=`*(buffer: TextBuffer, text: string) =
   gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
 
-renderable TextView:
+renderable TextView of BaseWidget:
   buffer: TextBuffer
   monospace: bool
   
@@ -959,7 +971,7 @@ renderable ListBoxRow of Bin:
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
 
-renderable ListBox:
+renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selection_mode: SelectionMode
   

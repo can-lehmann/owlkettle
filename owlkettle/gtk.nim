@@ -197,6 +197,7 @@ proc gtk_widget_get_allocated_height*(widget: GtkWidget): cint
 proc gtk_widget_get_style_context*(widget: GtkWidget): GtkStyleContext
 proc gtk_widget_set_events*(widget: GtkWidget, events: GdkEventMask)
 proc gtk_widget_get_events*(widget: GtkWidget): GdkEventMask
+proc gtk_widget_set_sensitive*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_queue_draw*(widget: GtkWidget)
 proc gtk_widget_destroy*(widget: GtkWidget)
 
