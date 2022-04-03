@@ -1,4 +1,4 @@
-# Cross-Compiling Owlkettle on Linux to Windows
+# Cross-Compiling Owlkettle Apps on Linux to Windows
 
 ## Dynamic linking
 
@@ -25,7 +25,7 @@ nim compile -d:mingw <my_app>
 
 ### Fedora
 
-For cross-compiling on Fedora the `mingw64-gtk3.0` package is required.
+For cross-compiling on Fedora the `mingw64-gtk3` package is required.
 
 ```bash
 sudo dnf install mingw32-gtk3
@@ -35,8 +35,8 @@ nim compile -d:mingw <my_app>
 
 ### Other
 
-If you do not use a Debian derived distro check your package registry for `mingw-gtk3` or a similarly named package.
-For example on Arch the package is named `mingw-w64-gtk3`.
+If you do not use any of the distributions explicitly listed here, check your package registry for `mingw-gtk3` or a similarly named package.
+For example on Arch the package is called `mingw-w64-gtk3`.
 
 Check out [the Nim Compiler User Guide](https://nim-lang.org/docs/nimc.html#crossminuscompilation-for-windows) for more information on cross-compilation in general.
 
