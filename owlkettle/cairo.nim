@@ -35,16 +35,24 @@ type
     y0*: cdouble
   
   CairoSurface* = distinct pointer
-  CairoFormat* = enum
-    FormatInvalid,
-    FormatARGB32,
-    FormatRGB24,
-    FormatA8,
-    FormatA1,
-    FormatRGB16_565,
-    FormatRGB30
+  CairoPattern* = distinct pointer
   
-  CairoStatus = cint # TODO
+  CairoFormat* = enum
+    FormatInvalid = -1,
+    FormatARGB32 = 0,
+    FormatRGB24 = 1,
+    FormatA8 = 2,
+    FormatA1 = 3,
+    FormatRGB16_565 = 4,
+    FormatRGB30 = 5
+  
+  CairoFilter* = enum
+    FilterFast, FilterGood, FilterBest,
+    FilterNearest, FilterBilinear, FilterGaussian
+  
+  CairoStatus = distinct cint # TODO
+
+proc `==`(a, b: CairoStatus): bool {.borrow.}
 
 {.passl: gorge("pkg-config --libs cairo").}
 
@@ -57,6 +65,7 @@ proc cairo_curve_to(ctx: CairoContext, x1, y1, x2, y2, x3, y3: cdouble)
 proc cairo_text_path(ctx: CairoContext, text: cstring)
 
 proc cairo_set_line_width(ctx: CairoContext, width: cdouble)
+proc cairo_set_source(ctx: CairoContext, pattern: CairoPattern)
 proc cairo_set_source_rgb(ctx: CairoContext, r, g, b: cdouble)
 proc cairo_set_source_rgba(ctx: CairoContext, r, g, b, a: cdouble)
 proc cairo_fill(ctx: CairoContext)
@@ -67,16 +76,33 @@ proc cairo_set_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
 proc cairo_translate(ctx: CairoContext, dx, dy: cdouble)
 proc cairo_scale(ctx: CairoContext, sx, sy: cdouble)
 
+# Cairo.ImageSurface
 proc cairo_image_surface_create(format: CairoFormat, width, height: cint): CairoSurface
 proc cairo_image_surface_create_for_data(data: ptr UncheckedArray[uint8],
                                          format: CairoFormat,
                                          width, height, stride: cint): CairoSurface
 proc cairo_image_surface_get_data(surface: CairoSurface): ptr UncheckedArray[uint8]
+proc cairo_image_surface_get_format(surface: CairoSurface): CairoFormat
+proc cairo_image_surface_get_width(surface: CairoSurface): cint
+proc cairo_image_surface_get_height(surface: CairoSurface): cint
+
+# Cairo.Surface
+proc cairo_surface_status(surface: CairoSurface): CairoStatus
 proc cairo_surface_flush(surface: CairoSurface)
 proc cairo_surface_mark_dirty(surface: CairoSurface)
 proc cairo_surface_destroy(surface: CairoSurface)
+
+# PNG
 proc cairo_image_surface_create_from_png(path: cstring): CairoSurface
 proc cairo_surface_write_to_png(surface: CairoSurface, path: cstring): CairoStatus
+
+# Cairo.Pattern
+proc cairo_pattern_create_for_surface(surface: CairoSurface): CairoPattern
+proc cairo_pattern_set_filter(pattern: CairoPattern, filter: CairoFilter)
+proc cairo_pattern_destroy(pattern: CairoPattern)
+
+# Cairo.Status
+proc cairo_status_to_string(status: CairoStatus): cstring
 {.pop.}
 
 {.push inline.}
@@ -107,11 +133,17 @@ proc set_source*(ctx: CairoContext, r, g, b: float) =
 proc set_source*(ctx: CairoContext, r, g, b, a: float) =
   cairo_set_source_rgba(ctx, r.cdouble, g.cdouble, b.cdouble, a.cdouble)
 
+proc set_source*(ctx: CairoContext, pattern: CairoPattern) =
+  cairo_set_source(ctx, pattern)
+
 proc `source=`*(ctx: CairoContext, color: tuple[r, g, b, a: float]) =
   ctx.set_source(color.r, color.g, color.b, color.a)
 
 proc `source=`*(ctx: CairoContext, color: tuple[r, g, b: float]) =
   ctx.set_source(color.r, color.g, color.b)
+
+proc `source=`*(ctx: CairoContext, pattern: CairoPattern) =
+  cairo_set_source(ctx, pattern)
 
 proc `line_width=`*(ctx: CairoContext, width: float) =
   cairo_set_line_width(ctx, width.cdouble)
@@ -134,12 +166,27 @@ proc new_image_surface*(format: CairoFormat,
 
 proc load_image_surface*(path: string): CairoSurface =
   result = cairo_image_surface_create_from_png(path.cstring)
+  let status = cairo_surface_status(result)
+  if status != CairoStatus(0):
+    raise new_exception(IoError, $cairo_status_to_string(status))
 
 proc data*(surface: CairoSurface): ptr UncheckedArray[uint8] = cairo_image_surface_get_data(surface)
+proc format*(surface: CairoSurface): CairoFormat = cairo_image_surface_get_format(surface)
+proc width*(surface: CairoSurface): int = int(cairo_image_surface_get_width(surface))
+proc height*(surface: CairoSurface): int = int(cairo_image_surface_get_height(surface))
 proc flush*(surface: CairoSurface) = cairo_surface_flush(surface)
 proc mark_dirty*(surface: CairoSurface) = cairo_surface_mark_dirty(surface)
+proc destroy*(surface: CairoSurface) = cairo_surface_destroy(surface)
 proc save*(surface: CairoSurface, path: string) =
   discard cairo_surface_write_to_png(surface, path.cstring)
+
+proc new_pattern*(surface: CairoSurface): CairoPattern =
+  result = cairo_pattern_create_for_surface(surface)
+
+proc `filter=`*(pattern: CairoPattern, filter: CairoFilter) =
+  cairo_pattern_set_filter(pattern, filter)
+
+proc destroy*(pattern: CairoPattern) = cairo_pattern_destroy(pattern)
 {.pop.}
 
 template with_matrix*(ctx: CairoContext, body: untyped) =
