@@ -543,15 +543,19 @@ renderable Entry:
   x_align: float = 0.0
   
   proc changed(text: string)
-  
+  proc activate()
+
   hooks:
     before_build:
       state.internal_widget = gtk_entry_new()
     connect_events:
       state.internal_widget.connect(state.changed, "changed", entry_event_callback)
+      state.internal_widget.connect(state.activate, "activate", event_callback)
     disconnect_events:
       state.internal_widget.disconnect(state.changed)
-  
+      state.internal_widget.disconnect(state.activate)
+
+
   hooks text:
     property:
       gtk_entry_set_text(state.internal_widget, state.text.cstring)
@@ -573,6 +577,8 @@ renderable Entry:
       text = app.text
       proc changed(text: string) =
         app.text = text
+      proc activate() =
+        echo app.text
 
 type PanedChild[T] = object
   widget: T

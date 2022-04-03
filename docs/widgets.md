@@ -219,6 +219,7 @@ renderable Entry
 ###### Events
 
 - changed: `proc (text: string)`
+- activate: `proc activate()`
 
 ###### Example
 
@@ -227,7 +228,9 @@ Entry:
   text = app.text
   proc changed(text: string) =
     app.text = text
-
+  proc activate() =
+    ## Runs when enter is pressed
+    echo app.text
 ```
 
 
