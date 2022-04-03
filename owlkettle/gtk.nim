@@ -252,6 +252,8 @@ proc gtk_entry_set_placeholder_text*(entry: GtkWidget, text: cstring)
 proc gtk_entry_get_placeholder_text*(entry: GtkWidget): cstring
 proc gtk_entry_set_width_chars*(entry: GtkWidget, chars: cint)
 proc gtk_entry_set_alignment*(entry: GtkWidget, alignment: cfloat)
+proc gtk_entry_set_visibility*(entry: GtkWidget, visibility: bool)
+proc gtk_entry_set_invisible_char*(entry: GtkWidget, ch: uint32)
 
 # Gtk.HeaderBar
 proc gtk_header_bar_new*(): GtkWidget
