@@ -22,6 +22,7 @@
 
 # Default widgets
 
+import std/unicode
 import gtk, widgetdef, cairo
 
 when defined(owlkettle_docs):
@@ -541,6 +542,8 @@ renderable Entry:
   placeholder: string
   width: int = -1
   x_align: float = 0.0
+  visibility: bool = true
+  invisible_char: Rune = '*'.Rune
   
   proc changed(text: string)
   proc activate()
@@ -571,6 +574,15 @@ renderable Entry:
   hooks x_align:
     property:
       gtk_entry_set_alignment(state.internal_widget, state.x_align.cfloat)
+
+  hooks visibility:
+    property:
+      gtk_entry_set_visibility(state.internal_widget, state.visibility)
+
+  hooks invisible_char:
+    property:
+      gtk_entry_set_invisible_char(state.internal_widget, state.invisible_char.uint32)
+
   
   example:
     Entry:
