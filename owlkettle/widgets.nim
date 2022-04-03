@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/unicode
+import std/[unicode, sets]
 import gtk, widgetdef, cairo
 
 when defined(owlkettle_docs):
@@ -70,6 +70,21 @@ proc color_event_callback(widget: GtkWidget, data: ptr EventObj[proc (color: tup
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
+
+proc list_box_event_callback(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
+  let selected = gtk_list_box_get_selected_rows(widget)
+  var
+    rows = init_hash_set[int]()
+    cur = selected
+  while not cur.is_nil:
+    rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
+    cur = cur[].next
+  g_list_free(selected)
+  data[].callback(rows)
+  if data[].app.is_nil:
+    raise new_exception(ValueError, "App is nil")
+  data[].app.redraw()
+
 
 proc connect[T](widget: GtkWidget,
                 event: Event[T],
@@ -974,16 +989,17 @@ type SelectionMode* = enum
 renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selection_mode: SelectionMode
+  selected: HashSet[int]
+  
+  proc select(rows: HashSet[int])
   
   hooks:
     before_build:
       state.internal_widget = gtk_list_box_new()
-  
-  hooks selection_mode:
-    property:
-      gtk_list_box_set_selection_mode(state.internal_widget,
-        GtkSelectionMode(ord(state.selection_mode))
-      )
+    connect_events:
+      state.internal_widget.connect(state.select, "selected-rows-changed", list_box_event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.select)
   
   hooks rows:
     build:
@@ -1014,6 +1030,28 @@ renderable ListBox of BaseWidget:
       while it < state.rows.len:
         let row = unwrap_renderable(state.rows.pop()).internal_widget
         gtk_container_remove(state.internal_widget, row)
+  
+  hooks selection_mode:
+    property:
+      gtk_list_box_set_selection_mode(state.internal_widget,
+        GtkSelectionMode(ord(state.selection_mode))
+      )
+  
+  hooks selected:
+    (build, update):
+      if widget.has_selected:
+        for index in state.selected - widget.val_selected:
+          if index >= state.rows.len:
+            continue
+          let row = state.rows[index].unwrap_renderable().internal_widget
+          gtk_list_box_unselect_row(state.internal_widget, row)
+        for index in widget.val_selected - state.selected:
+          let row = state.rows[index].unwrap_renderable().internal_widget
+          gtk_list_box_select_row(state.internal_widget, row)
+        state.selected = widget.val_selected
+        for row in state.selected:
+          if row >= state.rows.len:
+            raise new_exception(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
 
 proc add*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true

@@ -173,6 +173,14 @@ proc `[]=`*(mask: var GdkEventMask, attr: GdkEventMask, state: bool) =
   else:
     mask = mask and (not attr)
 
+type
+  GListObj* = object
+    data*: pointer
+    next*: GList
+    prev*: GList
+  
+  GList* = ptr GListObj
+
 {.push importc, cdecl.}
 # GObject
 proc g_signal_handler_disconnect*(widget: GtkWidget,
@@ -182,6 +190,9 @@ proc g_signal_connect_data*(widget: GtkWidget,
                             callback, data, destroy_data: pointer,
                             flags: GConnectFlags): culong
 proc g_object_unref*(obj: pointer)
+
+# GLib.List
+proc g_list_free*(list: GList)
 
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
@@ -341,9 +352,14 @@ proc gtk_text_view_set_monospace*(text_view: GtkWidget, monospace: cbool)
 # Gtk.ListBox
 proc gtk_list_box_new*(): GtkWidget
 proc gtk_list_box_set_selection_mode*(list_box: GtkWidget, mode: GtkSelectionMode)
+proc gtk_list_box_get_selected_rows*(list_box: GtkWidget): GList
+proc gtk_list_box_select_row*(list_box, row: GtkWidget)
+proc gtk_list_box_unselect_row*(list_box, row: GtkWidget)
 
 # Gtk.ListBoxRow
 proc gtk_list_box_row_new*(): GtkWidget
+proc gtk_list_box_row_get_index*(row: GtkWidget): cint
+proc gtk_list_box_row_is_selected*(row: GtkWidget): cbool
 
 # Gtk.Frame
 proc gtk_frame_new*(label: cstring): GtkWidget

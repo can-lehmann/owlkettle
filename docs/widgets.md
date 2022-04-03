@@ -448,6 +448,11 @@ renderable ListBox of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
 - `selection_mode: SelectionMode`
+- `selected: HashSet[int]`
+
+###### Events
+
+- select: `proc (rows: HashSet[int])`
 
 
 ## Frame
