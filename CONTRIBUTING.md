@@ -3,7 +3,7 @@
 ## Documentation
 
 When adding a new widget or modifying an existing widget, you will need to update the widget documentation.
-Since it is automatically generated from the `owlkettle/widgets.nim` module, running the following commands from the project folder will update the documentation to reflect any changed you made to the widgets.
+Since it is automatically generated from the `owlkettle/widgets.nim` module, running the following commands from the project folder will update the documentation to reflect any changes you made to the widgets.
 
 ```bash
 nim compile -d:owlkettle_docs -o:build_docs owlkettle
@@ -55,8 +55,9 @@ Generally `my_object.do_something(argument1, ...)` and `do_something(argument_1,
 
 There are however a few exceptions to this rule:
 
+- **Echo:** The `echo` procedure should always be called using command syntax (Example: `echo "Hello, world!"`)
 - **Getters:** If the called procedure does not have any parameters and is so simple that it may be identified as a  getter for a field, it may be called without parentheses.
-- **Type Conversions:** Type conversions may be called without parentheses (Example `my_int.float`).
+- **Type Conversions:** Type conversions may be called without parentheses (Example: `my_int.float`).
 - **Imported Procedures:** Procedures imported from C code using `{.importc.}` should always be called using `my_proc(argument0, ...)`.
-- **Macros:** Since the preferred way to call a macro heavily depends on the macro itself, macros may be called using any possible syntax.
+- **Macros/Templates:** Since the preferred way to call a macro heavily depends on the macro itself, macros may be called using any possible syntax.
 
