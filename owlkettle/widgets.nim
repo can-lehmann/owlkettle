@@ -577,7 +577,7 @@ renderable Entry:
 
   hooks visibility:
     property:
-      gtk_entry_set_visibility(state.internal_widget, state.visibility)
+      gtk_entry_set_visibility(state.internal_widget, cbool(ord(state.visibility)))
 
   hooks invisible_char:
     property:
@@ -589,8 +589,22 @@ renderable Entry:
       text = app.text
       proc changed(text: string) =
         app.text = text
+  
+  example:
+    Entry:
+      text = app.query
+      placeholder = "Search..."
+      proc changed(query: string) =
+        app.query = query
       proc activate() =
-        echo app.text
+        ## Runs when enter is pressed
+        echo app.query
+  
+  example:
+    Entry:
+      placeholder = "Password"
+      visibility = false
+      invisible_char = '*'.Rune
 
 type PanedChild[T] = object
   widget: T

@@ -215,11 +215,13 @@ renderable Entry
 - `placeholder: string`
 - `width: int = -1`
 - `x_align: float = 0.0`
+- `visibility: bool = true`
+- `invisible_char: Rune = '*'.Rune`
 
 ###### Events
 
 - changed: `proc (text: string)`
-- activate: `proc activate()`
+- activate: `proc ()`
 
 ###### Example
 
@@ -228,9 +230,27 @@ Entry:
   text = app.text
   proc changed(text: string) =
     app.text = text
+
+```
+
+```nim
+Entry:
+  text = app.query
+  placeholder = "Search..."
+  proc changed(query: string) =
+    app.query = query
+
   proc activate() =
     ## Runs when enter is pressed
-    echo app.text
+    echo app.query
+
+```
+
+```nim
+Entry:
+  placeholder = "Password"
+  visibility = false
+  invisible_char = '*'.Rune
 ```
 
 
