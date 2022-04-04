@@ -110,10 +110,18 @@ proc update_style[State, Widget](state: State, widget: Widget) =
 
 renderable BaseWidget:
   sensitive: bool = true
+  size_request: tuple[x, y: int] = (-1, -1)
   
   hooks sensitive:
     property:
       gtk_widget_set_sensitive(state.internal_widget, cbool(ord(state.sensitive)))
+  
+  hooks size_request:
+    property:
+      gtk_widget_set_size_request(state.internal_widget,
+        cint(state.size_request.x),
+        cint(state.size_request.y)
+      )
 
 renderable Container of BaseWidget:
   border_width: int
@@ -130,7 +138,9 @@ renderable Bin of Container:
       if widget.has_child:
         widget.val_child.assign_app(state.app)
         state.child = widget.val_child.build()
-        gtk_container_add(state.internal_widget, unwrap_renderable(state.child).internal_widget)
+        let child_widget = unwrap_renderable(state.child).internal_widget
+        gtk_container_add(state.internal_widget, child_widget)
+        gtk_widget_show_all(child_widget)
     update:
       if widget.has_child:
         widget.val_child.assign_app(state.app)
@@ -455,11 +465,11 @@ proc update_header_bar(internal_widget: GtkWidget,
     assert new_child.is_nil
     it += 1
   while it < target.len:
-    let child = target[it].build()
-    pack(
-      internal_widget,
-      child.unwrap_renderable().internal_widget
-    )
+    let
+      child = target[it].build()
+      child_widget = child.unwrap_renderable().internal_widget
+    pack(internal_widget, child_widget)
+    gtk_widget_show_all(child_widget)
     children.add(child)
     it += 1
   while it < children.len:
@@ -811,7 +821,7 @@ renderable ColorButton of BaseWidget:
   
   hooks use_alpha:
     property:
-      gtk_color_button_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
+      gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
 
 renderable Switch of BaseWidget:
   state: bool
@@ -852,32 +862,10 @@ renderable CheckButton of ToggleButton:
     before_build:
       state.internal_widget = gtk_check_button_new()
 
-renderable Popover of BaseWidget:
-  child: Widget
-  
+renderable Popover of Bin:
   hooks:
     before_build:
       state.internal_widget = gtk_popover_new(nil)
-  
-  hooks child:
-    build:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        state.child = widget.val_child.build()
-        let child_widget = unwrap_renderable(state.child).internal_widget
-        gtk_container_add(state.internal_widget, child_widget)
-        gtk_widget_show_all(child_widget)
-    update:
-      if widget.has_child:
-        widget.val_child.assign_app(state.app)
-        let new_child = widget.val_child.update(state.child)
-        if not new_child.is_nil:
-          if not state.child.is_nil:
-            gtk_container_remove(state.internal_widget, state.child.unwrap_renderable().internal_widget)
-          let child_widget = new_child.unwrap_renderable().internal_widget
-          gtk_container_add(state.internal_widget, child_widget)
-          gtk_widget_show_all(child_widget)
-          state.child = new_child
 
 proc add*(popover: Popover, child: Widget) =
   if popover.has_child:
@@ -1136,9 +1124,9 @@ type FileChooserAction* = enum
   FileChooserCreateFolder
 
 renderable FileChooserDialog of Dialog:
-  title: string = ""
+  title: string
   action: FileChooserAction
-  filename: string = ""
+  filename: string
   
   hooks:
     before_build:
@@ -1154,9 +1142,42 @@ renderable FileChooserDialog of Dialog:
     read:
       state.filename = $gtk_file_chooser_get_filename(state.internal_widget)
 
+renderable ColorChooserDialog of Dialog:
+  title: string
+  color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
+  use_alpha: bool = false
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_color_chooser_dialog_new(
+        widget.val_title.cstring,
+        nil
+      )
+    after_build:
+      gtk_widget_show_all(state.internal_widget)
+  
+  hooks color:
+    property:
+      var rgba = GdkRgba(
+        r: cdouble(state.color.r),
+        g: cdouble(state.color.g),
+        b: cdouble(state.color.b),
+        a: cdouble(state.color.a)
+      )
+      gtk_color_chooser_set_rgba(state.internal_widget, rgba.addr)
+    read:
+      var color: GdkRgba
+      gtk_color_chooser_get_rgba(state.internal_widget, color.addr)
+      state.color = (color.r.float, color.g.float, color.b.float, color.a.float)
+  
+  hooks use_alpha:
+    property:
+      gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, Popover, TextView, ListBox, ListBoxRow, Frame
 export Dialog, DialogState, DialogButton
 export FileChooserDialog, FileChooserDialogState
+export ColorChooserDialog, ColorChooserDialogState
 export build_state, update_state, assign_app_events

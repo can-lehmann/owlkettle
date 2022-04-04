@@ -10,6 +10,7 @@ renderable BaseWidget
 ###### Fields
 
 - `sensitive: bool = true`
+- `size_request: tuple[x, y: int] = (-1, -1)`
 
 
 ## Container
@@ -372,13 +373,12 @@ renderable CheckButton of ToggleButton
 ## Popover
 
 ```nim
-renderable Popover of BaseWidget
+renderable Popover of Bin
 ```
 
 ###### Fields
 
-- All fields from [BaseWidget](#BaseWidget)
-- `child: Widget`
+- All fields from [Bin](#Bin)
 
 
 ## MenuButton
@@ -501,8 +501,22 @@ renderable FileChooserDialog of Dialog
 ###### Fields
 
 - All fields from [Dialog](#Dialog)
-- `title: string = ""`
+- `title: string`
 - `action: FileChooserAction`
-- `filename: string = ""`
+- `filename: string`
+
+
+## ColorChooserDialog
+
+```nim
+renderable ColorChooserDialog of Dialog
+```
+
+###### Fields
+
+- All fields from [Dialog](#Dialog)
+- `title: string`
+- `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
+- `use_alpha: bool = false`
 
 

@@ -209,6 +209,7 @@ proc gtk_widget_get_style_context*(widget: GtkWidget): GtkStyleContext
 proc gtk_widget_set_events*(widget: GtkWidget, events: GdkEventMask)
 proc gtk_widget_get_events*(widget: GtkWidget): GdkEventMask
 proc gtk_widget_set_sensitive*(widget: GtkWidget, sensitive: cbool)
+proc gtk_widget_set_size_request*(widget: GtkWidget, w, h: cint)
 proc gtk_widget_queue_draw*(widget: GtkWidget)
 proc gtk_widget_destroy*(widget: GtkWidget)
 
@@ -299,10 +300,13 @@ proc gtk_drawing_area_new*(): GtkWidget
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
 proc gtk_color_chooser_get_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
+proc gtk_color_chooser_set_use_alpha*(widget: GtkWidget, button: cbool)
 
 # Gtk.ColorButton
 proc gtk_color_button_new*(): GtkWidget
-proc gtk_color_button_set_use_alpha*(widget: GtkWidget, button: cbool)
+
+# Gtk.ColorChooserDialog
+proc gtk_color_chooser_dialog_new*(title: cstring, parent: GtkWidget): GtkWidget
 
 # Gtk.Switch
 proc gtk_switch_new*(): GtkWidget
