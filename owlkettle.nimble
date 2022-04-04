@@ -1,4 +1,4 @@
-version = "1.1.0"
+version = "1.2.0"
 author = "Can Joshua Lehmann"
 description = "A declarative user interface framework based on GTK"
 license = "MIT"

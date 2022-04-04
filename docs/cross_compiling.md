@@ -6,7 +6,7 @@ Depending on your distribution this can be slightly more involved.
 
 ### Debian/Ubuntu
 
-You first either need to build the libraries yourself or fetch [prebuilt](https://github.com/qarmin/gtk_library_store/releases) ones.
+You first either need to build the libraries yourself or fetch [prebuilt](https://github.com/qarmin/gtk_library_store/releases) (not verified; use at your own risk) ones.
 
 After you get the libraries you will now need to make a `config.nims` file.
 In this example the mingw-gtk library was extracted at the root of the project to a folder named `mingw64`.
