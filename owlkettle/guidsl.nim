@@ -22,7 +22,7 @@
 
 # Domain-specific language for specifying GUI layouts
 
-import std/[macros]
+import std/[macros, genasts]
 import common, widgetdef
 
 type
@@ -149,7 +149,7 @@ proc gen(adder: Adder, name, parent: NimNode): NimNode =
     callee = ident(adder.name)
   result = new_call(callee, parent, name)
   for (key, value) in adder.args:
-    result.add(new_tree(nnkExprEqExpr, [ident(key), value]))
+    result.add(new_tree(nnkExprEqExpr, ident(key), value))
 
 macro custom_capture(vars: varargs[typed], body: untyped): untyped =
   var
@@ -158,10 +158,9 @@ macro custom_capture(vars: varargs[typed], body: untyped): untyped =
   for variable in vars:
     let name = variable.unwrap_name()
     assert name.is_name
-    params.add(new_ident_defs(
-      ident(name.str_val),
-      variable.get_type_inst()
-    ))
+    params.add:
+      new_ident_defs(ident(name.str_val), variable.get_type_inst())
+
     args.add(variable)
   result = new_proc(
     params = params,
@@ -193,28 +192,18 @@ proc gen(node: Node, stmts, parent: NimNode) =
       else:
         stmts.add(name)
     of NodeAttribute:
-      stmts.add(new_assignment(
-        new_dot_expr(parent, "has_" & node.name),
-        bind_sym("true")
-      ))
-      stmts.add(new_assignment(
-        new_dot_expr(parent, "val_" & node.name),
-        node.value
-      ))
+      stmts.add:
+        gen_ast(parent, has = ident("has_" & node.name), val = ident("val_" & node.name), value = node.value):
+          parent.has = true
+          parent.val = value
     of NodeEvent:
-      let typ = new_tree(nnkProcTy, [
-        node.callback.params, new_empty_node()
-      ])
+      let typ = new_tree(nnkProcTy, node.callback.params, new_empty_node())
       node.callback.name = new_empty_node()
-      stmts.add(new_assignment(
-        new_dot_expr(parent, node.event),
-        new_tree(nnkObjConstr, [
-          bindsym("Event").new_bracket_expr(typ),
-          new_tree(nnkExprColonExpr, [
-            ident("callback"), node.callback
-          ])
-        ])
-      ))
+
+      stmts.add:
+        gen_ast(parent, typ, node_event = ident(node.event), node_callback = node.callback):
+          parent.node_event = Event[typ](callback: node_callback)
+
     of NodeBlock:
       for child in node.children:
         child.gen(stmts, parent)
@@ -256,7 +245,7 @@ proc gen(node: Node, stmts, parent: NimNode) =
 
 macro gui*(tree: untyped): untyped =
   let gui = tree.parse_gui()
-  result = new_nim_node(nnkStmtListExpr)
+  result = new_stmt_list()
   gui.gen(result, nil)
   when defined owlkettle_debug:
     echo result.repr
