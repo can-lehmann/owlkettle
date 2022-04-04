@@ -201,3 +201,17 @@ template modify*(surface: CairoSurface, pixels, body: untyped) =
     let pixels {.inject.} = surface.data
     body
     surface.mark_dirty()
+
+proc draw*(ctx: CairoContext,
+           surface: CairoSurface,
+           x, y, w, h: float,
+           filter: CairoFilter = FilterGood) =
+  ctx.with_matrix:
+    ctx.rectangle(x, y, w, h)
+    let pattern = new_pattern(surface)
+    defer: pattern.destroy()
+    pattern.filter = filter
+    ctx.translate(x, y)
+    ctx.scale(w / surface.width.float, h / surface.height.float)
+    ctx.source = pattern
+    ctx.fill()
