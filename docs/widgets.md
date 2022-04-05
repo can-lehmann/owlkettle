@@ -301,13 +301,16 @@ renderable DrawingArea of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
+- `focusable: bool`
 
 ###### Events
 
-- draw: `proc (ctx: CairoContext; size: (int, int))`
+- draw: `proc (ctx: CairoContext; size: (int, int)): bool`
 - mouse_pressed: `proc (event: ButtonEvent)`
 - mouse_released: `proc (event: ButtonEvent)`
 - mouse_moved: `proc (event: MotionEvent)`
+- key_pressed: `proc (event: KeyEvent)`
+- key_released: `proc (event: KeyEvent)`
 
 
 ## ColorButton

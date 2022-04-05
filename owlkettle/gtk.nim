@@ -114,6 +114,7 @@ type
     GDK_EVENT_LAST = 48
   
   GdkEventMask* = distinct cint
+  GdkModifierType* = distinct cint
   
   GdkScrollDirection* = enum
     GDK_SCROLL_UP, GDK_SCROLL_DOWN,
@@ -154,6 +155,21 @@ type
     x_root*, y_root*: cdouble
   
   GdkEventMotion* = ptr GdkEventMotionObj
+  
+  GdkEventKeyObj* = object
+    `type`*: GdkEventType
+    window*: GdkWindow
+    send_event*: int8
+    time*: uint32
+    state*: cuint
+    keyval*: cuint
+    length*: cint
+    str*: cstring
+    keycode*: uint16
+    group*: uint8 
+    is_modifier* {.bitsize: 1.}: cuint
+  
+  GdkEventKey* = ptr GdkEventKeyObj
 
 const
   GDK_POINTER_MOTION_MASK* = GdkEventMask(1 shl 2)
@@ -165,15 +181,30 @@ const
   GDK_TOUCH_MASK* = GdkEventMask(1 shl 22)
   GDK_SMOOTH_SCROLL_MASK* = GdkEventMask(1 shl 23)
 
-proc `or`*(a, b: GdkEventMask): GdkEventMask {.borrow.}
-proc `and`*(a, b: GdkEventMask): GdkEventMask {.borrow.}
-proc `not`*(mask: GdkEventMask): GdkEventMask {.borrow.}
+const
+  GDK_SHIFT_MASK* = GdkModifierType(1)
+  GDK_CONTROL_MASK* = GdkModifierType(1 shl 2)
+  GDK_ALT_MASK* = GdkModifierType(1 shl 3)
+  GDK_SUPER_MASK* = GdkModifierType(1 shl 26)
+  GDK_HYPER_MASK* = GdkModifierType(1 shl 27)
+  GDK_META_MASK* = GdkModifierType(1 shl 28)
 
-proc `[]=`*(mask: var GdkEventMask, attr: GdkEventMask, state: bool) =
-  if state:
-    mask = mask or attr
-  else:
-    mask = mask and (not attr)
+template define_bit_set(Type) =
+  proc `==`*(a, b: Type): bool {.borrow.}
+  proc `or`*(a, b: Type): Type {.borrow.}
+  proc `and`*(a, b: Type): Type {.borrow.}
+  proc `not`*(mask: Type): Type {.borrow.}
+  
+  proc `[]=`*(mask: var Type, attr: Type, state: bool) =
+    if state:
+      mask = mask or attr
+    else:
+      mask = mask and (not attr)
+  
+  proc contains*(mask, attr: Type): bool = (mask and attr) == attr
+
+define_bit_set(GdkEventMask)
+define_bit_set(GdkModifierType)
 
 type
   GListObj* = object
@@ -211,6 +242,12 @@ proc g_list_free*(list: GList)
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
 proc g_resources_register*(res: GResource)
 
+# Gdk
+proc gdk_keyval_to_unicode*(key_val: cuint): uint32
+
+# Gdk.Event
+proc gdk_event_get_state*(event: GdkEvent, state: ptr GdkModifierType): cbool
+
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
 proc gtk_main*()
@@ -227,8 +264,10 @@ proc gtk_widget_set_events*(widget: GtkWidget, events: GdkEventMask)
 proc gtk_widget_get_events*(widget: GtkWidget): GdkEventMask
 proc gtk_widget_set_sensitive*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_set_size_request*(widget: GtkWidget, w, h: cint)
+proc gtk_widget_set_can_focus*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_queue_draw*(widget: GtkWidget)
 proc gtk_widget_destroy*(widget: GtkWidget)
+proc gtk_widget_grab_focus*(widget: GtkWidget)
 
 # Gtk.StyleContext
 proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)

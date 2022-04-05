@@ -54,14 +54,15 @@ proc toggle_button_event_callback(widget: GtkWidget, data: ptr EventObj[proc (st
 
 proc draw_event_callback(widget: GtkWidget,
                          ctx: CairoContext,
-                         data: ptr EventObj[proc (ctx: CairoContext, size: (int, int))]): cbool =
-  data[].callback(ctx, (
+                         data: ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]): cbool =
+  let requires_redraw = data[].callback(ctx, (
     int(gtk_widget_get_allocated_width(widget)),
     int(gtk_widget_get_allocated_height(widget))
   ))
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
-  data[].app.redraw()
+  if requires_redraw:
+    if data[].app.is_nil:
+      raise new_exception(ValueError, "App is nil")
+    data[].app.redraw()
 
 proc color_event_callback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) =
   var color: GdkRgba
@@ -714,7 +715,7 @@ renderable Paned of BaseWidget:
 type
   ModifierKey* = enum
     ModifierCtrl, ModifierAlt, ModifierShift,
-    ModifierSuper, ModifierMeta
+    ModifierSuper, ModifierMeta, ModifierHyper
   
   ButtonEvent* = object
     time*: uint32
@@ -726,17 +727,37 @@ type
     time*: uint32
     x*, y*: float
     modifiers*: set[ModifierKey]
+  
+  KeyEvent* = object
+    time*: uint32
+    rune*: Rune
+    modifiers*: set[ModifierKey]
+
+proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
+  const MODIFIERS = [
+    (GDK_CONTROL_MASK, ModifierCtrl),
+    (GDK_ALT_MASK, ModifierAlt),
+    (GDK_SHIFT_MASK, ModifierShift),
+    (GDK_SUPER_MASK, ModifierSuper),
+    (GDK_HYPER_MASK, ModifierHyper)
+  ]
+  for (mask, key) in MODIFIERS:
+    if mask in state:
+      result.incl(key)
 
 proc button_event_callback(widget: GtkWidget,
                            event: GdkEventButton,
                            data: ptr EventObj[proc (event: ButtonEvent)]): cbool =
-  data[].callback(ButtonEvent(
+  var evt = ButtonEvent(
     time: event[].time,
     button: int(event[].button) - 1,
     x: float(event[].x),
-    y: float(event[].y),
-    modifiers: {} # TODO
-  ))
+    y: float(event[].y)
+  )
+  var state: GdkModifierType
+  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
+    evt.modifiers = init_modifier_set(state)
+  data[].callback(evt)
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
@@ -744,21 +765,43 @@ proc button_event_callback(widget: GtkWidget,
 proc motion_event_callback(widget: GtkWidget,
                            event: GdkEventMotion,
                            data: ptr EventObj[proc (event: MotionEvent)]): cbool =
-  data[].callback(MotionEvent(
+  var evt = MotionEvent(
     time: event[].time,
     x: float(event[].x),
-    y: float(event[].y),
-    modifiers: {} # TODO
-  ))
+    y: float(event[].y)
+  )
+  var state: GdkModifierType
+  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
+    evt.modifiers = init_modifier_set(state)
+  data[].callback(evt)
+  if data[].app.is_nil:
+    raise new_exception(ValueError, "App is nil")
+  data[].app.redraw()
+
+proc key_event_callback(widget: GtkWidget,
+                        event: GdkEventKey,
+                        data: ptr EventObj[proc (event: KeyEvent)]): cbool =
+  var evt = KeyEvent(
+    time: event[].time,
+    rune: Rune(gdk_keyval_to_unicode(event[].key_val))
+  )
+  var state: GdkModifierType
+  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
+    evt.modifiers = init_modifier_set(state)
+  data[].callback(evt)
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
 
 renderable DrawingArea of BaseWidget:
-  proc draw(ctx: CairoContext, size: (int, int))
+  focusable: bool
+  
+  proc draw(ctx: CairoContext, size: (int, int)): bool
   proc mouse_pressed(event: ButtonEvent)
   proc mouse_released(event: ButtonEvent)
   proc mouse_moved(event: MotionEvent)
+  proc key_pressed(event: KeyEvent)
+  proc key_released(event: KeyEvent)
   
   hooks:
     before_build:
@@ -768,19 +811,29 @@ renderable DrawingArea of BaseWidget:
       mask[GDK_BUTTON_PRESS_MASK] = not widget.mouse_pressed.is_nil
       mask[GDK_BUTTON_RELEASE_MASK] = not widget.mouse_released.is_nil
       mask[GDK_POINTER_MOTION_MASK] = not widget.mouse_moved.is_nil
+      mask[GDK_KEY_PRESS_MASK] = not widget.key_pressed.is_nil
+      mask[GDK_KEY_RELEASE_MASK] = not widget.key_released.is_nil
       gtk_widget_set_events(state.internal_widget, mask)
     connect_events:
       state.internal_widget.connect(state.draw, "draw", draw_event_callback)
       state.internal_widget.connect(state.mouse_pressed, "button-press-event", button_event_callback)
       state.internal_widget.connect(state.mouse_released, "button-release-event", button_event_callback)
       state.internal_widget.connect(state.mouse_moved, "motion-notify-event", motion_event_callback)
+      state.internal_widget.connect(state.key_pressed, "key-press-event", key_event_callback)
+      state.internal_widget.connect(state.key_released, "key-release-event", key_event_callback)
     disconnect_events:
       state.internal_widget.disconnect(state.draw)
       state.internal_widget.disconnect(state.mouse_pressed)
       state.internal_widget.disconnect(state.mouse_released)
       state.internal_widget.disconnect(state.mouse_moved)
+      state.internal_widget.disconnect(state.key_pressed)
+      state.internal_widget.disconnect(state.key_released)
     update:
       gtk_widget_queue_draw(state.internal_widget)
+  
+  hooks focusable:
+    property:
+      gtk_widget_set_can_focus(state.internal_widget, cbool(ord(state.focusable)))
 
 proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false) =
   let paned_child = PanedChild[Widget](
