@@ -34,7 +34,10 @@ proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: Wid
   gtk_widget_destroy(dialog)
   result = (to_dialog_response(res), state)
 
-proc brew*(widget: Widget) =
+proc brew*(widget: Widget, icons: openArray[string] = []) =
   gtk_init()
+  let icon_theme = gtk_icon_theme_get_default()
+  for path in icons:
+    gtk_icon_theme_append_search_path(icon_theme, path.cstring)
   let state = widget.build()
   gtk_main()

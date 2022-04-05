@@ -83,11 +83,13 @@ type
   GtkTextIter* = distinct pointer
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
+  GtkIconTheme* = distinct pointer
 
 proc is_nil*(widget: GtkTextBuffer): bool {.borrow.}
 proc is_nil*(widget: GtkTextIter): bool {.borrow.}
 proc is_nil*(widget: GtkAdjustment): bool {.borrow.}
 proc is_nil*(widget: GtkStyleContext): bool {.borrow.}
+proc is_nil*(widget: GtkIconTheme): bool {.borrow.}
 
 type
   GdkRgba* = object
@@ -180,6 +182,17 @@ type
     prev*: GList
   
   GList* = ptr GListObj
+  
+  GErrorObj* = object
+    domain*: uint32
+    code*: cint
+    message*: cstring
+  
+  GError* = ptr GErrorObj
+  
+  GResource* = distinct pointer
+
+proc is_nil*(widget: GResource): bool {.borrow.}
 
 {.push importc, cdecl.}
 # GObject
@@ -193,6 +206,10 @@ proc g_object_unref*(obj: pointer)
 
 # GLib.List
 proc g_list_free*(list: GList)
+
+# Gio.Resource
+proc g_resource_load*(path: cstring, err: ptr GError): GResource
+proc g_resources_register*(res: GResource)
 
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
@@ -282,6 +299,12 @@ proc gtk_adjustment_new*(value, lower, upper, step_increment, page_increment, pa
 
 # Gtk.ScrolledWindow
 proc gtk_scrolled_window_new*(h_adjustment, v_adjustment: GtkAdjustment): GtkWidget
+
+# Gtk.IconTheme
+proc gtk_icon_theme_new*(): GtkIconTheme
+proc gtk_icon_theme_get_default*(): GtkIconTheme
+proc gtk_icon_theme_append_resource_path*(theme: GtkIconTheme, path: cstring)
+proc gtk_icon_theme_append_search_path*(theme: GtkIconTheme, path: cstring)
 
 # Gtk.Image
 proc gtk_image_new*(): GtkWidget
