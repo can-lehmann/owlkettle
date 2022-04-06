@@ -217,12 +217,13 @@ proc parse_widget_def(kind: WidgetKind, name, body: NimNode): WidgetDef =
   name.parse_name(result)
   body.parse_body(result)
 
+
 proc gen_ident_defs(event: EventDef): NimNode =
   result = new_tree(nnkIdentDefs, [
     ident(event.name).new_export(),
     new_bracket_expr(
       bind_sym("Event"),
-      new_tree(nnkProcTy, [event.signature, new_empty_node()])
+      new_tree(nnkProcTy, event.signature, new_empty_node())
     ),
     new_empty_node()
   ])

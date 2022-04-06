@@ -230,7 +230,7 @@ define_bit_set(GdkEventMask)
 define_bit_set(GdkModifierType)
 
 type
-  GType* = distinct csize
+  GType* = distinct csize_t
   GValue* = object
     typ: GType
     data: array[2, uint64]
@@ -254,6 +254,11 @@ type
 
 proc is_nil*(widget: GResource): bool {.borrow.}
 proc is_nil*(widget: GIcon): bool {.borrow.}
+
+const
+  G_TYPE_BOOLEAN* = GType(5 shl 2)
+  G_TYPE_STRING* = GType(16 shl 2)
+  G_TYPE_OBJECT* = GType(20 shl 2)
 
 {.push importc, cdecl.}
 # GObject
@@ -511,10 +516,9 @@ proc gtk_about_dialog_set_license*(dialog: GtkWidget, text: cstring)
 proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, people: cstringArray)
 {.pop.}
 
-const
-  G_TYPE_BOOLEAN* = GType(5 shl 2)
-  G_TYPE_STRING* = GType(16 shl 2)
-  G_TYPE_OBJECT* = GType(20 shl 2)
+proc g_value_new*(str: string): GValue =
+  discard g_value_init(result.addr, G_TYPE_STRING)
+  g_value_set_string(result.addr, str.cstring)
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget, signal, closure, data, nil, G_CONNECT_AFTER)

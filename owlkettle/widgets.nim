@@ -459,7 +459,7 @@ proc `val_icon=`*(button: Button, name: string) =
 proc update_header_bar(internal_widget: GtkWidget,
                        children: var seq[WidgetState],
                        target: seq[Widget],
-                       pack: proc(widget, child: GtkWidget) {.cdecl.}) =
+                       pack: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   var it = 0
   while it < target.len and it < children.len:
     let new_child = target[it].update(children[it])
@@ -652,7 +652,7 @@ type PanedChild[T] = object
 proc build_paned_child(child: PanedChild[Widget],
                        app: Viewable,
                        internal_widget: GtkWidget,
-                       pack: proc(paned, child: GtkWidget, resize, shrink: cbool) {.cdecl.}): PanedChild[WidgetState] =
+                       pack: proc(paned, child: GtkWidget, resize, shrink: cbool) {.cdecl, locks: 0.}): PanedChild[WidgetState] =
   child.widget.assign_app(app)
   result = PanedChild[WidgetState](
     widget: child.widget.build(),
@@ -977,9 +977,7 @@ renderable ModelButton of BaseWidget:
   
   hooks text:
     property:
-      var value: GValue
-      discard g_value_init(value.addr, G_TYPE_STRING)
-      g_value_set_string(value.addr, state.text.cstring)
+      var value = g_value_new(state.text)
       g_object_set_property(state.internal_widget.pointer, "text", value.addr)
       g_value_unset(value.addr)
 

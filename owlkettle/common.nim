@@ -22,10 +22,9 @@
 
 # Utility functions
 
-import std/[macros, strutils]
+import std/[macros]
 
 proc is_name*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
-
 proc is_name*(node: NimNode, name: string): bool = node.is_name and node.eq_ident(name)
 
 proc unwrap_name*(node: NimNode): NimNode =
