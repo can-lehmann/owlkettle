@@ -101,11 +101,11 @@ type
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
 
-proc is_nil*(widget: GtkTextBuffer): bool {.borrow.}
-proc is_nil*(widget: GtkTextIter): bool {.borrow.}
-proc is_nil*(widget: GtkAdjustment): bool {.borrow.}
-proc is_nil*(widget: GtkStyleContext): bool {.borrow.}
-proc is_nil*(widget: GtkIconTheme): bool {.borrow.}
+proc is_nil*(obj: GtkTextBuffer): bool {.borrow.}
+proc is_nil*(obj: GtkTextIter): bool {.borrow.}
+proc is_nil*(obj: GtkAdjustment): bool {.borrow.}
+proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
+proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
 
 template define_bit_set(Type) =
   proc `==`*(a, b: Type): bool {.borrow.}
@@ -251,9 +251,16 @@ type
   
   GResource* = distinct pointer
   GIcon* = distinct pointer
+  GApplication* = distinct pointer
+  
+  GApplicationFlags = distinct cuint
 
-proc is_nil*(widget: GResource): bool {.borrow.}
-proc is_nil*(widget: GIcon): bool {.borrow.}
+proc is_nil*(obj: GResource): bool {.borrow.}
+proc is_nil*(obj: GIcon): bool {.borrow.}
+proc is_nil*(obj: GApplication): bool {.borrow.}
+
+const
+  G_APPLICATION_FLAGS_NONE* = GApplicationFlags(0)
 
 const
   G_TYPE_BOOLEAN* = GType(5 shl 2)
@@ -264,7 +271,7 @@ const
 # GObject
 proc g_signal_handler_disconnect*(widget: GtkWidget,
                                   handler_id: culong)
-proc g_signal_connect_data*(widget: GtkWidget,
+proc g_signal_connect_data*(widget: pointer,
                             name: cstring,
                             callback, data, destroy_data: pointer,
                             flags: GConnectFlags): culong
@@ -290,6 +297,9 @@ proc g_resources_register*(res: GResource)
 # Gio.Icon
 proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
 
+# Gio.Application
+proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
+
 # Gdk
 proc gdk_keyval_to_unicode*(key_val: cuint): uint32
 
@@ -300,6 +310,10 @@ proc gdk_event_get_state*(event: GdkEvent, state: ptr GdkModifierType): cbool
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
 proc gtk_main*()
 proc gtk_main_quit*()
+
+# Gtk.Application
+proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
+proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
@@ -521,14 +535,26 @@ proc g_value_new*(str: string): GValue =
   g_value_set_string(result.addr, str.cstring)
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
-  result = g_signal_connect_data(widget, signal, closure, data, nil, G_CONNECT_AFTER)
+  result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: GApplication, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+template with_c_args(argc, argv, body: untyped) =
+  block:
+    var args: seq[string] = @[]
+    for it in 0..param_count():
+      args.add(param_str(it))
+    var
+      argc = cint(param_count() + 1)
+      argv = alloc_cstring_array(args)
+    defer: argv.dealloc_cstring_array()
+    body
+
+proc g_application_run*(app: GApplication): cint =
+  with_c_args argc, argv:
+    result = g_application_run(app, argc, argv)
 
 proc gtk_init*() =
-  var args: seq[string] = @[]
-  for it in 0..param_count():
-    args.add(param_str(it))
-  var
-    argc = cint(param_count() + 1)
-    argv = alloc_cstring_array(args)
-  defer: argv.dealloc_cstring_array()
-  gtk_init(argc.addr, argv.addr)
+  with_c_args argc, argv:
+    gtk_init(argc.addr, argv.addr)

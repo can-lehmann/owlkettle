@@ -34,10 +34,28 @@ proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: Wid
   gtk_widget_destroy(dialog)
   result = (to_dialog_response(res), state)
 
-proc brew*(widget: Widget, icons: openArray[string] = []) =
-  gtk_init()
+proc setup_app(widget: Widget, icons: openArray[string] = []): WidgetState =
   let icon_theme = gtk_icon_theme_get_default()
   for path in icons:
     gtk_icon_theme_append_search_path(icon_theme, path.cstring)
-  let state = widget.build()
+  result = widget.build()
+
+proc brew*(widget: Widget, icons: openArray[string] = []) =
+  gtk_init()
+  discard setup_app(widget, icons)
   gtk_main()
+
+proc brew*(id: string, widget: Widget, icons: openArray[string] = []) =
+  type Closure = object
+    widget: Widget
+    icons: seq[string]
+  
+  proc activate_callback(app: GApplication, data: ptr Closure) {.cdecl.} =
+    let state = setup_app(data[].widget, data[].icons)
+    gtk_application_add_window(app, state.unwrap_renderable().internal_widget)
+  
+  let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
+  defer: g_object_unref(app.pointer)
+  var closure = Closure(widget: widget, icons: @icons)
+  discard g_signal_connect(app, "activate", activate_callback, closure.addr)
+  let status = g_application_run(app)
