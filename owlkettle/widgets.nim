@@ -962,6 +962,34 @@ proc add*(button: MenuButton, child: Widget) =
   else:
     raise new_exception(ValueError, "Unable to add more than two children to MenuButton")
 
+renderable ModelButton of BaseWidget:
+  text: string
+  
+  proc clicked()
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_model_button_new()
+    connect_events:
+      state.internal_widget.connect(state.clicked, "clicked", event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.clicked)
+  
+  hooks text:
+    property:
+      var value: GValue
+      discard g_value_init(value.addr, G_TYPE_STRING)
+      g_value_set_string(value.addr, state.text.cstring)
+      g_object_set_property(state.internal_widget.pointer, "text", value.addr)
+      g_value_unset(value.addr)
+
+renderable Separator of BaseWidget:
+  orient: Orient
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_separator_new(widget.val_orient.to_gtk())
+
 type
   TextBufferObj = object
     gtk: GtkTextBuffer
@@ -1227,10 +1255,71 @@ renderable ColorChooserDialog of Dialog:
     property:
       gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
 
+renderable MessageDialog of Dialog:
+  message: string
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_message_dialog_new(
+        nil,
+        GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_INFO,
+        GTK_BUTTONS_NONE,
+        widget.val_message.cstring
+      )
+    after_build:
+      gtk_widget_show_all(state.internal_widget)
+
+renderable AboutDialog of Dialog:
+  program_name: string
+  logo: string
+  copyright: string
+  version: string
+  license: string
+  credits: seq[(string, seq[string])]
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_about_dialog_new()
+    after_build:
+      gtk_widget_show_all(state.internal_widget)
+  
+  hooks program_name:
+    property:
+      gtk_about_dialog_set_program_name(state.internal_widget, state.program_name.cstring)
+  
+  hooks logo:
+    property:
+      gtk_about_dialog_set_logo_icon_name(state.internal_widget, state.logo.cstring)
+  
+  hooks copyright:
+    property:
+      gtk_about_dialog_set_copyright(state.internal_widget, state.copyright.cstring)
+  
+  hooks version:
+    property:
+      gtk_about_dialog_set_version(state.internal_widget, state.version.cstring)
+  
+  hooks license:
+    property:
+      gtk_about_dialog_set_license(state.internal_widget, state.license.cstring)
+  
+  hooks credits:
+    build:
+      if widget.has_credits:
+        state.credits = widget.val_credits
+        for (section_name, people) in state.credits:
+          let names = alloc_cstring_array(people)
+          defer: dealloc_cstring_array(names)
+          gtk_about_dialog_add_credit_section(state.internal_widget, section_name.cstring, names)
+
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
-export MenuButton, Popover, TextView, ListBox, ListBoxRow, Frame
+export MenuButton, ModelButton, Separator, Popover, TextView
+export ListBox, ListBoxRow, Frame
 export Dialog, DialogState, DialogButton
 export FileChooserDialog, FileChooserDialogState
 export ColorChooserDialog, ColorChooserDialogState
+export MessageDialog, MessageDialogState
+export AboutDialog, AboutDialogState
 export build_state, update_state, assign_app_events

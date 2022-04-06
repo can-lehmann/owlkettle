@@ -77,6 +77,22 @@ type
     GTK_FILE_CHOOSER_ACTION_SAVE,
     GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
     GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER
+  
+  GtkDialogFlags* = distinct cuint
+  
+  GtkMessageType* = enum
+    GTK_MESSAGE_INFO,
+    GTK_MESSAGE_WARNING,
+    GTK_MESSAGE_QUESTION,
+    GTK_MESSAGE_OTHER
+  
+  GtkButtonsType* = enum
+    GTK_BUTTONS_NONE,
+    GTK_BUTTONS_OK,
+    GTK_BUTTONS_CLOSE,
+    GTK_BUTTONS_CANCEL,
+    GTK_BUTTONS_YES_NO,
+    GTK_BUTTONS_OK_CANCEL
 
 type
   GtkTextBuffer* = distinct pointer
@@ -90,6 +106,27 @@ proc is_nil*(widget: GtkTextIter): bool {.borrow.}
 proc is_nil*(widget: GtkAdjustment): bool {.borrow.}
 proc is_nil*(widget: GtkStyleContext): bool {.borrow.}
 proc is_nil*(widget: GtkIconTheme): bool {.borrow.}
+
+template define_bit_set(Type) =
+  proc `==`*(a, b: Type): bool {.borrow.}
+  proc `or`*(a, b: Type): Type {.borrow.}
+  proc `and`*(a, b: Type): Type {.borrow.}
+  proc `not`*(mask: Type): Type {.borrow.}
+  
+  proc `[]=`*(mask: var Type, attr: Type, state: bool) =
+    if state:
+      mask = mask or attr
+    else:
+      mask = mask and (not attr)
+  
+  proc contains*(mask, attr: Type): bool = (mask and attr) == attr
+
+const
+  GTK_DIALOG_MODAL* = GtkDialogFlags(1)
+  GTK_DIALOG_DESTROY_WITH_PARENT* = GtkDialogFlags(2)
+  GTK_DIALOG_USE_HEADER_BAR* = GtkDialogFlags(4)
+
+define_bit_set(GtkDialogFlags)
 
 type
   GdkRgba* = object
@@ -189,24 +226,15 @@ const
   GDK_HYPER_MASK* = GdkModifierType(1 shl 27)
   GDK_META_MASK* = GdkModifierType(1 shl 28)
 
-template define_bit_set(Type) =
-  proc `==`*(a, b: Type): bool {.borrow.}
-  proc `or`*(a, b: Type): Type {.borrow.}
-  proc `and`*(a, b: Type): Type {.borrow.}
-  proc `not`*(mask: Type): Type {.borrow.}
-  
-  proc `[]=`*(mask: var Type, attr: Type, state: bool) =
-    if state:
-      mask = mask or attr
-    else:
-      mask = mask and (not attr)
-  
-  proc contains*(mask, attr: Type): bool = (mask and attr) == attr
-
 define_bit_set(GdkEventMask)
 define_bit_set(GdkModifierType)
 
 type
+  GType* = distinct csize
+  GValue* = object
+    typ: GType
+    data: array[2, uint64]
+  
   GListObj* = object
     data*: pointer
     next*: GList
@@ -222,8 +250,10 @@ type
   GError* = ptr GErrorObj
   
   GResource* = distinct pointer
+  GIcon* = distinct pointer
 
 proc is_nil*(widget: GResource): bool {.borrow.}
+proc is_nil*(widget: GIcon): bool {.borrow.}
 
 {.push importc, cdecl.}
 # GObject
@@ -234,6 +264,16 @@ proc g_signal_connect_data*(widget: GtkWidget,
                             callback, data, destroy_data: pointer,
                             flags: GConnectFlags): culong
 proc g_object_unref*(obj: pointer)
+proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
+proc g_type_fundamental*(id: GType): GType
+
+# GObject.Value
+proc g_value_init*(value: ptr GValue, typ: GType): ptr GValue
+proc g_value_get_string*(value: ptr GValue): cstring
+proc g_value_set_string*(value: ptr GValue, str: cstring)
+proc g_value_set_object*(value: ptr GValue, obj: pointer)
+proc g_value_set_boolean*(value: ptr GValue, bool_val: cbool)
+proc g_value_unset*(value: ptr GValue)
 
 # GLib.List
 proc g_list_free*(list: GList)
@@ -241,6 +281,9 @@ proc g_list_free*(list: GList)
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
 proc g_resources_register*(res: GResource)
+
+# Gio.Icon
+proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
 
 # Gdk
 proc gdk_keyval_to_unicode*(key_val: cuint): uint32
@@ -392,6 +435,12 @@ proc gtk_popover_set_relative_to*(popover, widget: GtkWidget)
 proc gtk_menu_button_new*(): GtkWidget
 proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
 
+# Gtk.ModelButton
+proc gtk_model_button_new*(): GtkWidget
+
+# Gtk.Separator
+proc gtk_separator_new*(orient: GtkOrientation): GtkWidget
+
 # Gtk.TextBuffer
 proc gtk_text_buffer_new*(table: pointer): GtkTextBuffer
 proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
@@ -444,7 +493,28 @@ proc gtk_file_chooser_get_filename*(file_chooser: GtkWidget): cstring
 proc gtk_file_chooser_dialog_new*(title: cstring,
                                   parent: GtkWidget,
                                   action: GtkFileChooserAction): GtkWidget {.varargs.}
+
+# Gtk.MessageDialog
+proc gtk_message_dialog_new*(parent: GtkWidget,
+                             flags: GtkDialogFlags,
+                             typ: GtkMessageType,
+                             buttons: GtkButtonsType,
+                             message: cstring): GtkWidget {.varargs.}
+
+# Gtk.AboutDialog
+proc gtk_about_dialog_new*(): GtkWidget
+proc gtk_about_dialog_set_copyright*(dialog: GtkWidget, text: cstring)
+proc gtk_about_dialog_set_version*(dialog: GtkWidget, text: cstring)
+proc gtk_about_dialog_set_program_name*(dialog: GtkWidget, text: cstring)
+proc gtk_about_dialog_set_logo_icon_name*(dialog: GtkWidget, name: cstring)
+proc gtk_about_dialog_set_license*(dialog: GtkWidget, text: cstring)
+proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, people: cstringArray)
 {.pop.}
+
+const
+  G_TYPE_BOOLEAN* = GType(5 shl 2)
+  G_TYPE_STRING* = GType(16 shl 2)
+  G_TYPE_OBJECT* = GType(20 shl 2)
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget, signal, closure, data, nil, G_CONNECT_AFTER)

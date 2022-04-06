@@ -396,6 +396,34 @@ renderable MenuButton of Button
 - `popover: Widget`
 
 
+## ModelButton
+
+```nim
+renderable ModelButton of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+
+###### Events
+
+- clicked: `proc ()`
+
+
+## Separator
+
+```nim
+renderable Separator of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `orient: Orient`
+
+
 ## TextView
 
 ```nim
@@ -521,5 +549,34 @@ renderable ColorChooserDialog of Dialog
 - `title: string`
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
 - `use_alpha: bool = false`
+
+
+## MessageDialog
+
+```nim
+renderable MessageDialog of Dialog
+```
+
+###### Fields
+
+- All fields from [Dialog](#Dialog)
+- `message: string`
+
+
+## AboutDialog
+
+```nim
+renderable AboutDialog of Dialog
+```
+
+###### Fields
+
+- All fields from [Dialog](#Dialog)
+- `program_name: string`
+- `logo: string`
+- `copyright: string`
+- `version: string`
+- `license: string`
+- `credits: seq[(string, seq[string])]`
 
 
