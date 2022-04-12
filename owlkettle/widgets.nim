@@ -1177,8 +1177,19 @@ proc `has_res=`*(button: DialogButton, value: bool) =
 proc `val_res=`*(button: DialogButton, kind: DialogResponseKind) =
   button.val_response = DialogResponse(kind: kind)
 
-renderable Dialog:
+renderable Dialog of Bin:
+  title: string
   buttons: seq[DialogButton]
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_dialog_new_with_buttons("", nil, GTK_DIALOG_USE_HEADER_BAR, nil)
+      gtk_container_remove(state.internal_widget, gtk_bin_get_child(state.internal_widget))
+  
+  hooks title:
+    property:
+      let header_bar = gtk_dialog_get_header_bar(state.internal_widget)
+      gtk_header_bar_set_title(header_bar, state.title.cstring)
   
   hooks buttons:
     build:
@@ -1196,14 +1207,33 @@ proc add_button*(dialog: Dialog, button: DialogButton) =
   dialog.has_buttons = true
   dialog.val_buttons.add(button)
 
+renderable BuiltinDialog:
+  title: string
+  buttons: seq[DialogButton]
+  
+  hooks buttons:
+    build:
+      for button in widget.val_buttons:
+        let
+          button_widget = gtk_dialog_add_button(state.internal_widget,
+            button.val_text.cstring,
+            button.val_response.to_gtk
+          )
+          ctx = gtk_widget_get_style_context(button_widget)
+        for class in classes(button.val_style):
+          gtk_style_context_add_class(ctx, class.cstring)
+
+proc add_button*(dialog: BuiltinDialog, button: DialogButton) =
+  dialog.has_buttons = true
+  dialog.val_buttons.add(button)
+
 type FileChooserAction* = enum
   FileChooserOpen,
   FileChooserSave,
   FileChooserSelectFolder,
   FileChooserCreateFolder
 
-renderable FileChooserDialog of Dialog:
-  title: string
+renderable FileChooserDialog of BuiltinDialog:
   action: FileChooserAction
   filename: string
   
@@ -1221,8 +1251,7 @@ renderable FileChooserDialog of Dialog:
     read:
       state.filename = $gtk_file_chooser_get_filename(state.internal_widget)
 
-renderable ColorChooserDialog of Dialog:
-  title: string
+renderable ColorChooserDialog of BuiltinDialog:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
   use_alpha: bool = false
   
@@ -1253,7 +1282,7 @@ renderable ColorChooserDialog of Dialog:
     property:
       gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
 
-renderable MessageDialog of Dialog:
+renderable MessageDialog of BuiltinDialog:
   message: string
   
   hooks:
@@ -1268,7 +1297,7 @@ renderable MessageDialog of Dialog:
     after_build:
       gtk_widget_show_all(state.internal_widget)
 
-renderable AboutDialog of Dialog:
+renderable AboutDialog of BuiltinDialog:
   program_name: string
   logo: string
   copyright: string
@@ -1316,6 +1345,7 @@ export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, ModelButton, Separator, Popover, TextView
 export ListBox, ListBoxRow, Frame
 export Dialog, DialogState, DialogButton
+export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState
 export ColorChooserDialog, ColorChooserDialogState
 export MessageDialog, MessageDialogState

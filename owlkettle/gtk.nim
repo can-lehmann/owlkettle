@@ -24,7 +24,10 @@
 
 import std/[os]
 
-{.passl: gorge("pkg-config --libs gtk+-3.0").}
+when defined(owlkettle_gtk4):
+  {.passl: gorge("pkg-config --libs gtk4").}
+else:
+  {.passl: gorge("pkg-config --libs gtk+-3.0").}
 
 type cbool* = cint
 
@@ -502,8 +505,14 @@ proc gtk_frame_set_label_align*(frame: GtkWidget, x, y: cfloat)
 proc gtk_frame_set_shadow_type*(frame: GtkWidget, shadow: GtkShadowType)
 
 # Gtk.Dialog
+proc gtk_dialog_new*(): GtkWidget
+proc gtk_dialog_new_with_buttons*(title: cstring,
+                                  parent: GtkWidget,
+                                  flags: GtkDialogFlags,
+                                  first_btn: cstring): GtkWidget {.varargs.}
 proc gtk_dialog_run*(dialog: GtkWidget): cint
 proc gtk_dialog_add_button*(dialog: GtkWidget, text: cstring, response: cint): GtkWidget
+proc gtk_dialog_get_header_bar*(dialog: GtkWidget): GtkWidget
 
 # Gtk.FileChooser
 proc gtk_file_chooser_get_filename*(file_chooser: GtkWidget): cstring

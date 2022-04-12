@@ -50,6 +50,9 @@ type
     FilterFast, FilterGood, FilterBest,
     FilterNearest, FilterBilinear, FilterGaussian
   
+  CairoExtend* = enum
+    ExtendNone, ExtendRepeat, ExtendReflect, ExtendPad
+  
   CairoStatus = distinct cint # TODO
 
 proc `==`(a, b: CairoStatus): bool {.borrow.}
@@ -99,6 +102,7 @@ proc cairo_surface_write_to_png(surface: CairoSurface, path: cstring): CairoStat
 # Cairo.Pattern
 proc cairo_pattern_create_for_surface(surface: CairoSurface): CairoPattern
 proc cairo_pattern_set_filter(pattern: CairoPattern, filter: CairoFilter)
+proc cairo_pattern_set_extend(pattern: CairoPattern, extend: CairoExtend)
 proc cairo_pattern_destroy(pattern: CairoPattern)
 
 # Cairo.Status
@@ -185,6 +189,9 @@ proc new_pattern*(surface: CairoSurface): CairoPattern =
 
 proc `filter=`*(pattern: CairoPattern, filter: CairoFilter) =
   cairo_pattern_set_filter(pattern, filter)
+
+proc `extend=`*(pattern: CairoPattern, extend: CairoExtend) =
+  cairo_pattern_set_extend(pattern, extend)
 
 proc destroy*(pattern: CairoPattern) = cairo_pattern_destroy(pattern)
 {.pop.}

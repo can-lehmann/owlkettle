@@ -515,24 +515,37 @@ renderable DialogButton
 ## Dialog
 
 ```nim
-renderable Dialog
+renderable Dialog of Bin
 ```
 
 ###### Fields
 
+- All fields from [Bin](#Bin)
+- `title: string`
+- `buttons: seq[DialogButton]`
+
+
+## BuiltinDialog
+
+```nim
+renderable BuiltinDialog
+```
+
+###### Fields
+
+- `title: string`
 - `buttons: seq[DialogButton]`
 
 
 ## FileChooserDialog
 
 ```nim
-renderable FileChooserDialog of Dialog
+renderable FileChooserDialog of BuiltinDialog
 ```
 
 ###### Fields
 
-- All fields from [Dialog](#Dialog)
-- `title: string`
+- All fields from [BuiltinDialog](#BuiltinDialog)
 - `action: FileChooserAction`
 - `filename: string`
 
@@ -540,13 +553,12 @@ renderable FileChooserDialog of Dialog
 ## ColorChooserDialog
 
 ```nim
-renderable ColorChooserDialog of Dialog
+renderable ColorChooserDialog of BuiltinDialog
 ```
 
 ###### Fields
 
-- All fields from [Dialog](#Dialog)
-- `title: string`
+- All fields from [BuiltinDialog](#BuiltinDialog)
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
 - `use_alpha: bool = false`
 
@@ -554,24 +566,24 @@ renderable ColorChooserDialog of Dialog
 ## MessageDialog
 
 ```nim
-renderable MessageDialog of Dialog
+renderable MessageDialog of BuiltinDialog
 ```
 
 ###### Fields
 
-- All fields from [Dialog](#Dialog)
+- All fields from [BuiltinDialog](#BuiltinDialog)
 - `message: string`
 
 
 ## AboutDialog
 
 ```nim
-renderable AboutDialog of Dialog
+renderable AboutDialog of BuiltinDialog
 ```
 
 ###### Fields
 
-- All fields from [Dialog](#Dialog)
+- All fields from [BuiltinDialog](#BuiltinDialog)
 - `program_name: string`
 - `logo: string`
 - `copyright: string`

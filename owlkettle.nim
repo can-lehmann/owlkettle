@@ -23,9 +23,9 @@
 import owlkettle/[gtk, widgetdef, widgets, guidsl]
 export widgetdef, widgets, guidsl
 
-proc open*(app: Viewable, widget: Dialog): tuple[res: DialogResponse, state: WidgetState] =
+proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
-    state = DialogState(widget.build())
+    state = WidgetState(widget.build())
     window = app.unwrap_renderable().internal_widget
     dialog = state.unwrap_renderable().internal_widget
   gtk_window_set_transient_for(dialog, window)
