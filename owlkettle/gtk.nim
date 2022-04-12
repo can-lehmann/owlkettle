@@ -103,12 +103,14 @@ type
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
+  GtkClipboard* = distinct pointer
 
 proc is_nil*(obj: GtkTextBuffer): bool {.borrow.}
 proc is_nil*(obj: GtkTextIter): bool {.borrow.}
 proc is_nil*(obj: GtkAdjustment): bool {.borrow.}
 proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
 proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
+proc is_nil*(obj: GtkClipboard): bool {.borrow.}
 
 template define_bit_set(Type) =
   proc `==`*(a, b: Type): bool {.borrow.}
@@ -139,6 +141,7 @@ type
     a*: cdouble
   
   GdkWindow = distinct pointer
+  GdkDisplay = distinct pointer
   GdkDevice = distinct pointer
   
   GdkEventType* = enum
@@ -270,6 +273,10 @@ const
   G_TYPE_STRING* = GType(16 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
 
+type ClipboardTextCallback = proc (clipboard: GtkClipboard,
+                                   text: cstring,
+                                   data: pointer) {.cdecl.}
+
 {.push importc, cdecl.}
 # GObject
 proc g_signal_handler_disconnect*(widget: GtkWidget,
@@ -318,6 +325,13 @@ proc gtk_main_quit*()
 proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 
+# Gtk.Clipboard
+proc gtk_clipboard_get_default*(display: GdkDisplay): GtkClipboard
+proc gtk_clipboard_set_text*(clipboard: GtkClipboard, text: cstring, length: cint)
+proc gtk_clipboard_request_text*(clipboard: GtkClipboard,
+                                 callback: ClipboardTextCallback,
+                                 data: pointer)
+
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
 proc gtk_widget_hide*(widget: GtkWidget)
@@ -333,6 +347,7 @@ proc gtk_widget_set_can_focus*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_queue_draw*(widget: GtkWidget)
 proc gtk_widget_destroy*(widget: GtkWidget)
 proc gtk_widget_grab_focus*(widget: GtkWidget)
+proc gtk_widget_get_display*(widget: GtkWidget): GdkDisplay
 
 # Gtk.StyleContext
 proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)

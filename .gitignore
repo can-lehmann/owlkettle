@@ -4,6 +4,7 @@ examples/text_view
 examples/file_dialog
 examples/introduction
 examples/app_launcher
+examples/clipboard
 examples/test.nim
 examples/test
 docs/social/

@@ -23,6 +23,13 @@
 import owlkettle/[gtk, widgetdef, widgets, guidsl]
 export widgetdef, widgets, guidsl
 
+proc write_clipboard*(state: WidgetState, text: string) =
+  let
+    widget = state.unwrap_renderable().internal_widget
+    display = gtk_widget_get_display(widget)
+    clipboard = gtk_clipboard_get_default(display)
+  gtk_clipboard_set_text(clipboard, text.cstring, text.len.cint)
+
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
     state = WidgetState(widget.build())
