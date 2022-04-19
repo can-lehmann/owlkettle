@@ -6,6 +6,7 @@ examples/introduction
 examples/app_launcher
 examples/clipboard
 examples/custom_dialog
+examples/drawing_area
 examples/test.nim
 examples/test
 docs/social/
