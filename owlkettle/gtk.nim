@@ -104,6 +104,7 @@ type
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
   GtkClipboard* = distinct pointer
+  GtkSettings* = distinct pointer
 
 proc is_nil*(obj: GtkTextBuffer): bool {.borrow.}
 proc is_nil*(obj: GtkTextIter): bool {.borrow.}
@@ -111,6 +112,7 @@ proc is_nil*(obj: GtkAdjustment): bool {.borrow.}
 proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
 proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
 proc is_nil*(obj: GtkClipboard): bool {.borrow.}
+proc is_nil*(obj: GtkSettings): bool {.borrow.}
 
 template define_bit_set(Type) =
   proc `==`*(a, b: Type): bool {.borrow.}
@@ -331,6 +333,9 @@ proc gtk_clipboard_set_text*(clipboard: GtkClipboard, text: cstring, length: cin
 proc gtk_clipboard_request_text*(clipboard: GtkClipboard,
                                  callback: ClipboardTextCallback,
                                  data: pointer)
+
+# Gtk.Settings
+proc gtk_settings_get_default*(): GtkSettings
 
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
@@ -557,6 +562,10 @@ proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, peop
 proc g_value_new*(str: string): GValue =
   discard g_value_init(result.addr, G_TYPE_STRING)
   g_value_set_string(result.addr, str.cstring)
+
+proc g_value_new*(value: bool): GValue =
+  discard g_value_init(result.addr, G_TYPE_BOOLEAN)
+  g_value_set_boolean(result.addr, cbool(ord(value)))
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)

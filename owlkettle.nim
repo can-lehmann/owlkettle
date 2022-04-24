@@ -41,28 +41,38 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
   gtk_widget_destroy(dialog)
   result = (to_dialog_response(res), state)
 
-proc setup_app(widget: Widget, icons: openArray[string] = []): WidgetState =
+proc setup_app(widget: Widget, icons: openArray[string], dark_theme: bool): WidgetState =
+  if dark_theme:
+    let settings = gtk_settings_get_default()
+    var value = g_value_new(dark_theme)
+    g_object_set_property(settings.pointer, "gtk-application-prefer-dark-theme", value.addr)
+    g_value_unset(value.addr)
   let icon_theme = gtk_icon_theme_get_default()
   for path in icons:
     gtk_icon_theme_append_search_path(icon_theme, path.cstring)
   result = widget.build()
 
-proc brew*(widget: Widget, icons: openArray[string] = []) =
+proc brew*(widget: Widget,
+           icons: openArray[string] = [],
+           dark_theme: bool = false) =
   gtk_init()
-  discard setup_app(widget, icons)
+  discard setup_app(widget, icons, dark_theme)
   gtk_main()
 
-proc brew*(id: string, widget: Widget, icons: openArray[string] = []) =
+proc brew*(id: string, widget: Widget,
+           icons: openArray[string] = [],
+           dark_theme: bool = false) =
   type Closure = object
     widget: Widget
     icons: seq[string]
+    dark_theme: bool
   
   proc activate_callback(app: GApplication, data: ptr Closure) {.cdecl.} =
-    let state = setup_app(data[].widget, data[].icons)
+    let state = setup_app(data[].widget, data[].icons, data[].dark_theme)
     gtk_application_add_window(app, state.unwrap_renderable().internal_widget)
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
-  var closure = Closure(widget: widget, icons: @icons)
+  var closure = Closure(widget: widget, icons: @icons, dark_theme: dark_theme)
   discard g_signal_connect(app, "activate", activate_callback, closure.addr)
   let status = g_application_run(app)
