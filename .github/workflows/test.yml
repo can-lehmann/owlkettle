@@ -1,0 +1,42 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README**'
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - 'README**'
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          # - windows-latest
+          # - macOS-latest
+        nim:
+          - '1.6.0'
+          - '1.6.x'
+          - 'stable'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ matrix.nim }}
+      - run: nimble install -Y
+      - name: Setup dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y libgtk-3-dev
+      - name: Setup config.nims
+        run: |
+          # For referencing latest source code
+          echo 'switch("path", "$projectDir/..")' > examples/config.nims
+      - run: nimble examples
