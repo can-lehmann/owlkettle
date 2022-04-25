@@ -350,6 +350,7 @@ renderable Label of BaseWidget:
   x_align: float = 0.5
   y_align: float = 0.5
   ellipsize: EllipsizeMode
+  line_wrap: bool = false
   
   hooks:
     before_build:
@@ -371,11 +372,21 @@ renderable Label of BaseWidget:
     property:
       gtk_label_set_ellipsize(state.internal_widget, PangoEllipsizeMode(ord(state.ellipsize)))
   
+  hooks line_wrap:
+    property:
+      gtk_label_set_line_wrap(state.internal_widget, cbool(ord(state.line_wrap)))
+  
+  
   example:
     Label:
       text = "Hello, world!"
       x_align = 0.0
       ellipsize = EllipsizeEnd
+  
+  example:
+    Label:
+      text = "Test ".repeat(50)
+      line_wrap = true
 
 renderable Icon of BaseWidget:
   name: string

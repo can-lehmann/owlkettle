@@ -386,6 +386,7 @@ proc gtk_label_set_markup*(label: GtkWidget, text: cstring)
 proc gtk_label_set_xalign*(label: GtkWidget, xalign: cfloat)
 proc gtk_label_set_yalign*(label: GtkWidget, yalign: cfloat)
 proc gtk_label_set_ellipsize*(label: GtkWidget, mode: PangoEllipsizeMode)
+proc gtk_label_set_line_wrap*(label: GtkWidget, state: cbool)
 
 # Gtk.Box
 proc gtk_box_new*(orientation: GtkOrientation, spacing: cint): GtkWidget

@@ -107,6 +107,7 @@ renderable Label of BaseWidget
 - `x_align: float = 0.5`
 - `y_align: float = 0.5`
 - `ellipsize: EllipsizeMode`
+- `line_wrap: bool = false`
 
 ###### Example
 
@@ -115,6 +116,12 @@ Label:
   text = "Hello, world!"
   x_align = 0.0
   ellipsize = EllipsizeEnd
+```
+
+```nim
+Label:
+  text = "Test ".repeat(50)
+  line_wrap = true
 ```
 
 
