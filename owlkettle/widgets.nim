@@ -351,6 +351,7 @@ renderable Label of BaseWidget:
   y_align: float = 0.5
   ellipsize: EllipsizeMode
   line_wrap: bool = false
+  use_markup: bool = false
   
   hooks:
     before_build:
@@ -376,6 +377,9 @@ renderable Label of BaseWidget:
     property:
       gtk_label_set_line_wrap(state.internal_widget, cbool(ord(state.line_wrap)))
   
+  hooks use_markup:
+    property:
+      gtk_label_set_use_markup(state.internal_widget, cbool(ord(state.use_markup)))
   
   example:
     Label:
@@ -387,6 +391,11 @@ renderable Label of BaseWidget:
     Label:
       text = "Test ".repeat(50)
       line_wrap = true
+  
+  example:
+    Label:
+      text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
+      use_markup = true
 
 renderable Icon of BaseWidget:
   name: string

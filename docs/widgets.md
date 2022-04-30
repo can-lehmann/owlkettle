@@ -108,6 +108,7 @@ renderable Label of BaseWidget
 - `y_align: float = 0.5`
 - `ellipsize: EllipsizeMode`
 - `line_wrap: bool = false`
+- `use_markup: bool = false`
 
 ###### Example
 
@@ -122,6 +123,12 @@ Label:
 Label:
   text = "Test ".repeat(50)
   line_wrap = true
+```
+
+```nim
+Label:
+  text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
+  use_markup = true
 ```
 
 
