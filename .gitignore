@@ -9,6 +9,7 @@ examples/custom_dialog
 examples/drawing_area
 examples/test.nim
 examples/test
+examples/css
 docs/social/
 build_docs
 .git-old

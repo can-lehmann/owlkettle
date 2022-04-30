@@ -105,6 +105,7 @@ type
   GtkIconTheme* = distinct pointer
   GtkClipboard* = distinct pointer
   GtkSettings* = distinct pointer
+  GtkCssProvider* = distinct pointer
 
 proc is_nil*(obj: GtkTextBuffer): bool {.borrow.}
 proc is_nil*(obj: GtkTextIter): bool {.borrow.}
@@ -113,6 +114,7 @@ proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
 proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
 proc is_nil*(obj: GtkClipboard): bool {.borrow.}
 proc is_nil*(obj: GtkSettings): bool {.borrow.}
+proc is_nil*(obj: GtkCssProvider): bool {.borrow.}
 
 template define_bit_set(Type) =
   proc `==`*(a, b: Type): bool {.borrow.}
@@ -144,6 +146,7 @@ type
   
   GdkWindow = distinct pointer
   GdkDisplay = distinct pointer
+  GdkScreen = distinct pointer
   GdkDevice = distinct pointer
   
   GdkEventType* = enum
@@ -318,6 +321,10 @@ proc gdk_keyval_to_unicode*(key_val: cuint): uint32
 # Gdk.Event
 proc gdk_event_get_state*(event: GdkEvent, state: ptr GdkModifierType): cbool
 
+# Gdk.Screen
+proc gdk_screen_get_default*(): GdkScreen
+proc gtk_style_context_add_provider_for_screen*(screen: GdkScreen, provider: GtkCssProvider, priority: cuint)
+
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
 proc gtk_main*()
@@ -354,10 +361,15 @@ proc gtk_widget_destroy*(widget: GtkWidget)
 proc gtk_widget_grab_focus*(widget: GtkWidget)
 proc gtk_widget_get_display*(widget: GtkWidget): GdkDisplay
 
+# Gtk.CssProvider
+proc gtk_css_provider_new*(): GtkCssProvider
+proc gtk_css_provider_load_from_path*(css_provider: GtkCssProvider, path: cstring, error: ptr GError): cbool
+
 # Gtk.StyleContext
 proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)
 proc gtk_style_context_remove_class*(ctx: GtkStyleContext, name: cstring)
 proc gtk_style_context_has_class*(ctx: GtkStyleContext, name: cstring): cbool
+proc gtk_style_context_add_provider*(ctx: GtkStyleContext, provider: GtkCssProvider, priority: cuint)
 
 # Gtk.Container
 proc gtk_container_add*(container, widget: GtkWidget)
@@ -374,6 +386,7 @@ proc gtk_window_set_titlebar*(window, titlebar: GtkWidget)
 proc gtk_window_set_default_size*(window: GtkWidget, width, height: cint)
 proc gtk_window_set_transient_for*(window, parent: GtkWidget)
 proc gtk_window_set_modal*(window: GtkWidget, modal: cbool)
+proc gtk_window_set_focus*(window, focus: GtkWidget)
 
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
@@ -421,9 +434,12 @@ proc gtk_header_bar_pack_end*(header_bar, child: GtkWidget)
 
 # Gtk.Adjustment
 proc gtk_adjustment_new*(value, lower, upper, step_increment, page_increment, page_size: cdouble): GtkAdjustment
+proc gtk_adjustment_set_value*(adjustment: GtkAdjustment, value: cdouble)
 
 # Gtk.ScrolledWindow
 proc gtk_scrolled_window_new*(h_adjustment, v_adjustment: GtkAdjustment): GtkWidget
+proc gtk_scrolled_window_get_hadjustment*(window: GtkWidget): GtkAdjustment
+proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
 
 # Gtk.IconTheme
 proc gtk_icon_theme_new*(): GtkIconTheme

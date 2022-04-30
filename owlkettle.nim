@@ -41,7 +41,10 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
   gtk_widget_destroy(dialog)
   result = (to_dialog_response(res), state)
 
-proc setup_app(widget: Widget, icons: openArray[string], dark_theme: bool): WidgetState =
+proc setup_app(widget: Widget,
+               icons: openArray[string],
+               dark_theme: bool,
+               stylesheets: openArray[string]): WidgetState =
   if dark_theme:
     let settings = gtk_settings_get_default()
     var value = g_value_new(dark_theme)
@@ -51,28 +54,49 @@ proc setup_app(widget: Widget, icons: openArray[string], dark_theme: bool): Widg
   for path in icons:
     gtk_icon_theme_append_search_path(icon_theme, path.cstring)
   result = widget.build()
+  let screen = gdk_screen_get_default()
+  for stylesheet in stylesheets:
+    var error: GError
+    let provider = gtk_css_provider_new()
+    discard gtk_css_provider_load_from_path(provider, stylesheet.cstring, error.addr)
+    if not error.is_nil:
+      raise new_exception(IoError, $error[].message)
+    gtk_style_context_add_provider_for_screen(screen, provider, 600)
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
-           dark_theme: bool = false) =
+           dark_theme: bool = false,
+           stylesheets: openArray[string] = []) =
   gtk_init()
-  discard setup_app(widget, icons, dark_theme)
+  discard setup_app(widget, icons, dark_theme, stylesheets)
   gtk_main()
 
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
-           dark_theme: bool = false) =
+           dark_theme: bool = false,
+           stylesheets: openArray[string] = []) =
   type Closure = object
     widget: Widget
     icons: seq[string]
     dark_theme: bool
+    stylesheets: seq[string]
   
   proc activate_callback(app: GApplication, data: ptr Closure) {.cdecl.} =
-    let state = setup_app(data[].widget, data[].icons, data[].dark_theme)
+    let state = setup_app(
+      data[].widget,
+      data[].icons,
+      data[].dark_theme,
+      data[].stylesheets
+    )
     gtk_application_add_window(app, state.unwrap_renderable().internal_widget)
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
-  var closure = Closure(widget: widget, icons: @icons, dark_theme: dark_theme)
+  var closure = Closure(
+    widget: widget,
+    icons: @icons,
+    dark_theme: dark_theme,
+    stylesheets: @stylesheets
+  )
   discard g_signal_connect(app, "activate", activate_callback, closure.addr)
   let status = g_application_run(app)
