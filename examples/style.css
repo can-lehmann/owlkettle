@@ -24,6 +24,8 @@
 
 window {
   background: #def2d2;
+  color: #111;
+  border: none;
 }
 
 window > label {
@@ -58,4 +60,10 @@ image {
   border: none;
   box-shadow: none;
   -gtk-icon-shadow: none;
+  color: #111;
 }
+
+button.suggested-action image {
+  color: #fff;
+}
+
