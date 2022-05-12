@@ -500,6 +500,34 @@ renderable ListBox of BaseWidget
 - select: `proc (rows: HashSet[int])`
 
 
+## FlowBoxChild
+
+```nim
+renderable FlowBoxChild of Bin
+```
+
+###### Fields
+
+- All fields from [Bin](#Bin)
+
+
+## FlowBox
+
+```nim
+renderable FlowBox of Container
+```
+
+###### Fields
+
+- All fields from [Container](#Container)
+- `homogeneous: bool`
+- `row_spacing: int`
+- `column_spacing: int`
+- `columns: HSlice[int, int] = 1 .. 5`
+- `selection_mode: SelectionMode`
+- `children: seq[Widget]`
+
+
 ## Frame
 
 ```nim

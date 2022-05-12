@@ -1144,6 +1144,89 @@ proc add*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
 
+renderable FlowBoxChild of Bin:
+  hooks:
+    before_build:
+      state.internal_widget = gtk_flow_box_child_new()
+
+renderable FlowBox of Container:
+  homogeneous: bool
+  row_spacing: int
+  column_spacing: int
+  columns: HSlice[int, int] = 1..5
+  selection_mode: SelectionMode
+  children: seq[Widget]
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_flow_box_new()
+  
+  hooks homogeneous:
+    property:
+      gtk_flow_box_set_homogeneous(state.internal_widget, cbool(ord(state.homogeneous)))
+  
+  hooks row_spacing:
+    property:
+      gtk_flow_box_set_row_spacing(state.internal_widget, cuint(state.row_spacing))
+  
+  hooks column_spacing:
+    property:
+      gtk_flow_box_set_column_spacing(state.internal_widget, cuint(state.column_spacing))
+  
+  hooks columns:
+    property:
+      gtk_flow_box_set_min_children_per_line(state.internal_widget, cuint(state.columns.a))
+      gtk_flow_box_set_max_children_per_line(state.internal_widget, cuint(state.columns.b))
+  
+  hooks selection_mode:
+    property:
+      gtk_flow_box_set_selection_mode(state.internal_widget,
+        GtkSelectionMode(ord(state.selection_mode))
+      )
+  
+  hooks children:
+    (build, update):
+      var it = 0
+      while it < widget.val_children.len and
+            it < state.children.len:
+        let child_widget = widget.val_children[it]
+        child_widget.assign_app(state.app)
+        let new_child = child_widget.update(state.children[it])
+        if not new_child.is_nil:
+          gtk_container_remove(
+            state.internal_widget,
+            unwrap_renderable(state.children[it]).internal_widget
+          )
+          gtk_flow_box_insert(
+            state.internal_widget,
+            unwrap_renderable(new_child).internal_widget,
+            cint(it)
+          )
+          state.children[it] = new_child
+        it += 1
+      
+      while it < widget.val_children.len:
+        let child_widget = widget.val_children[it]
+        child_widget.assign_app(state.app)
+        let
+          child = child_widget.build()
+          child_internal = unwrap_renderable(child).internal_widget
+        gtk_container_add(state.internal_widget, child_internal)
+        gtk_widget_show_all(child_internal)
+        state.children.add(child)
+        it += 1
+      
+      while it < state.children.len:
+        let child = state.children.pop()
+        gtk_container_remove(
+          state.internal_widget,
+          unwrap_renderable(child).internal_widget
+        )
+
+proc add*(flow_box: FlowBox, child: FlowBoxChild) =
+  flow_box.has_children = true
+  flow_box.val_children.add(child)
+
 renderable Frame of Bin:
   label: string
   align: tuple[x, y: float] = (0.0, 0.0)
@@ -1364,7 +1447,7 @@ export Container, Bin
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, DrawingArea, ColorButton, Switch, ToggleButton, CheckButton
 export MenuButton, ModelButton, Separator, Popover, TextView
-export ListBox, ListBoxRow, Frame
+export ListBox, ListBoxRow, FlowBox, FlowBoxChild, Frame
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

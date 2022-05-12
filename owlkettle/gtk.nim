@@ -536,6 +536,19 @@ proc gtk_list_box_row_new*(): GtkWidget
 proc gtk_list_box_row_get_index*(row: GtkWidget): cint
 proc gtk_list_box_row_is_selected*(row: GtkWidget): cbool
 
+# Gtk.FlowBox
+proc gtk_flow_box_new*(): GtkWidget
+proc gtk_flow_box_insert*(flow_box, child: GtkWidget, pos: cint)
+proc gtk_flow_box_set_homogeneous*(flow_box: GtkWidget, homogeneous: cbool)
+proc gtk_flow_box_set_row_spacing*(flow_box: GtkWidget, spacing: cuint)
+proc gtk_flow_box_set_column_spacing*(flow_box: GtkWidget, spacing: cuint)
+proc gtk_flow_box_set_selection_mode*(flow_box: GtkWidget, mode: GtkSelectionMode)
+proc gtk_flow_box_set_min_children_per_line*(flow_box: GtkWidget, count: cuint)
+proc gtk_flow_box_set_max_children_per_line*(flow_box: GtkWidget, count: cuint)
+
+# Gtk.FlowBoxChild
+proc gtk_flow_box_child_new*(): GtkWidget
+
 # Gtk.Frame
 proc gtk_frame_new*(label: cstring): GtkWidget
 proc gtk_frame_set_label*(frame: GtkWidget, label: cstring)
