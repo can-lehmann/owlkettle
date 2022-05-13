@@ -1148,6 +1148,13 @@ renderable FlowBoxChild of Bin:
   hooks:
     before_build:
       state.internal_widget = gtk_flow_box_child_new()
+  
+  example:
+    FlowBox:
+      columns = 1..5
+      for it in 0..<10:
+        FlowBoxChild {.add_child.}:
+          Label(text = $it)
 
 renderable FlowBox of Container:
   homogeneous: bool
@@ -1222,10 +1229,19 @@ renderable FlowBox of Container:
           state.internal_widget,
           unwrap_renderable(child).internal_widget
         )
+  
+  example:
+    FlowBox:
+      columns = 1..5
+      for it in 0..<10:
+        Label(text = $it)
 
-proc add*(flow_box: FlowBox, child: FlowBoxChild) =
+proc add_child*(flow_box: FlowBox, child: FlowBoxChild) =
   flow_box.has_children = true
   flow_box.val_children.add(child)
+
+proc add*(flow_box: FlowBox, child: Widget) =
+  flow_box.add_child(FlowBoxChild(has_child: true, val_child: child))
 
 renderable Frame of Bin:
   label: string

@@ -510,6 +510,16 @@ renderable FlowBoxChild of Bin
 
 - All fields from [Bin](#Bin)
 
+###### Example
+
+```nim
+FlowBox:
+  columns = 1 .. 5
+  for it in 0 ..< 10:
+    FlowBoxChild {.add_child.}:
+      Label(text = $it)
+```
+
 
 ## FlowBox
 
@@ -526,6 +536,15 @@ renderable FlowBox of Container
 - `columns: HSlice[int, int] = 1 .. 5`
 - `selection_mode: SelectionMode`
 - `children: seq[Widget]`
+
+###### Example
+
+```nim
+FlowBox:
+  columns = 1 .. 5
+  for it in 0 ..< 10:
+    Label(text = $it)
+```
 
 
 ## Frame
