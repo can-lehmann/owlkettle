@@ -86,8 +86,7 @@ method view(list: SearchListState): Widget =
     ListBox:
       for (similarity, child) in children:
         if similarity > low(int):
-          ListBoxRow:
-            insert child
+          insert child
 
 proc add(list: SearchList, child: Widget, name: string = "") =
   list.has_children = true

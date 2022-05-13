@@ -1065,7 +1065,7 @@ renderable ListBoxRow of Bin:
   example:
     ListBox:
       for it in 0..<10:
-        ListBoxRow:
+        ListBoxRow {.add_row.}:
           proc activate() =
             echo it
           Label(text = $it)
@@ -1140,9 +1140,15 @@ renderable ListBox of BaseWidget:
           if row >= state.rows.len:
             raise new_exception(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
 
-proc add*(list_box: ListBox, row: ListBoxRow) =
+proc add_row*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
+
+proc add*(list_box: ListBox, child: Widget) =
+  if child of ListBoxRow:
+    list_box.add_row(ListBoxRow(child))
+  else:
+    list_box.add_row(ListBoxRow(has_child: true, val_child: child))
 
 renderable FlowBoxChild of Bin:
   hooks:

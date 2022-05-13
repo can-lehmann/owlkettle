@@ -474,7 +474,7 @@ renderable ListBoxRow of Bin
 ```nim
 ListBox:
   for it in 0 ..< 10:
-    ListBoxRow:
+    ListBoxRow {.add_row.}:
       proc activate() =
         echo it
 
