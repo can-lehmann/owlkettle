@@ -53,6 +53,14 @@ type
   CairoExtend* = enum
     ExtendNone, ExtendRepeat, ExtendReflect, ExtendPad
   
+  CairoTextExtents* = object
+    x_bearing*: cdouble
+    y_bearing*: cdouble
+    width*: cdouble
+    height*: cdouble
+    x_advance*: cdouble
+    y_advance*: cdouble
+  
   CairoStatus = distinct cint # TODO
 
 proc `==`(a, b: CairoStatus): bool {.borrow.}
@@ -78,6 +86,9 @@ proc cairo_get_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
 proc cairo_set_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
 proc cairo_translate(ctx: CairoContext, dx, dy: cdouble)
 proc cairo_scale(ctx: CairoContext, sx, sy: cdouble)
+
+proc cairo_set_font_size(ctx: CairoContext, size: cdouble)
+proc cairo_text_extents(ctx: CairoContext, text: cstring, extents: ptr CairoTextExtents)
 
 # Cairo.ImageSurface
 proc cairo_image_surface_create(format: CairoFormat, width, height: cint): CairoSurface
@@ -159,6 +170,12 @@ proc matrix*(ctx: CairoContext): CairoMatrix = cairo_get_matrix(ctx, result.addr
 proc `matrix=`*(ctx: CairoContext, mat: CairoMatrix) = cairo_set_matrix(ctx, mat.unsafe_addr)
 proc scale*(ctx: CairoContext, x, y: float) = cairo_scale(ctx, x.cdouble, y.cdouble)
 proc translate*(ctx: CairoContext, x, y: float) = cairo_translate(ctx, x.cdouble, y.cdouble)
+
+proc `font_size=`*(ctx: CairoContext, size: float) =
+  cairo_set_font_size(ctx, size.cdouble)
+
+proc text_extents*(ctx: CairoContext, text: string): CairoTextExtents =
+  cairo_text_extents(ctx, text.cstring, result.addr)
 
 proc new_image_surface*(format: CairoFormat, width, height: int): CairoSurface =
   result = cairo_image_surface_create(format, width.cint, height.cint)
