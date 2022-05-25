@@ -323,8 +323,8 @@ renderable DrawingArea of BaseWidget
 - mouse_pressed: `proc (event: ButtonEvent)`
 - mouse_released: `proc (event: ButtonEvent)`
 - mouse_moved: `proc (event: MotionEvent)`
-- key_pressed: `proc (event: KeyEvent)`
-- key_released: `proc (event: KeyEvent)`
+- key_pressed: `proc (event: KeyEvent): bool`
+- key_released: `proc (event: KeyEvent): bool`
 
 
 ## ColorButton
