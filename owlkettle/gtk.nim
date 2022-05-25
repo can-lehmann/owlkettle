@@ -20,14 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Bindings for GTK 3
+# Bindings for GTK 4
 
 import std/[os]
 
-when defined(owlkettle_gtk4):
-  {.passl: gorge("pkg-config --libs gtk4").}
-else:
-  {.passl: gorge("pkg-config --libs gtk+-3.0").}
+{.passl: gorge("pkg-config --libs gtk4").}
 
 type cbool* = cint
 
@@ -146,8 +143,8 @@ type
   
   GdkWindow = distinct pointer
   GdkDisplay = distinct pointer
-  GdkScreen = distinct pointer
   GdkDevice = distinct pointer
+  GdkEvent* = distinct pointer
   
   GdkEventType* = enum
     GDK_EVENT_NOTHING = -1
@@ -168,56 +165,6 @@ type
     GDK_SCROLL_UP, GDK_SCROLL_DOWN,
     GDK_SCROLL_LEFT, GDK_SCROLL_RIGHT,
     GDK_SCROLL_SMOOTH
-  
-  GdkEventObj* = object
-    `type`*: GdkEventType
-    window*: GdkWindow
-    send_event*: int8
-  
-  GdkEvent* = ptr GdkEventObj
-  
-  GdkEventButtonObj* = object
-    `type`*: GdkEventType
-    window*: GdkWindow
-    send_event*: int8
-    time*: uint32
-    x*, y*: cdouble
-    axes*: ptr cdouble
-    state*: cuint
-    button*: cuint
-    device*: GdkDevice
-    x_root*, y_root*: cdouble
-  
-  GdkEventButton* = ptr GdkEventButtonObj
-  
-  GdkEventMotionObj* = object
-    `type`*: GdkEventType
-    window*: GdkWindow
-    send_event*: int8
-    time*: uint32
-    x*, y*: cdouble
-    axes*: ptr cdouble
-    state*: cuint
-    is_hint*: int16
-    device*: GdkDevice
-    x_root*, y_root*: cdouble
-  
-  GdkEventMotion* = ptr GdkEventMotionObj
-  
-  GdkEventKeyObj* = object
-    `type`*: GdkEventType
-    window*: GdkWindow
-    send_event*: int8
-    time*: uint32
-    state*: cuint
-    keyval*: cuint
-    length*: cint
-    str*: cstring
-    keycode*: uint16
-    group*: uint8 
-    is_modifier* {.bitsize: 1.}: cuint
-  
-  GdkEventKey* = ptr GdkEventKeyObj
 
 const
   GDK_POINTER_MOTION_MASK* = GdkEventMask(1 shl 2)
@@ -239,6 +186,8 @@ const
 
 define_bit_set(GdkEventMask)
 define_bit_set(GdkModifierType)
+
+proc is_nil*(obj: GdkEvent): bool {.borrow.}
 
 type
   GType* = distinct csize_t
@@ -263,12 +212,14 @@ type
   GResource* = distinct pointer
   GIcon* = distinct pointer
   GApplication* = distinct pointer
+  GFile* = distinct pointer
   
   GApplicationFlags = distinct cuint
 
 proc is_nil*(obj: GResource): bool {.borrow.}
 proc is_nil*(obj: GIcon): bool {.borrow.}
 proc is_nil*(obj: GApplication): bool {.borrow.}
+proc is_nil*(obj: GFile): bool {.borrow.}
 
 const
   G_APPLICATION_FLAGS_NONE* = GApplicationFlags(0)
@@ -315,20 +266,22 @@ proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
 # Gio.Application
 proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
 
+# Gio.File
+proc g_file_get_path*(file: GFile): cstring
+proc g_file_get_uri*(file: GFile): cstring
+
 # Gdk
 proc gdk_keyval_to_unicode*(key_val: cuint): uint32
 
 # Gdk.Event
-proc gdk_event_get_state*(event: GdkEvent, state: ptr GdkModifierType): cbool
+proc gdk_event_get_modifier_state*(event: GdkEvent): GdkModifierType
 
-# Gdk.Screen
-proc gdk_screen_get_default*(): GdkScreen
-proc gtk_style_context_add_provider_for_screen*(screen: GdkScreen, provider: GtkCssProvider, priority: cuint)
+# Gdk.Display
+proc gdk_display_get_default*(): GdkDisplay
+proc gtk_style_context_add_provider_for_display*(display: GdkDisplay, provider: GtkCssProvider, priority: cuint)
 
 # Gtk
 proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
-proc gtk_main*()
-proc gtk_main_quit*()
 
 # Gtk.Application
 proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
@@ -347,12 +300,9 @@ proc gtk_settings_get_default*(): GtkSettings
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
 proc gtk_widget_hide*(widget: GtkWidget)
-proc gtk_widget_show_all*(widget: GtkWidget)
 proc gtk_widget_get_allocated_width*(widget: GtkWidget): cint
 proc gtk_widget_get_allocated_height*(widget: GtkWidget): cint
 proc gtk_widget_get_style_context*(widget: GtkWidget): GtkStyleContext
-proc gtk_widget_set_events*(widget: GtkWidget, events: GdkEventMask)
-proc gtk_widget_get_events*(widget: GtkWidget): GdkEventMask
 proc gtk_widget_set_sensitive*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_set_size_request*(widget: GtkWidget, w, h: cint)
 proc gtk_widget_set_can_focus*(widget: GtkWidget, sensitive: cbool)
@@ -370,14 +320,6 @@ proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)
 proc gtk_style_context_remove_class*(ctx: GtkStyleContext, name: cstring)
 proc gtk_style_context_has_class*(ctx: GtkStyleContext, name: cstring): cbool
 proc gtk_style_context_add_provider*(ctx: GtkStyleContext, provider: GtkCssProvider, priority: cuint)
-
-# Gtk.Container
-proc gtk_container_add*(container, widget: GtkWidget)
-proc gtk_container_remove*(container, widget: GtkWidget)
-proc gtk_container_set_border_width*(container: GtkWidget, border_width: cuint)
-
-# Gtk.Bin
-proc gtk_bin_get_child*(bin: GtkWidget): GtkWidget
 
 # Gtk.Window
 proc gtk_window_new*(window_type: GtkWindowType): GtkWidget
@@ -399,37 +341,32 @@ proc gtk_label_set_markup*(label: GtkWidget, text: cstring)
 proc gtk_label_set_xalign*(label: GtkWidget, xalign: cfloat)
 proc gtk_label_set_yalign*(label: GtkWidget, yalign: cfloat)
 proc gtk_label_set_ellipsize*(label: GtkWidget, mode: PangoEllipsizeMode)
-proc gtk_label_set_line_wrap*(label: GtkWidget, state: cbool)
+proc gtk_label_set_wrap*(label: GtkWidget, state: cbool)
 proc gtk_label_set_use_markup*(label: GtkWidget, state: cbool)
 
 # Gtk.Box
 proc gtk_box_new*(orientation: GtkOrientation, spacing: cint): GtkWidget
-proc gtk_box_pack_start*(box, widget: GtkWidget, expand, fill: cbool, padding: cuint)
-proc gtk_box_pack_end*(box, widget: GtkWidget, expand, fill: cbool, padding: cuint)
+proc gtk_box_append*(box, widget: GtkWidget)
+proc gtk_box_prepend*(box, widget: GtkWidget)
+proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
-proc gtk_box_set_child_packing*(box, child: GtkWidget,
-                                expand, fill: cbool,
-                                padding: cuint,
-                                pack_type: GtkPackType)
-proc gtk_box_reorder_child*(box, child: GtkWidget, position: cint)
+
+# Gtk.Editable
+proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)
+proc gtk_editable_get_text*(entry: GtkWidget): cstring
+proc gtk_editable_set_width_chars*(entry: GtkWidget, chars: cint)
 
 # Gtk.Entry
 proc gtk_entry_new*(): GtkWidget
-proc gtk_entry_set_text*(entry: GtkWidget, text: cstring)
-proc gtk_entry_get_text*(entry: GtkWidget): cstring
 proc gtk_entry_set_placeholder_text*(entry: GtkWidget, text: cstring)
 proc gtk_entry_get_placeholder_text*(entry: GtkWidget): cstring
-proc gtk_entry_set_width_chars*(entry: GtkWidget, chars: cint)
 proc gtk_entry_set_alignment*(entry: GtkWidget, alignment: cfloat)
 proc gtk_entry_set_visibility*(entry: GtkWidget, visibility: cbool)
 proc gtk_entry_set_invisible_char*(entry: GtkWidget, ch: uint32)
 
 # Gtk.HeaderBar
 proc gtk_header_bar_new*(): GtkWidget
-proc gtk_header_bar_set_title*(header_bar: GtkWidget, title: cstring)
-proc gtk_header_bar_set_subtitle*(header_bar: GtkWidget, title: cstring)
-proc gtk_header_bar_set_custom_title*(header_bar, title: GtkWidget)
-proc gtk_header_bar_set_show_close_button*(header_bar: GtkWidget, show: cbool)
+proc gtk_header_bar_set_show_title_buttons*(header_bar: GtkWidget, show: cbool)
 proc gtk_header_bar_pack_start*(header_bar, child: GtkWidget)
 proc gtk_header_bar_pack_end*(header_bar, child: GtkWidget)
 
@@ -444,9 +381,9 @@ proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
 
 # Gtk.IconTheme
 proc gtk_icon_theme_new*(): GtkIconTheme
-proc gtk_icon_theme_get_default*(): GtkIconTheme
+proc gtk_icon_theme_get_for_display*(display: GdkDisplay): GtkIconTheme
 proc gtk_icon_theme_append_resource_path*(theme: GtkIconTheme, path: cstring)
-proc gtk_icon_theme_append_search_path*(theme: GtkIconTheme, path: cstring)
+proc gtk_icon_theme_add_search_path*(theme: GtkIconTheme, path: cstring)
 
 # Gtk.Image
 proc gtk_image_new*(): GtkWidget
@@ -455,8 +392,12 @@ proc gtk_image_set_pixel_size*(image: GtkWidget, pixel_size: cint)
 
 # Gtk.Paned
 proc gtk_paned_new*(orientation: GtkOrientation): GtkWidget
-proc gtk_paned_pack1*(paned, child: GtkWidget, resize, shrink: cbool)
-proc gtk_paned_pack2*(paned, child: GtkWidget, resize, shrink: cbool)
+proc gtk_paned_set_start_child*(paned, child: GtkWidget)
+proc gtk_paned_set_shrink_start_child*(paned: GtkWidget, shrink: cbool)
+proc gtk_paned_set_resize_start_child*(paned: GtkWidget, resize: cbool)
+proc gtk_paned_set_end_child*(paned, child: GtkWidget)
+proc gtk_paned_set_shrink_end_child*(paned: GtkWidget, shrink: cbool)
+proc gtk_paned_set_resize_end_child*(paned: GtkWidget, resize: cbool)
 proc gtk_paned_set_position*(paned: GtkWidget, pos: cint)
 
 # Gtk.DrawingArea
@@ -489,14 +430,10 @@ proc gtk_check_button_new*(): GtkWidget
 proc gtk_popover_new*(relative_to: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
-proc gtk_popover_set_relative_to*(popover, widget: GtkWidget)
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
 proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
-
-# Gtk.ModelButton
-proc gtk_model_button_new*(): GtkWidget
 
 # Gtk.Separator
 proc gtk_separator_new*(orient: GtkOrientation): GtkWidget
@@ -566,7 +503,7 @@ proc gtk_dialog_add_button*(dialog: GtkWidget, text: cstring, response: cint): G
 proc gtk_dialog_get_header_bar*(dialog: GtkWidget): GtkWidget
 
 # Gtk.FileChooser
-proc gtk_file_chooser_get_filename*(file_chooser: GtkWidget): cstring
+proc gtk_file_chooser_get_file*(file_chooser: GtkWidget): GFile
 
 # Gtk.FileChooserDialog
 proc gtk_file_chooser_dialog_new*(title: cstring,

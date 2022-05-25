@@ -63,14 +63,6 @@ proc setup_app(widget: Widget,
       raise new_exception(IoError, $error[].message)
     gtk_style_context_add_provider_for_screen(screen, provider, 600)
 
-proc brew*(widget: Widget,
-           icons: openArray[string] = [],
-           dark_theme: bool = false,
-           stylesheets: openArray[string] = []) =
-  gtk_init()
-  discard setup_app(widget, icons, dark_theme, stylesheets)
-  gtk_main()
-
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
            dark_theme: bool = false,
