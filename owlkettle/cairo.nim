@@ -53,6 +53,12 @@ type
   CairoExtend* = enum
     ExtendNone, ExtendRepeat, ExtendReflect, ExtendPad
   
+  CairoFontSlant* = enum
+    FontSlantNormal, FontSlantItalic, FontSlantOblique
+  
+  CairoFontWeight* = enum
+    FontWeightNormal, FontWeightBold
+  
   CairoTextExtents* = object
     x_bearing*: cdouble
     y_bearing*: cdouble
@@ -89,6 +95,7 @@ proc cairo_scale(ctx: CairoContext, sx, sy: cdouble)
 
 proc cairo_set_font_size(ctx: CairoContext, size: cdouble)
 proc cairo_text_extents(ctx: CairoContext, text: cstring, extents: ptr CairoTextExtents)
+proc cairo_select_font_face(ctx: CairoContext, family: cstring, slant: CairoFontSlant, weight: CairoFontWeight)
 
 # Cairo.ImageSurface
 proc cairo_image_surface_create(format: CairoFormat, width, height: cint): CairoSurface
@@ -173,6 +180,12 @@ proc translate*(ctx: CairoContext, x, y: float) = cairo_translate(ctx, x.cdouble
 
 proc `font_size=`*(ctx: CairoContext, size: float) =
   cairo_set_font_size(ctx, size.cdouble)
+
+proc select_font_face*(ctx: CairoContext,
+                       family: string,
+                       slant: CairoFontSlant = FontSlantNormal,
+                       weight: CairoFontWeight = FontWeightNormal) =
+  cairo_select_font_face(ctx, family.cstring, slant, weight)
 
 proc text_extents*(ctx: CairoContext, text: string): CairoTextExtents =
   cairo_text_extents(ctx, text.cstring, result.addr)

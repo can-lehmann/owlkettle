@@ -751,6 +751,7 @@ type
   KeyEvent* = object
     time*: uint32
     rune*: Rune
+    value*: int
     modifiers*: set[ModifierKey]
 
 proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
@@ -800,15 +801,16 @@ proc motion_event_callback(widget: GtkWidget,
 
 proc key_event_callback(widget: GtkWidget,
                         event: GdkEventKey,
-                        data: ptr EventObj[proc (event: KeyEvent)]): cbool =
+                        data: ptr EventObj[proc (event: KeyEvent): bool]): cbool =
   var evt = KeyEvent(
     time: event[].time,
-    rune: Rune(gdk_keyval_to_unicode(event[].key_val))
+    rune: Rune(gdk_keyval_to_unicode(event[].key_val)),
+    value: event[].key_val.int
   )
   var state: GdkModifierType
   if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
     evt.modifiers = init_modifier_set(state)
-  data[].callback(evt)
+  result = cbool(ord(data[].callback(evt)))
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
@@ -820,8 +822,8 @@ renderable DrawingArea of BaseWidget:
   proc mouse_pressed(event: ButtonEvent)
   proc mouse_released(event: ButtonEvent)
   proc mouse_moved(event: MotionEvent)
-  proc key_pressed(event: KeyEvent)
-  proc key_released(event: KeyEvent)
+  proc key_pressed(event: KeyEvent): bool
+  proc key_released(event: KeyEvent): bool
   
   hooks:
     before_build:
