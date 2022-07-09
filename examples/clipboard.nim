@@ -35,18 +35,18 @@ method view(app: AppState): Widget =
       
       Box:
         orient = OrientY
-        border_width = 12
+        margin = 12
         
-        Box {.expand: false.}:
+        Box:
           orient = OrientX
           spacing = 6
           
-          Entry:
+          Entry {.expand: true.}:
             text = app.text
             proc changed(text: string) =
               app.text = text
           
-          Button {.expand: false.}:
+          Button:
             text = "Copy"
             proc clicked() =
               app.write_clipboard(app.text)

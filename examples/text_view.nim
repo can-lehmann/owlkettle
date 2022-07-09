@@ -28,9 +28,10 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
+      title = "Text View Example"
+      
       HeaderBar {.add_titlebar.}:
-        title = "Text View Example"
-        subtitle = $app.buffer.count_lines & " line(s)"
+        #subtitle = $app.buffer.count_lines & " line(s)"
         
         Button {.add_left.}:
           text = "Set Text"

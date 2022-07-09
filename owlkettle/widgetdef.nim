@@ -66,6 +66,9 @@ proc unwrap_renderable*(state: WidgetState): Renderable =
     cur = Viewable(cur).viewed
   result = Renderable(cur)
 
+proc unwrap_internal_widget*(state: WidgetState): GtkWidget =
+  result = state.unwrap_renderable().internal_widget
+
 proc redraw*(viewable: Viewable) =
   let widget = viewable.view()
   widget.assign_app(viewable.app)
@@ -99,6 +102,7 @@ type
     events: seq[EventDef]
     fields: seq[Field]
     hooks: array[HookKind, seq[NimNode]]
+    setters: seq[Field]
     types: seq[NimNode]
     examples: seq[NimNode]
 
@@ -195,8 +199,11 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
                 def.fields[field_id].hooks[kind] = body
         elif child[0].is_name("example"):
           def.examples.add(child[1])
+        elif child[0].is_name("setter"):
+          # TODO: Generate setters automatically
+          discard
         else:
-          var field = Field(name: child[0].str_val)
+          var field = Field(name: child[0].unwrap_name().str_val)
           case child[1][0].kind:
             of nnkAsgn:
               field.typ = child[1][0][0]
@@ -423,6 +430,7 @@ proc gen_update(def: WidgetDef): NimNode =
         return widget.build()
       let state = `state_typ`(widget_state)
       state.app = widget.app
+      read(state)
       `update_state`(state, widget)
       when `is_viewable`:
         redraw(state)

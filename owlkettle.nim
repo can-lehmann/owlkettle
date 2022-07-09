@@ -27,8 +27,8 @@ proc write_clipboard*(state: WidgetState, text: string) =
   let
     widget = state.unwrap_renderable().internal_widget
     display = gtk_widget_get_display(widget)
-    clipboard = gtk_clipboard_get_default(display)
-  gtk_clipboard_set_text(clipboard, text.cstring, text.len.cint)
+    clipboard = gdk_display_get_clipboard(display)
+  gdk_clipboard_set_text(clipboard, text.cstring, text.len.cint)
 
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
@@ -50,18 +50,30 @@ proc setup_app(widget: Widget,
     var value = g_value_new(dark_theme)
     g_object_set_property(settings.pointer, "gtk-application-prefer-dark-theme", value.addr)
     g_value_unset(value.addr)
-  let icon_theme = gtk_icon_theme_get_default()
+  
+  let display = gdk_display_get_default()
+  let icon_theme = gtk_icon_theme_get_for_display(display)
   for path in icons:
-    gtk_icon_theme_append_search_path(icon_theme, path.cstring)
+    gtk_icon_theme_add_search_path(icon_theme, path.cstring)
   result = widget.build()
-  let screen = gdk_screen_get_default()
+  
   for stylesheet in stylesheets:
     var error: GError
     let provider = gtk_css_provider_new()
     discard gtk_css_provider_load_from_path(provider, stylesheet.cstring, error.addr)
     if not error.is_nil:
       raise new_exception(IoError, $error[].message)
-    gtk_style_context_add_provider_for_screen(screen, provider, 600)
+    gtk_style_context_add_provider_for_display(display, provider, 600)
+
+proc brew*(widget: Widget,
+           icons: openArray[string] = [],
+           dark_theme: bool = false,
+           stylesheets: openArray[string] = []) =
+  gtk_init()
+  let state = setup_app(widget, icons, dark_theme, stylesheets)
+  gtk_window_present(state.unwrap_internal_widget())
+  while g_list_model_get_n_items(gtk_window_get_toplevels()) > 0:
+    discard g_main_context_iteration(nil, cbool(ord(true)))
 
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
@@ -80,7 +92,9 @@ proc brew*(id: string, widget: Widget,
       data[].dark_theme,
       data[].stylesheets
     )
-    gtk_application_add_window(app, state.unwrap_renderable().internal_widget)
+    let window = state.unwrap_renderable().internal_widget
+    gtk_window_present(window)
+    gtk_application_add_window(app, window)
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)

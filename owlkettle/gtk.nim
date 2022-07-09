@@ -100,7 +100,6 @@ type
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
-  GtkClipboard* = distinct pointer
   GtkSettings* = distinct pointer
   GtkCssProvider* = distinct pointer
 
@@ -109,7 +108,6 @@ proc is_nil*(obj: GtkTextIter): bool {.borrow.}
 proc is_nil*(obj: GtkAdjustment): bool {.borrow.}
 proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
 proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
-proc is_nil*(obj: GtkClipboard): bool {.borrow.}
 proc is_nil*(obj: GtkSettings): bool {.borrow.}
 proc is_nil*(obj: GtkCssProvider): bool {.borrow.}
 
@@ -165,6 +163,8 @@ type
     GDK_SCROLL_UP, GDK_SCROLL_DOWN,
     GDK_SCROLL_LEFT, GDK_SCROLL_RIGHT,
     GDK_SCROLL_SMOOTH
+  
+  GdkClipboard* = distinct pointer
 
 const
   GDK_POINTER_MOTION_MASK* = GdkEventMask(1 shl 2)
@@ -188,6 +188,7 @@ define_bit_set(GdkEventMask)
 define_bit_set(GdkModifierType)
 
 proc is_nil*(obj: GdkEvent): bool {.borrow.}
+proc is_nil*(obj: GdkClipboard): bool {.borrow.}
 
 type
   GType* = distinct csize_t
@@ -209,10 +210,14 @@ type
   
   GError* = ptr GErrorObj
   
+  GMainContext* = distinct pointer
+  
   GResource* = distinct pointer
   GIcon* = distinct pointer
   GApplication* = distinct pointer
   GFile* = distinct pointer
+  
+  GListModel* = distinct pointer
   
   GApplicationFlags = distinct cuint
 
@@ -220,6 +225,7 @@ proc is_nil*(obj: GResource): bool {.borrow.}
 proc is_nil*(obj: GIcon): bool {.borrow.}
 proc is_nil*(obj: GApplication): bool {.borrow.}
 proc is_nil*(obj: GFile): bool {.borrow.}
+proc is_nil*(obj: GListModel): bool {.borrow.}
 
 const
   G_APPLICATION_FLAGS_NONE* = GApplicationFlags(0)
@@ -228,10 +234,6 @@ const
   G_TYPE_BOOLEAN* = GType(5 shl 2)
   G_TYPE_STRING* = GType(16 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
-
-type ClipboardTextCallback = proc (clipboard: GtkClipboard,
-                                   text: cstring,
-                                   data: pointer) {.cdecl.}
 
 {.push importc, cdecl.}
 # GObject
@@ -256,6 +258,9 @@ proc g_value_unset*(value: ptr GValue)
 # GLib.List
 proc g_list_free*(list: GList)
 
+# GLib.MainContext
+proc g_main_context_iteration*(ctx: GMainContext, blocking: cbool): cbool
+
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
 proc g_resources_register*(res: GResource)
@@ -270,6 +275,9 @@ proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
 proc g_file_get_path*(file: GFile): cstring
 proc g_file_get_uri*(file: GFile): cstring
 
+# Gio.GListModel
+proc g_list_model_get_n_items*(list: GListModel): cuint
+
 # Gdk
 proc gdk_keyval_to_unicode*(key_val: cuint): uint32
 
@@ -279,20 +287,17 @@ proc gdk_event_get_modifier_state*(event: GdkEvent): GdkModifierType
 # Gdk.Display
 proc gdk_display_get_default*(): GdkDisplay
 proc gtk_style_context_add_provider_for_display*(display: GdkDisplay, provider: GtkCssProvider, priority: cuint)
+proc gdk_display_get_clipboard*(display: GdkDisplay): GdkClipboard
+
+# Gdk.Clipboard
+proc gdk_clipboard_set_text*(clipboard: GdkClipboard, text: cstring, length: cint)
 
 # Gtk
-proc gtk_init*(argc: ptr cint, argv: ptr cstringArray)
+proc gtk_init*()
 
 # Gtk.Application
 proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
-
-# Gtk.Clipboard
-proc gtk_clipboard_get_default*(display: GdkDisplay): GtkClipboard
-proc gtk_clipboard_set_text*(clipboard: GtkClipboard, text: cstring, length: cint)
-proc gtk_clipboard_request_text*(clipboard: GtkClipboard,
-                                 callback: ClipboardTextCallback,
-                                 data: pointer)
 
 # Gtk.Settings
 proc gtk_settings_get_default*(): GtkSettings
@@ -310,6 +315,12 @@ proc gtk_widget_queue_draw*(widget: GtkWidget)
 proc gtk_widget_destroy*(widget: GtkWidget)
 proc gtk_widget_grab_focus*(widget: GtkWidget)
 proc gtk_widget_get_display*(widget: GtkWidget): GdkDisplay
+proc gtk_widget_set_margin_top*(widget: GtkWidget, margin: cint)
+proc gtk_widget_set_margin_bottom*(widget: GtkWidget, margin: cint)
+proc gtk_widget_set_margin_start*(widget: GtkWidget, margin: cint)
+proc gtk_widget_set_margin_end*(widget: GtkWidget, margin: cint)
+proc gtk_widget_set_hexpand*(widget: GtkWidget, expand: cbool)
+proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
@@ -329,10 +340,14 @@ proc gtk_window_set_default_size*(window: GtkWidget, width, height: cint)
 proc gtk_window_set_transient_for*(window, parent: GtkWidget)
 proc gtk_window_set_modal*(window: GtkWidget, modal: cbool)
 proc gtk_window_set_focus*(window, focus: GtkWidget)
+proc gtk_window_set_child*(window, child: GtkWidget)
+proc gtk_window_present*(window: GtkWidget)
+proc gtk_window_get_toplevels*(): GListModel
 
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
 proc gtk_button_new_with_label*(label: cstring): GtkWidget
+proc gtk_button_set_child*(window, child: GtkWidget)
 
 # Gtk.Label
 proc gtk_label_new*(text: cstring): GtkWidget
@@ -348,6 +363,7 @@ proc gtk_label_set_use_markup*(label: GtkWidget, state: cbool)
 proc gtk_box_new*(orientation: GtkOrientation, spacing: cint): GtkWidget
 proc gtk_box_append*(box, widget: GtkWidget)
 proc gtk_box_prepend*(box, widget: GtkWidget)
+proc gtk_box_remove*(box, widget: GtkWidget)
 proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
 
@@ -369,6 +385,9 @@ proc gtk_header_bar_new*(): GtkWidget
 proc gtk_header_bar_set_show_title_buttons*(header_bar: GtkWidget, show: cbool)
 proc gtk_header_bar_pack_start*(header_bar, child: GtkWidget)
 proc gtk_header_bar_pack_end*(header_bar, child: GtkWidget)
+proc gtk_header_bar_remove*(header_bar, child: GtkWidget)
+proc gtk_header_bar_set_title_widget*(header_bar, child: GtkWidget)
+
 
 # Gtk.Adjustment
 proc gtk_adjustment_new*(value, lower, upper, step_increment, page_increment, page_size: cdouble): GtkAdjustment
@@ -378,6 +397,7 @@ proc gtk_adjustment_set_value*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_scrolled_window_new*(h_adjustment, v_adjustment: GtkAdjustment): GtkWidget
 proc gtk_scrolled_window_get_hadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
+proc gtk_scrolled_window_set_child*(window, child: GtkWidget)
 
 # Gtk.IconTheme
 proc gtk_icon_theme_new*(): GtkIconTheme
@@ -425,14 +445,18 @@ proc gtk_toggle_button_get_active*(widget: GtkWidget): cbool
 
 # Gtk.CheckButton
 proc gtk_check_button_new*(): GtkWidget
+proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)
+proc gtk_check_button_get_active*(widget: GtkWidget): cbool
 
 # Gtk.Popover
 proc gtk_popover_new*(relative_to: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
+proc gtk_popover_set_child*(popover, child: GtkWidget)
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
+proc gtk_menu_button_set_child*(button, child: GtkWidget)
 proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
 
 # Gtk.Separator
@@ -467,15 +491,20 @@ proc gtk_list_box_set_selection_mode*(list_box: GtkWidget, mode: GtkSelectionMod
 proc gtk_list_box_get_selected_rows*(list_box: GtkWidget): GList
 proc gtk_list_box_select_row*(list_box, row: GtkWidget)
 proc gtk_list_box_unselect_row*(list_box, row: GtkWidget)
+proc gtk_list_box_append*(list_box, row: GtkWidget)
+proc gtk_list_box_remove*(list_box, row: GtkWidget)
 
 # Gtk.ListBoxRow
 proc gtk_list_box_row_new*(): GtkWidget
 proc gtk_list_box_row_get_index*(row: GtkWidget): cint
 proc gtk_list_box_row_is_selected*(row: GtkWidget): cbool
+proc gtk_list_box_row_set_child*(row, child: GtkWidget)
 
 # Gtk.FlowBox
 proc gtk_flow_box_new*(): GtkWidget
 proc gtk_flow_box_insert*(flow_box, child: GtkWidget, pos: cint)
+proc gtk_flow_box_append*(flow_box, child: GtkWidget)
+proc gtk_flow_box_remove*(flow_box, child: GtkWidget)
 proc gtk_flow_box_set_homogeneous*(flow_box: GtkWidget, homogeneous: cbool)
 proc gtk_flow_box_set_row_spacing*(flow_box: GtkWidget, spacing: cuint)
 proc gtk_flow_box_set_column_spacing*(flow_box: GtkWidget, spacing: cuint)
@@ -485,12 +514,14 @@ proc gtk_flow_box_set_max_children_per_line*(flow_box: GtkWidget, count: cuint)
 
 # Gtk.FlowBoxChild
 proc gtk_flow_box_child_new*(): GtkWidget
+proc gtk_flow_box_child_set_child*(flow_box_child, child: GtkWidget)
 
 # Gtk.Frame
 proc gtk_frame_new*(label: cstring): GtkWidget
 proc gtk_frame_set_label*(frame: GtkWidget, label: cstring)
 proc gtk_frame_set_label_align*(frame: GtkWidget, x, y: cfloat)
 proc gtk_frame_set_shadow_type*(frame: GtkWidget, shadow: GtkShadowType)
+proc gtk_frame_set_child*(frame, child: GtkWidget)
 
 # Gtk.Dialog
 proc gtk_dialog_new*(): GtkWidget
@@ -555,7 +586,3 @@ template with_c_args(argc, argv, body: untyped) =
 proc g_application_run*(app: GApplication): cint =
   with_c_args argc, argv:
     result = g_application_run(app, argc, argv)
-
-proc gtk_init*() =
-  with_c_args argc, argv:
-    gtk_init(argc.addr, argv.addr)

@@ -34,47 +34,44 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      border_width = 12
+      title = "Todo"
       
-      HeaderBar {.add_titlebar.}:
-        title = "Todo"
-        subtitle = $app.todos.len & " item(s)"
-        
+      HeaderBar {.add_titlebar.}:  
         MenuButton {.add_right.}:
           icon = "open-menu-symbolic"
           Popover:
-            Box(orient=OrientY, spacing=6, border_width=12):
+            Box(orient=OrientY, spacing=6, margin=6):
               Button:
                 icon = "user-trash-symbolic"
                 style = {ButtonDestructive}
                 proc clicked() =
                   app.todos = app.todos.filter_it(not it.done)
       
-      Box(orient = OrientY, spacing = 6):
-        Box(orient = OrientX, spacing = 6) {.expand: false.}:
-          Entry:
+      Box(orient = OrientY, spacing = 6, margin = 12):
+        Box(orient = OrientX, spacing = 6):
+          Entry {.expand: true.}:
             text = app.query
             proc changed(query: string) =
               app.query = query
-          Button {.expand: false.}:
+          Button:
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
             proc clicked() =
               app.todos.add(TodoItem(text: app.query))
               app.query = ""
         
-        Frame:
+        Frame {.expand: true.}:
           ScrolledWindow:
             ListBox:
               selection_mode = SelectionNone
               for it, todo in app.todos:
                 Box:
                   spacing = 6
-                  CheckButton {.expand: false.}:
+                  CheckButton:
                     state = todo.done
                     proc changed(state: bool) =
                       app.todos[it].done = state
-                  Label:
+                  Label {.expand: true.}:
                     text = todo.text
                     x_align = 0
 
