@@ -37,11 +37,9 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      proc close() = quit()
+      title = "Drawing Area"
       
       HeaderBar {.add_titlebar.}:
-        title = "Drawing Area"
-        
         ColorButton {.add_left.}:
           color = app.color
           proc changed(color: Color) =

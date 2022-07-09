@@ -58,18 +58,6 @@ proc check_button_event_callback(widget: GtkWidget, data: ptr EventObj[proc (sta
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
 
-proc draw_event_callback(widget: GtkWidget,
-                         ctx: CairoContext,
-                         data: ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]): cbool =
-  let requires_redraw = data[].callback(ctx, (
-    int(gtk_widget_get_allocated_width(widget)),
-    int(gtk_widget_get_allocated_height(widget))
-  ))
-  if requires_redraw:
-    if data[].app.is_nil:
-      raise new_exception(ValueError, "App is nil")
-    data[].app.redraw()
-
 proc color_event_callback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) =
   var color: GdkRgba
   gtk_color_chooser_get_rgba(widget, color.addr)
@@ -750,7 +738,7 @@ proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false
     paned.has_first = true
     paned.val_first = paned_child
 
-#[
+
 type
   ModifierKey* = enum
     ModifierCtrl, ModifierAlt, ModifierShift,
@@ -784,7 +772,7 @@ proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
   for (mask, key) in MODIFIERS:
     if mask in state:
       result.incl(key)
-
+#[
 proc button_event_callback(widget: GtkWidget,
                            event: GdkEventButton,
                            data: ptr EventObj[proc (event: ButtonEvent)]): cbool =
@@ -833,6 +821,19 @@ proc key_event_callback(widget: GtkWidget,
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
+]#
+
+proc draw_func(widget: GtkWidget,
+               ctx: pointer,
+               width, height: cint,
+               data: pointer) {.cdecl.} =
+  let
+    event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
+    requires_redraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
+  if requires_redraw:
+    if event[].app.is_nil:
+      raise new_exception(ValueError, "App is nil")
+    event[].app.redraw()
 
 renderable DrawingArea of BaseWidget:
   focusable: bool
@@ -848,34 +849,34 @@ renderable DrawingArea of BaseWidget:
     before_build:
       state.internal_widget = gtk_drawing_area_new()
       
-      var mask = gtk_widget_get_events(state.internal_widget)
-      mask[GDK_BUTTON_PRESS_MASK] = not widget.mouse_pressed.is_nil
-      mask[GDK_BUTTON_RELEASE_MASK] = not widget.mouse_released.is_nil
-      mask[GDK_POINTER_MOTION_MASK] = not widget.mouse_moved.is_nil
-      mask[GDK_KEY_PRESS_MASK] = not widget.key_pressed.is_nil
-      mask[GDK_KEY_RELEASE_MASK] = not widget.key_released.is_nil
-      gtk_widget_set_events(state.internal_widget, mask)
+      #var mask = gtk_widget_get_events(state.internal_widget)
+      #mask[GDK_BUTTON_PRESS_MASK] = not widget.mouse_pressed.is_nil
+      #mask[GDK_BUTTON_RELEASE_MASK] = not widget.mouse_released.is_nil
+      #mask[GDK_POINTER_MOTION_MASK] = not widget.mouse_moved.is_nil
+      #mask[GDK_KEY_PRESS_MASK] = not widget.key_pressed.is_nil
+      #mask[GDK_KEY_RELEASE_MASK] = not widget.key_released.is_nil
+      #gtk_widget_set_events(state.internal_widget, mask)
     connect_events:
-      state.internal_widget.connect(state.draw, "draw", draw_event_callback)
-      state.internal_widget.connect(state.mouse_pressed, "button-press-event", button_event_callback)
-      state.internal_widget.connect(state.mouse_released, "button-release-event", button_event_callback)
-      state.internal_widget.connect(state.mouse_moved, "motion-notify-event", motion_event_callback)
-      state.internal_widget.connect(state.key_pressed, "key-press-event", key_event_callback)
-      state.internal_widget.connect(state.key_released, "key-release-event", key_event_callback)
+      gtk_drawing_area_set_draw_func(state.internal_widget, draw_func, state.draw[].addr, nil)
+      #state.internal_widget.connect(state.mouse_pressed, "button-press-event", button_event_callback)
+      #state.internal_widget.connect(state.mouse_released, "button-release-event", button_event_callback)
+      #state.internal_widget.connect(state.mouse_moved, "motion-notify-event", motion_event_callback)
+      #state.internal_widget.connect(state.key_pressed, "key-press-event", key_event_callback)
+      #state.internal_widget.connect(state.key_released, "key-release-event", key_event_callback)
     disconnect_events:
-      state.internal_widget.disconnect(state.draw)
-      state.internal_widget.disconnect(state.mouse_pressed)
-      state.internal_widget.disconnect(state.mouse_released)
-      state.internal_widget.disconnect(state.mouse_moved)
-      state.internal_widget.disconnect(state.key_pressed)
-      state.internal_widget.disconnect(state.key_released)
+      discard
+      #state.internal_widget.disconnect(state.mouse_pressed)
+      #state.internal_widget.disconnect(state.mouse_released)
+      #state.internal_widget.disconnect(state.mouse_moved)
+      #state.internal_widget.disconnect(state.key_pressed)
+      #state.internal_widget.disconnect(state.key_released)
     update:
       gtk_widget_queue_draw(state.internal_widget)
   
   hooks focusable:
     property:
       gtk_widget_set_can_focus(state.internal_widget, cbool(ord(state.focusable)))
-]#
+
 
 renderable ColorButton of BaseWidget:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
@@ -1533,7 +1534,7 @@ renderable AboutDialog of BuiltinDialog:
 export BaseWidget
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, ToggleButton, CheckButton
-export MenuButton, Separator, Popover, TextView
+export DrawingArea, MenuButton, Separator, Popover, TextView
 export ListBox, ListBoxRow, FlowBox, FlowBoxChild, Frame
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState

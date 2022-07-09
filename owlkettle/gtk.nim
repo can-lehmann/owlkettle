@@ -93,6 +93,8 @@ type
     GTK_BUTTONS_CANCEL,
     GTK_BUTTONS_YES_NO,
     GTK_BUTTONS_OK_CANCEL
+  
+  GtkDrawingAreaDrawFunc* = proc(area: GtkWidget, ctx: pointer, width, height: cint, data: pointer) {.cdecl.}
 
 type
   GtkTextBuffer* = distinct pointer
@@ -211,6 +213,8 @@ type
   GError* = ptr GErrorObj
   
   GMainContext* = distinct pointer
+  
+  GDestroyNotify* = proc(data: pointer) {.cdecl.}
   
   GResource* = distinct pointer
   GIcon* = distinct pointer
@@ -422,6 +426,10 @@ proc gtk_paned_set_position*(paned: GtkWidget, pos: cint)
 
 # Gtk.DrawingArea
 proc gtk_drawing_area_new*(): GtkWidget
+proc gtk_drawing_area_set_draw_func*(widget: GtkWidget,
+                                     draw_func: GtkDrawingAreaDrawFunc,
+                                     data: pointer,
+                                     destroy: GDestroyNotify)
 
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
