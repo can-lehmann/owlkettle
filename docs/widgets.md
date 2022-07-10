@@ -11,44 +11,24 @@ renderable BaseWidget
 
 - `sensitive: bool = true`
 - `size_request: tuple[x, y: int] = (-1, -1)`
-
-
-## Container
-
-```nim
-renderable Container of BaseWidget
-```
-
-###### Fields
-
-- All fields from [BaseWidget](#BaseWidget)
-- `border_width: int`
-
-
-## Bin
-
-```nim
-renderable Bin of Container
-```
-
-###### Fields
-
-- All fields from [Container](#Container)
-- `child: Widget`
+- `internal_margin: Margin = Margin()`
+- `hexpand: bool = false`
+- `vexpand: bool = false`
 
 
 ## Window
 
 ```nim
-renderable Window of Bin
+renderable Window of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
 - `title: string`
 - `titlebar: Widget`
 - `default_size: tuple[width, height: int] = (800, 600)`
+- `child: Widget`
 
 ###### Events
 
@@ -73,15 +53,15 @@ Window:
 ## Box
 
 ```nim
-renderable Box of Container
+renderable Box of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Container](#Container)
+- All fields from [BaseWidget](#BaseWidget)
 - `orient: Orient`
 - `spacing: int`
-- `children: seq[PackedChild[Widget]]`
+- `children: seq[Widget]`
 - `style: set[BoxStyle]`
 
 ###### Example
@@ -107,7 +87,7 @@ renderable Label of BaseWidget
 - `x_align: float = 0.5`
 - `y_align: float = 0.5`
 - `ellipsize: EllipsizeMode`
-- `line_wrap: bool = false`
+- `wrap: bool = false`
 - `use_markup: bool = false`
 
 ###### Example
@@ -161,13 +141,14 @@ Icon:
 ## Button
 
 ```nim
-renderable Button of Bin
+renderable Button of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
 - `style: set[ButtonStyle]`
+- `child: Widget`
 
 ###### Events
 
@@ -206,12 +187,10 @@ renderable HeaderBar of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `title: string`
-- `subtitle: string`
-- `show_close_button: bool = true`
+- `title: Widget`
+- `show_title_buttons: bool = true`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
-- `custom_title: Widget`
 
 ###### Example
 
@@ -231,12 +210,13 @@ Window:
 ## ScrolledWindow
 
 ```nim
-renderable ScrolledWindow of Bin
+renderable ScrolledWindow of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
 
 
 ## Entry
@@ -316,13 +296,14 @@ renderable DrawingArea of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `focusable: bool`
+- `events: DrawingAreaEvents`
 
 ###### Events
 
 - draw: `proc (ctx: CairoContext; size: (int, int)): bool`
-- mouse_pressed: `proc (event: ButtonEvent)`
-- mouse_released: `proc (event: ButtonEvent)`
-- mouse_moved: `proc (event: MotionEvent)`
+- mouse_pressed: `proc (event: ButtonEvent): bool`
+- mouse_released: `proc (event: ButtonEvent): bool`
+- mouse_moved: `proc (event: MotionEvent): bool`
 - key_pressed: `proc (event: KeyEvent): bool`
 - key_released: `proc (event: KeyEvent): bool`
 
@@ -379,51 +360,42 @@ renderable ToggleButton of Button
 ## CheckButton
 
 ```nim
-renderable CheckButton of ToggleButton
-```
-
-###### Fields
-
-- All fields from [ToggleButton](#ToggleButton)
-
-
-## Popover
-
-```nim
-renderable Popover of Bin
-```
-
-###### Fields
-
-- All fields from [Bin](#Bin)
-
-
-## MenuButton
-
-```nim
-renderable MenuButton of Button
-```
-
-###### Fields
-
-- All fields from [Button](#Button)
-- `popover: Widget`
-
-
-## ModelButton
-
-```nim
-renderable ModelButton of BaseWidget
+renderable CheckButton of BaseWidget
 ```
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `text: string`
+- `state: bool`
 
 ###### Events
 
-- clicked: `proc ()`
+- changed: `proc (state: bool)`
+
+
+## Popover
+
+```nim
+renderable Popover of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+
+
+## MenuButton
+
+```nim
+renderable MenuButton of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+- `popover: Widget`
 
 
 ## Separator
@@ -458,12 +430,13 @@ renderable TextView of BaseWidget
 ## ListBoxRow
 
 ```nim
-renderable ListBoxRow of Bin
+renderable ListBoxRow of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
 
 ###### Events
 
@@ -503,12 +476,13 @@ renderable ListBox of BaseWidget
 ## FlowBoxChild
 
 ```nim
-renderable FlowBoxChild of Bin
+renderable FlowBoxChild of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
 
 ###### Example
 
@@ -524,12 +498,12 @@ FlowBox:
 ## FlowBox
 
 ```nim
-renderable FlowBox of Container
+renderable FlowBox of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Container](#Container)
+- All fields from [BaseWidget](#BaseWidget)
 - `homogeneous: bool`
 - `row_spacing: int`
 - `column_spacing: int`
@@ -550,14 +524,15 @@ FlowBox:
 ## Frame
 
 ```nim
-renderable Frame of Bin
+renderable Frame of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
+- All fields from [BaseWidget](#BaseWidget)
 - `label: string`
 - `align: tuple[x, y: float] = (0.0, 0.0)`
+- `child: Widget`
 
 
 ## DialogButton
@@ -576,13 +551,12 @@ renderable DialogButton
 ## Dialog
 
 ```nim
-renderable Dialog of Bin
+renderable Dialog of Window
 ```
 
 ###### Fields
 
-- All fields from [Bin](#Bin)
-- `title: string`
+- All fields from [Window](#Window)
 - `buttons: seq[DialogButton]`
 
 
