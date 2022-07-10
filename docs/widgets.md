@@ -41,14 +41,6 @@ Window:
   Label(text = "Hello, world")
 ```
 
-```nim
-Window:
-  proc close() =
-    quit()
-
-  Label(text = "Hello, world")
-```
-
 
 ## Box
 
@@ -69,8 +61,29 @@ renderable Box of BaseWidget
 ```nim
 Box:
   orient = OrientX
-  Label(text = "Label")
-  Button(text = "Button") {.expand: false.}
+  Label(text = "Label") {.expand: true.}
+  Button(text = "Button")
+```
+
+```nim
+Box:
+  orient = OrientY
+  margin = 12
+  spacing = 6
+  for it in 0 ..< 5:
+    Label(text = "Label " & $it) {.expand: true.}
+```
+
+```nim
+HeaderBar {.add_titlebar.}:
+  Box {.add_left.}:
+    style = {BoxLinked}
+    for it in 0 ..< 5:
+      Button:
+        text = "Button " & $it
+        proc clicked() =
+          echo it
+
 ```
 
 
@@ -102,7 +115,7 @@ Label:
 ```nim
 Label:
   text = "Test ".repeat(50)
-  line_wrap = true
+  wrap = true
 ```
 
 ```nim
@@ -196,10 +209,8 @@ renderable HeaderBar of BaseWidget
 
 ```nim
 Window:
-  border_width = 12
+  title = "Title"
   HeaderBar {.add_titlebar.}:
-    title = "Title"
-    subtitle = "Subtitle"
     Button {.add_left.}:
       icon = "list-add-symbolic"
     Button {.add_right.}:
@@ -285,6 +296,17 @@ renderable Paned of BaseWidget
 - `first: PanedChild[Widget]`
 - `second: PanedChild[Widget]`
 
+###### Example
+
+```nim
+Paned:
+  initial_position = 200
+  Box(orient = OrientY) {.resize: false.}:
+    Label(text = "Sidebar") {.expand: true.}
+  Box(orient = OrientY) {.resize: true.}:
+    Label(text = "Content") {.expand: true.}
+```
+
 
 ## DrawingArea
 
@@ -340,6 +362,16 @@ renderable Switch of BaseWidget
 
 - changed: `proc (state: bool)`
 
+###### Example
+
+```nim
+Switch:
+  state = app.state
+  proc changed(state: bool) =
+    app.state = state
+
+```
+
 
 ## ToggleButton
 
@@ -356,6 +388,17 @@ renderable ToggleButton of Button
 
 - changed: `proc (state: bool)`
 
+###### Example
+
+```nim
+ToggleButton:
+  text = "Current State: " & $app.state
+  state = app.state
+  proc changed(state: bool) =
+    app.state = state
+
+```
+
 
 ## CheckButton
 
@@ -371,6 +414,16 @@ renderable CheckButton of BaseWidget
 ###### Events
 
 - changed: `proc (state: bool)`
+
+###### Example
+
+```nim
+CheckButton:
+  state = app.state
+  proc changed(state: bool) =
+    app.state = state
+
+```
 
 
 ## Popover
@@ -472,6 +525,14 @@ renderable ListBox of BaseWidget
 
 - select: `proc (rows: HashSet[int])`
 
+###### Example
+
+```nim
+ListBox:
+  for it in 0 ..< 10:
+    Label(text = $it)
+```
+
 
 ## FlowBoxChild
 
@@ -533,6 +594,16 @@ renderable Frame of BaseWidget
 - `label: string`
 - `align: tuple[x, y: float] = (0.0, 0.0)`
 - `child: Widget`
+
+###### Example
+
+```nim
+Frame:
+  label = "Frame Title"
+  align = (0.2, 0.0)
+  Label:
+    text = "Content"
+```
 
 
 ## DialogButton

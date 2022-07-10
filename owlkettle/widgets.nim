@@ -227,13 +227,6 @@ renderable Window of BaseWidget:
   example:
     Window:
       Label(text = "Hello, world")
-  
-  example:
-    Window:
-      proc close() =
-        quit()
-      
-      Label(text = "Hello, world")
 
 proc add*(window: Window, child: Widget) =
   if window.has_child:
@@ -316,8 +309,28 @@ renderable Box of BaseWidget:
   example:
     Box:
       orient = OrientX
-      Label(text = "Label")
-      Button(text = "Button") {.expand: false.}
+      Label(text = "Label") {.expand: true.}
+      Button(text = "Button")
+  
+  example:
+    Box:
+      orient = OrientY
+      margin = 12
+      spacing = 6
+      
+      for it in 0..<5:
+        Label(text = "Label " & $it) {.expand: true.}
+  
+  example:
+    HeaderBar {.add_titlebar.}:
+      Box {.add_left.}:
+        style = {BoxLinked}
+        
+        for it in 0..<5:
+          Button:
+            text = "Button " & $it
+            proc clicked() =
+              echo it
 
 proc add*(box: Box, child: Widget) =
   box.has_children = true
@@ -379,7 +392,7 @@ renderable Label of BaseWidget:
   example:
     Label:
       text = "Test ".repeat(50)
-      line_wrap = true
+      wrap = true
   
   example:
     Label:
@@ -537,12 +550,9 @@ renderable HeaderBar of BaseWidget:
   
   example:
     Window:
-      border_width = 12
+      title = "Title"
       
       HeaderBar {.add_titlebar.}:
-        title = "Title"
-        subtitle = "Subtitle"
-        
         Button {.add_left.}:
           icon = "list-add-symbolic"
         
@@ -724,6 +734,14 @@ renderable Paned of BaseWidget:
     update:
       if widget.has_second:
         state.second.update_paned_child(widget.val_second, state.app)
+  
+  example:
+    Paned:
+      initial_position = 200
+      Box(orient = OrientY) {.resize: false.}:
+        Label(text = "Sidebar") {.expand: true.}
+      Box(orient = OrientY) {.resize: true.}:
+        Label(text = "Content") {.expand: true.}
 
 proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false) =
   let paned_child = PanedChild[Widget](
@@ -943,6 +961,12 @@ renderable Switch of BaseWidget:
   hooks state:
     property:
       gtk_switch_set_state(state.internal_widget, cbool(ord(state.state)))
+  
+  example:
+    Switch:
+      state = app.state
+      proc changed(state: bool) =
+        app.state = state
 
 renderable ToggleButton of Button:
   state: bool
@@ -960,6 +984,13 @@ renderable ToggleButton of Button:
   hooks state:
     property:
       gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
+  
+  example:
+    ToggleButton:
+      text = "Current State: " & $app.state
+      state = app.state
+      proc changed(state: bool) =
+        app.state = state
 
 renderable CheckButton of BaseWidget:
   state: bool
@@ -977,6 +1008,12 @@ renderable CheckButton of BaseWidget:
   hooks state:
     property:
       gtk_check_button_set_active(state.internal_widget, cbool(ord(state.state)))
+  
+  example:
+    CheckButton:
+      state = app.state
+      proc changed(state: bool) =
+        app.state = state
 
 renderable Popover of BaseWidget:
   child: Widget
@@ -1218,6 +1255,11 @@ renderable ListBox of BaseWidget:
           if row >= state.rows.len:
             raise new_exception(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
 
+  example:
+    ListBox:
+      for it in 0..<10:
+        Label(text = $it)
+
 proc add_row*(list_box: ListBox, row: ListBoxRow) =
   list_box.has_rows = true
   list_box.val_rows.add(row)
@@ -1363,6 +1405,13 @@ renderable Frame of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_frame_set_child)
     update: update_bin(state, widget, gtk_frame_set_child)
+  
+  example:
+    Frame:
+      label = "Frame Title"
+      align = (0.2, 0.0)
+      Label:
+        text = "Content"
 
 proc add*(frame: Frame, child: Widget) =
   if frame.has_child:
