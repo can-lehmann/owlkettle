@@ -105,10 +105,8 @@ method view(app: AppState): Widget =
       title = "App Launcher"
       default_size = (600, 400)
       
-      proc close() = quit()
-      
       HeaderBar {.add_titlebar.}:
-        Entry {.add_custom_title.}:
+        Entry {.add_title.}:
           placeholder = "Search..."
           width = 40
           proc changed(query: string) =

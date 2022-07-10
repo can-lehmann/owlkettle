@@ -28,11 +28,10 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
+      title = "File Dialog Example"
       default_size = (300, 100)
+      
       HeaderBar {.add_titlebar.}:
-        title = "File Dialog Example"
-        subtitle = app.path
-        
         Button {.add_left.}:
           text = "Open"
           style = {ButtonSuggested}

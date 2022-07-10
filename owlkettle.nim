@@ -33,12 +33,21 @@ proc write_clipboard*(state: WidgetState, text: string) =
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
     state = WidgetState(widget.build())
-    window = app.unwrap_renderable().internal_widget
-    dialog = state.unwrap_renderable().internal_widget
+    window = app.unwrap_internal_widget()
+    dialog = state.unwrap_internal_widget()
   gtk_window_set_transient_for(dialog, window)
-  let res = gtk_dialog_run(dialog)
+  gtk_window_set_modal(dialog, cbool(bool(true)))
+  gtk_window_present(dialog)
+  
+  proc response(dialog: GtkWidget, response_id: cint, res: ptr cint) {.cdecl.} =
+    res[] = response_id
+  
+  var res = low(cint)
+  discard g_signal_connect(dialog, "response", response, res.addr)
+  while res == low(cint):
+    discard g_main_context_iteration(nil, cbool(ord(true)))
   state.read()
-  gtk_widget_destroy(dialog)
+  gtk_window_destroy(dialog)
   result = (to_dialog_response(res), state)
 
 proc setup_app(widget: Widget,

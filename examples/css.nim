@@ -29,13 +29,9 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       default_size = (400, 200)
-      
-      proc close() = quit()
+      title = "My Window"
       
       HeaderBar {.add_titlebar.}:
-        title = "My Window"
-        subtitle = "Subtitle"
-        
         Button {.add_left.}:
           icon = "list-add-symbolic"
           style = {ButtonSuggested}
