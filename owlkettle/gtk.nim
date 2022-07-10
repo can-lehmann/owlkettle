@@ -104,6 +104,7 @@ type
   GtkIconTheme* = distinct pointer
   GtkSettings* = distinct pointer
   GtkCssProvider* = distinct pointer
+  GtkEventController* = distinct pointer
 
 proc is_nil*(obj: GtkTextBuffer): bool {.borrow.}
 proc is_nil*(obj: GtkTextIter): bool {.borrow.}
@@ -112,6 +113,7 @@ proc is_nil*(obj: GtkStyleContext): bool {.borrow.}
 proc is_nil*(obj: GtkIconTheme): bool {.borrow.}
 proc is_nil*(obj: GtkSettings): bool {.borrow.}
 proc is_nil*(obj: GtkCssProvider): bool {.borrow.}
+proc is_nil*(obj: GtkEventController): bool {.borrow.}
 
 template define_bit_set(Type) =
   proc `==`*(a, b: Type): bool {.borrow.}
@@ -147,16 +149,13 @@ type
   GdkEvent* = distinct pointer
   
   GdkEventType* = enum
-    GDK_EVENT_NOTHING = -1
-    GDK_MOTION_NOTIFY = 3
-    GDK_BUTTON_PRESS = 4
-    GDK_DOUBLE_BUTTON_PRESS = 5
-    GDK_TRIPLE_BUTTON_PRESS = 6
-    GDK_BUTTON_RELEASE = 7
-    GDK_KEY_PRESS = 8
-    GDK_KEY_RELEASE = 9
-    GDK_SCROLL = 31
-    GDK_EVENT_LAST = 48
+    GDK_MOTION_NOTIFY = 1
+    GDK_BUTTON_PRESS = 2
+    GDK_BUTTON_RELEASE = 3
+    GDK_KEY_PRESS = 4
+    GDK_KEY_RELEASE = 5
+    GDK_SCROLL = 15
+    GDK_EVENT_LAST = 29
   
   GdkEventMask* = distinct cint
   GdkModifierType* = distinct cint
@@ -286,7 +285,21 @@ proc g_list_model_get_n_items*(list: GListModel): cuint
 proc gdk_keyval_to_unicode*(key_val: cuint): uint32
 
 # Gdk.Event
+proc gdk_event_get_event_type*(event: GdkEvent): GdkEventType
 proc gdk_event_get_modifier_state*(event: GdkEvent): GdkModifierType
+proc gdk_event_get_position*(event: GdkEvent, x: ptr cdouble, y: ptr cdouble): cbool
+proc gdk_event_get_time*(event: GdkEvent): uint32
+
+# Gdk.ButtonEvent
+proc gdk_button_event_get_button*(event: GdkEvent): cuint
+
+# Gdk.KeyEvent
+proc gdk_key_event_get_keycode*(event: GdkEvent): cuint
+proc gdk_key_event_get_keyval*(event: GdkEvent): cuint
+
+# Gdk.ScrollEvent
+proc gdk_scroll_event_get_deltas*(event: GdkEvent, dx: ptr cdouble, dy: ptr cdouble)
+proc gdk_scroll_event_get_direction*(event: GdkEvent): GdkScrollDirection
 
 # Gdk.Display
 proc gdk_display_get_default*(): GdkDisplay
@@ -316,7 +329,6 @@ proc gtk_widget_set_sensitive*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_set_size_request*(widget: GtkWidget, w, h: cint)
 proc gtk_widget_set_can_focus*(widget: GtkWidget, sensitive: cbool)
 proc gtk_widget_queue_draw*(widget: GtkWidget)
-proc gtk_widget_destroy*(widget: GtkWidget)
 proc gtk_widget_grab_focus*(widget: GtkWidget)
 proc gtk_widget_get_display*(widget: GtkWidget): GdkDisplay
 proc gtk_widget_set_margin_top*(widget: GtkWidget, margin: cint)
@@ -325,6 +337,9 @@ proc gtk_widget_set_margin_start*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_margin_end*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_hexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
+proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
+proc gtk_widget_translate_coordinates*(src, dest: GtkWidget, src_x, src_y: cdouble, dest_x, dest_y: ptr cdouble): cbool
+proc gtk_widget_get_root*(widget: GtkWidget): GtkWidget
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
@@ -347,6 +362,7 @@ proc gtk_window_set_focus*(window, focus: GtkWidget)
 proc gtk_window_set_child*(window, child: GtkWidget)
 proc gtk_window_present*(window: GtkWidget)
 proc gtk_window_get_toplevels*(): GListModel
+proc gtk_window_destroy*(window: GtkWidget)
 
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
@@ -430,6 +446,9 @@ proc gtk_drawing_area_set_draw_func*(widget: GtkWidget,
                                      draw_func: GtkDrawingAreaDrawFunc,
                                      data: pointer,
                                      destroy: GDestroyNotify)
+
+# Gtk.EventControllerLegacy
+proc gtk_event_controller_legacy_new*(): GtkEventController
 
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
@@ -573,6 +592,9 @@ proc g_value_new*(str: string): GValue =
 proc g_value_new*(value: bool): GValue =
   discard g_value_init(result.addr, G_TYPE_BOOLEAN)
   g_value_set_boolean(result.addr, cbool(ord(value)))
+
+proc g_signal_connect*(widget: GtkEventController, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
 proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)

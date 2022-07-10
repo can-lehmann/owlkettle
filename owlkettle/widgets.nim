@@ -772,56 +772,80 @@ proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
   for (mask, key) in MODIFIERS:
     if mask in state:
       result.incl(key)
-#[
-proc button_event_callback(widget: GtkWidget,
-                           event: GdkEventButton,
-                           data: ptr EventObj[proc (event: ButtonEvent)]): cbool =
-  var evt = ButtonEvent(
-    time: event[].time,
-    button: int(event[].button) - 1,
-    x: float(event[].x),
-    y: float(event[].y)
-  )
-  var state: GdkModifierType
-  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
-    evt.modifiers = init_modifier_set(state)
-  data[].callback(evt)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
-  data[].app.redraw()
 
-proc motion_event_callback(widget: GtkWidget,
-                           event: GdkEventMotion,
-                           data: ptr EventObj[proc (event: MotionEvent)]): cbool =
-  var evt = MotionEvent(
-    time: event[].time,
-    x: float(event[].x),
-    y: float(event[].y)
-  )
-  var state: GdkModifierType
-  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
-    evt.modifiers = init_modifier_set(state)
-  data[].callback(evt)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
-  data[].app.redraw()
+type
+  DrawingAreaEventsObj = object
+    mouse_pressed: proc(event: ButtonEvent): bool
+    mouse_released: proc(event: ButtonEvent): bool
+    mouse_moved: proc(event: MotionEvent): bool
+    key_pressed: proc(event: KeyEvent): bool
+    key_released: proc(event: KeyEvent): bool
+    widget: GtkWidget
+    app: Viewable
+  
+  DrawingAreaEvents = ref DrawingAreaEventsObj
 
-proc key_event_callback(widget: GtkWidget,
-                        event: GdkEventKey,
-                        data: ptr EventObj[proc (event: KeyEvent): bool]): cbool =
-  var evt = KeyEvent(
-    time: event[].time,
-    rune: Rune(gdk_keyval_to_unicode(event[].key_val)),
-    value: event[].key_val.int
+proc gdk_event_callback(widget: GtkWidget, event: GdkEvent, data: ptr DrawingAreaEventsObj): cbool =
+  let
+    modifiers = init_modifier_set(gdk_event_get_modifier_state(event))
+    time = gdk_event_get_time(event)
+  var
+    window_pos = (x: cdouble(0.0), y: cdouble(0.0))
+    local_pos = (x: cdouble(0.0), y: cdouble(0.0))
+  discard gdk_event_get_position(event, window_pos.x.addr, window_pos.y.addr)
+  discard gtk_widget_translate_coordinates(
+    gtk_widget_get_root(data[].widget), data[].widget,
+    window_pos.x, window_pos.y,
+    local_pos.x.addr, local_pos.y.addr
   )
-  var state: GdkModifierType
-  if gdk_event_get_state(cast[GdkEvent](event), state.addr) != cbool(0):
-    evt.modifiers = init_modifier_set(state)
-  result = cbool(ord(data[].callback(evt)))
+  
+  var stop_event = false
+  
+  let kind = gdk_event_get_event_type(event)
+  case kind:
+    of GDK_MOTION_NOTIFY:
+      if not data[].mouse_moved.is_nil:
+        stop_event = data[].mouse_moved(MotionEvent(
+          time: time,
+          x: float(local_pos.x),
+          y: float(local_pos.y),
+          modifiers: modifiers
+        ))
+    of GDK_BUTTON_PRESS, GDK_BUTTON_RELEASE:
+      let evt = ButtonEvent(
+        time: time,
+        button: int(gdk_button_event_get_button(event)) - 1,
+        x: float(local_pos.x),
+        y: float(local_pos.y),
+        modifiers: modifiers
+      )
+      if kind == GDK_BUTTON_PRESS:
+        if not data[].mouse_pressed.is_nil:
+          stop_event = data[].mouse_pressed(evt)
+      else:
+        if not data[].mouse_released.is_nil:
+          stop_event = data[].mouse_released(evt)
+    of GDK_KEY_PRESS, GDK_KEY_RELEASE:
+      let
+        key_val = gdk_key_event_get_keyval(event)
+        evt = KeyEvent(
+          time: time,
+          rune: Rune(gdk_keyval_to_unicode(keyval)),
+          value: keyval.int,
+          modifiers: modifiers
+        )
+      if kind == GDK_KEY_PRESS:
+        if not data[].key_pressed.is_nil:
+          stop_event = data[].key_pressed(evt)
+      else:
+        if not data[].key_released.is_nil:
+          stop_event = data[].key_released(evt)
+    else: discard
+  
   if data[].app.is_nil:
     raise new_exception(ValueError, "App is nil")
   data[].app.redraw()
-]#
+  result = cbool(ord(stop_event))
 
 proc draw_func(widget: GtkWidget,
                ctx: pointer,
@@ -835,41 +859,38 @@ proc draw_func(widget: GtkWidget,
       raise new_exception(ValueError, "App is nil")
     event[].app.redraw()
 
+proc callback_or_nil[T](event: Event[T]): T =
+  if event.is_nil:
+    result = nil
+  else:
+    result = event.callback
+
 renderable DrawingArea of BaseWidget:
   focusable: bool
+  events: DrawingAreaEvents
   
   proc draw(ctx: CairoContext, size: (int, int)): bool
-  proc mouse_pressed(event: ButtonEvent)
-  proc mouse_released(event: ButtonEvent)
-  proc mouse_moved(event: MotionEvent)
+  proc mouse_pressed(event: ButtonEvent): bool
+  proc mouse_released(event: ButtonEvent): bool
+  proc mouse_moved(event: MotionEvent): bool
   proc key_pressed(event: KeyEvent): bool
   proc key_released(event: KeyEvent): bool
   
   hooks:
     before_build:
       state.internal_widget = gtk_drawing_area_new()
-      
-      #var mask = gtk_widget_get_events(state.internal_widget)
-      #mask[GDK_BUTTON_PRESS_MASK] = not widget.mouse_pressed.is_nil
-      #mask[GDK_BUTTON_RELEASE_MASK] = not widget.mouse_released.is_nil
-      #mask[GDK_POINTER_MOTION_MASK] = not widget.mouse_moved.is_nil
-      #mask[GDK_KEY_PRESS_MASK] = not widget.key_pressed.is_nil
-      #mask[GDK_KEY_RELEASE_MASK] = not widget.key_released.is_nil
-      #gtk_widget_set_events(state.internal_widget, mask)
+      state.events = DrawingAreaEvents(widget: state.internal_widget)
+      let controller = gtk_event_controller_legacy_new()
+      discard g_signal_connect(controller, "event", gdk_event_callback, state.events[].addr)
+      gtk_widget_add_controller(state.internal_widget, controller)
     connect_events:
       gtk_drawing_area_set_draw_func(state.internal_widget, draw_func, state.draw[].addr, nil)
-      #state.internal_widget.connect(state.mouse_pressed, "button-press-event", button_event_callback)
-      #state.internal_widget.connect(state.mouse_released, "button-release-event", button_event_callback)
-      #state.internal_widget.connect(state.mouse_moved, "motion-notify-event", motion_event_callback)
-      #state.internal_widget.connect(state.key_pressed, "key-press-event", key_event_callback)
-      #state.internal_widget.connect(state.key_released, "key-release-event", key_event_callback)
-    disconnect_events:
-      discard
-      #state.internal_widget.disconnect(state.mouse_pressed)
-      #state.internal_widget.disconnect(state.mouse_released)
-      #state.internal_widget.disconnect(state.mouse_moved)
-      #state.internal_widget.disconnect(state.key_pressed)
-      #state.internal_widget.disconnect(state.key_released)
+      state.events.app = state.app
+      state.events.mouse_pressed = state.mouse_pressed.callback_or_nil
+      state.events.mouse_released = state.mouse_released.callback_or_nil
+      state.events.mouse_moved = state.mouse_moved.callback_or_nil
+      state.events.key_pressed = state.key_pressed.callback_or_nil
+      state.events.key_released = state.key_released.callback_or_nil
     update:
       gtk_widget_queue_draw(state.internal_widget)
   
@@ -1446,7 +1467,10 @@ renderable FileChooserDialog of BuiltinDialog:
   hooks filename:
     read:
       let file = gtk_file_chooser_get_file(state.internal_widget)
-      state.filename = $g_file_get_path(file)
+      if file.is_nil:
+        state.filename = ""
+      else:
+        state.filename = $g_file_get_path(file)
 
 renderable ColorChooserDialog of BuiltinDialog:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)

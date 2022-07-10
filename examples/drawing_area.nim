@@ -43,6 +43,7 @@ method view(app: AppState): Widget =
         ColorButton {.add_left.}:
           color = app.color
           proc changed(color: Color) =
+            echo color
             app.color = color
       
       DrawingArea:
@@ -59,7 +60,7 @@ method view(app: AppState): Widget =
             ctx.source = path.color
             ctx.stroke()
         
-        proc mouse_pressed(evt: ButtonEvent) =
+        proc mouse_pressed(evt: ButtonEvent): bool =
           if evt.button == 0:
             app.is_drawing = true
             app.paths.add(Path(
@@ -67,11 +68,11 @@ method view(app: AppState): Widget =
               points: @[(evt.x, evt.y)]
             ))
         
-        proc mouse_released(evt: ButtonEvent) =
+        proc mouse_released(evt: ButtonEvent): bool =
           if evt.button == 0:
             app.is_drawing = false
         
-        proc mouse_moved(evt: MotionEvent) =
+        proc mouse_moved(evt: MotionEvent): bool =
           if app.is_drawing and app.paths.len > 0:
             app.paths[^1].points.add((evt.x, evt.y))
 
