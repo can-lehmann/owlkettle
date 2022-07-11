@@ -42,8 +42,8 @@ method view(app: AppState): Widget =
       HeaderBar {.add_titlebar.}:
         ColorButton {.add_left.}:
           color = app.color
+          use_alpha = true
           proc changed(color: Color) =
-            echo color
             app.color = color
       
       DrawingArea:

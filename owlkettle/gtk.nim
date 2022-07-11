@@ -138,10 +138,10 @@ define_bit_set(GtkDialogFlags)
 
 type
   GdkRgba* = object
-    r*: cdouble
-    g*: cdouble
-    b*: cdouble
-    a*: cdouble
+    r*: cfloat
+    g*: cfloat
+    b*: cfloat
+    a*: cfloat
   
   GdkWindow = distinct pointer
   GdkDisplay = distinct pointer
