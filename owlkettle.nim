@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle/[gtk, widgetdef, widgets, guidsl]
+import owlkettle/[gtk, widgetdef, widgets, guidsl, mainloop]
 export widgetdef, widgets, guidsl
 
 proc write_clipboard*(state: WidgetState, text: string) =
@@ -50,68 +50,39 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
   gtk_window_destroy(dialog)
   result = (to_dialog_response(res), state)
 
-proc setup_app(widget: Widget,
-               icons: openArray[string],
-               dark_theme: bool,
-               stylesheets: openArray[string]): WidgetState =
-  if dark_theme:
-    let settings = gtk_settings_get_default()
-    var value = g_value_new(dark_theme)
-    g_object_set_property(settings.pointer, "gtk-application-prefer-dark-theme", value.addr)
-    g_value_unset(value.addr)
-  
-  let display = gdk_display_get_default()
-  let icon_theme = gtk_icon_theme_get_for_display(display)
-  for path in icons:
-    gtk_icon_theme_add_search_path(icon_theme, path.cstring)
-  result = widget.build()
-  
-  for stylesheet in stylesheets:
-    var error: GError
-    let provider = gtk_css_provider_new()
-    discard gtk_css_provider_load_from_path(provider, stylesheet.cstring, error.addr)
-    if not error.is_nil:
-      raise new_exception(IoError, $error[].message)
-    gtk_style_context_add_provider_for_display(display, provider, 600)
-
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            dark_theme: bool = false,
            stylesheets: openArray[string] = []) =
   gtk_init()
-  let state = setup_app(widget, icons, dark_theme, stylesheets)
-  gtk_window_present(state.unwrap_internal_widget())
-  while g_list_model_get_n_items(gtk_window_get_toplevels()) > 0:
-    discard g_main_context_iteration(nil, cbool(ord(true)))
+  let state = setup_app(AppConfig(
+    widget: widget,
+    icons: @icons,
+    dark_theme: dark_theme,
+    stylesheets: @stylesheets
+  ))
+  run_mainloop(state)
 
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
            dark_theme: bool = false,
            stylesheets: openArray[string] = []) =
-  type Closure = object
-    widget: Widget
-    icons: seq[string]
-    dark_theme: bool
-    stylesheets: seq[string]
-  
-  proc activate_callback(app: GApplication, data: ptr Closure) {.cdecl.} =
-    let state = setup_app(
-      data[].widget,
-      data[].icons,
-      data[].dark_theme,
-      data[].stylesheets
-    )
-    let window = state.unwrap_renderable().internal_widget
-    gtk_window_present(window)
-    gtk_application_add_window(app, window)
-  
-  let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
-  defer: g_object_unref(app.pointer)
-  var closure = Closure(
+  var config = AppConfig(
     widget: widget,
     icons: @icons,
     dark_theme: dark_theme,
     stylesheets: @stylesheets
   )
-  discard g_signal_connect(app, "activate", activate_callback, closure.addr)
+  
+  proc activate_callback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
+    let
+      state = setup_app(data[])
+      window = state.unwrap_renderable().internal_widget
+    gtk_window_present(window)
+    gtk_application_add_window(app, window)
+  
+  let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
+  defer: g_object_unref(app.pointer)
+  
+  discard g_signal_connect(app, "activate", activate_callback, config.addr)
   let status = g_application_run(app)

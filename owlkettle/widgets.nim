@@ -1613,7 +1613,7 @@ renderable AboutDialog of BuiltinDialog:
           defer: dealloc_cstring_array(names)
           gtk_about_dialog_add_credit_section(state.internal_widget, section_name.cstring, names)
 
-export BaseWidget
+export BaseWidget, BaseWidgetState
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, ToggleButton, CheckButton
 export DrawingArea, MenuButton, Separator, Popover, TextView
