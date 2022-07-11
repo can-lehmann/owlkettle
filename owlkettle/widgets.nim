@@ -798,24 +798,33 @@ type
     mouse_moved: proc(event: MotionEvent): bool
     key_pressed: proc(event: KeyEvent): bool
     key_released: proc(event: KeyEvent): bool
-    widget: GtkWidget
     app: Viewable
   
   DrawingAreaEvents = ref DrawingAreaEventsObj
 
-proc gdk_event_callback(widget: GtkWidget, event: GdkEvent, data: ptr DrawingAreaEventsObj): cbool =
+proc gdk_event_callback(controller: GtkEventController, event: GdkEvent, data: ptr DrawingAreaEventsObj): cbool =
   let
     modifiers = init_modifier_set(gdk_event_get_modifier_state(event))
     time = gdk_event_get_time(event)
-  var
-    window_pos = (x: cdouble(0.0), y: cdouble(0.0))
-    local_pos = (x: cdouble(0.0), y: cdouble(0.0))
-  discard gdk_event_get_position(event, window_pos.x.addr, window_pos.y.addr)
-  discard gtk_widget_translate_coordinates(
-    gtk_widget_get_root(data[].widget), data[].widget,
-    window_pos.x, window_pos.y,
-    local_pos.x.addr, local_pos.y.addr
-  )
+    pos = block:
+      var native_pos = (x: cdouble(0.0), y: cdouble(0.0))
+      discard gdk_event_get_position(event, native_pos.x.addr, native_pos.y.addr)
+      
+      let
+        widget = gtk_event_controller_get_widget(controller)
+        root = gtk_widget_get_root(widget)
+        native = gtk_widget_get_native(root)
+      
+      var native_offset = (x: cdouble(0.0), y: cdouble(0.0))
+      gtk_native_get_surface_transform(native, native_offset.x.addr, native_offset.y.addr)
+      
+      var local_pos = (x: cdouble(0.0), y: cdouble(0.0))
+      discard gtk_widget_translate_coordinates(
+        root, widget,
+        native_pos.x - native_offset.x, native_pos.y - native_offset.y,
+        local_pos.x.addr, local_pos.y.addr
+      )
+      local_pos
   
   var stop_event = false
   
@@ -825,16 +834,16 @@ proc gdk_event_callback(widget: GtkWidget, event: GdkEvent, data: ptr DrawingAre
       if not data[].mouse_moved.is_nil:
         stop_event = data[].mouse_moved(MotionEvent(
           time: time,
-          x: float(local_pos.x),
-          y: float(local_pos.y),
+          x: float(pos.x),
+          y: float(pos.y),
           modifiers: modifiers
         ))
     of GDK_BUTTON_PRESS, GDK_BUTTON_RELEASE:
       let evt = ButtonEvent(
         time: time,
         button: int(gdk_button_event_get_button(event)) - 1,
-        x: float(local_pos.x),
-        y: float(local_pos.y),
+        x: float(pos.x),
+        y: float(pos.y),
         modifiers: modifiers
       )
       if kind == GDK_BUTTON_PRESS:
@@ -897,7 +906,7 @@ renderable DrawingArea of BaseWidget:
   hooks:
     before_build:
       state.internal_widget = gtk_drawing_area_new()
-      state.events = DrawingAreaEvents(widget: state.internal_widget)
+      state.events = DrawingAreaEvents()
       let controller = gtk_event_controller_legacy_new()
       discard g_signal_connect(controller, "event", gdk_event_callback, state.events[].addr)
       gtk_widget_add_controller(state.internal_widget, controller)

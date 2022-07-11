@@ -166,6 +166,10 @@ type
     GDK_SCROLL_SMOOTH
   
   GdkClipboard* = distinct pointer
+  
+  GdkRectangle* = object
+    x*, y*: cint
+    width*, height*: cint 
 
 const
   GDK_POINTER_MOTION_MASK* = GdkEventMask(1 shl 2)
@@ -340,6 +344,8 @@ proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
 proc gtk_widget_translate_coordinates*(src, dest: GtkWidget, src_x, src_y: cdouble, dest_x, dest_y: ptr cdouble): cbool
 proc gtk_widget_get_root*(widget: GtkWidget): GtkWidget
+proc gtk_widget_get_native*(widget: GtkWidget): GtkWidget
+proc gtk_widget_get_allocation*(widget: GtkWidget, alloc: ptr GdkRectangle)
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
@@ -446,6 +452,12 @@ proc gtk_drawing_area_set_draw_func*(widget: GtkWidget,
                                      draw_func: GtkDrawingAreaDrawFunc,
                                      data: pointer,
                                      destroy: GDestroyNotify)
+
+# Gtk.Native
+proc gtk_native_get_surface_transform*(native: GtkWidget, x, y: ptr cdouble)
+
+# Gtk.EventController
+proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 
 # Gtk.EventControllerLegacy
 proc gtk_event_controller_legacy_new*(): GtkEventController
