@@ -38,7 +38,7 @@ To enable libadwaita, import `owlkettle/adw` and change the last line to `adw.br
 ## Installation
 
 Owlkettle requires GTK 4 to be installed on your system.
-You can install it by running `dnf install gtk4-devel` on Fedora or `apt install libgtk-4-dev` on Ubuntu.
+You can install it by running `dnf install gtk4-devel libadwaita-devel` on Fedora or `apt install libgtk-4-dev libadwaita-1-dev` on Ubuntu.
 
 ```bash
 $ nimble install owlkettle
@@ -51,6 +51,8 @@ You can find a reference of all widgets in [docs/widgets.md](docs/widgets.md).
 If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
 
 Additional examples can be found in the [examples](examples) folder.
+
+A guide for migrating from owlkettle 1.x.x to 2.0.0 [is available here](docs/migrating_1_to_2.md).
 
 ## License
 

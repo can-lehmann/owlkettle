@@ -1,5 +1,7 @@
 # Cross-Compiling Owlkettle Apps on Linux to Windows
 
+# Warning: This document has not been updated for Owlkettle 2.0.0
+
 ## Dynamic linking
 
 Depending on your distribution this can be slightly more involved.
