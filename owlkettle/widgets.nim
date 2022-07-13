@@ -253,10 +253,17 @@ iterator classes(styles: set[BoxStyle]): string =
       BoxLinked: "linked"
     ][style]
 
+type BoxChild[T] = object
+  widget: T
+  expand: bool
+
+proc assign_app[T](child: BoxChild[T], app: Viewable) =
+  child.widget.assign_app(app)
+
 renderable Box of BaseWidget:
   orient: Orient
   spacing: int
-  children: seq[Widget]
+  children: seq[BoxChild[Widget]]
   style: set[BoxStyle]
   
   hooks:
@@ -278,28 +285,42 @@ renderable Box of BaseWidget:
         while it < widget.val_children.len and it < state.children.len:
           let
             child = widget.val_children[it]
-            new_child = child.update(state.children[it])
+            new_child = child.widget.update(state.children[it].widget)
           if not new_child.is_nil:
             gtk_box_remove(
               state.internal_widget,
-              state.children[it].unwrap_internal_widget()
+              state.children[it].widget.unwrap_internal_widget()
             )
             var sibling: GtkWidget = nil
             if it > 0:
-              sibling = state.children[it - 1].unwrap_internal_widget()
+              sibling = state.children[it - 1].widget.unwrap_internal_widget()
             let new_widget = new_child.unwrap_internal_widget()
             gtk_box_insert_child_after(state.internal_widget, new_widget, sibling)
-            state.children[it] = new_child
+            state.children[it].widget = new_child
+          
+          if child.expand != state.children[it].expand:
+            let child_widget = state.children[it].widget.unwrap_internal_widget()
+            case state.orient:
+              of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
+              of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
+            state.children[it].expand = child.expand
+          
           it += 1
         while it < widget.val_children.len:
-          let child = widget.val_children[it].build()
-          gtk_box_append(state.internal_widget, child.unwrap_internal_widget())
-          state.children.add(child)
+          let
+            child = widget.val_children[it]
+            child_state = child.widget.build()
+            child_widget = child_state.unwrap_internal_widget()
+          case state.orient:
+            of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
+            of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
+          gtk_box_append(state.internal_widget, child_widget)
+          state.children.add(BoxChild[WidgetState](widget: child_state, expand: child.expand))
           it += 1
         while it < state.children.len:
           gtk_box_remove(
             state.internal_widget,
-            state.children[^1].unwrap_internal_widget()
+            state.children[^1].widget.unwrap_internal_widget()
           )
           discard state.children.pop()
   
@@ -333,17 +354,9 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
-proc add*(box: Box, child: Widget) =
+proc add*(box: Box, child: Widget, expand: bool = false) =
   box.has_children = true
-  box.val_children.add(child)
-
-proc add*(box: Box, child: BaseWidget, expand: bool) =
-  child.has_hexpand = true
-  child.val_hexpand = expand
-  child.has_vexpand = true
-  child.val_vexpand = expand
-  box.has_children = true
-  box.val_children.add(child)
+  box.val_children.add(BoxChild[Widget](widget: child, expand: expand))
 
 type EllipsizeMode* = enum
   EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd

@@ -57,7 +57,7 @@ renderable Box of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `orient: Orient`
 - `spacing: int`
-- `children: seq[Widget]`
+- `children: seq[BoxChild[Widget]]`
 - `style: set[BoxStyle]`
 
 ###### Example
