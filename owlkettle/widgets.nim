@@ -321,8 +321,8 @@ renderable Box of BaseWidget:
   example:
     Box:
       orient = OrientX
-      Label(text = "Label") {.expand: true.}
-      Button(text = "Button")
+      Label(text = "Label")
+      Button(text = "Button") {.expand: false.}
   
   example:
     Box:
@@ -331,7 +331,7 @@ renderable Box of BaseWidget:
       spacing = 6
       
       for it in 0..<5:
-        Label(text = "Label " & $it) {.expand: true.}
+        Label(text = "Label " & $it)
   
   example:
     HeaderBar {.add_titlebar.}:
@@ -339,12 +339,12 @@ renderable Box of BaseWidget:
         style = {BoxLinked}
         
         for it in 0..<5:
-          Button:
+          Button {.expand: false.}:
             text = "Button " & $it
             proc clicked() =
               echo it
 
-proc add*(box: Box, child: Widget, expand: bool = false) =
+proc add*(box: Box, child: Widget, expand: bool = true) =
   box.has_children = true
   box.val_children.add(BoxChild[Widget](widget: child, expand: expand))
 
@@ -746,9 +746,9 @@ renderable Paned of BaseWidget:
     Paned:
       initial_position = 200
       Box(orient = OrientY) {.resize: false.}:
-        Label(text = "Sidebar") {.expand: true.}
+        Label(text = "Sidebar")
       Box(orient = OrientY) {.resize: true.}:
-        Label(text = "Content") {.expand: true.}
+        Label(text = "Content")
 
 proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false) =
   let paned_child = PanedChild[Widget](

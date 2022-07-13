@@ -48,30 +48,30 @@ method view(app: AppState): Widget =
                   app.todos = app.todos.filter_it(not it.done)
       
       Box(orient = OrientY, spacing = 6, margin = 12):
-        Box(orient = OrientX, spacing = 6):
-          Entry {.expand: true.}:
+        Box(orient = OrientX, spacing = 6) {.expand: false.}:
+          Entry:
             text = app.query
             proc changed(query: string) =
               app.query = query
-          Button:
+          Button {.expand: false.}:
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
             proc clicked() =
               app.todos.add(TodoItem(text: app.query))
               app.query = ""
         
-        Frame {.expand: true.}:
+        Frame:
           ScrolledWindow:
             ListBox:
               selection_mode = SelectionNone
               for it, todo in app.todos:
                 Box:
                   spacing = 6
-                  CheckButton:
+                  CheckButton {.expand: false.}:
                     state = todo.done
                     proc changed(state: bool) =
                       app.todos[it].done = state
-                  Label {.expand: true.}:
+                  Label:
                     text = todo.text
                     x_align = 0
 

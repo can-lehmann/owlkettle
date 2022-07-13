@@ -32,8 +32,8 @@ method view(app: AppState): Widget =
       default_size = (200, 60)
       
       Box(orient = OrientX, margin = 12, spacing = 6):
-        Label(text = $app.counter) {.expand: true.}
-        Button:
+        Label(text = $app.counter)
+        Button {.expand: false.}:
           text = "+"
           style = {ButtonSuggested}
           proc clicked() =

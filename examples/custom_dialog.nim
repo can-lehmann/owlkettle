@@ -36,11 +36,11 @@ method view(property: PropertyState): Widget =
       orient = OrientX
       spacing = 6
       
-      Label {.expand: true.}:
+      Label:
         text = property.name
         x_align = 0
       
-      insert(property.child)
+      insert(property.child) {.expand: false.}
 
 proc add(property: Property, child: Widget) =
   property.has_child = true

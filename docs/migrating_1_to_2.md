@@ -9,5 +9,8 @@ You can install them by running `dnf install gtk4-devel libadwaita-devel` on Fed
 - `border_width`: The `border_width` field has been removed. Use the `Box.margin` field instead.
 - The `Bin` and `Container` (abstract) widgets were removed.
 - The `ModelButton` widget was removed
-- When adding widgets to a `Box`, `expand: false` is now the default. Additionally the `fill` property has been removed.
+- When adding widgets to a `Box`, the `fill` property has been removed.
 - The default size for dialogs is now the same as the default size of windows
+- The `HeaderBar.subtitle` field has been removed. Use `adw.WindowTitle` instead.
+- `set_custom_title` has been renamed to `add_title`
+- The `HeaderBar.title` field has been remove. The header bar will automatically use the window title.
