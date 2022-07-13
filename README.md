@@ -28,12 +28,12 @@ brew(gui(App()))
 
 The code above will result in the following application:
 
-![Counter Application](docs/assets/introduction.png)
+<img alt="Counter Application" src="docs/assets/introduction.png" width="50%" height="50%">
 
 Owlkettle also supports building libadwaita apps.
 To enable libadwaita, import `owlkettle/adw` and change the last line to `adw.brew(gui(App()))`.
 
-![Counter Application using Adwaita Stylesheet](docs/assets/introduction.png)
+<img alt="Counter Application using Adwaita Stylesheet" src="docs/assets/introduction_adwaita.png" width="50%" height="50%">
 
 ## Installation
 
