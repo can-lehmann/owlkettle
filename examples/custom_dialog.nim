@@ -36,11 +36,11 @@ method view(property: PropertyState): Widget =
       orient = OrientX
       spacing = 6
       
-      Label:
+      Label {.expand: true.}:
         text = property.name
         x_align = 0
       
-      insert(property.child) {.expand: false.}
+      insert(property.child)
 
 proc add(property: Property, child: Widget) =
   property.has_child = true
@@ -53,6 +53,7 @@ method view(dialog: UserDialogState): Widget =
   result = gui:
     Dialog:
       title = "New User"
+      default_size = (320, 0)
       
       DialogButton {.add_button.}:
         text = "Create"
@@ -66,16 +67,16 @@ method view(dialog: UserDialogState): Widget =
       Box:
         orient = OrientY
         spacing = 6
-        border_width = 12
+        margin = 12
         
-        Property {.expand: false.}:
+        Property:
           name = "Name"
           Entry:
             text = dialog.user.name
             proc changed(name: string) =
               dialog.user.name = name
         
-        Property {.expand: false.}:
+        Property:
           name = "Password"
           Entry:
             text = dialog.user.password
@@ -89,11 +90,9 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      proc close() = quit()
+      title = "Users"
       
       HeaderBar {.add_titlebar.}:
-        title = "Users"
-        
         Button {.add_left.}:
           icon = "list-add-symbolic"
           style = {ButtonSuggested}
