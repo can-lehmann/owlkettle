@@ -14,10 +14,9 @@ method view(app: AppState): Widget =
     Window:
       title = "Counter"
       default_size = (200, 60)
-      border_width = 12
       
-      Box(orient = OrientX, spacing = 6):
-        Label(text = $app.counter)
+      Box(orient = OrientX, margin = 12, spacing = 6):
+        Label(text = $app.counter) {.expand: true.}
         Button:
           text = "+"
           style = {ButtonSuggested}
@@ -31,10 +30,15 @@ The code above will result in the following application:
 
 ![Counter Application](docs/assets/introduction.png)
 
+Owlkettle also supports building libadwaita apps.
+To enable libadwaita, import `owlkettle/adw` and change the last line to `adw.brew(gui(App()))`.
+
+![Counter Application using Adwaita Stylesheet](docs/assets/introduction.png)
+
 ## Installation
 
-Owlkettle requires GTK 3 to be installed on your system.
-You can install it by running `dnf install gtk3-devel` on Fedora or `apt install libgtk-3-dev` on Ubuntu.
+Owlkettle requires GTK 4 to be installed on your system.
+You can install it by running `dnf install gtk4-devel` on Fedora or `apt install libgtk-4-dev` on Ubuntu.
 
 ```bash
 $ nimble install owlkettle

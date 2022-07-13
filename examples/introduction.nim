@@ -30,10 +30,9 @@ method view(app: AppState): Widget =
     Window:
       title = "Counter"
       default_size = (200, 60)
-      border_width = 12
       
-      Box(orient = OrientX, spacing = 6):
-        Label(text = $app.counter)
+      Box(orient = OrientX, margin = 12, spacing = 6):
+        Label(text = $app.counter) {.expand: true.}
         Button:
           text = "+"
           style = {ButtonSuggested}
