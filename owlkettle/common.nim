@@ -35,8 +35,22 @@ proc unwrap_name*(node: NimNode): NimNode =
         result = result[0]
       of nnkHiddenDeref:
         result = result[0]
+      of nnkPragmaExpr:
+        result = result[0]
       else:
         return nil
+
+proc find_pragma*(node: NimNode, name: string): NimNode =
+  case node.kind:
+    of nnkPragma:
+      for child in node:
+        if child.is_name(name):
+          return child
+    else:
+      for child in node:
+        let pragma = child.find_pragma(name)
+        if not pragma.is_nil:
+          return pragma
 
 proc new_dot_expr*(node: NimNode, field: string, line_info: NimNode = nil): NimNode =
   result = new_tree(nnkDotExpr, [node, ident(field)])

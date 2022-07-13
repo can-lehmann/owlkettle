@@ -90,6 +90,7 @@ type
     typ: NimNode
     default: NimNode
     hooks: array[HookKind, NimNode]
+    is_internal: bool
   
   EventDef = object
     name: string
@@ -176,7 +177,7 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
           signature: child.params
         ))
       of nnkCallKinds:
-        assert child[0].is_name
+        assert not child[0].unwrap_name().is_nil
         child[^1].expect_kind(nnkStmtList)
         if child[0].is_name("hooks"):
           var hooks: array[HookKind, NimNode]
@@ -200,10 +201,15 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
         elif child[0].is_name("example"):
           def.examples.add(child[1])
         elif child[0].is_name("setter"):
-          # TODO: Generate setters automatically
-          discard
+          def.setters.add(Field(
+            name: child[1].str_val,
+            typ: child[2][0]
+          ))
         else:
-          var field = Field(name: child[0].unwrap_name().str_val)
+          var field = Field(
+            name: child[0].unwrap_name().str_val,
+            is_internal: not child[0].find_pragma("internal").is_nil
+          )
           case child[1][0].kind:
             of nnkAsgn:
               field.typ = child[1][0][0]
@@ -500,10 +506,17 @@ proc format_reference(widget: WidgetDef): string =
     if widget.base.len > 0:
       result &= "- All fields from [" & widget.base & "](#" & widget.base & ")\n"
     for field in widget.fields:
-      result &= "- `" & field.name & ": " & field.typ.repr
-      if not field.default.is_nil:
-        result &= " = " & field.default.repr
-      result &= "`\n"
+      if not field.is_internal:
+        result &= "- `" & field.name & ": " & field.typ.repr
+        if not field.default.is_nil:
+          result &= " = " & field.default.repr
+        result &= "`\n"
+    result &= "\n"
+  if widget.setters.len > 0:
+    result &= "###### Setters\n\n"
+    for setter in widget.setters:
+      result &= "- `" & setter.name & ": " & setter.typ.repr & "`"
+      result &= "\n"
     result &= "\n"
   if widget.events.len > 0:
     result &= "###### Events\n\n"

@@ -11,9 +11,13 @@ renderable BaseWidget
 
 - `sensitive: bool = true`
 - `size_request: tuple[x, y: int] = (-1, -1)`
-- `internal_margin: Margin = Margin()`
 - `hexpand: bool = false`
 - `vexpand: bool = false`
+
+###### Setters
+
+- `margin: int`
+- `margin: Margin`
 
 
 ## Window
@@ -162,6 +166,11 @@ renderable Button of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `style: set[ButtonStyle]`
 - `child: Widget`
+
+###### Setters
+
+- `text: string`
+- `icon: string`
 
 ###### Events
 
@@ -450,6 +459,11 @@ renderable MenuButton of BaseWidget
 - `child: Widget`
 - `popover: Widget`
 
+###### Setters
+
+- `text: string`
+- `icon: string`
+
 
 ## Separator
 
@@ -617,6 +631,10 @@ renderable DialogButton
 - `text: string`
 - `response: DialogResponse`
 - `style: set[ButtonStyle]`
+
+###### Setters
+
+- `res: DialogResponseKind`
 
 
 ## Dialog

@@ -109,7 +109,7 @@ type Margin* = object
 renderable BaseWidget:
   sensitive: bool = true
   size_request: tuple[x, y: int] = (-1, -1)
-  internal_margin: Margin = Margin()
+  internal_margin {.internal.}: Margin = Margin()
   hexpand: bool = false
   vexpand: bool = false
   
@@ -142,6 +142,7 @@ renderable BaseWidget:
       gtk_widget_set_vexpand(state.internal_widget, cbool(ord(state.vexpand)))
   
   setter margin: int
+  setter margin: Margin
 
 proc `has_margin=`*(widget: BaseWidget, has: bool) =
   widget.has_internal_margin = has
@@ -456,6 +457,9 @@ renderable Button of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_button_set_child)
     update: update_bin(state, widget, gtk_button_set_child)
+  
+  setter text: string
+  setter icon: string
   
   example:
     Button:
@@ -1068,6 +1072,9 @@ renderable MenuButton of BaseWidget:
           let popover_widget = new_popover.unwrap_internal_widget()
           gtk_menu_button_set_popover(state.internal_widget, popover_widget)
           state.popover = new_popover
+  
+  setter text: string
+  setter icon: string
 
 proc add_child*(menu_button: MenuButton, child: Widget) =
   if menu_button.has_child:
@@ -1453,6 +1460,8 @@ renderable DialogButton:
   text: string
   response: DialogResponse
   style: set[ButtonStyle]
+  
+  setter res: DialogResponseKind
 
 proc `has_res=`*(button: DialogButton, value: bool) =
   button.has_response = value
