@@ -110,8 +110,6 @@ renderable BaseWidget:
   sensitive: bool = true
   size_request: tuple[x, y: int] = (-1, -1)
   internal_margin {.internal.}: Margin = Margin()
-  hexpand: bool = false
-  vexpand: bool = false
   
   hooks sensitive:
     property:
@@ -132,14 +130,6 @@ renderable BaseWidget:
         gtk_widget_set_margin_bottom(state.internal_widget, cint(state.internal_margin.bottom))
         gtk_widget_set_margin_start(state.internal_widget, cint(state.internal_margin.left))
         gtk_widget_set_margin_end(state.internal_widget, cint(state.internal_margin.right))
-  
-  hooks hexpand:
-    property:
-      gtk_widget_set_hexpand(state.internal_widget, cbool(ord(state.hexpand)))
-  
-  hooks vexpand:
-    property:
-      gtk_widget_set_vexpand(state.internal_widget, cbool(ord(state.vexpand)))
   
   setter margin: int
   setter margin: Margin

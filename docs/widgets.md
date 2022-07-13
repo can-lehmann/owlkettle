@@ -11,8 +11,6 @@ renderable BaseWidget
 
 - `sensitive: bool = true`
 - `size_request: tuple[x, y: int] = (-1, -1)`
-- `hexpand: bool = false`
-- `vexpand: bool = false`
 
 ###### Setters
 
