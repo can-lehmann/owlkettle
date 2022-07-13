@@ -34,9 +34,11 @@ type
   Adder = object
     name: string
     args: seq[(string, NimNode)]
+    line_info: NimNode
   
   Node = ref object
     children: seq[Node]
+    line_info: NimNode
     case kind: NodeKind:
       of NodeWidget:
         widget: string
@@ -63,6 +65,7 @@ type
       else: discard
 
 proc parse_adder(node: NimNode): Adder =
+  result.line_info = node
   for child in node:
     case child.kind:
       of nnkExprColonExpr:
@@ -79,14 +82,14 @@ proc parse_gui(node: NimNode): Node =
       if node[0].unwrap_name().is_name("insert"):
         return Node(kind: NodeInsert, insert: node[1])
       elif node[0].is_name:
-        result = Node(kind: NodeWidget, widget: node[0].str_val)
+        result = Node(kind: NodeWidget, widget: node[0].str_val, line_info: node)
       else:
         result = node[0].parse_gui()
       for it in 1..<node.len:
         result.children.add(node[it].parse_gui())
     of nnkPragmaExpr:
       if node[0].is_name:
-        result = Node(kind: NodeWidget, widget: node[0].str_val)
+        result = Node(kind: NodeWidget, widget: node[0].str_val, line_info: node)
       else:
         result = node[0].parse_gui()
       let adder = node[1].parse_adder()
@@ -103,13 +106,15 @@ proc parse_gui(node: NimNode): Node =
       assert node[0].is_name
       result = Node(kind: NodeAttribute,
         name: node[0].str_val,
-        value: node[1]
+        value: node[1],
+        line_info: node
       )
     of nnkProcDef:
       assert node[0].is_name
       result = Node(kind: NodeEvent,
         event: node[0].str_val,
-        callback: node
+        callback: node,
+        line_info: node
       )
     of nnkForStmt:
       result = Node(kind: NodeFor)
@@ -147,9 +152,11 @@ proc gen(adder: Adder, name, parent: NimNode): NimNode =
   var callee = ident("add")
   if adder.name.len > 0:
     callee = ident(adder.name)
+  callee.copy_line_info(adder.line_info)
   result = new_call(callee, parent, name)
   for (key, value) in adder.args:
     result.add(new_tree(nnkExprEqExpr, ident(key), value))
+  result.copy_line_info(adder.line_info)
 
 macro custom_capture(vars: varargs[typed], body: untyped): untyped =
   var
@@ -183,8 +190,11 @@ proc find_variables(nodes: seq[NimNode]): seq[NimNode] =
 proc gen(node: Node, stmts, parent: NimNode) =
   case node.kind:
     of NodeWidget:
-      let name = gensym(nskLet)
-      stmts.add(new_let_stmt(name, new_call(ident(node.widget))))
+      let
+        name = gensym(nskLet)
+        widget_typ = ident(node.widget)
+      widget_typ.copy_line_info(node.line_info)
+      stmts.add(new_let_stmt(name, new_call(widget_typ)))
       for child in node.children:
         child.gen(stmts, name)
       if not parent.is_nil:
@@ -192,18 +202,28 @@ proc gen(node: Node, stmts, parent: NimNode) =
       else:
         stmts.add(name)
     of NodeAttribute:
-      stmts.add:
-        gen_ast(parent, has = ident("has_" & node.name), val = ident("val_" & node.name), value = node.value):
-          parent.has = true
-          parent.val = value
+      stmts.add(new_assignment(
+        new_dot_expr(parent, "has_" & node.name),
+        new_lit(true),
+        node.line_info
+      ))
+      stmts.add(new_assignment(
+        new_dot_expr(parent, "val_" & node.name, node.line_info),
+        node.value,
+        node.line_info
+      ))
     of NodeEvent:
       let typ = new_tree(nnkProcTy, node.callback.params, new_empty_node())
       node.callback.name = new_empty_node()
 
-      stmts.add:
-        gen_ast(parent, typ, node_event = ident(node.event), node_callback = node.callback):
-          parent.node_event = Event[typ](callback: node_callback)
-
+      let constr = gen_ast(typ, node_callback = node.callback):
+        Event[typ](callback: node_callback)
+      constr.copy_line_info(node.line_info)
+      stmts.add(new_assignment(
+        new_dot_expr(parent, node.event),
+        constr,
+        node.line_info
+      ))
     of NodeBlock:
       for child in node.children:
         child.gen(stmts, parent)

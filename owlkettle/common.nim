@@ -38,8 +38,15 @@ proc unwrap_name*(node: NimNode): NimNode =
       else:
         return nil
 
-proc new_dot_expr*(node: NimNode, field: string): NimNode =
+proc new_dot_expr*(node: NimNode, field: string, line_info: NimNode = nil): NimNode =
   result = new_tree(nnkDotExpr, [node, ident(field)])
+  if not line_info.is_nil:
+    result.copy_line_info(line_info)
+
+proc new_assignment*(lhs, rhs, line_info: NimNode): NimNode =
+  result = new_assignment(lhs, rhs)
+  if not line_info.is_nil:
+    result.copy_line_info(line_info)
 
 proc new_bracket_expr*(node, index: NimNode): NimNode =
   result = new_tree(nnkBracketExpr, node, index)
