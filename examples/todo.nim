@@ -29,12 +29,13 @@ type TodoItem = object
 
 viewable App:
   todos: seq[TodoItem]
-  query: string
+  new_item: string
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Todo"
+      default_size = (400, 250)
       
       HeaderBar {.add_titlebar.}:  
         MenuButton {.add_right.}:
@@ -50,15 +51,15 @@ method view(app: AppState): Widget =
       Box(orient = OrientY, spacing = 6, margin = 12):
         Box(orient = OrientX, spacing = 6) {.expand: false.}:
           Entry:
-            text = app.query
-            proc changed(query: string) =
-              app.query = query
+            text = app.new_item
+            proc changed(new_item: string) =
+              app.new_item = new_item
           Button {.expand: false.}:
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
             proc clicked() =
-              app.todos.add(TodoItem(text: app.query))
-              app.query = ""
+              app.todos.add(TodoItem(text: app.new_item))
+              app.new_item = ""
         
         Frame:
           ScrolledWindow:
@@ -72,7 +73,10 @@ method view(app: AppState): Widget =
                     proc changed(state: bool) =
                       app.todos[it].done = state
                   Label:
-                    text = todo.text
                     x_align = 0
+                    text = todo.text
 
-brew(gui(App()))
+brew(gui(App(todos = @[
+  TodoItem(text: "First Item", done: true),
+  TodoItem(text: "Second Item")
+])))

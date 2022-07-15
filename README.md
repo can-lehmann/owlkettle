@@ -49,6 +49,7 @@ $ nimble install owlkettle
 ## Tutorial
 
 Let's build a simple Todo app using owlkettle.
+The source code for this example can be found [here](examples/todo.nim).
 Here is what it will look like when it is done.
 
 <img alt="Todo Application" src="docs/assets/tutorial/todo_final.png" width="428px">
@@ -186,6 +187,8 @@ Clicking on the `MenuButton` opens the menu.
 
 <img alt="Todo Application" src="docs/assets/tutorial/todo_5.png" width="428px">
 
+The source code for this example can be found [here](examples/todo.nim).
+
 ### Owlkettle Internals
 
 Every widget in owlkettle is either a renderable or a viewable widget.
@@ -216,8 +219,12 @@ classDiagram
 
 Every widget has a state (`WidgetState`) and an updater object (`Widget`).
 The updater is used to update the internal widget state.
+It records which fields of the state the parent widget wants to set and which values these fields should be set to.
+This allows owlkettle to preserve the rest of widget's state.
+
 Every viewable widget has a `view` method which returns the updaters for its child widget states.
-Viewable widgets are expanded using `view` until they are renderable.
+Viewable widgets are expanded using `view` until a renderable widget is reached.
+
 
 ```mermaid
 flowchart LR
