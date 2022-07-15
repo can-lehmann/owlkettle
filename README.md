@@ -79,7 +79,7 @@ method view(app: AppState): Widget =
 
 To make development easier, we initialize the app with two placeholder todo items.
 
-```
+```nim
 brew(gui(App(todos = @[
   TodoItem(text: "First Item", done: true),
   TodoItem(text: "Second Item")
@@ -96,22 +96,21 @@ A `ScrolledWindow` is used to add a scrollbar to the `ListBox`.
 
 When defining GUIs, we can use structured control flow constructs such as `for` loops and `if` statements.
 In this case a `for` loop is used to create a label for each item.
-When `app.todos` changes, the GUI is automatically updated.
+When `app.todos` changes, the GUI is updated automatically.
 
 ```nim
-method view(app: AppState): Widget =
-  result = gui:
-    Window:
-      ...
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Frame:
-          ScrolledWindow:
-            ListBox:
-              selection_mode = SelectionNone
-              for it, todo in app.todos:
-                Label:
-                  text = todo.text
-                  x_align = 0
+Window:
+  title = "Todo"
+  
+  Box(orient = OrientY, spacing = 6, margin = 12):
+    Frame:
+      ScrolledWindow:
+        ListBox:
+          selection_mode = SelectionNone
+          for it, todo in app.todos:
+            Label:
+              text = todo.text
+              x_align = 0
 ```
 
 <img alt="The application displays the placeholder items" src="docs/assets/tutorial/todo_2.png" width="428px">
@@ -121,7 +120,7 @@ The `changed` event handler is called when the user toggles the `CheckButton`.
 In this case, we update the current state of the `TodoItem`.
 
 ```diff
-...
+ ...
  ListBox:
    selection_mode = SelectionNone
    for it, todo in app.todos:
@@ -142,25 +141,24 @@ Next, we add an entry which allows the user to add new items to the todo list.
 The `expand` attribute of the `Box` which contains the entry and button is set to `false` in order to prevent the `Box` from growing to take up remaining space in the parent widget.
 
 ```nim
-method view(app: AppState): Widget =
-  result = gui:
-    Window:
-      ...
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Box(orient = OrientX, spacing = 6) {.expand: false.}:
-          Entry:
-            text = app.new_item
-            proc changed(new_item: string) =
-              app.new_item = new_item
-          Button {.expand: false.}:
-            icon = "list-add-symbolic"
-            style = {ButtonSuggested}
-            proc clicked() =
-              app.todos.add(TodoItem(text: app.new_item))
-              app.new_item = ""
-        
-        Frame:
-          ...
+Window:
+  ...
+  Box(orient = OrientY, spacing = 6, margin = 12):
+    Box(orient = OrientX, spacing = 6) {.expand: false.}:
+      Entry:
+        text = app.new_item
+        proc changed(new_item: string) =
+          app.new_item = new_item
+      Button {.expand: false.}:
+        icon = "list-add-symbolic"
+        style = {ButtonSuggested}
+        proc clicked() =
+          app.todos.add(TodoItem(text: app.new_item))
+          app.new_item = ""
+    
+    Frame:
+      ScrolledWindow:
+        ...
 ```
 
 <img alt="Todo application with an entry to add new items" src="docs/assets/tutorial/todo_4.png" width="428px">
@@ -168,27 +166,72 @@ method view(app: AppState): Widget =
 Finally we add a `HeaderBar` and a menu which contains a button used to delete all checked items.
 
 ```nim
-method view(app: AppState): Widget =
-  result = gui:
-    Window:
-      ...
-      HeaderBar {.add_titlebar.}:  
-        MenuButton {.add_right.}:
-          icon = "open-menu-symbolic"
-          Popover:
-            Box(orient=OrientY, spacing=6, margin=6):
-              Button:
-                icon = "user-trash-symbolic"
-                style = {ButtonDestructive}
-                proc clicked() =
-                  app.todos = app.todos.filter_it(not it.done)
-      Box:
-        ...
+Window:
+  ...
+  HeaderBar {.add_titlebar.}:  
+    MenuButton {.add_right.}:
+      icon = "open-menu-symbolic"
+      Popover:
+        Box(orient=OrientY, spacing=6, margin=6):
+          Button:
+            icon = "user-trash-symbolic"
+            style = {ButtonDestructive}
+            proc clicked() =
+              app.todos = app.todos.filter_it(not it.done)
+  Box:
+    ...
 ```
 
 Clicking on the `MenuButton` opens the menu.
 
 <img alt="Todo Application" src="docs/assets/tutorial/todo_5.png" width="428px">
+
+### Owlkettle Internals
+
+Every widget in owlkettle is either a renderable or a viewable widget.
+Renderable widgets provide declarative interfaces to GTK widgets.
+For example `Button`, `Window` and `Entry` are renderable widgets.
+Viewable widgets are abstractions over renderable widgets.
+Owlkettle applications are usually implemented as viewable widgets.
+
+```mermaid
+classDiagram
+  class Widget {
+    build() WidgetState
+    update(state: WidgetState) WidgetState
+  }
+  class WidgetState {
+    read()
+  }
+  class Viewable {
+    view() WidgetState
+  }
+  class Renderable {
+  }
+  Viewable --> Widget: view
+  WidgetState <|-- Viewable
+  WidgetState <|-- Renderable
+  Widget --> WidgetState: build/update
+```
+
+Every widget has a state (`WidgetState`) and an updater object (`Widget`).
+The updater is used to update the internal widget state.
+Every viewable widget has a `view` method which returns the updaters for its child widget states.
+Viewable widgets are expanded using `view` until they are renderable.
+
+```mermaid
+flowchart LR
+  subgraph updater
+    direction BT
+    Window .->|child| Label
+  end
+  App -->|build| AppState -->|view| updater
+  updater -->|build/update| state
+  subgraph state
+    direction BT
+    WindowState .->|child| LabelState
+  end
+```
 
 ## Documentation
 
