@@ -1584,7 +1584,7 @@ renderable MessageDialog of BuiltinDialog:
         widget.val_message.cstring
       )
 
-renderable AboutDialog of BuiltinDialog:
+renderable AboutDialog of BaseWidget:
   program_name: string
   logo: string
   copyright: string

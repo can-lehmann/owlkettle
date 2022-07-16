@@ -33,22 +33,36 @@ proc write_clipboard*(state: WidgetState, text: string) =
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
     state = WidgetState(widget.build())
+    dialog_state = state.unwrap_renderable()
     window = app.unwrap_internal_widget()
     dialog = state.unwrap_internal_widget()
   gtk_window_set_transient_for(dialog, window)
   gtk_window_set_modal(dialog, cbool(bool(true)))
   gtk_window_present(dialog)
   
-  proc response(dialog: GtkWidget, response_id: cint, res: ptr cint) {.cdecl.} =
-    res[] = response_id
-  
-  var res = low(cint)
-  discard g_signal_connect(dialog, "response", response, res.addr)
-  while res == low(cint):
-    discard g_main_context_iteration(nil, cbool(ord(true)))
-  state.read()
-  gtk_window_destroy(dialog)
-  result = (to_dialog_response(res), state)
+  if dialog_state of DialogState or dialog_state of BuiltinDialogState:
+    proc response(dialog: GtkWidget, response_id: cint, res: ptr cint) {.cdecl.} =
+      res[] = response_id
+    
+    var res = low(cint)
+    discard g_signal_connect(dialog, "response", response, res.addr)
+    while res == low(cint):
+      discard g_main_context_iteration(nil, cbool(ord(true)))
+    
+    state.read()
+    gtk_window_destroy(dialog)
+    result = (to_dialog_response(res), state)
+  else:
+    proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
+      closed[] = true
+    
+    var closed = false
+    discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
+    while not closed:
+      discard g_main_context_iteration(nil, cbool(ord(true)))
+    
+    state.read()
+    result = (DialogResponse(), state)
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
