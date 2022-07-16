@@ -365,8 +365,11 @@ renderable Label of BaseWidget:
   
   hooks text:
     property:
-      gtk_label_set_text(state.internal_widget, state.text.cstring)
-
+      if state.use_markup:
+        gtk_label_set_markup(state.internal_widget, state.text.cstring)
+      else:
+        gtk_label_set_text(state.internal_widget, state.text.cstring)
+  
   hooks x_align:
     property:
       gtk_label_set_xalign(state.internal_widget, state.xalign.cdouble)

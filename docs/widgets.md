@@ -63,8 +63,8 @@ renderable Box of BaseWidget
 ```nim
 Box:
   orient = OrientX
-  Label(text = "Label") {.expand: true.}
-  Button(text = "Button")
+  Label(text = "Label")
+  Button(text = "Button") {.expand: false.}
 ```
 
 ```nim
@@ -73,7 +73,7 @@ Box:
   margin = 12
   spacing = 6
   for it in 0 ..< 5:
-    Label(text = "Label " & $it) {.expand: true.}
+    Label(text = "Label " & $it)
 ```
 
 ```nim
@@ -81,7 +81,7 @@ HeaderBar {.add_titlebar.}:
   Box {.add_left.}:
     style = {BoxLinked}
     for it in 0 ..< 5:
-      Button:
+      Button {.expand: false.}:
         text = "Button " & $it
         proc clicked() =
           echo it
@@ -309,9 +309,9 @@ renderable Paned of BaseWidget
 Paned:
   initial_position = 200
   Box(orient = OrientY) {.resize: false.}:
-    Label(text = "Sidebar") {.expand: true.}
+    Label(text = "Sidebar")
   Box(orient = OrientY) {.resize: true.}:
-    Label(text = "Content") {.expand: true.}
+    Label(text = "Content")
 ```
 
 
@@ -700,12 +700,12 @@ renderable MessageDialog of BuiltinDialog
 ## AboutDialog
 
 ```nim
-renderable AboutDialog of BuiltinDialog
+renderable AboutDialog of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [BuiltinDialog](#BuiltinDialog)
+- All fields from [BaseWidget](#BaseWidget)
 - `program_name: string`
 - `logo: string`
 - `copyright: string`
