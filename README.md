@@ -2,6 +2,7 @@
 *Freshly brewed user interfaces.*
 
 Owlkettle is a declarative user interface framework based on GTK.
+It is written in Nim.
 
 Here is an example for a simple counter app. When you click on the "+" Button, the counter increments.
 
