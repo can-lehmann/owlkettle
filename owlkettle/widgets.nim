@@ -215,6 +215,9 @@ renderable Window of BaseWidget:
     build: build_bin(state, widget, gtk_window_set_child)
     update: update_bin(state, widget, gtk_window_set_child)
   
+  adder add
+  adder add_titlebar
+  
   example:
     Window:
       Label(text = "Hello, world")
@@ -317,6 +320,9 @@ renderable Box of BaseWidget:
   hooks style:
     (build, update):
       update_style(state, widget)
+  
+  adder add:
+    expand: bool = true
   
   example:
     Box:
@@ -466,6 +472,7 @@ renderable Button of BaseWidget:
   
   setter text: string
   setter icon: string
+  adder add
   
   example:
     Button:
@@ -557,6 +564,9 @@ renderable HeaderBar of BaseWidget:
     build: build_bin(state, widget, title, has_title, val_title, gtk_header_bar_set_title_widget)
     update: update_bin(state, widget, title, has_title, val_title, gtk_header_bar_set_title_widget)
   
+  adder add_title
+  adder add_left
+  adder add_right
   
   example:
     Window:
@@ -593,6 +603,8 @@ renderable ScrolledWindow of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_scrolled_window_set_child)
     update: update_bin(state, widget, gtk_scrolled_window_set_child)
+  
+  adder add
 
 proc add*(window: ScrolledWindow, child: Widget) =
   if window.has_child:
@@ -744,6 +756,10 @@ renderable Paned of BaseWidget:
     update:
       if widget.has_second:
         state.second.update_paned_child(widget.val_second, state.app)
+  
+  adder add:
+    resize: bool = true
+    shrink: bool = false
   
   example:
     Paned:
@@ -1044,6 +1060,8 @@ renderable Popover of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_popover_set_child)
     update: update_bin(state, widget, gtk_popover_set_child)
+  
+  adder add
 
 proc add*(popover: Popover, child: Widget) =
   if popover.has_child:
@@ -1081,6 +1099,9 @@ renderable MenuButton of BaseWidget:
   
   setter text: string
   setter icon: string
+  
+  adder add_child
+  adder add
 
 proc add_child*(menu_button: MenuButton, child: Widget) =
   if menu_button.has_child:
@@ -1194,6 +1215,8 @@ renderable ListBoxRow of BaseWidget:
     build: build_bin(state, widget, gtk_list_box_row_set_child)
     update: update_bin(state, widget, gtk_list_box_row_set_child)
   
+  adder add
+  
   example:
     ListBox:
       for it in 0..<10:
@@ -1276,7 +1299,10 @@ renderable ListBox of BaseWidget:
         for row in state.selected:
           if row >= state.rows.len:
             raise new_exception(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
-
+  
+  adder add_row
+  adder add
+  
   example:
     ListBox:
       for it in 0..<10:
@@ -1302,6 +1328,8 @@ renderable FlowBoxChild of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_flow_box_child_set_child)
     update: update_bin(state, widget, gtk_flow_box_child_set_child)
+  
+  adder add
   
   example:
     FlowBox:
@@ -1389,6 +1417,9 @@ renderable FlowBox of BaseWidget:
           unwrap_renderable(child).internal_widget
         )
   
+  adder add_child
+  adder add
+  
   example:
     FlowBox:
       columns = 1..5
@@ -1427,6 +1458,8 @@ renderable Frame of BaseWidget:
   hooks child:
     build: build_bin(state, widget, gtk_frame_set_child)
     update: update_bin(state, widget, gtk_frame_set_child)
+  
+  adder add
   
   example:
     Frame:
@@ -1494,6 +1527,8 @@ renderable Dialog of Window:
           ctx = gtk_widget_get_style_context(button_widget)
         for class in classes(button.val_style):
           gtk_style_context_add_class(ctx, class.cstring)
+  
+  adder add_button
 
 proc add_button*(dialog: Dialog, button: DialogButton) =
   dialog.has_buttons = true
@@ -1514,6 +1549,8 @@ renderable BuiltinDialog:
           ctx = gtk_widget_get_style_context(button_widget)
         for class in classes(button.val_style):
           gtk_style_context_add_class(ctx, class.cstring)
+
+  adder add_button
 
 proc add_button*(dialog: BuiltinDialog, button: DialogButton) =
   dialog.has_buttons = true

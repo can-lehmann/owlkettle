@@ -96,6 +96,15 @@ type
     name: string
     signature: NimNode
   
+  Property = object
+    name: string
+    typ: NimNode
+    default: NimNode
+  
+  Adder = object
+    name: string
+    props: seq[Property]
+  
   WidgetDef = object
     name: string
     kind: WidgetKind
@@ -103,7 +112,8 @@ type
     events: seq[EventDef]
     fields: seq[Field]
     hooks: array[HookKind, seq[NimNode]]
-    setters: seq[Field]
+    setters: seq[Property]
+    adders: seq[Adder]
     types: seq[NimNode]
     examples: seq[NimNode]
 
@@ -178,8 +188,8 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
         ))
       of nnkCallKinds:
         assert not child[0].unwrap_name().is_nil
-        child[^1].expect_kind(nnkStmtList)
         if child[0].is_name("hooks"):
+          child[^1].expect_kind(nnkStmtList)
           var hooks: array[HookKind, NimNode]
           for hook_def in child[^1]:
             hook_def[^1].expect_kind(nnkStmtList)
@@ -199,13 +209,27 @@ proc parse_body(body: NimNode, def: var WidgetDef) =
               if not body.is_nil:
                 def.fields[field_id].hooks[kind] = body
         elif child[0].is_name("example"):
+          child[^1].expect_kind(nnkStmtList)
           def.examples.add(child[1])
         elif child[0].is_name("setter"):
-          def.setters.add(Field(
+          child[^1].expect_kind(nnkStmtList)
+          def.setters.add(Property(
             name: child[1].str_val,
             typ: child[2][0]
           ))
+        elif child[0].is_name("adder"):
+          var adder = Adder(name: child[1].str_val)
+          if child[^1].kind == nnkStmtList:
+            for prop in child[^1]:
+              prop[^1].expect_kind(nnkStmtList)
+              adder.props.add(Property(
+                name: prop[0].str_val,
+                typ: prop[1][0][0],
+                default: prop[1][0][1]
+              ))
+          def.adders.add(adder)
         else:
+          child[^1].expect_kind(nnkStmtList)
           var field = Field(
             name: child[0].unwrap_name().str_val,
             is_internal: not child[0].find_pragma("internal").is_nil
@@ -522,6 +546,15 @@ proc format_reference(widget: WidgetDef): string =
     result &= "###### Events\n\n"
     for event in widget.events:
       result &= "- " & event.name & ": `proc " & event.signature.repr & "`\n"
+    result &= "\n"
+  if widget.adders.len > 0:
+    result &= "###### Adders\n\n"
+    if widget.base.len > 0:
+      result &= "- All adders from [" & widget.base & "](#" & widget.base & ")\n"
+    for adder in widget.adders:
+      result &= "- `" & adder.name & "`\n"
+      for prop in adder.props:
+        result &= "  - `" & prop.name & ": " & prop.typ.repr & " = " & prop.default.repr & "`\n"
     result &= "\n"
   if widget.examples.len > 0:
     result &= "###### Example\n\n"

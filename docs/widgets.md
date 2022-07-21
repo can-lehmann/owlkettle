@@ -36,6 +36,12 @@ renderable Window of BaseWidget
 
 - close: `proc ()`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `add_titlebar`
+
 ###### Example
 
 ```nim
@@ -57,6 +63,12 @@ renderable Box of BaseWidget
 - `spacing: int`
 - `children: seq[BoxChild[Widget]]`
 - `style: set[BoxStyle]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+  - `expand: bool = true`
 
 ###### Example
 
@@ -174,6 +186,11 @@ renderable Button of BaseWidget
 
 - clicked: `proc ()`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
 ###### Example
 
 ```nim
@@ -212,6 +229,13 @@ renderable HeaderBar of BaseWidget
 - `left: seq[Widget]`
 - `right: seq[Widget]`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add_title`
+- `add_left`
+- `add_right`
+
 ###### Example
 
 ```nim
@@ -235,6 +259,11 @@ renderable ScrolledWindow of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
 
 
 ## Entry
@@ -302,6 +331,13 @@ renderable Paned of BaseWidget
 - `initial_position: int`
 - `first: PanedChild[Widget]`
 - `second: PanedChild[Widget]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+  - `resize: bool = true`
+  - `shrink: bool = false`
 
 ###### Example
 
@@ -444,6 +480,11 @@ renderable Popover of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
 
 ## MenuButton
 
@@ -461,6 +502,12 @@ renderable MenuButton of BaseWidget
 
 - `text: string`
 - `icon: string`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add_child`
+- `add`
 
 
 ## Separator
@@ -507,6 +554,11 @@ renderable ListBoxRow of BaseWidget
 
 - activate: `proc ()`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
 ###### Example
 
 ```nim
@@ -537,6 +589,12 @@ renderable ListBox of BaseWidget
 
 - select: `proc (rows: HashSet[int])`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add_row`
+- `add`
+
 ###### Example
 
 ```nim
@@ -556,6 +614,11 @@ renderable FlowBoxChild of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
 
 ###### Example
 
@@ -584,6 +647,12 @@ renderable FlowBox of BaseWidget
 - `selection_mode: SelectionMode`
 - `children: seq[Widget]`
 
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add_child`
+- `add`
+
 ###### Example
 
 ```nim
@@ -606,6 +675,11 @@ renderable Frame of BaseWidget
 - `label: string`
 - `align: tuple[x, y: float] = (0.0, 0.0)`
 - `child: Widget`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
 
 ###### Example
 
@@ -646,6 +720,11 @@ renderable Dialog of Window
 - All fields from [Window](#Window)
 - `buttons: seq[DialogButton]`
 
+###### Adders
+
+- All adders from [Window](#Window)
+- `add_button`
+
 
 ## BuiltinDialog
 
@@ -657,6 +736,10 @@ renderable BuiltinDialog
 
 - `title: string`
 - `buttons: seq[DialogButton]`
+
+###### Adders
+
+- `add_button`
 
 
 ## FileChooserDialog
