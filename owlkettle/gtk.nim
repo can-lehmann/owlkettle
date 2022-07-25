@@ -346,6 +346,8 @@ proc gtk_widget_translate_coordinates*(src, dest: GtkWidget, src_x, src_y: cdoub
 proc gtk_widget_get_root*(widget: GtkWidget): GtkWidget
 proc gtk_widget_get_native*(widget: GtkWidget): GtkWidget
 proc gtk_widget_get_allocation*(widget: GtkWidget, alloc: ptr GdkRectangle)
+proc gtk_widget_set_tooltip_text*(widget: GtkWidget, tooltip: cstring)
+proc gtk_widget_set_has_tooltip*(widget: GtkWidget, has_tooltip: cbool)
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider

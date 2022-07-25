@@ -110,6 +110,7 @@ renderable BaseWidget:
   sensitive: bool = true
   size_request: tuple[x, y: int] = (-1, -1)
   internal_margin {.internal.}: Margin = Margin()
+  tooltip: string = ""
   
   hooks sensitive:
     property:
@@ -130,6 +131,13 @@ renderable BaseWidget:
         gtk_widget_set_margin_bottom(state.internal_widget, cint(state.internal_margin.bottom))
         gtk_widget_set_margin_start(state.internal_widget, cint(state.internal_margin.left))
         gtk_widget_set_margin_end(state.internal_widget, cint(state.internal_margin.right))
+  
+  hooks tooltip:
+    property:
+      if state.tooltip.len > 0:
+        gtk_widget_set_tooltip_text(state.internal_widget, state.tooltip.cstring)
+      else:
+        gtk_widget_set_has_tooltip(state.internal_widget, cbool(0))
   
   setter margin: int
   setter margin: Margin
