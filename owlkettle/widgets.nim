@@ -826,7 +826,7 @@ proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
       result.incl(key)
 
 type
-  DrawingAreaEventsObj = object
+  CustomWidgetEventsObj = object
     mouse_pressed: proc(event: ButtonEvent): bool
     mouse_released: proc(event: ButtonEvent): bool
     mouse_moved: proc(event: MotionEvent): bool
@@ -834,9 +834,9 @@ type
     key_released: proc(event: KeyEvent): bool
     app: Viewable
   
-  DrawingAreaEvents = ref DrawingAreaEventsObj
+  CustomWidgetEvents = ref CustomWidgetEventsObj
 
-proc gdk_event_callback(controller: GtkEventController, event: GdkEvent, data: ptr DrawingAreaEventsObj): cbool =
+proc gdk_event_callback(controller: GtkEventController, event: GdkEvent, data: ptr CustomWidgetEventsObj): cbool =
   let
     modifiers = init_modifier_set(gdk_event_get_modifier_state(event))
     time = gdk_event_get_time(event)
@@ -926,11 +926,10 @@ proc callback_or_nil[T](event: Event[T]): T =
   else:
     result = event.callback
 
-renderable DrawingArea of BaseWidget:
+renderable CustomWidget of BaseWidget:
   focusable: bool
-  events: DrawingAreaEvents
+  events: CustomWidgetEvents
   
-  proc draw(ctx: CairoContext, size: (int, int)): bool
   proc mouse_pressed(event: ButtonEvent): bool
   proc mouse_released(event: ButtonEvent): bool
   proc mouse_moved(event: MotionEvent): bool
@@ -938,27 +937,100 @@ renderable DrawingArea of BaseWidget:
   proc key_released(event: KeyEvent): bool
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_drawing_area_new()
-      state.events = DrawingAreaEvents()
+    build:
+      state.events = CustomWidgetEvents()
       let controller = gtk_event_controller_legacy_new()
       discard g_signal_connect(controller, "event", gdk_event_callback, state.events[].addr)
       gtk_widget_add_controller(state.internal_widget, controller)
     connect_events:
-      gtk_drawing_area_set_draw_func(state.internal_widget, draw_func, state.draw[].addr, nil)
       state.events.app = state.app
       state.events.mouse_pressed = state.mouse_pressed.callback_or_nil
       state.events.mouse_released = state.mouse_released.callback_or_nil
       state.events.mouse_moved = state.mouse_moved.callback_or_nil
       state.events.key_pressed = state.key_pressed.callback_or_nil
       state.events.key_released = state.key_released.callback_or_nil
-    update:
-      gtk_widget_queue_draw(state.internal_widget)
   
   hooks focusable:
     property:
       gtk_widget_set_can_focus(state.internal_widget, cbool(ord(state.focusable)))
 
+renderable DrawingArea of CustomWidget:
+  proc draw(ctx: CairoContext, size: (int, int)): bool
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_drawing_area_new()
+    connect_events:
+      gtk_drawing_area_set_draw_func(state.internal_widget, draw_func, state.draw[].addr, nil)
+    update:
+      gtk_widget_queue_draw(state.internal_widget)
+
+proc setup_event_callback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, int)): bool]) =
+  gtk_gl_area_make_current(widget)
+  if not gtk_gl_area_get_error(widget).is_nil:
+    raise new_exception(IoError, "Failed to initialize OpenGL context")
+  
+  let
+    width = int(gtk_widget_get_allocated_width(widget))
+    height = int(gtk_widget_get_allocated_height(widget))
+    requires_redraw = data[].callback((width, height))
+  if requires_redraw:
+    if data[].app.is_nil:
+      raise new_exception(ValueError, "App is nil")
+    data[].app.redraw()
+
+proc render_event_callback(widget: GtkWidget,
+                           context: pointer,
+                           data: ptr EventObj[proc (size: (int, int)): bool]): cbool =
+  let
+    width = int(gtk_widget_get_allocated_width(widget))
+    height = int(gtk_widget_get_allocated_height(widget))
+    requires_redraw = data[].callback((width, height))
+  if requires_redraw:
+    if data[].app.is_nil:
+      raise new_exception(ValueError, "App is nil")
+    data[].app.redraw()
+  result = cbool(ord(true))
+
+renderable GlArea of CustomWidget:
+  use_es: bool = false
+  required_version: tuple[major, minor: int] = (4, 3)
+  has_depth_buffer: bool = true
+  has_stencil_buffer: bool = false
+  
+  proc setup(size: (int, int)): bool
+  proc render(size: (int, int)): bool
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_gl_area_new()
+    connect_events:
+      state.internal_widget.connect(state.setup, "realize", setup_event_callback)
+      state.internal_widget.connect(state.render, "render", render_event_callback)
+    disconnect_events:
+      state.internal_widget.disconnect(state.setup)
+      state.internal_widget.disconnect(state.render)
+    update:
+      gtk_widget_queue_draw(state.internal_widget)
+  
+  hooks use_es:
+    property:
+      gtk_gl_area_set_use_es(state.internal_widget, cbool(ord(state.use_es)))
+  
+  hooks has_depth_buffer:
+    property:
+      gtk_gl_area_set_has_depth_buffer(state.internal_widget, cbool(ord(state.has_depth_buffer)))
+  
+  hooks has_stencil_buffer:
+    property:
+      gtk_gl_area_set_has_stencil_buffer(state.internal_widget, cbool(ord(state.has_stencil_buffer)))
+  
+  hooks required_version:
+    property:
+      gtk_gl_area_set_required_version(state.internal_widget, 
+        cint(state.required_version.major),
+        cint(state.required_version.minor)
+      )
 
 renderable ColorButton of BaseWidget:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
@@ -1676,7 +1748,7 @@ renderable AboutDialog of BaseWidget:
 export BaseWidget, BaseWidgetState
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, ToggleButton, CheckButton
-export DrawingArea, MenuButton, Separator, Popover, TextView
+export DrawingArea, GlArea, MenuButton, Separator, Popover, TextView
 export ListBox, ListBoxRow, FlowBox, FlowBoxChild, Frame
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState

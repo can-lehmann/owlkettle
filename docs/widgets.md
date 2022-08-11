@@ -352,26 +352,60 @@ Paned:
 ```
 
 
-## DrawingArea
+## CustomWidget
 
 ```nim
-renderable DrawingArea of BaseWidget
+renderable CustomWidget of BaseWidget
 ```
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
 - `focusable: bool`
-- `events: DrawingAreaEvents`
+- `events: CustomWidgetEvents`
 
 ###### Events
 
-- draw: `proc (ctx: CairoContext; size: (int, int)): bool`
 - mouse_pressed: `proc (event: ButtonEvent): bool`
 - mouse_released: `proc (event: ButtonEvent): bool`
 - mouse_moved: `proc (event: MotionEvent): bool`
 - key_pressed: `proc (event: KeyEvent): bool`
 - key_released: `proc (event: KeyEvent): bool`
+
+
+## DrawingArea
+
+```nim
+renderable DrawingArea of CustomWidget
+```
+
+###### Fields
+
+- All fields from [CustomWidget](#CustomWidget)
+
+###### Events
+
+- draw: `proc (ctx: CairoContext; size: (int, int)): bool`
+
+
+## GlArea
+
+```nim
+renderable GlArea of CustomWidget
+```
+
+###### Fields
+
+- All fields from [CustomWidget](#CustomWidget)
+- `use_es: bool = false`
+- `required_version: tuple[major, minor: int] = (4, 3)`
+- `has_depth_buffer: bool = true`
+- `has_stencil_buffer: bool = false`
+
+###### Events
+
+- setup: `proc (size: (int, int)): bool`
+- render: `proc (size: (int, int)): bool`
 
 
 ## ColorButton

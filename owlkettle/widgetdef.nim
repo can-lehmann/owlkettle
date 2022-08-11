@@ -330,6 +330,9 @@ proc gen_build_state(def: WidgetDef): NimNode =
   if def.base.len > 0:
     result.add(new_call(ident("build_state"), state, new_call(def.widget_base, widget)))
   
+  for body in def.hooks[HookBuild]:
+    result.add(body)
+  
   for field in def.fields:
     if not field.hooks[HookBuild].is_nil:
       result.add(field.hooks[HookBuild].clone())

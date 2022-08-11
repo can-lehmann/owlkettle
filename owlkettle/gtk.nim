@@ -564,6 +564,16 @@ proc gtk_frame_set_label_align*(frame: GtkWidget, x, y: cfloat)
 proc gtk_frame_set_shadow_type*(frame: GtkWidget, shadow: GtkShadowType)
 proc gtk_frame_set_child*(frame, child: GtkWidget)
 
+# Gtk.GLArea
+proc gtk_gl_area_new*(): GtkWidget
+proc gtk_gl_area_make_current*(area: GtkWidget)
+proc gtk_gl_area_set_has_stencil_buffer*(area: GtkWidget, value: cbool)
+proc gtk_gl_area_set_has_depth_buffer*(area: GtkWidget, value: cbool)
+proc gtk_gl_area_set_required_version*(area: GtkWidget, major, minor: cint)
+proc gtk_gl_area_set_use_es*(area: GtkWidget, use_es: cbool)
+proc gtk_gl_area_queue_render*(area: GtkWidget)
+proc gtk_gl_area_get_error*(area: GtkWidget): GError
+
 # Gtk.Dialog
 proc gtk_dialog_new*(): GtkWidget
 proc gtk_dialog_new_with_buttons*(title: cstring,
