@@ -74,6 +74,9 @@ proc `==`(a, b: CairoStatus): bool {.borrow.}
 {.passl: gorge("pkg-config --libs cairo").}
 
 {.push importc, cdecl.}
+proc cairo_create(surface: CairoSurface): CairoContext
+proc cairo_destroy(ctx: CairoContext)
+
 proc cairo_move_to(ctx: CairoContext, x, y: cdouble)
 proc cairo_line_to(ctx: CairoContext, x, y: cdouble)
 proc cairo_rectangle(ctx: CairoContext, x, y, w, h: cdouble)
@@ -128,6 +131,9 @@ proc cairo_status_to_string(status: CairoStatus): cstring
 {.pop.}
 
 {.push inline.}
+proc new_cairo_context*(surface: CairoSurface): CairoContext = cairo_create(surface)
+proc destroy*(ctx: CairoContext) = cairo_destroy(ctx)
+
 proc move_to*(ctx: CairoContext, x, y: float) =
   cairo_move_to(ctx, x.cdouble, y.cdouble)
 
