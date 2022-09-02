@@ -478,6 +478,19 @@ ToggleButton:
 ```
 
 
+## LinkButton
+
+```nim
+renderable LinkButton of Button
+```
+
+###### Fields
+
+- All fields from [Button](#Button)
+- `uri: string`
+- `visited: bool`
+
+
 ## CheckButton
 
 ```nim

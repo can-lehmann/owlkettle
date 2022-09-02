@@ -151,17 +151,17 @@ proc `val_margin=`*(widget: BaseWidget, width: int) =
 proc `val_margin=`*(widget: BaseWidget, margin: Margin) =
   widget.val_internal_margin = margin
 
-template build_bin(state, widget, child, has_child, val_child, set_child: untyped) =
+template build_bin*(state, widget, child, has_child, val_child, set_child: untyped) =
   if widget.has_child:
     widget.val_child.assign_app(state.app)
     state.child = widget.val_child.build()
     let child_widget = unwrap_renderable(state.child).internal_widget
     set_child(state.internal_widget, child_widget)
 
-template build_bin(state, widget, set_child: untyped) =
+template build_bin*(state, widget, set_child: untyped) =
   build_bin(state, widget, child, has_child, val_child, set_child)
 
-template update_bin(state, widget, child, has_child, val_child, set_child: untyped) =
+template update_bin*(state, widget, child, has_child, val_child, set_child: untyped) =
   if widget.has_child:
     widget.val_child.assign_app(state.app)
     let new_child = widget.val_child.update(state.child)
@@ -170,7 +170,7 @@ template update_bin(state, widget, child, has_child, val_child, set_child: untyp
       set_child(state.internal_widget, child_widget)
       state.child = new_child
 
-template update_bin(state, widget, set_child: untyped) =
+template update_bin*(state, widget, set_child: untyped) =
   update_bin(state, widget, child, has_child, val_child, set_child)
 
 renderable Window of BaseWidget:
@@ -1107,6 +1107,22 @@ renderable ToggleButton of Button:
       proc changed(state: bool) =
         app.state = state
 
+renderable LinkButton of Button:
+  uri: string
+  visited: bool
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_link_button_new("")
+  
+  hooks uri:
+    property:
+      gtk_link_button_set_uri(state.internal_widget, cstring(state.uri))
+  
+  hooks visited:
+    property:
+      gtk_link_button_set_visited(state.internal_widget, cbool(ord(state.visited)))
+
 renderable CheckButton of BaseWidget:
   state: bool
   
@@ -1747,9 +1763,9 @@ renderable AboutDialog of BaseWidget:
 
 export BaseWidget, BaseWidgetState
 export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
-export Paned, ColorButton, Switch, ToggleButton, CheckButton
+export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, Separator, Popover, TextView
-export ListBox, ListBoxRow, FlowBox, FlowBoxChild, Frame
+export ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

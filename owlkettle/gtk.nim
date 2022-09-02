@@ -484,6 +484,11 @@ proc gtk_toggle_button_new*(): GtkWidget
 proc gtk_toggle_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_toggle_button_get_active*(widget: GtkWidget): cbool
 
+# Gtk.LinkButton
+proc gtk_link_button_new*(uri: cstring): GtkWidget
+proc gtk_link_button_set_uri*(button: GtkWidget, uri: cstring)
+proc gtk_link_button_set_visited*(button: GtkWidget, visited: cbool)
+
 # Gtk.CheckButton
 proc gtk_check_button_new*(): GtkWidget
 proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)

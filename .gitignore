@@ -11,5 +11,6 @@ examples/test.nim
 examples/test
 examples/css
 docs/social/
+docs/videos/
 build_docs
 .git-old

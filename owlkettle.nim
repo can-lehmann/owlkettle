@@ -21,7 +21,8 @@
 # SOFTWARE.
 
 import owlkettle/[gtk, widgetdef, widgets, guidsl, mainloop]
-export widgetdef, widgets, guidsl
+export widgetdef except build_bin, update_bin
+export widgets, guidsl
 
 proc write_clipboard*(state: WidgetState, text: string) =
   let
