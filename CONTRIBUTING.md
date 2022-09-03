@@ -1,5 +1,7 @@
 # Contributing to Owlkettle
 
+A short introduction to owlkettle's internals can be found [here](docs/internals.md).
+
 ## Documentation
 
 When adding a new widget or modifying an existing widget, you will need to update the widget documentation.
