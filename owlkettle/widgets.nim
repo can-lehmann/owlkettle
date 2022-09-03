@@ -446,14 +446,16 @@ renderable Icon of BaseWidget:
       pixel_size = 100
 
 type ButtonStyle* = enum
-  ButtonSuggested, ButtonDestructive, ButtonFlat
+  ButtonSuggested, ButtonDestructive, ButtonFlat, ButtonPill, ButtonCircular
 
 iterator classes(styles: set[ButtonStyle]): string =
   for style in styles:
     yield [
       ButtonSuggested: "suggested-action",
       ButtonDestructive: "destructive-action",
-      ButtonFlat: "flat"
+      ButtonFlat: "flat",
+      ButtonPill: "pill",
+      ButtonCircular: "circular"
     ][style]
 
 renderable Button of BaseWidget:
@@ -620,6 +622,17 @@ proc add*(window: ScrolledWindow, child: Widget) =
   window.has_child = true
   window.val_child = child
 
+type EntryStyle* = enum
+  EntrySuccess, EntryWarning, EntryError
+
+iterator classes(styles: set[EntryStyle]): string =
+  for style in styles:
+    yield [
+      EntrySuccess: "success",
+      EntryWarning: "warning",
+      EntryError: "error"
+    ][style]
+
 renderable Entry of BaseWidget:
   text: string
   placeholder: string
@@ -627,6 +640,8 @@ renderable Entry of BaseWidget:
   x_align: float = 0.0
   visibility: bool = true
   invisible_char: Rune = '*'.Rune
+  
+  style: set[EntryStyle]
   
   proc changed(text: string)
   proc activate()
@@ -641,6 +656,9 @@ renderable Entry of BaseWidget:
       state.internal_widget.disconnect(state.changed)
       state.internal_widget.disconnect(state.activate)
 
+  hooks style:
+    (build, update):
+      update_style(state, widget)
 
   hooks text:
     property:

@@ -282,6 +282,7 @@ renderable Entry of BaseWidget
 - `x_align: float = 0.0`
 - `visibility: bool = true`
 - `invisible_char: Rune = '*'.Rune`
+- `style: set[EntryStyle]`
 
 ###### Events
 

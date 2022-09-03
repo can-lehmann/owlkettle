@@ -7,6 +7,7 @@ examples/app_launcher
 examples/clipboard
 examples/custom_dialog
 examples/drawing_area
+examples/temp_converter
 examples/test.nim
 examples/test
 examples/css
