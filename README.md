@@ -51,9 +51,9 @@ $ nimble install owlkettle
 
 You can find a reference of all widgets in [docs/widgets.md](docs/widgets.md).
 
-Additional examples can be found in the [examples](examples) folder.
-
 A tutorial for building a simple Todo application can be found [here](docs/tutorial.md).
+
+Additional examples can be found in the [examples](examples) folder.
 
 If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
 

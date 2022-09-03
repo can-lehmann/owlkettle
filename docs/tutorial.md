@@ -139,4 +139,4 @@ Clicking on the `MenuButton` opens the menu.
 
 <img alt="Todo Application" src="assets/tutorial/todo_5.png" width="428px">
 
-The source code for this example can be found [here](examples/todo.nim).
+The source code for this example can be found [here](../examples/todo.nim).
