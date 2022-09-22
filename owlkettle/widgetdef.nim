@@ -453,13 +453,17 @@ proc gen_update_state(def: WidgetDef): NimNode =
 
 proc gen_update(def: WidgetDef): NimNode =
   let
+    name = new_lit(def.name)
     widget_typ = ident(def.name)
     state_typ = ident(def.state_name)
     update_state = ident("update_state")
     is_viewable = new_lit(def.kind == WidgetViewable)
   result = quote:
     method update(widget: `widget_typ`, widget_state: WidgetState): WidgetState =
-      if not (widget_state of `state_typ`):
+      let type_id {.global.} = block:
+        let state = `state_typ`()
+        cast[ptr pointer](state)[]
+      if cast[ptr pointer](widget_state)[] != type_id:
         return widget.build()
       let state = `state_typ`(widget_state)
       state.app = widget.app
