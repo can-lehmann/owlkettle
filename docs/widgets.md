@@ -117,6 +117,7 @@ renderable Label of BaseWidget
 - `ellipsize: EllipsizeMode`
 - `wrap: bool = false`
 - `use_markup: bool = false`
+- `style: set[LabelStyle]`
 
 ###### Example
 

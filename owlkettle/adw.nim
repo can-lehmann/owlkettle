@@ -183,10 +183,20 @@ renderable PreferencesGroup of BaseWidget:
         state.children.add(child)
     update:
       widget.val_children.assign_app(state.app)
-      var it = 0
+      var
+        it = 0
+        force_readd = false
       while it < widget.val_children.len and it < state.children.len:
         let new_child = widget.val_children[it].update(state.children[it])
-        assert new_child.is_nil
+        if not new_child.is_nil:
+          adw_preferences_group_remove(state.internal_widget, state.children[it].unwrap_internal_widget())
+          adw_preferences_group_add(state.internal_widget, new_child.unwrap_internal_widget())
+          state.children[it] = new_child
+          force_readd = true
+        elif force_readd:
+          let widget = state.children[it].unwrap_internal_widget()
+          adw_preferences_group_remove(state.internal_widget, widget)
+          adw_preferences_group_add(state.internal_widget, widget)
         it += 1
       
       while it < widget.val_children.len:

@@ -246,12 +246,14 @@ proc to_gtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 type BoxStyle* = enum
-  BoxLinked
+  BoxLinked,
+  BoxCard
 
 iterator classes(styles: set[BoxStyle]): string =
   for style in styles:
     yield [
-      BoxLinked: "linked"
+      BoxLinked: "linked",
+      BoxCard: "card"
     ][style]
 
 type BoxChild[T] = object
@@ -362,6 +364,19 @@ proc add*(box: Box, child: Widget, expand: bool = true) =
   box.has_children = true
   box.val_children.add(BoxChild[Widget](widget: child, expand: expand))
 
+type LabelStyle* = enum
+  LabelHeading,
+  LabelBody,
+  LabelMonospace
+
+iterator classes(styles: set[LabelStyle]): string =
+  for style in styles:
+    yield [
+      LabelHeading: "heading",
+      LabelBody: "body",
+      LabelMonospace: "monospace"
+    ][style]
+
 type EllipsizeMode* = enum
   EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
 
@@ -373,9 +388,15 @@ renderable Label of BaseWidget:
   wrap: bool = false
   use_markup: bool = false
   
+  style: set[LabelStyle]
+  
   hooks:
     before_build:
       state.internal_widget = gtk_label_new("")
+  
+  hooks style:
+    (build, update):
+      update_style(state, widget)
   
   hooks text:
     property:
@@ -1376,7 +1397,10 @@ renderable ListBox of BaseWidget:
       while it < widget.val_rows.len and it < state.rows.len:
         widget.val_rows[it].assign_app(state.app)
         let new_row = widget.val_rows[it].update(state.rows[it])
-        assert new_row.is_nil
+        if not new_row.is_nil:
+          gtk_list_box_remove(state.internal_widget, state.rows[it].unwrap_internal_widget())
+          gtk_list_box_insert(state.internal_widget, new_row.unwrap_internal_widget(), it.cint)
+          state.rows[it] = new_row
         it += 1
       
       while it < widget.val_rows.len:

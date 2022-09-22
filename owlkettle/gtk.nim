@@ -538,6 +538,7 @@ proc gtk_list_box_get_selected_rows*(list_box: GtkWidget): GList
 proc gtk_list_box_select_row*(list_box, row: GtkWidget)
 proc gtk_list_box_unselect_row*(list_box, row: GtkWidget)
 proc gtk_list_box_append*(list_box, row: GtkWidget)
+proc gtk_list_box_insert*(list_box, row: GtkWidget, pos: cint)
 proc gtk_list_box_remove*(list_box, row: GtkWidget)
 
 # Gtk.ListBoxRow
