@@ -41,6 +41,13 @@ type
   GtkPackType* = enum
     GTK_PACK_START, GTK_PACK_END
   
+  GtkAlign* = enum
+    GTK_ALIGN_FILL,
+    GTK_ALIGN_START,
+    GTK_ALIGN_END,
+    GTK_ALIGN_CENTER,
+    GTK_ALIGN_BASELINE
+  
   GConnectFlags* = enum
     G_CONNECT_AFTER, G_CONNECT_SWAPPED # TODO: Correct enum names?
   
@@ -341,6 +348,8 @@ proc gtk_widget_set_margin_start*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_margin_end*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_hexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
+proc gtk_widget_set_halign*(widget: GtkWidget, align: GtkAlign)
+proc gtk_widget_set_valign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
 proc gtk_widget_translate_coordinates*(src, dest: GtkWidget, src_x, src_y: cdouble, dest_x, dest_y: ptr cdouble): cbool
 proc gtk_widget_get_root*(widget: GtkWidget): GtkWidget
@@ -394,6 +403,12 @@ proc gtk_box_prepend*(box, widget: GtkWidget)
 proc gtk_box_remove*(box, widget: GtkWidget)
 proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
+
+# Gtk.Overlay
+proc gtk_overlay_new*(): GtkWidget
+proc gtk_overlay_set_child*(overlay, child: GtkWidget)
+proc gtk_overlay_add_overlay*(overlay, child: GtkWidget)
+proc gtk_overlay_remove_overlay*(overlay, child: GtkWidget)
 
 # Gtk.Editable
 proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)

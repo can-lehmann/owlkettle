@@ -70,6 +70,8 @@ renderable Box of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
   - `expand: bool = true`
+  - `h_align: Align = AlignFill`
+  - `v_align: Align = AlignFill`
 
 ###### Example
 
@@ -100,6 +102,27 @@ HeaderBar {.add_titlebar.}:
           echo it
 
 ```
+
+
+## Overlay
+
+```nim
+renderable Overlay of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+- `overlays: seq[OverlayChild[Widget]]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `add_overlay`
+  - `h_align: Align = AlignFill`
+  - `v_align: Align = AlignFill`
 
 
 ## Label

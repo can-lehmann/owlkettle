@@ -256,9 +256,17 @@ iterator classes(styles: set[BoxStyle]): string =
       BoxCard: "card"
     ][style]
 
-type BoxChild[T] = object
-  widget: T
-  expand: bool
+type
+  Align* = enum
+    AlignFill, AlignStart, AlignEnd, AlignCenter
+  
+  BoxChild[T] = object
+    widget: T
+    expand: bool
+    h_align: Align
+    v_align: Align
+
+proc to_gtk(align: Align): GtkAlign = GtkAlign(ord(align))
 
 proc assign_app[T](child: BoxChild[T], app: Viewable) =
   child.widget.assign_app(app)
@@ -301,14 +309,24 @@ renderable Box of BaseWidget:
             gtk_box_insert_child_after(state.internal_widget, new_widget, sibling)
             state.children[it].widget = new_child
           
+          let child_widget = state.children[it].widget.unwrap_internal_widget()
+          
           if child.expand != state.children[it].expand:
-            let child_widget = state.children[it].widget.unwrap_internal_widget()
             case state.orient:
               of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
               of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
             state.children[it].expand = child.expand
           
+          if child.h_align != state.children[it].h_align:
+            state.children[it].h_align = child.h_align
+            gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+          
+          if child.v_align != state.children[it].v_align:
+            state.children[it].v_align = child.v_align
+            gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
+          
           it += 1
+        
         while it < widget.val_children.len:
           let
             child = widget.val_children[it]
@@ -317,8 +335,15 @@ renderable Box of BaseWidget:
           case state.orient:
             of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
             of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
+          gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+          gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
           gtk_box_append(state.internal_widget, child_widget)
-          state.children.add(BoxChild[WidgetState](widget: child_state, expand: child.expand))
+          state.children.add(BoxChild[WidgetState](
+            widget: child_state,
+            expand: child.expand,
+            h_align: child.h_align,
+            v_align: child.v_align
+          ))
           it += 1
         while it < state.children.len:
           gtk_box_remove(
@@ -333,6 +358,8 @@ renderable Box of BaseWidget:
   
   adder add:
     expand: bool = true
+    h_align: Align = AlignFill
+    v_align: Align = AlignFill
   
   example:
     Box:
@@ -360,9 +387,103 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
-proc add*(box: Box, child: Widget, expand: bool = true) =
+proc add*(box: Box, child: Widget,
+          expand: bool = true,
+          h_align: Align = AlignFill,
+          v_align: Align = AlignFill) =
   box.has_children = true
-  box.val_children.add(BoxChild[Widget](widget: child, expand: expand))
+  box.val_children.add(BoxChild[Widget](
+    widget: child,
+    expand: expand,
+    h_align: h_align,
+    v_align: v_align
+  ))
+
+type OverlayChild[T] = object
+  widget: T
+  h_align: Align
+  v_align: Align
+
+proc assign_app[T](child: OverlayChild[T], app: Viewable) =
+  child.widget.assign_app(app)
+
+renderable Overlay of BaseWidget:
+  child: Widget
+  overlays: seq[OverlayChild[Widget]]
+  
+  hooks:
+    before_build:
+      state.internal_widget = gtk_overlay_new()
+  
+  hooks child:
+    build: build_bin(state, widget, gtk_overlay_set_child)
+    update: update_bin(state, widget, gtk_overlay_set_child)
+  
+  hooks overlays:
+    (build, update):
+      widget.val_overlays.assign_app(state.app)
+      
+      var it = 0
+      
+      while it < widget.val_overlays.len and it < state.overlays.len:
+        let
+          child = widget.val_overlays[it]
+          new_child = child.widget.update(state.overlays[it].widget)
+        assert new_child.is_nil
+        
+        let child_widget = state.overlays[it].widget.unwrap_internal_widget()
+        if child.h_align != state.overlays[it].h_align:
+          state.overlays[it].h_align = child.h_align
+          gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+        
+        if child.v_align != state.overlays[it].v_align:
+          state.overlays[it].v_align = child.v_align
+          gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
+        
+        it += 1
+      
+      while it < widget.val_overlays.len:
+        let
+          child = widget.val_overlays[it]
+          child_state = child.widget.build()
+          child_widget = unwrap_internal_widget(child_state)
+        gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+        gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
+        gtk_overlay_add_overlay(state.internal_widget, child_widget)
+        state.overlays.add(OverlayChild[WidgetState](
+          widget: child_state,
+          h_align: child.h_align,
+          v_align: child.v_align
+        ))
+        it += 1
+      
+      while it < state.overlays.len:
+        gtk_overlay_remove_overlay(
+          state.internal_widget,
+          state.overlays[^1].widget.unwrap_internal_widget()
+        )
+        discard state.overlays.pop()
+  
+  adder add
+  adder add_overlay:
+    h_align: Align = AlignFill
+    v_align: Align = AlignFill
+
+proc add*(overlay: Overlay, child: Widget) =
+  if overlay.has_child:
+    raise new_exception(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the add_overlay adder.")
+  overlay.has_child = true
+  overlay.val_child = child
+
+proc add_overlay*(overlay: Overlay, child: Widget,
+                  h_align: Align = AlignFill,
+                  v_align: Align = AlignFill) =
+  overlay.has_overlays = true
+  overlay.val_overlays.add(OverlayChild[Widget](
+    widget: child,
+    h_align: h_align,
+    v_align: v_align
+  ))
 
 type LabelStyle* = enum
   LabelHeading,
@@ -1804,7 +1925,7 @@ renderable AboutDialog of BaseWidget:
           gtk_about_dialog_add_credit_section(state.internal_widget, section_name.cstring, names)
 
 export BaseWidget, BaseWidgetState
-export Window, Box, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
+export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, Separator, Popover, TextView
 export ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame
