@@ -34,11 +34,11 @@ type
   Adder = object
     name: string
     args: seq[(string, NimNode)]
-    line_info: NimNode
+    lineInfo: NimNode
   
   Node = ref object
     children: seq[Node]
-    line_info: NimNode
+    lineInfo: NimNode
     case kind: NodeKind:
       of NodeWidget:
         widget: string
@@ -61,77 +61,77 @@ type
         default: Node
       of NodeInsert:
         insert: NimNode
-        insert_adder: Adder
+        insertAdder: Adder
       else: discard
 
-proc parse_adder(node: NimNode): Adder =
-  result.line_info = node
+proc parseAdder(node: NimNode): Adder =
+  result.lineInfo = node
   for child in node:
     case child.kind:
       of nnkExprColonExpr:
-        assert child[0].is_name()
-        result.args.add((child[0].str_val, child[1]))
+        assert child[0].isName()
+        result.args.add((child[0].strVal, child[1]))
       of nnkIdent, nnkSym:
-        result.name = child.str_val
+        result.name = child.strVal
       else:
         error("Unable to parse adder argument from " & $child.kind, child)
 
-proc parse_gui(node: NimNode): Node =
+proc parseGui(node: NimNode): Node =
   case node.kind:
     of nnkCallKinds:
-      if node[0].unwrap_name().is_name("insert"):
+      if node[0].unwrapName().isName("insert"):
         return Node(kind: NodeInsert, insert: node[1])
-      elif node[0].is_name:
-        result = Node(kind: NodeWidget, widget: node[0].str_val, line_info: node)
+      elif node[0].isName:
+        result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
       else:
-        result = node[0].parse_gui()
+        result = node[0].parseGui()
       for it in 1..<node.len:
-        result.children.add(node[it].parse_gui())
+        result.children.add(node[it].parseGui())
     of nnkPragmaExpr:
-      if node[0].is_name:
-        result = Node(kind: NodeWidget, widget: node[0].str_val, line_info: node)
+      if node[0].isName:
+        result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
       else:
-        result = node[0].parse_gui()
-      let adder = node[1].parse_adder()
+        result = node[0].parseGui()
+      let adder = node[1].parseAdder()
       case result.kind:
-        of NodeInsert: result.insert_adder = adder
+        of NodeInsert: result.insertAdder = adder
         of NodeWidget: result.adder = adder
         else: error("Unable to add adder to " & $result.kind, node[1])
     of nnkStmtList:
       result = Node(kind: NodeBlock)
       for child in node:
         if child.kind != nnkDiscardStmt:
-          result.children.add(child.parse_gui())
+          result.children.add(child.parseGui())
     of nnkAsgn, nnkExprEqExpr:
-      assert node[0].is_name
+      assert node[0].isName
       result = Node(kind: NodeAttribute,
-        name: node[0].str_val,
+        name: node[0].strVal,
         value: node[1],
-        line_info: node
+        lineInfo: node
       )
     of nnkProcDef:
-      assert node[0].is_name
+      assert node[0].isName
       result = Node(kind: NodeEvent,
-        event: node[0].str_val,
+        event: node[0].strVal,
         callback: node,
-        line_info: node
+        lineInfo: node
       )
     of nnkForStmt:
       result = Node(kind: NodeFor)
       for it in 0..<(node.len - 2):
         result.vars.add(node[it])
       result.iter = node[^2]
-      result.children.add(node[^1].parse_gui())
+      result.children.add(node[^1].parseGui())
     of nnkIfStmt:
       result = Node(kind: NodeIf)
       for child in node:
         case child.kind:
           of nnkElifBranch:
-            result.branches.add((child[0], child[1].parse_gui()))
+            result.branches.add((child[0], child[1].parseGui()))
           of nnkElse:
-            if not result.otherwise.is_nil:
+            if not result.otherwise.isNil:
               error("There may be at most one else branch in an if statement", child)
-            result.otherwise = child[0].parse_gui()
+            result.otherwise = child[0].parseGui()
           else:
             error($child.kind & " is not a valid gui tree inside an if statement.", child)
     of nnkCaseStmt:
@@ -141,9 +141,9 @@ proc parse_gui(node: NimNode): Node =
         case child.kind:
           of nnkOfBranch:
             assert child.len == 2
-            result.patterns.add((child[0], child[1].parse_gui()))
+            result.patterns.add((child[0], child[1].parseGui()))
           of nnkElse:
-            result.default = child[0].parse_gui()
+            result.default = child[0].parseGui()
           else:
             error($child.kind & " is not a valid gui tree inside a case statement.", child)
     else: error($node.kind & " is not a valid gui tree.", node)
@@ -152,120 +152,120 @@ proc gen(adder: Adder, name, parent: NimNode): NimNode =
   var callee = ident("add")
   if adder.name.len > 0:
     callee = ident(adder.name)
-  callee.copy_line_info(adder.line_info)
-  result = new_call(callee, parent, name)
+  callee.copyLineInfo(adder.lineInfo)
+  result = newCall(callee, parent, name)
   for (key, value) in adder.args:
-    result.add(new_tree(nnkExprEqExpr, ident(key), value))
-  result.copy_line_info(adder.line_info)
+    result.add(newTree(nnkExprEqExpr, ident(key), value))
+  result.copyLineInfo(adder.lineInfo)
 
-macro custom_capture(vars: varargs[typed], body: untyped): untyped =
+macro customCapture(vars: varargs[typed], body: untyped): untyped =
   var
-    params = @[new_empty_node()]
+    params = @[newEmptyNode()]
     args: seq[NimNode] = @[]
   for variable in vars:
-    let name = variable.unwrap_name()
-    assert name.is_name
+    let name = variable.unwrapName()
+    assert name.isName
     params.add:
-      new_ident_defs(ident(name.str_val), variable.get_type_inst())
+      newIdentDefs(ident(name.strVal), variable.getTypeInst())
 
     args.add(variable)
-  result = new_proc(
+  result = newProc(
     params = params,
     body = body
-  ).new_call(args)
+  ).newCall(args)
 
-proc find_variables(node: NimNode): seq[NimNode] =
+proc findVariables(node: NimNode): seq[NimNode] =
   case node.kind:
     of nnkIdent, nnkSym:
-      result = @[ident(node.str_val)]
+      result = @[ident(node.strVal)]
     of nnkTupleConstr, nnkVarTuple:
       for child in node:
-        result.add(child.find_variables())
+        result.add(child.findVariables())
     else: echo node.kind
 
-proc find_variables(nodes: seq[NimNode]): seq[NimNode] =
+proc findVariables(nodes: seq[NimNode]): seq[NimNode] =
   for child in nodes:
-    result.add(child.find_variables())
+    result.add(child.findVariables())
 
 proc gen(node: Node, stmts, parent: NimNode) =
   case node.kind:
     of NodeWidget:
       let
         name = gensym(nskLet)
-        widget_typ = ident(node.widget)
-      widget_typ.copy_line_info(node.line_info)
-      stmts.add(new_let_stmt(name, new_call(widget_typ)))
+        widgetTyp = ident(node.widget)
+      widgetTyp.copyLineInfo(node.lineInfo)
+      stmts.add(newLetStmt(name, newCall(widgetTyp)))
       for child in node.children:
         child.gen(stmts, name)
-      if not parent.is_nil:
+      if not parent.isNil:
         stmts.add(node.adder.gen(name, parent))
       else:
         stmts.add(name)
     of NodeAttribute:
-      stmts.add(new_assignment(
-        new_dot_expr(parent, "has_" & node.name),
-        new_lit(true),
-        node.line_info
+      stmts.add(newAssignment(
+        newDotExpr(parent, "has_" & node.name),
+        newLit(true),
+        node.lineInfo
       ))
-      stmts.add(new_assignment(
-        new_dot_expr(parent, "val_" & node.name, node.line_info),
+      stmts.add(newAssignment(
+        newDotExpr(parent, "val_" & node.name, node.lineInfo),
         node.value,
-        node.line_info
+        node.lineInfo
       ))
     of NodeEvent:
-      let typ = new_tree(nnkProcTy, node.callback.params, new_empty_node())
-      node.callback.name = new_empty_node()
+      let typ = newTree(nnkProcTy, node.callback.params, newEmptyNode())
+      node.callback.name = newEmptyNode()
 
-      let constr = gen_ast(typ, node_callback = node.callback):
-        Event[typ](callback: node_callback)
-      constr.copy_line_info(node.line_info)
-      stmts.add(new_assignment(
-        new_dot_expr(parent, node.event),
+      let constr = genAst(typ, nodeCallback = node.callback):
+        Event[typ](callback: nodeCallback)
+      constr.copyLineInfo(node.lineInfo)
+      stmts.add(newAssignment(
+        newDotExpr(parent, node.event),
         constr,
-        node.line_info
+        node.lineInfo
       ))
     of NodeBlock:
       for child in node.children:
         child.gen(stmts, parent)
     of NodeFor:
-      var body = new_stmt_list()
+      var body = newStmtList()
       node.children[0].gen(body, parent)
-      stmts.add(new_tree(nnkForStmt, node.vars & @[
+      stmts.add(newTree(nnkForStmt, node.vars & @[
         node.iter,
-        new_stmt_list(
-          new_call(bind_sym("custom_capture"),
-            node.vars.find_variables() & @[body]
+        newStmtList(
+          newCall(bindSym("customCapture"),
+            node.vars.findVariables() & @[body]
           )
         )
       ]))
     of NodeIf:
-      var stmt = new_tree(nnkIfStmt)
+      var stmt = newTree(nnkIfStmt)
       for (cond, body) in node.branches:
-        var body_stmts = new_stmt_list()
-        body.gen(body_stmts, parent)
-        stmt.add(new_tree(nnkElifBranch, cond, body_stmts))
-      if not node.otherwise.is_nil:
-        var body_stmts = new_stmt_list()
-        node.otherwise.gen(body_stmts, parent)
-        stmt.add(new_tree(nnkElse, body_stmts))
+        var bodyStmts = newStmtList()
+        body.gen(bodyStmts, parent)
+        stmt.add(newTree(nnkElifBranch, cond, bodyStmts))
+      if not node.otherwise.isNil:
+        var bodyStmts = newStmtList()
+        node.otherwise.gen(bodyStmts, parent)
+        stmt.add(newTree(nnkElse, bodyStmts))
       stmts.add(stmt)
     of NodeCase:
-      let stmt = new_tree(nnkCaseStmt, node.discr)
+      let stmt = newTree(nnkCaseStmt, node.discr)
       for (pattern, body) in node.patterns:
-        let body_stmts = new_stmt_list()
-        body.gen(body_stmts, parent)
-        stmt.add(new_tree(nnkOfBranch, pattern, body_stmts))
-      if not node.default.is_nil:
-        let body_stmts = new_stmt_list()
-        node.default.gen(body_stmts, parent)
-        stmt.add(new_tree(nnkElse, body_stmts))
+        let bodyStmts = newStmtList()
+        body.gen(bodyStmts, parent)
+        stmt.add(newTree(nnkOfBranch, pattern, bodyStmts))
+      if not node.default.isNil:
+        let bodyStmts = newStmtList()
+        node.default.gen(bodyStmts, parent)
+        stmt.add(newTree(nnkElse, bodyStmts))
       stmts.add(stmt)
     of NodeInsert:
-      stmts.add(node.insert_adder.gen(node.insert, parent))
+      stmts.add(node.insertAdder.gen(node.insert, parent))
 
 macro gui*(tree: untyped): untyped =
-  let gui = tree.parse_gui()
-  result = new_stmt_list()
+  let gui = tree.parseGui()
+  result = newStmtList()
   gui.gen(result, nil)
-  when defined owlkettle_debug:
+  when defined(owlkettleDebug):
     echo result.repr

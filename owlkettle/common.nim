@@ -24,12 +24,12 @@
 
 import std/[macros]
 
-proc is_name*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
-proc is_name*(node: NimNode, name: string): bool = node.is_name and node.eq_ident(name)
+proc isName*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
+proc isName*(node: NimNode, name: string): bool = node.isName and node.eqIdent(name)
 
-proc unwrap_name*(node: NimNode): NimNode =
+proc unwrapName*(node: NimNode): NimNode =
   result = node
-  while not result.is_name:
+  while not result.isName:
     case result.kind:
       of nnkOpenSymChoice, nnkClosedSymChoice:
         result = result[0]
@@ -40,42 +40,42 @@ proc unwrap_name*(node: NimNode): NimNode =
       else:
         return nil
 
-proc find_pragma*(node: NimNode, name: string): NimNode =
+proc findPragma*(node: NimNode, name: string): NimNode =
   case node.kind:
     of nnkPragma:
       for child in node:
-        if child.is_name(name):
+        if child.isName(name):
           return child
     else:
       for child in node:
-        let pragma = child.find_pragma(name)
-        if not pragma.is_nil:
+        let pragma = child.findPragma(name)
+        if not pragma.isNil:
           return pragma
 
-proc new_dot_expr*(node: NimNode, field: string, line_info: NimNode = nil): NimNode =
-  result = new_tree(nnkDotExpr, [node, ident(field)])
-  if not line_info.is_nil:
-    result.copy_line_info(line_info)
+proc newDotExpr*(node: NimNode, field: string, lineInfo: NimNode = nil): NimNode =
+  result = newTree(nnkDotExpr, [node, ident(field)])
+  if not lineInfo.isNil:
+    result.copyLineInfo(lineInfo)
 
-proc new_assignment*(lhs, rhs, line_info: NimNode): NimNode =
-  result = new_assignment(lhs, rhs)
-  if not line_info.is_nil:
-    result.copy_line_info(line_info)
+proc newAssignment*(lhs, rhs, lineInfo: NimNode): NimNode =
+  result = newAssignment(lhs, rhs)
+  if not lineInfo.isNil:
+    result.copyLineInfo(lineInfo)
 
-proc new_bracket_expr*(node, index: NimNode): NimNode =
-  result = new_tree(nnkBracketExpr, node, index)
+proc newBracketExpr*(node, index: NimNode): NimNode =
+  result = newTree(nnkBracketExpr, node, index)
 
-proc new_export*(node: NimNode): NimNode =
-  result = new_tree(nnkPostfix, ident("*"), node)
+proc newExport*(node: NimNode): NimNode =
+  result = newTree(nnkPostfix, ident("*"), node)
 
 proc clone*(node: NimNode): NimNode =
   case node.kind:
     of nnkIdent, nnkSym:
-      result = ident(node.str_val)
+      result = ident(node.strVal)
     of nnkLiterals:
       result = node
     else:
-      result = new_nim_node(node.kind)
+      result = newNimNode(node.kind)
       for child in node:
         result.add(child.clone()) 
 

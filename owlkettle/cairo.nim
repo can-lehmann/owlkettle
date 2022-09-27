@@ -60,12 +60,12 @@ type
     FontWeightNormal, FontWeightBold
   
   CairoTextExtents* = object
-    x_bearing*: cdouble
-    y_bearing*: cdouble
+    xBearing*: cdouble
+    yBearing*: cdouble
     width*: cdouble
     height*: cdouble
-    x_advance*: cdouble
-    y_advance*: cdouble
+    xAdvance*: cdouble
+    yAdvance*: cdouble
   
   CairoStatus = distinct cint # TODO
 
@@ -132,19 +132,19 @@ proc cairo_status_to_string(status: CairoStatus): cstring
 {.pop.}
 
 {.push inline.}
-proc new_cairo_context*(surface: CairoSurface): CairoContext = cairo_create(surface)
+proc newCairoContext*(surface: CairoSurface): CairoContext = cairo_create(surface)
 proc destroy*(ctx: CairoContext) = cairo_destroy(ctx)
 
-proc move_to*(ctx: CairoContext, x, y: float) =
+proc moveTo*(ctx: CairoContext, x, y: float) =
   cairo_move_to(ctx, x.cdouble, y.cdouble)
 
-proc line_to*(ctx: CairoContext, x, y: float) =
+proc lineTo*(ctx: CairoContext, x, y: float) =
   cairo_line_to(ctx, x.cdouble, y.cdouble)
 
-proc close_path*(ctx: CairoContext) =
+proc closePath*(ctx: CairoContext) =
   cairo_close_path(ctx)
 
-proc curve_to*(ctx: CairoContext, x1, y1, x2, y2, x3, y3: float) =
+proc curveTo*(ctx: CairoContext, x1, y1, x2, y2, x3, y3: float) =
   cairo_curve_to(ctx, x1.cdouble, y1.cdouble, x2.cdouble, y2.cdouble, x3.cdouble, y3.cdouble)
 
 proc rectangle*(ctx: CairoContext, x, y, w, h: float) =
@@ -159,25 +159,25 @@ proc arc*(ctx: CairoContext, x, y, r, start, stop: float) =
 proc text*(ctx: CairoContext, text: string) =
   cairo_text_path(ctx, text.cstring)
 
-proc set_source*(ctx: CairoContext, r, g, b: float) =
+proc setSource*(ctx: CairoContext, r, g, b: float) =
   cairo_set_source_rgb(ctx, r.cdouble, g.cdouble, b.cdouble)
 
-proc set_source*(ctx: CairoContext, r, g, b, a: float) =
+proc setSource*(ctx: CairoContext, r, g, b, a: float) =
   cairo_set_source_rgba(ctx, r.cdouble, g.cdouble, b.cdouble, a.cdouble)
 
-proc set_source*(ctx: CairoContext, pattern: CairoPattern) =
+proc setSource*(ctx: CairoContext, pattern: CairoPattern) =
   cairo_set_source(ctx, pattern)
 
 proc `source=`*(ctx: CairoContext, color: tuple[r, g, b, a: float]) =
-  ctx.set_source(color.r, color.g, color.b, color.a)
+  ctx.setSource(color.r, color.g, color.b, color.a)
 
 proc `source=`*(ctx: CairoContext, color: tuple[r, g, b: float]) =
-  ctx.set_source(color.r, color.g, color.b)
+  ctx.setSource(color.r, color.g, color.b)
 
 proc `source=`*(ctx: CairoContext, pattern: CairoPattern) =
   cairo_set_source(ctx, pattern)
 
-proc `line_width=`*(ctx: CairoContext, width: float) =
+proc `lineWidth=`*(ctx: CairoContext, width: float) =
   cairo_set_line_width(ctx, width.cdouble)
 
 proc fill*(ctx: CairoContext) = cairo_fill(ctx)
@@ -188,43 +188,43 @@ proc `matrix=`*(ctx: CairoContext, mat: CairoMatrix) = cairo_set_matrix(ctx, mat
 proc scale*(ctx: CairoContext, x, y: float) = cairo_scale(ctx, x.cdouble, y.cdouble)
 proc translate*(ctx: CairoContext, x, y: float) = cairo_translate(ctx, x.cdouble, y.cdouble)
 
-proc `font_size=`*(ctx: CairoContext, size: float) =
+proc `fontSize=`*(ctx: CairoContext, size: float) =
   cairo_set_font_size(ctx, size.cdouble)
 
-proc select_font_face*(ctx: CairoContext,
-                       family: string,
-                       slant: CairoFontSlant = FontSlantNormal,
-                       weight: CairoFontWeight = FontWeightNormal) =
+proc selectFontFace*(ctx: CairoContext,
+                     family: string,
+                     slant: CairoFontSlant = FontSlantNormal,
+                     weight: CairoFontWeight = FontWeightNormal) =
   cairo_select_font_face(ctx, family.cstring, slant, weight)
 
-proc text_extents*(ctx: CairoContext, text: string): CairoTextExtents =
+proc textExtents*(ctx: CairoContext, text: string): CairoTextExtents =
   cairo_text_extents(ctx, text.cstring, result.addr)
 
-proc new_image_surface*(format: CairoFormat, width, height: int): CairoSurface =
+proc newImageSurface*(format: CairoFormat, width, height: int): CairoSurface =
   result = cairo_image_surface_create(format, width.cint, height.cint)
 
-proc new_image_surface*(format: CairoFormat,
-                        width, height, stride: int,
-                        data: ptr UncheckedArray[uint8]): CairoSurface =
+proc newImageSurface*(format: CairoFormat,
+                      width, height, stride: int,
+                      data: ptr UncheckedArray[uint8]): CairoSurface =
   result = cairo_image_surface_create_for_data(data, format, width.cint, height.cint, stride.cint)
 
-proc load_image_surface*(path: string): CairoSurface =
+proc loadImageSurface*(path: string): CairoSurface =
   result = cairo_image_surface_create_from_png(path.cstring)
   let status = cairo_surface_status(result)
   if status != CairoStatus(0):
-    raise new_exception(IoError, $cairo_status_to_string(status))
+    raise newException(IOError, $cairo_status_to_string(status))
 
 proc data*(surface: CairoSurface): ptr UncheckedArray[uint8] = cairo_image_surface_get_data(surface)
 proc format*(surface: CairoSurface): CairoFormat = cairo_image_surface_get_format(surface)
 proc width*(surface: CairoSurface): int = int(cairo_image_surface_get_width(surface))
 proc height*(surface: CairoSurface): int = int(cairo_image_surface_get_height(surface))
 proc flush*(surface: CairoSurface) = cairo_surface_flush(surface)
-proc mark_dirty*(surface: CairoSurface) = cairo_surface_mark_dirty(surface)
+proc markDirty*(surface: CairoSurface) = cairo_surface_mark_dirty(surface)
 proc destroy*(surface: CairoSurface) = cairo_surface_destroy(surface)
 proc save*(surface: CairoSurface, path: string) =
   discard cairo_surface_write_to_png(surface, path.cstring)
 
-proc new_pattern*(surface: CairoSurface): CairoPattern =
+proc newPattern*(surface: CairoSurface): CairoPattern =
   result = cairo_pattern_create_for_surface(surface)
 
 proc `filter=`*(pattern: CairoPattern, filter: CairoFilter) =
@@ -236,7 +236,7 @@ proc `extend=`*(pattern: CairoPattern, extend: CairoExtend) =
 proc destroy*(pattern: CairoPattern) = cairo_pattern_destroy(pattern)
 {.pop.}
 
-template with_matrix*(ctx: CairoContext, body: untyped) =
+template withMatrix*(ctx: CairoContext, body: untyped) =
   block:
     let mat = ctx.matrix
     defer: ctx.matrix = mat
@@ -247,15 +247,15 @@ template modify*(surface: CairoSurface, pixels, body: untyped) =
     surface.flush()
     let pixels {.inject.} = surface.data
     body
-    surface.mark_dirty()
+    surface.markDirty()
 
 proc draw*(ctx: CairoContext,
            surface: CairoSurface,
            x, y, w, h: float,
            filter: CairoFilter = FilterGood) =
-  ctx.with_matrix:
+  ctx.withMatrix:
     ctx.rectangle(x, y, w, h)
-    let pattern = new_pattern(surface)
+    let pattern = newPattern(surface)
     defer: pattern.destroy()
     pattern.filter = filter
     ctx.translate(x, y)
