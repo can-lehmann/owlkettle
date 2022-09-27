@@ -79,6 +79,7 @@ proc cairo_destroy(ctx: CairoContext)
 
 proc cairo_move_to(ctx: CairoContext, x, y: cdouble)
 proc cairo_line_to(ctx: CairoContext, x, y: cdouble)
+proc cairo_close_path(ctx: CairoContext)
 proc cairo_rectangle(ctx: CairoContext, x, y, w, h: cdouble)
 proc cairo_arc(ctx: CairoContext, x, y, r, start, stop: cdouble)
 proc cairo_curve_to(ctx: CairoContext, x1, y1, x2, y2, x3, y3: cdouble)
@@ -139,6 +140,9 @@ proc move_to*(ctx: CairoContext, x, y: float) =
 
 proc line_to*(ctx: CairoContext, x, y: float) =
   cairo_line_to(ctx, x.cdouble, y.cdouble)
+
+proc close_path*(ctx: CairoContext) =
+  cairo_close_path(ctx)
 
 proc curve_to*(ctx: CairoContext, x1, y1, x2, y2, x3, y3: float) =
   cairo_curve_to(ctx, x1.cdouble, y1.cdouble, x2.cdouble, y2.cdouble, x3.cdouble, y3.cdouble)
