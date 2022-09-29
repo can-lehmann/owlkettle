@@ -32,7 +32,7 @@ method view(app: AppState): Widget =
       defaultSize = (300, 100)
       
       HeaderBar {.addTitlebar.}:
-        Button {.addÖeft.}:
+        Button {.addLeft.}:
           text = "Open"
           style = {ButtonSuggested}
           proc clicked() =
