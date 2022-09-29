@@ -25,31 +25,31 @@ import gtk, widgetdef
 type AppConfig* = object
   widget*: Widget
   icons*: seq[string]
-  dark_theme*: bool
+  darkTheme*: bool
   stylesheets*: seq[string]
 
-proc setup_app*(config: AppConfig): WidgetState =
-  if config.dark_theme:
+proc setupApp*(config: AppConfig): WidgetState =
+  if config.darkTheme:
     let settings = gtk_settings_get_default()
-    var value = g_value_new(config.dark_theme)
+    var value = g_value_new(config.darkTheme)
     g_object_set_property(settings.pointer, "gtk-application-prefer-dark-theme", value.addr)
     g_value_unset(value.addr)
   
   let display = gdk_display_get_default()
-  let icon_theme = gtk_icon_theme_get_for_display(display)
+  let iconTheme = gtk_icon_theme_get_for_display(display)
   for path in config.icons:
-    gtk_icon_theme_add_search_path(icon_theme, path.cstring)
+    gtk_icon_theme_add_search_path(iconTheme, path.cstring)
   result = config.widget.build()
   
   for stylesheet in config.stylesheets:
     var error: GError
     let provider = gtk_css_provider_new()
     discard gtk_css_provider_load_from_path(provider, stylesheet.cstring, error.addr)
-    if not error.is_nil:
-      raise new_exception(IoError, $error[].message)
+    if not error.isNil:
+      raise newException(IOError, $error[].message)
     gtk_style_context_add_provider_for_display(display, provider, 600)
 
-proc run_mainloop*(state: WidgetState) =
-  gtk_window_present(state.unwrap_internal_widget())
+proc runMainloop*(state: WidgetState) =
+  gtk_window_present(state.unwrapInternalWidget())
   while g_list_model_get_n_items(gtk_window_get_toplevels()) > 0:
     discard g_main_context_iteration(nil, cbool(ord(true)))

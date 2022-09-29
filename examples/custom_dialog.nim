@@ -38,13 +38,13 @@ method view(property: PropertyState): Widget =
       
       Label:
         text = property.name
-        x_align = 0
+        xAlign = 0
       
       insert(property.child) {.expand: false.}
 
 proc add(property: Property, child: Widget) =
-  property.has_child = true
-  property.val_child = child
+  property.hasChild = true
+  property.valChild = child
 
 viewable UserDialog:
   user: User
@@ -53,14 +53,14 @@ method view(dialog: UserDialogState): Widget =
   result = gui:
     Dialog:
       title = "New User"
-      default_size = (320, 0)
+      defaultSize = (320, 0)
       
-      DialogButton {.add_button.}:
+      DialogButton {.addButton.}:
         text = "Create"
         style = {ButtonSuggested}
         res = DialogAccept
       
-      DialogButton {.add_button.}:
+      DialogButton {.addButton.}:
         text = "Cancel"
         res = DialogCancel
       
@@ -92,8 +92,8 @@ method view(app: AppState): Widget =
     Window:
       title = "Users"
       
-      HeaderBar {.add_titlebar.}:
-        Button {.add_left.}:
+      HeaderBar {.addTitlebar.}:
+        Button {.addLeft.}:
           icon = "list-add-symbolic"
           style = {ButtonSuggested}
           proc clicked() =
@@ -107,6 +107,6 @@ method view(app: AppState): Widget =
             ListBoxRow:
               Label:
                 text = user.name
-                x_align = 0
+                xAlign = 0
 
 brew(gui(App()))

@@ -30,10 +30,10 @@ method view(app: AppState): Widget =
     Window:
       title = "Text View Example"
       
-      HeaderBar {.add_titlebar.}:
-        #subtitle = $app.buffer.count_lines & " line(s)"
+      HeaderBar {.addTitlebar.}:
+        #subtitle = $app.buffer.countLines & " line(s)"
         
-        Button {.add_left.}:
+        Button {.addLeft.}:
           text = "Set Text"
           proc clicked() =
             app.buffer.text = "Hello, world!\n"
@@ -43,4 +43,4 @@ method view(app: AppState): Widget =
           buffer = app.buffer
           proc changed() = discard
 
-brew(gui(App(buffer = new_text_buffer())))
+brew(gui(App(buffer = newTextBuffer())))

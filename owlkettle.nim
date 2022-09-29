@@ -24,26 +24,26 @@ import owlkettle/[gtk, widgetdef, widgets, guidsl, mainloop]
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 
-proc write_clipboard*(state: WidgetState, text: string) =
+proc writeClipboard*(state: WidgetState, text: string) =
   let
-    widget = state.unwrap_renderable().internal_widget
+    widget = state.unwrapRenderable().internalWidget
     display = gtk_widget_get_display(widget)
     clipboard = gdk_display_get_clipboard(display)
   gdk_clipboard_set_text(clipboard, text.cstring, text.len.cint)
 
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
-    state = WidgetState(widget.build())
-    dialog_state = state.unwrap_renderable()
-    window = app.unwrap_internal_widget()
-    dialog = state.unwrap_internal_widget()
+    state = widget.build()
+    dialogState = state.unwrapRenderable()
+    window = app.unwrapInternalWidget()
+    dialog = state.unwrapInternalWidget()
   gtk_window_set_transient_for(dialog, window)
   gtk_window_set_modal(dialog, cbool(bool(true)))
   gtk_window_present(dialog)
   
-  if dialog_state of DialogState or dialog_state of BuiltinDialogState:
-    proc response(dialog: GtkWidget, response_id: cint, res: ptr cint) {.cdecl.} =
-      res[] = response_id
+  if dialogState of DialogState or dialogState of BuiltinDialogState:
+    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
+      res[] = responseId
     
     var res = low(cint)
     discard g_signal_connect(dialog, "response", response, res.addr)
@@ -52,7 +52,7 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
     
     state.read()
     gtk_window_destroy(dialog)
-    result = (to_dialog_response(res), state)
+    result = (toDialogResponse(res), state)
   else:
     proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
       closed[] = true
@@ -67,37 +67,37 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
-           dark_theme: bool = false,
+           darkTheme: bool = false,
            stylesheets: openArray[string] = []) =
   gtk_init()
-  let state = setup_app(AppConfig(
+  let state = setupApp(AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: dark_theme,
+    dark_theme: darkTheme,
     stylesheets: @stylesheets
   ))
-  run_mainloop(state)
+  runMainloop(state)
 
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
-           dark_theme: bool = false,
+           darkTheme: bool = false,
            stylesheets: openArray[string] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: dark_theme,
+    dark_theme: darkTheme,
     stylesheets: @stylesheets
   )
   
-  proc activate_callback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
+  proc activateCallback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
     let
-      state = setup_app(data[])
-      window = state.unwrap_renderable().internal_widget
+      state = setupApp(data[])
+      window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  discard g_signal_connect(app, "activate", activate_callback, config.addr)
-  let status = g_application_run(app)
+  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  discard g_application_run(app)

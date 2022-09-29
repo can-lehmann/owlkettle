@@ -43,7 +43,7 @@ type
     FormatRGB24 = 1,
     FormatA8 = 2,
     FormatA1 = 3,
-    FormatRGB16_565 = 4,
+    FormatRGB16 = 4, # FormatRGB16_565
     FormatRGB30 = 5
   
   CairoFilter* = enum

@@ -42,7 +42,7 @@ proc adw_init()
 
 # Adw.StyleManager
 proc adw_style_manager_get_default(): StyleManager
-proc adw_style_manager_set_color_scheme(manager: StyleManager, color_scheme: ColorScheme)
+proc adw_style_manager_set_color_scheme(manager: StyleManager, colorScheme: ColorScheme)
 
 # Adw.WindowTitle
 proc adw_window_title_new(title, subtitle: cstring): GtkWidget
@@ -50,11 +50,11 @@ proc adw_window_title_set_title(widget: GtkWidget, title: cstring)
 proc adw_window_title_set_subtitle(widget: GtkWidget, subtitle: cstring)
 
 # Adw.Avatar
-proc adw_avatar_new(size: cint, text: cstring, show_initials: cbool): GtkWidget
+proc adw_avatar_new(size: cint, text: cstring, showInitials: cbool): GtkWidget
 proc adw_avatar_set_show_initials(avatar: GtkWidget, value: cbool)
 proc adw_avatar_set_size(avatar: GtkWidget, size: cint)
 proc adw_avatar_set_text(avatar: GtkWidget, text: cstring)
-proc adw_avatar_set_icon_name(avatar: GtkWidget, icon_name: cstring)
+proc adw_avatar_set_icon_name(avatar: GtkWidget, iconName: cstring)
 
 # Adw.Clamp
 proc adw_clamp_new(): GtkWidget
@@ -88,69 +88,69 @@ renderable WindowTitle of BaseWidget:
   
   hooks:
     before_build:
-      state.internal_widget = adw_window_title_new(cstring(""), cstring(""))
+      state.internalWidget = adw_window_title_new(cstring(""), cstring(""))
   
   hooks title:
     property:
-      adw_window_title_set_title(state.internal_widget, state.title.cstring)
+      adw_window_title_set_title(state.internalWidget, state.title.cstring)
   
   hooks subtitle:
     property:
-      adw_window_title_set_subtitle(state.internal_widget, state.subtitle.cstring)
+      adw_window_title_set_subtitle(state.internalWidget, state.subtitle.cstring)
 
 renderable Avatar of BaseWidget:
   text: string
   size: int
-  show_initials: bool
-  icon_name: string = "avatar-default-symbolic"
+  showInitials: bool
+  iconName: string = "avatar-default-symbolic"
   
   hooks:
     before_build:
-      state.internal_widget = adw_avatar_new(
-        widget.val_size.cint,
-        widget.val_text.cstring,
-        widget.val_show_initials.ord.cbool
+      state.internalWidget = adw_avatar_new(
+        widget.valSize.cint,
+        widget.valText.cstring,
+        widget.valShow_initials.ord.cbool
       )
   
   hooks text:
     property:
-      adw_avatar_set_text(state.internal_widget, state.text.cstring)
+      adw_avatar_set_text(state.internalWidget, state.text.cstring)
   
   hooks size:
     property:
-      adw_avatar_set_size(state.internal_widget, state.size.cint)
+      adw_avatar_set_size(state.internalWidget, state.size.cint)
   
-  hooks show_initials:
+  hooks showInitials:
     property:
-      adw_avatar_set_show_initials(state.internal_widget, state.show_initials.ord.cbool)
+      adw_avatar_set_show_initials(state.internalWidget, state.showInitials.ord.cbool)
   
-  hooks icon_name:
+  hooks iconName:
     property:
-      adw_avatar_set_icon_name(state.internal_widget, state.icon_name.cstring)
+      adw_avatar_set_icon_name(state.internalWidget, state.iconName.cstring)
 
 renderable Clamp of BaseWidget:
-  maximum_size: int
+  maximumSize: int
   child: Widget
   
   hooks:
     before_build:
-      state.internal_widget = adw_clamp_new()
+      state.internalWidget = adw_clamp_new()
   
-  hooks maximum_size:
+  hooks maximumSize:
     property:
-      adw_clamp_set_maximum_size(state.internal_widget, cint(state.maximum_size))
+      adw_clamp_set_maximum_size(state.internalWidget, cint(state.maximumSize))
   
   hooks child:
-    build: build_bin(state, widget, adw_clamp_set_child)
-    update: update_bin(state, widget, adw_clamp_set_child)
+    build: buildBin(state, widget, adw_clamp_set_child)
+    update: updateBin(state, widget, adw_clamp_set_child)
   
   adder add
 
 proc add*(clamp: Clamp, child: Widget) =
-  if clamp.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Clamp. Use a Box widget to display multiple widgets in a Clamp.")
-  clamp.has_child = true
-  clamp.val_child = child
+  if clamp.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Clamp. Use a Box widget to display multiple widgets in a Clamp.")
+  clamp.hasChild = true
+  clamp.valChild = child
 
 renderable PreferencesGroup of BaseWidget:
   title: string
@@ -160,78 +160,78 @@ renderable PreferencesGroup of BaseWidget:
   
   hooks:
     before_build:
-      state.internal_widget = adw_preferences_group_new()
+      state.internalWidget = adw_preferences_group_new()
   
   hooks title:
     property:
-      adw_preferences_group_set_title(state.internal_widget, state.title.cstring)
+      adw_preferences_group_set_title(state.internalWidget, state.title.cstring)
   
   hooks description:
     property:
-      adw_preferences_group_set_description(state.internal_widget, state.description.cstring)
+      adw_preferences_group_set_description(state.internalWidget, state.description.cstring)
   
   hooks suffix:
-    build: build_bin(state, widget, suffix, has_suffix, val_suffix, adw_preferences_group_set_header_suffix)
-    update: update_bin(state, widget, suffix, has_suffix, val_suffix, adw_preferences_group_set_header_suffix)
+    build: buildBin(state, widget, suffix, hasSuffix, valSuffix, adw_preferences_group_set_header_suffix)
+    update: updateBin(state, widget, suffix, hasSuffix, valSuffix, adw_preferences_group_set_header_suffix)
   
   hooks children:
     build:
-      widget.val_children.assign_app(state.app)
-      for child_widget in widget.val_children:
-        let child = child_widget.build()
-        adw_preferences_group_add(state.internal_widget, child.unwrap_internal_widget())
+      widget.valChildren.assignApp(state.app)
+      for childWidget in widget.valChildren:
+        let child = childWidget.build()
+        adw_preferences_group_add(state.internalWidget, child.unwrapInternalWidget())
         state.children.add(child)
     update:
-      widget.val_children.assign_app(state.app)
+      widget.valChildren.assignApp(state.app)
       var
         it = 0
-        force_readd = false
-      while it < widget.val_children.len and it < state.children.len:
-        let new_child = widget.val_children[it].update(state.children[it])
-        if not new_child.is_nil:
-          adw_preferences_group_remove(state.internal_widget, state.children[it].unwrap_internal_widget())
-          adw_preferences_group_add(state.internal_widget, new_child.unwrap_internal_widget())
-          state.children[it] = new_child
-          force_readd = true
-        elif force_readd:
-          let widget = state.children[it].unwrap_internal_widget()
-          adw_preferences_group_remove(state.internal_widget, widget)
-          adw_preferences_group_add(state.internal_widget, widget)
+        forceReadd = false
+      while it < widget.valChildren.len and it < state.children.len:
+        let newChild = widget.valChildren[it].update(state.children[it])
+        if not newChild.isNil:
+          adw_preferences_group_remove(state.internalWidget, state.children[it].unwrapInternalWidget())
+          adw_preferences_group_add(state.internalWidget, newChild.unwrapInternalWidget())
+          state.children[it] = newChild
+          forceReadd = true
+        elif forceReadd:
+          let widget = state.children[it].unwrapInternalWidget()
+          adw_preferences_group_remove(state.internalWidget, widget)
+          adw_preferences_group_add(state.internalWidget, widget)
         it += 1
       
-      while it < widget.val_children.len:
-        let child = widget.val_children[it].build()
-        adw_preferences_group_add(state.internal_widget, child.unwrap_internal_widget())
+      while it < widget.valChildren.len:
+        let child = widget.valChildren[it].build()
+        adw_preferences_group_add(state.internalWidget, child.unwrapInternalWidget())
         state.children.add(child)
         it += 1
       
       while it < state.children.len:
         let child = state.children.pop()
-        adw_preferences_group_remove(state.internal_widget, child.unwrap_internal_widget())
+        adw_preferences_group_remove(state.internalWidget, child.unwrapInternalWidget())
   
   adder add
   adder add_suffix
 
-proc add_suffix*(group: PreferencesGroup, suffix: Widget) =
-  if group.has_suffix:
-    raise new_exception(ValueError, "Unable to add multiple suffixes to a PreferencesGroup. Use a Box widget to display multiple widgets in a PreferencesGroup.")
-  group.has_suffix = true
-  group.val_suffix = suffix
+proc addSuffix*(group: PreferencesGroup, suffix: Widget) =
+  if group.hasSuffix:
+    raise newException(ValueError, "Unable to add multiple suffixes to a PreferencesGroup. Use a Box widget to display multiple widgets in a PreferencesGroup.")
+  group.hasSuffix = true
+  group.valSuffix = suffix
 
 proc add*(group: PreferencesGroup, row: ListBoxRow) =
-  group.has_children = true
-  group.val_children.add(row)
+  group.hasChildren = true
+  group.valChildren.add(row)
 
 renderable PreferencesRow of ListBoxRow:
   title: string
   
   hooks:
     before_build:
-      state.internal_widget = adw_preferences_row_new()
+      state.internalWidget = adw_preferences_row_new()
   
   hooks title:
     property:
-      adw_preferences_row_set_title(state.internal_widget, state.title.cstring)
+      adw_preferences_row_set_title(state.internalWidget, state.title.cstring)
 
 renderable ActionRow of PreferencesRow:
   subtitle: string
@@ -239,54 +239,54 @@ renderable ActionRow of PreferencesRow:
   
   hooks:
     before_build:
-      state.internal_widget = adw_action_row_new()
+      state.internalWidget = adw_action_row_new()
   
   hooks subtitle:
     property:
-      adw_action_row_set_subtitle(state.internal_widget, state.subtitle.cstring)
+      adw_action_row_set_subtitle(state.internalWidget, state.subtitle.cstring)
   
   hooks suffixes:
     build:
-      widget.val_suffixes.assign_app(state.app)
-      for suffix_widget in widget.val_suffixes:
-        let suffix = suffix_widget.build()
-        adw_action_row_add_suffix(state.internal_widget, suffix.unwrap_internal_widget())
+      widget.valSuffixes.assignApp(state.app)
+      for suffixWidget in widget.valSuffixes:
+        let suffix = suffixWidget.build()
+        adw_action_row_add_suffix(state.internalWidget, suffix.unwrapInternalWidget())
         state.suffixes.add(suffix)
     update:
-      widget.val_suffixes.assign_app(state.app)
+      widget.valSuffixes.assignApp(state.app)
       var it = 0
-      while it < widget.val_suffixes.len and it < state.suffixes.len:
-        let new_suffix = widget.val_suffixes[it].update(state.suffixes[it])
-        assert new_suffix.is_nil
+      while it < widget.valSuffixes.len and it < state.suffixes.len:
+        let newSuffix = widget.valSuffixes[it].update(state.suffixes[it])
+        assert newSuffix.isNil
         it += 1
       
-      while it < widget.val_suffixes.len:
-        let suffix = widget.val_suffixes[it].build()
-        adw_action_row_add_suffix(state.internal_widget, suffix.unwrap_internal_widget())
+      while it < widget.valSuffixes.len:
+        let suffix = widget.valSuffixes[it].build()
+        adw_action_row_add_suffix(state.internalWidget, suffix.unwrapInternalWidget())
         state.suffixes.add(suffix)
         it += 1
       
       while it < state.suffixes.len:
         let suffix = state.suffixes.pop()
-        adw_action_row_remove(state.internal_widget, suffix.unwrap_internal_widget())
+        adw_action_row_remove(state.internalWidget, suffix.unwrapInternalWidget())
 
-proc add_suffix*(row: ActionRow, suffix: Widget) =
-  row.has_suffixes = true
-  row.val_suffixes.add(suffix)
+proc addSuffix*(row: ActionRow, suffix: Widget) =
+  row.hasSuffixes = true
+  row.valSuffixes.add(suffix)
 
 export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
-           color_scheme: ColorScheme = ColorSchemeDefault,
+           colorScheme: ColorScheme = ColorSchemeDefault,
            stylesheets: openArray[string] = []) =
   adw_init()
-  let style_manager = adw_style_manager_get_default()
-  adw_style_manager_set_color_scheme(style_manager, color_scheme)
-  let state = setup_app(AppConfig(
+  let styleManager = adw_style_manager_get_default()
+  adw_style_manager_set_color_scheme(styleManager, colorScheme)
+  let state = setupApp(AppConfig(
     widget: widget,
     icons: @icons,
     dark_theme: false,
     stylesheets: @stylesheets
   ))
-  run_mainloop(state)
+  runMainloop(state)

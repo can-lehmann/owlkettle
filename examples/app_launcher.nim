@@ -25,37 +25,37 @@
 import owlkettle
 import std/[os, strscans, strutils, algorithm, osproc, sequtils, sugar]
 
-const app_path = "share" / "applications"
-let application_paths = [
-  "/usr" / app_path,
-  get_home_dir() / ".local" / app_path
+const appPath = "share" / "applications"
+let applicationPaths = [
+  "/usr" / appPath,
+  getHomeDir() / ".local" / appPath
 ]
 
 type DesktopFile = ref object
   name, exec, icon: string
-  use_terminal: bool
+  useTerminal: bool
 
-iterator desktop_files(): DesktopFile =
+iterator desktopFiles(): DesktopFile =
   type ParseVal = enum
     ParsedName, ParsedExec, ParsedUseTerm
   
-  for path in application_paths:
-    for file in walk_pattern(path / "*.desktop"):
+  for path in applicationPaths:
+    for file in walkPattern(path / "*.desktop"):
       var
         result = DesktopFile()
-        parsed_vals: set[ParseVal]
+        parsedVals: set[ParseVal]
       for line in lines(file):
-        if ParsedName notin parsed_vals and line.scanf("Name=$+", result.name):
-          parsed_vals.incl ParsedName
-        if ParsedExec notin parsed_vals and line.scanf("Exec=$+ ", result.exec):
-          parsed_vals.incl ParsedExec
-        var use_term = ""
-        if ParsedUseTerm notin parsed_vals and line.scanf("Terminal=$+", use_term):
-          if use_term.parse_bool():
-            parsed_vals.incl ParsedUseTerm
+        if ParsedName notin parsedVals and line.scanf("Name=$+", result.name):
+          parsedVals.incl ParsedName
+        if ParsedExec notin parsedVals and line.scanf("Exec=$+ ", result.exec):
+          parsedVals.incl ParsedExec
+        var useTerm = ""
+        if ParsedUseTerm notin parsedVals and line.scanf("Terminal=$+", useTerm):
+          if useTerm.parseBool():
+            parsedVals.incl ParsedUseTerm
         discard line.scanf("Icon=$+", result.icon)
-      if {ParsedName, ParsedExec}  * parsed_vals == {ParsedName, ParsedExec} and
-         ParsedUseTerm notin parsed_vals:
+      if {ParsedName, ParsedExec}  * parsedVals == {ParsedName, ParsedExec} and
+         ParsedUseTerm notin parsedVals:
         yield result
 
 viewable SearchList:
@@ -66,21 +66,21 @@ func similarity(needle, haystack: string): int =
   if needle.len == 0:
     return 0
   result = low(int)
-  for hay_ind, _ in haystack:
-    var found = -hay_ind
-    for needle_ind, need in needle:
-      if needle_ind + hay_ind >= haystack.len:
+  for hayInd, _ in haystack:
+    var found = -hayInd
+    for needleInd, need in needle:
+      if needleInd + hayInd >= haystack.len:
         break
       let
-        need = need.to_lower_ascii()
-        hay = haystack[needle_ind + hay_ind].to_lower_ascii()
+        need = need.toLowerAscii()
+        hay = haystack[needleInd + hayInd].toLowerAscii()
       if need == hay:
         found += 1
-    if found > -hay_ind:
+    if found > -hayInd:
       result = max(found, result)
 
 method view(list: SearchListState): Widget =
-  var children = list.children.map_it((list.query.similarity(it[0]), it[1]))
+  var children = list.children.mapIt((list.query.similarity(it[0]), it[1]))
   children.sort((x, y) => cmp(y[0], x[0]))
   result = gui:
     ListBox:
@@ -89,24 +89,24 @@ method view(list: SearchListState): Widget =
           insert child
 
 proc add(list: SearchList, child: Widget, name: string = "") =
-  list.has_children = true
-  list.val_children.add((name, child))
+  list.hasChildren = true
+  list.valChildren.add((name, child))
 
 viewable App:
-  desktop_files: seq[DesktopFile]
+  desktopFiles: seq[DesktopFile]
   query: string
 
-proc sort_default(desktop_files: var seq[DesktopFile]) =
-  desktop_files.sort((x, y) => cmp(x.name.to_lower_ascii(), y.name.to_lower_ascii()))
+proc sortDefault(desktopFiles: var seq[DesktopFile]) =
+  desktopFiles.sort((x, y) => cmp(x.name.toLowerAscii(), y.name.toLowerAscii()))
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "App Launcher"
-      default_size = (600, 400)
+      defaultSize = (600, 400)
       
-      HeaderBar {.add_titlebar.}:
-        Entry {.add_title.}:
+      HeaderBar {.addTitlebar.}:
+        Entry {.addTitle.}:
           placeholder = "Search..."
           width = 40
           proc changed(query: string) =
@@ -116,18 +116,18 @@ method view(app: AppState): Widget =
         SearchList:
           query = app.query
           
-          for desktop_file in app.desktop_files:
-            Button {.name: desktop_file.name.}:
+          for desktopFile in app.desktopFiles:
+            Button {.name: desktopFile.name.}:
               Box(orient = OrientX, spacing = 12):
                 Icon {.expand: false.}:
-                  name = desktop_file.icon
-                  pixel_size = 32
+                  name = desktopFile.icon
+                  pixelSize = 32
                 Label:
-                  text = desktop_file.name
-                  x_align = 0
+                  text = desktopFile.name
+                  xAlign = 0
               
               proc clicked() =
-                discard start_process(desktop_file.exec, options = {poEvalCommand})
+                discard startProcess(desktopFile.exec, options = {poEvalCommand})
                 quit()
 
-brew(gui(App(desktop_files = to_seq(desktop_files()).dup(sort_default))))
+brew(gui(App(desktopFiles = toSeq(desktopFiles()).dup(sortDefault))))

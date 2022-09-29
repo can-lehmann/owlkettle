@@ -52,10 +52,13 @@ proc findPragma*(node: NimNode, name: string): NimNode =
         if not pragma.isNil:
           return pragma
 
-proc newDotExpr*(node: NimNode, field: string, lineInfo: NimNode = nil): NimNode =
-  result = newTree(nnkDotExpr, [node, ident(field)])
+proc newDotExpr*(node, field: NimNode, lineInfo: NimNode): NimNode =
+  result = newTree(nnkDotExpr, [node, field])
   if not lineInfo.isNil:
     result.copyLineInfo(lineInfo)
+
+proc newDotExpr*(node: NimNode, field: string, lineInfo: NimNode = nil): NimNode =
+  result = newDotExpr(node, ident(field))
 
 proc newAssignment*(lhs, rhs, lineInfo: NimNode): NimNode =
   result = newAssignment(lhs, rhs)
@@ -78,4 +81,5 @@ proc clone*(node: NimNode): NimNode =
       result = newNimNode(node.kind)
       for child in node:
         result.add(child.clone()) 
+  result.copyLineInfo(node)
 

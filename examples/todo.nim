@@ -21,7 +21,7 @@
 # SOFTWARE
 
 import std/sequtils
-import owlkettle
+import owlkettle, owlkettle/adw
 
 type TodoItem = object
   text: string
@@ -29,16 +29,16 @@ type TodoItem = object
 
 viewable App:
   todos: seq[TodoItem]
-  new_item: string
+  newItem: string
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Todo"
-      default_size = (400, 250)
+      defaultSize = (400, 250)
       
-      HeaderBar {.add_titlebar.}:  
-        MenuButton {.add_right.}:
+      HeaderBar {.addTitlebar.}:  
+        MenuButton {.addRight.}:
           icon = "open-menu-symbolic"
           Popover:
             Box(orient=OrientY, spacing=6, margin=6):
@@ -46,25 +46,25 @@ method view(app: AppState): Widget =
                 icon = "user-trash-symbolic"
                 style = {ButtonDestructive}
                 proc clicked() =
-                  app.todos = app.todos.filter_it(not it.done)
+                  app.todos = app.todos.filterIt(not it.done)
       
       Box(orient = OrientY, spacing = 6, margin = 12):
         Box(orient = OrientX, spacing = 6) {.expand: false.}:
           Entry:
-            text = app.new_item
-            proc changed(new_item: string) =
-              app.new_item = new_item
+            text = app.newItem
+            proc changed(newItem: string) =
+              app.newItem = newItem
           Button {.expand: false.}:
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
             proc clicked() =
-              app.todos.add(TodoItem(text: app.new_item))
-              app.new_item = ""
+              app.todos.add(TodoItem(text: app.newItem))
+              app.newItem = ""
         
         Frame:
           ScrolledWindow:
             ListBox:
-              selection_mode = SelectionNone
+              selectionMode = SelectionNone
               for it, todo in app.todos:
                 Box:
                   spacing = 6
@@ -73,7 +73,7 @@ method view(app: AppState): Widget =
                     proc changed(state: bool) =
                       app.todos[it].done = state
                   Label:
-                    x_align = 0
+                    xAlign = 0
                     text = todo.text
 
 brew(gui(App(todos = @[

@@ -25,224 +25,224 @@
 import std/[unicode, sets]
 import gtk, widgetdef, cairo
 
-when defined(owlkettle_docs):
+when defined(owlkettleDocs):
   echo "# Widgets\n\n"
 
-proc event_callback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
+proc eventCallback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc entry_event_callback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) =
+proc entryEventCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) =
   data[].callback($gtk_editable_get_text(widget))
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc switch_event_callback(widget: GtkWidget, state: cbool, data: ptr EventObj[proc (state: bool)]) =
+proc switchEventCallback(widget: GtkWidget, state: cbool, data: ptr EventObj[proc (state: bool)]) =
   data[].callback(state != 0)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc toggle_button_event_callback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
+proc toggleButtonEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
   data[].callback(gtk_toggle_button_get_active(widget) != 0)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc check_button_event_callback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
+proc checkButtonEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
   data[].callback(gtk_check_button_get_active(widget) != 0)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc color_event_callback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) =
+proc colorEventCallback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) =
   var color: GdkRgba
   gtk_color_chooser_get_rgba(widget, color.addr)
   data[].callback((color.r.float, color.g.float, color.b.float, color.a.float))
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
-proc list_box_event_callback(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
+proc listBoxEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
   let selected = gtk_list_box_get_selected_rows(widget)
   var
-    rows = init_hash_set[int]()
+    rows = initHashSet[int]()
     cur = selected
-  while not cur.is_nil:
+  while not cur.isNil:
     rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
     cur = cur[].next
   g_list_free(selected)
   data[].callback(rows)
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
 
 
 proc connect[T](widget: GtkWidget,
                 event: Event[T],
                 name: cstring,
-                event_callback: pointer) =
-  if not event.is_nil:
-    event.handler = g_signal_connect(widget, name, event_callback, event[].addr)
+                eventCallback: pointer) =
+  if not event.isNil:
+    event.handler = g_signal_connect(widget, name, eventCallback, event[].addr)
 
 proc disconnect[T](widget: GtkWidget, event: Event[T]) =
-  if not event.is_nil:
+  if not event.isNil:
     assert event.handler > 0
     g_signal_handler_disconnect(widget, event.handler)
 
-proc update_style[State, Widget](state: State, widget: Widget) =
+proc updateStyle[State, Widget](state: State, widget: Widget) =
   mixin classes
-  if widget.has_style:
-    let ctx = gtk_widget_get_style_context(state.internal_widget)
-    for class_name in classes(state.style - widget.val_style):
-      gtk_style_context_remove_class(ctx, class_name.cstring)
-    for class_name in classes(widget.val_style - state.style):
-      gtk_style_context_add_class(ctx, class_name.cstring)
-    state.style = widget.val_style
+  if widget.hasStyle:
+    let ctx = gtk_widget_get_style_context(state.internalWidget)
+    for className in classes(state.style - widget.valStyle):
+      gtk_style_context_remove_class(ctx, className.cstring)
+    for className in classes(widget.valStyle - state.style):
+      gtk_style_context_add_class(ctx, className.cstring)
+    state.style = widget.valStyle
 
 type Margin* = object
   top*, bottom*, left*, right*: int
 
 renderable BaseWidget:
   sensitive: bool = true
-  size_request: tuple[x, y: int] = (-1, -1)
-  internal_margin {.internal.}: Margin = Margin()
+  sizeRequest: tuple[x, y: int] = (-1, -1)
+  internalMargin {.internal.}: Margin = Margin()
   tooltip: string = ""
   
   hooks sensitive:
     property:
-      gtk_widget_set_sensitive(state.internal_widget, cbool(ord(state.sensitive)))
+      gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
   
-  hooks size_request:
+  hooks sizeRequest:
     property:
-      gtk_widget_set_size_request(state.internal_widget,
-        cint(state.size_request.x),
-        cint(state.size_request.y)
+      gtk_widget_set_size_request(state.internalWidget,
+        cint(state.sizeRequest.x),
+        cint(state.sizeRequest.y)
       )
 
-  hooks internal_margin:
+  hooks internalMargin:
     (build, update):
-      if widget.has_internal_margin:
-        state.internal_margin = widget.val_internal_margin
-        gtk_widget_set_margin_top(state.internal_widget, cint(state.internal_margin.top))
-        gtk_widget_set_margin_bottom(state.internal_widget, cint(state.internal_margin.bottom))
-        gtk_widget_set_margin_start(state.internal_widget, cint(state.internal_margin.left))
-        gtk_widget_set_margin_end(state.internal_widget, cint(state.internal_margin.right))
+      if widget.hasInternalMargin:
+        state.internalMargin = widget.valInternalMargin
+        gtk_widget_set_margin_top(state.internalWidget, cint(state.internalMargin.top))
+        gtk_widget_set_margin_bottom(state.internalWidget, cint(state.internalMargin.bottom))
+        gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
+        gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
   
   hooks tooltip:
     property:
       if state.tooltip.len > 0:
-        gtk_widget_set_tooltip_text(state.internal_widget, state.tooltip.cstring)
+        gtk_widget_set_tooltip_text(state.internalWidget, state.tooltip.cstring)
       else:
-        gtk_widget_set_has_tooltip(state.internal_widget, cbool(0))
+        gtk_widget_set_has_tooltip(state.internalWidget, cbool(0))
   
   setter margin: int
   setter margin: Margin
 
-proc `has_margin=`*(widget: BaseWidget, has: bool) =
-  widget.has_internal_margin = has
+proc `hasMargin=`*(widget: BaseWidget, has: bool) =
+  widget.hasInternalMargin = has
 
-proc `val_margin=`*(widget: BaseWidget, width: int) =
-  widget.val_internal_margin = Margin(top: width, bottom: width, left: width, right: width)
+proc `valMargin=`*(widget: BaseWidget, width: int) =
+  widget.valInternalMargin = Margin(top: width, bottom: width, left: width, right: width)
 
-proc `val_margin=`*(widget: BaseWidget, margin: Margin) =
-  widget.val_internal_margin = margin
+proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
+  widget.valInternalMargin = margin
 
-template build_bin*(state, widget, child, has_child, val_child, set_child: untyped) =
-  if widget.has_child:
-    widget.val_child.assign_app(state.app)
-    state.child = widget.val_child.build()
-    let child_widget = unwrap_renderable(state.child).internal_widget
-    set_child(state.internal_widget, child_widget)
+template buildBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
+  if widget.hasChild:
+    widget.valChild.assignApp(state.app)
+    state.child = widget.valChild.build()
+    let childWidget = unwrapRenderable(state.child).internalWidget
+    setChild(state.internalWidget, childWidget)
 
-template build_bin*(state, widget, set_child: untyped) =
-  build_bin(state, widget, child, has_child, val_child, set_child)
+template buildBin*(state, widget, setChild: untyped) =
+  buildBin(state, widget, child, hasChild, valChild, setChild)
 
-template update_bin*(state, widget, child, has_child, val_child, set_child: untyped) =
-  if widget.has_child:
-    widget.val_child.assign_app(state.app)
-    let new_child = widget.val_child.update(state.child)
-    if not new_child.is_nil:
-      let child_widget = new_child.unwrap_internal_widget()
-      set_child(state.internal_widget, child_widget)
-      state.child = new_child
+template updateBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
+  if widget.hasChild:
+    widget.valChild.assignApp(state.app)
+    let newChild = widget.valChild.update(state.child)
+    if not newChild.isNil:
+      let childWidget = newChild.unwrapInternalWidget()
+      setChild(state.internalWidget, childWidget)
+      state.child = newChild
 
-template update_bin*(state, widget, set_child: untyped) =
-  update_bin(state, widget, child, has_child, val_child, set_child)
+template updateBin*(state, widget, setChild: untyped) =
+  updateBin(state, widget, child, hasChild, valChild, setChild)
 
 renderable Window of BaseWidget:
   title: string
   titlebar: Widget
-  default_size: tuple[width, height: int] = (800, 600)
+  defaultSize: tuple[width, height: int] = (800, 600)
   child: Widget
   
   proc close()
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-    connect_events:
-      state.internal_widget.connect(state.close, "destroy", event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.close)
+    beforeBuild:
+      state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+    connectEvents:
+      state.internalWidget.connect(state.close, "destroy", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.close)
   
   hooks title:
     property:
-      if state.titlebar.is_nil:
-        gtk_window_set_title(state.internal_widget, state.title.cstring)
+      if state.titlebar.isNil:
+        gtk_window_set_title(state.internalWidget, state.title.cstring)
   
   hooks titlebar:
     build:
-      if widget.has_titlebar:
-        widget.val_titlebar.assign_app(state.app)
-        state.titlebar = widget.val_titlebar.build()
-        gtk_window_set_titlebar(state.internal_widget,
-          state.titlebar.unwrap_internal_widget()
+      if widget.hasTitlebar:
+        widget.valTitlebar.assignApp(state.app)
+        state.titlebar = widget.valTitlebar.build()
+        gtk_window_set_titlebar(state.internalWidget,
+          state.titlebar.unwrapInternalWidget()
         )
     update:
-      if widget.has_titlebar:
-        widget.val_titlebar.assign_app(state.app)
-        let new_titlebar = widget.val_titlebar.update(state.titlebar)
-        if not new_titlebar.is_nil:
-          state.titlebar = new_titlebar
-          gtk_window_set_titlebar(state.internal_widget,
-            state.titlebar.unwrap_internal_widget()
+      if widget.hasTitlebar:
+        widget.valTitlebar.assignApp(state.app)
+        let newTitlebar = widget.valTitlebar.update(state.titlebar)
+        if not newTitlebar.isNil:
+          state.titlebar = newTitlebar
+          gtk_window_set_titlebar(state.internalWidget,
+            state.titlebar.unwrapInternalWidget()
           )
   
-  hooks default_size:
+  hooks defaultSize:
     property:
-      gtk_window_set_default_size(state.internal_widget,
-        state.default_size.width.cint,
-        state.default_size.height.cint
+      gtk_window_set_default_size(state.internalWidget,
+        state.defaultSize.width.cint,
+        state.defaultSize.height.cint
       )
   
   hooks child:
-    build: build_bin(state, widget, gtk_window_set_child)
-    update: update_bin(state, widget, gtk_window_set_child)
+    build: buildBin(state, widget, gtk_window_set_child)
+    update: updateBin(state, widget, gtk_window_set_child)
   
   adder add
-  adder add_titlebar
+  adder addTitlebar
   
   example:
     Window:
       Label(text = "Hello, world")
 
 proc add*(window: Window, child: Widget) =
-  if window.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
-  window.has_child = true
-  window.val_child = child
+  if window.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
+  window.hasChild = true
+  window.valChild = child
 
-proc add_titlebar*(window: Window, titlebar: Widget) =
-  window.has_titlebar = true
-  window.val_titlebar = titlebar
+proc addTitlebar*(window: Window, titlebar: Widget) =
+  window.hasTitlebar = true
+  window.valTitlebar = titlebar
 
 type Orient* = enum OrientX, OrientY
 
-proc to_gtk(orient: Orient): GtkOrientation =
+proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 type BoxStyle* = enum
@@ -263,13 +263,13 @@ type
   BoxChild[T] = object
     widget: T
     expand: bool
-    h_align: Align
-    v_align: Align
+    hAlign: Align
+    vAlign: Align
 
-proc to_gtk(align: Align): GtkAlign = GtkAlign(ord(align))
+proc toGtk(align: Align): GtkAlign = GtkAlign(ord(align))
 
-proc assign_app[T](child: BoxChild[T], app: Viewable) =
-  child.widget.assign_app(app)
+proc assignApp[T](child: BoxChild[T], app: Viewable) =
+  child.widget.assignApp(app)
 
 renderable Box of BaseWidget:
   orient: Orient
@@ -278,88 +278,88 @@ renderable Box of BaseWidget:
   style: set[BoxStyle]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_box_new(
-        to_gtk(widget.val_orient),
-        widget.val_spacing.cint
+    beforeBuild:
+      state.internalWidget = gtk_box_new(
+        toGtk(widget.valOrient),
+        widget.valSpacing.cint
       )
   
   hooks spacing:
     property:
-      gtk_box_set_spacing(state.internal_widget, state.spacing.cint)
+      gtk_box_set_spacing(state.internalWidget, state.spacing.cint)
 
   hooks children:
     (build, update):
-      if widget.has_children:
-        widget.val_children.assign_app(state.app)
+      if widget.hasChildren:
+        widget.valChildren.assignApp(state.app)
         var it = 0
-        while it < widget.val_children.len and it < state.children.len:
+        while it < widget.valChildren.len and it < state.children.len:
           let
-            child = widget.val_children[it]
-            new_child = child.widget.update(state.children[it].widget)
-          if not new_child.is_nil:
+            child = widget.valChildren[it]
+            newChild = child.widget.update(state.children[it].widget)
+          if not newChild.isNil:
             gtk_box_remove(
-              state.internal_widget,
-              state.children[it].widget.unwrap_internal_widget()
+              state.internalWidget,
+              state.children[it].widget.unwrapInternalWidget()
             )
             var sibling: GtkWidget = nil
             if it > 0:
-              sibling = state.children[it - 1].widget.unwrap_internal_widget()
-            let new_widget = new_child.unwrap_internal_widget()
-            gtk_box_insert_child_after(state.internal_widget, new_widget, sibling)
-            state.children[it].widget = new_child
+              sibling = state.children[it - 1].widget.unwrapInternalWidget()
+            let newWidget = newChild.unwrapInternalWidget()
+            gtk_box_insert_child_after(state.internalWidget, newWidget, sibling)
+            state.children[it].widget = newChild
           
-          let child_widget = state.children[it].widget.unwrap_internal_widget()
+          let childWidget = state.children[it].widget.unwrapInternalWidget()
           
           if child.expand != state.children[it].expand:
             case state.orient:
-              of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
-              of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
+              of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+              of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
             state.children[it].expand = child.expand
           
-          if child.h_align != state.children[it].h_align:
-            state.children[it].h_align = child.h_align
-            gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+          if child.hAlign != state.children[it].hAlign:
+            state.children[it].hAlign = child.hAlign
+            gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
           
-          if child.v_align != state.children[it].v_align:
-            state.children[it].v_align = child.v_align
-            gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
+          if child.vAlign != state.children[it].vAlign:
+            state.children[it].vAlign = child.vAlign
+            gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
           
           it += 1
         
-        while it < widget.val_children.len:
+        while it < widget.valChildren.len:
           let
-            child = widget.val_children[it]
-            child_state = child.widget.build()
-            child_widget = child_state.unwrap_internal_widget()
+            child = widget.valChildren[it]
+            childState = child.widget.build()
+            childWidget = childState.unwrapInternalWidget()
           case state.orient:
-            of OrientX: gtk_widget_set_hexpand(child_widget, child.expand.ord.cbool)
-            of OrientY: gtk_widget_set_vexpand(child_widget, child.expand.ord.cbool)
-          gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
-          gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
-          gtk_box_append(state.internal_widget, child_widget)
+            of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+            of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
+          gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+          gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
+          gtk_box_append(state.internalWidget, childWidget)
           state.children.add(BoxChild[WidgetState](
-            widget: child_state,
+            widget: childState,
             expand: child.expand,
-            h_align: child.h_align,
-            v_align: child.v_align
+            hAlign: child.hAlign,
+            vAlign: child.vAlign
           ))
           it += 1
         while it < state.children.len:
           gtk_box_remove(
-            state.internal_widget,
-            state.children[^1].widget.unwrap_internal_widget()
+            state.internalWidget,
+            state.children[^1].widget.unwrapInternalWidget()
           )
           discard state.children.pop()
   
   hooks style:
     (build, update):
-      update_style(state, widget)
+      updateStyle(state, widget)
   
   adder add:
     expand: bool = true
-    h_align: Align = AlignFill
-    v_align: Align = AlignFill
+    hAlign: Align = AlignFill
+    vAlign: Align = AlignFill
   
   example:
     Box:
@@ -377,8 +377,8 @@ renderable Box of BaseWidget:
         Label(text = "Label " & $it)
   
   example:
-    HeaderBar {.add_titlebar.}:
-      Box {.add_left.}:
+    HeaderBar {.addTitlebar.}:
+      Box {.addLeft.}:
         style = {BoxLinked}
         
         for it in 0..<5:
@@ -389,100 +389,100 @@ renderable Box of BaseWidget:
 
 proc add*(box: Box, child: Widget,
           expand: bool = true,
-          h_align: Align = AlignFill,
-          v_align: Align = AlignFill) =
-  box.has_children = true
-  box.val_children.add(BoxChild[Widget](
+          hAlign: Align = AlignFill,
+          vAlign: Align = AlignFill) =
+  box.hasChildren = true
+  box.valChildren.add(BoxChild[Widget](
     widget: child,
     expand: expand,
-    h_align: h_align,
-    v_align: v_align
+    hAlign: hAlign,
+    vAlign: vAlign
   ))
 
 type OverlayChild[T] = object
   widget: T
-  h_align: Align
-  v_align: Align
+  hAlign: Align
+  vAlign: Align
 
-proc assign_app[T](child: OverlayChild[T], app: Viewable) =
-  child.widget.assign_app(app)
+proc assignApp[T](child: OverlayChild[T], app: Viewable) =
+  child.widget.assignApp(app)
 
 renderable Overlay of BaseWidget:
   child: Widget
   overlays: seq[OverlayChild[Widget]]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_overlay_new()
+    beforeBuild:
+      state.internalWidget = gtk_overlay_new()
   
   hooks child:
-    build: build_bin(state, widget, gtk_overlay_set_child)
-    update: update_bin(state, widget, gtk_overlay_set_child)
+    build: buildBin(state, widget, gtk_overlay_set_child)
+    update: updateBin(state, widget, gtk_overlay_set_child)
   
   hooks overlays:
     (build, update):
-      widget.val_overlays.assign_app(state.app)
+      widget.valOverlays.assignApp(state.app)
       
       var it = 0
       
-      while it < widget.val_overlays.len and it < state.overlays.len:
+      while it < widget.valOverlays.len and it < state.overlays.len:
         let
-          child = widget.val_overlays[it]
-          new_child = child.widget.update(state.overlays[it].widget)
-        assert new_child.is_nil
+          child = widget.valOverlays[it]
+          newChild = child.widget.update(state.overlays[it].widget)
+        assert newChild.isNil
         
-        let child_widget = state.overlays[it].widget.unwrap_internal_widget()
-        if child.h_align != state.overlays[it].h_align:
-          state.overlays[it].h_align = child.h_align
-          gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
+        let childWidget = state.overlays[it].widget.unwrapInternalWidget()
+        if child.hAlign != state.overlays[it].hAlign:
+          state.overlays[it].hAlign = child.hAlign
+          gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
         
-        if child.v_align != state.overlays[it].v_align:
-          state.overlays[it].v_align = child.v_align
-          gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
+        if child.vAlign != state.overlays[it].vAlign:
+          state.overlays[it].vAlign = child.vAlign
+          gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
         
         it += 1
       
-      while it < widget.val_overlays.len:
+      while it < widget.valOverlays.len:
         let
-          child = widget.val_overlays[it]
-          child_state = child.widget.build()
-          child_widget = unwrap_internal_widget(child_state)
-        gtk_widget_set_halign(child_widget, to_gtk(child.h_align))
-        gtk_widget_set_valign(child_widget, to_gtk(child.v_align))
-        gtk_overlay_add_overlay(state.internal_widget, child_widget)
+          child = widget.valOverlays[it]
+          childState = child.widget.build()
+          childWidget = unwrapInternalWidget(childState)
+        gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+        gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
+        gtk_overlay_add_overlay(state.internalWidget, childWidget)
         state.overlays.add(OverlayChild[WidgetState](
-          widget: child_state,
-          h_align: child.h_align,
-          v_align: child.v_align
+          widget: childState,
+          hAlign: child.hAlign,
+          vAlign: child.vAlign
         ))
         it += 1
       
       while it < state.overlays.len:
         gtk_overlay_remove_overlay(
-          state.internal_widget,
-          state.overlays[^1].widget.unwrap_internal_widget()
+          state.internalWidget,
+          state.overlays[^1].widget.unwrapInternalWidget()
         )
         discard state.overlays.pop()
   
   adder add
   adder add_overlay:
-    h_align: Align = AlignFill
-    v_align: Align = AlignFill
+    hAlign: Align = AlignFill
+    vAlign: Align = AlignFill
 
 proc add*(overlay: Overlay, child: Widget) =
-  if overlay.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the add_overlay adder.")
-  overlay.has_child = true
-  overlay.val_child = child
+  if overlay.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the addOverlay adder.")
+  overlay.hasChild = true
+  overlay.valChild = child
 
-proc add_overlay*(overlay: Overlay, child: Widget,
-                  h_align: Align = AlignFill,
-                  v_align: Align = AlignFill) =
-  overlay.has_overlays = true
-  overlay.val_overlays.add(OverlayChild[Widget](
+proc addOverlay*(overlay: Overlay, child: Widget,
+                  hAlign: Align = AlignFill,
+                  vAlign: Align = AlignFill) =
+  overlay.hasOverlays = true
+  overlay.valOverlays.add(OverlayChild[Widget](
     widget: child,
-    h_align: h_align,
-    v_align: v_align
+    hAlign: hAlign,
+    vAlign: vAlign
   ))
 
 type LabelStyle* = enum
@@ -503,53 +503,53 @@ type EllipsizeMode* = enum
 
 renderable Label of BaseWidget:
   text: string
-  x_align: float = 0.5
-  y_align: float = 0.5
+  xAlign: float = 0.5
+  yAlign: float = 0.5
   ellipsize: EllipsizeMode
   wrap: bool = false
-  use_markup: bool = false
+  useMarkup: bool = false
   
   style: set[LabelStyle]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_label_new("")
+    beforeBuild:
+      state.internalWidget = gtk_label_new("")
   
   hooks style:
     (build, update):
-      update_style(state, widget)
+      updateStyle(state, widget)
   
   hooks text:
     property:
-      if state.use_markup:
-        gtk_label_set_markup(state.internal_widget, state.text.cstring)
+      if state.useMarkup:
+        gtk_label_set_markup(state.internalWidget, state.text.cstring)
       else:
-        gtk_label_set_text(state.internal_widget, state.text.cstring)
+        gtk_label_set_text(state.internalWidget, state.text.cstring)
   
-  hooks x_align:
+  hooks xAlign:
     property:
-      gtk_label_set_xalign(state.internal_widget, state.xalign.cdouble)
+      gtk_label_set_xalign(state.internalWidget, state.xAlign.cdouble)
   
-  hooks y_align:
+  hooks yAlign:
     property:
-      gtk_label_set_yalign(state.internal_widget, state.yalign.cdouble)
+      gtk_label_set_yalign(state.internalWidget, state.yAlign.cdouble)
   
   hooks ellipsize:
     property:
-      gtk_label_set_ellipsize(state.internal_widget, PangoEllipsizeMode(ord(state.ellipsize)))
+      gtk_label_set_ellipsize(state.internalWidget, PangoEllipsizeMode(ord(state.ellipsize)))
   
   hooks wrap:
     property:
-      gtk_label_set_wrap(state.internal_widget, cbool(ord(state.wrap)))
+      gtk_label_set_wrap(state.internalWidget, cbool(ord(state.wrap)))
   
-  hooks use_markup:
+  hooks useMarkup:
     property:
-      gtk_label_set_use_markup(state.internal_widget, cbool(ord(state.use_markup)))
+      gtk_label_set_use_markup(state.internalWidget, cbool(ord(state.useMarkup)))
   
   example:
     Label:
       text = "Hello, world!"
-      x_align = 0.0
+      xAlign = 0.0
       ellipsize = EllipsizeEnd
   
   example:
@@ -560,23 +560,23 @@ renderable Label of BaseWidget:
   example:
     Label:
       text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
-      use_markup = true
+      useMarkup = true
 
 renderable Icon of BaseWidget:
   name: string
-  pixel_size: int = -1
+  pixelSize: int = -1
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_image_new()
+    beforeBuild:
+      state.internalWidget = gtk_image_new()
   
   hooks name:
     property:
-      gtk_image_set_from_icon_name(state.internal_widget, state.name.cstring, GTK_ICON_SIZE_BUTTON)
+      gtk_image_set_from_icon_name(state.internalWidget, state.name.cstring, GTK_ICON_SIZE_BUTTON)
   
-  hooks pixel_size:
+  hooks pixelSize:
     property:
-      gtk_image_set_pixel_size(state.internal_widget, state.pixel_size.cint)
+      gtk_image_set_pixel_size(state.internalWidget, state.pixelSize.cint)
   
   example:
     Icon:
@@ -585,7 +585,7 @@ renderable Icon of BaseWidget:
   example:
     Icon:
       name = "object-select-symbolic"
-      pixel_size = 100
+      pixelSize = 100
 
 type ButtonStyle* = enum
   ButtonSuggested, ButtonDestructive, ButtonFlat, ButtonPill, ButtonCircular
@@ -607,20 +607,20 @@ renderable Button of BaseWidget:
   proc clicked()
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_button_new()
-    connect_events:
-      state.internal_widget.connect(state.clicked, "clicked", event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.clicked)
+    beforeBuild:
+      state.internalWidget = gtk_button_new()
+    connectEvents:
+      state.internalWidget.connect(state.clicked, "clicked", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.clicked)
   
   hooks style:
     (build, update):
-      update_style(state, widget)
+      updateStyle(state, widget)
   
   hooks child:
-    build: build_bin(state, widget, gtk_button_set_child)
-    update: update_bin(state, widget, gtk_button_set_child)
+    build: buildBin(state, widget, gtk_button_set_child)
+    update: updateBin(state, widget, gtk_button_set_child)
   
   setter text: string
   setter icon: string
@@ -644,125 +644,125 @@ renderable Button of BaseWidget:
       sensitive = false
 
 proc add*(button: Button, child: Widget) =
-  if button.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Button. Use a Box widget to display multiple widgets in a Button.")
-  button.has_child = true
-  button.val_child = child
+  if button.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Button. Use a Box widget to display multiple widgets in a Button.")
+  button.hasChild = true
+  button.valChild = child
 
-proc `has_text=`*(button: Button, value: bool) = button.has_child = value
-proc `val_text=`*(button: Button, value: string) =
-  button.val_child = Label(has_text: true, val_text: value)
+proc `hasText=`*(button: Button, value: bool) = button.hasChild = value
+proc `valText=`*(button: Button, value: string) =
+  button.valChild = Label(hasText: true, valText: value)
 
-proc `has_icon=`*(button: Button, value: bool) = button.has_child = value
-proc `val_icon=`*(button: Button, name: string) =
-  button.val_child = Icon(has_name: true, val_name: name)
+proc `hasIcon=`*(button: Button, value: bool) = button.hasChild = value
+proc `valIcon=`*(button: Button, name: string) =
+  button.valChild = Icon(hasName: true, valName: name)
 
 
-proc update_header_bar(internal_widget: GtkWidget,
-                       children: var seq[WidgetState],
-                       target: seq[Widget],
-                       pack: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+proc updateHeaderBar(internalWidget: GtkWidget,
+                     children: var seq[WidgetState],
+                     target: seq[Widget],
+                     pack: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   var it = 0
   while it < target.len and it < children.len:
-    let new_child = target[it].update(children[it])
-    assert new_child.is_nil
+    let newChild = target[it].update(children[it])
+    assert newChild.isNil
     it += 1
   while it < target.len:
     let
       child = target[it].build()
-      child_widget = child.unwrap_internal_widget()
-    pack(internal_widget, child_widget)
+      childWidget = child.unwrapInternalWidget()
+    pack(internalWidget, childWidget)
     children.add(child)
     it += 1
   while it < children.len:
-    gtk_header_bar_remove(internal_widget, children[it].unwrap_internal_widget())
+    gtk_header_bar_remove(internalWidget, children[it].unwrapInternalWidget())
     children.del(it)
 
 renderable HeaderBar of BaseWidget:
   title: Widget
-  show_title_buttons: bool = true
+  showTitleButtons: bool = true
   left: seq[Widget]
   right: seq[Widget]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_header_bar_new()
+    beforeBuild:
+      state.internalWidget = gtk_header_bar_new()
   
-  hooks show_title_buttons:
+  hooks showTitleButtons:
     property:
-      gtk_header_bar_set_show_title_buttons(state.internal_widget, cbool(ord(state.show_title_buttons)))
+      gtk_header_bar_set_show_title_buttons(state.internalWidget, cbool(ord(state.showTitleButtons)))
   
   hooks left:
     (build, update):
-      if widget.has_left:
-        widget.val_left.assign_app(state.app)
-        update_header_bar(
-          state.internal_widget,
-          state.left, widget.val_left,
+      if widget.hasLeft:
+        widget.valLeft.assignApp(state.app)
+        updateHeaderBar(
+          state.internalWidget,
+          state.left, widget.valLeft,
           gtk_header_bar_pack_start
         )
   
   hooks right:
     (build, update):
-      if widget.has_right:
-        widget.val_right.assign_app(state.app)
-        update_header_bar(
-          state.internal_widget,
-          state.right, widget.val_right,
+      if widget.hasRight:
+        widget.valRight.assignApp(state.app)
+        updateHeaderBar(
+          state.internalWidget,
+          state.right, widget.valRight,
           gtk_header_bar_pack_end
         )
   
   hooks title:
-    build: build_bin(state, widget, title, has_title, val_title, gtk_header_bar_set_title_widget)
-    update: update_bin(state, widget, title, has_title, val_title, gtk_header_bar_set_title_widget)
+    build: buildBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
+    update: updateBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
   
-  adder add_title
-  adder add_left
-  adder add_right
+  adder addTitle
+  adder addLeft
+  adder addRight
   
   example:
     Window:
       title = "Title"
       
-      HeaderBar {.add_titlebar.}:
-        Button {.add_left.}:
+      HeaderBar {.addTitlebar.}:
+        Button {.addLeft.}:
           icon = "list-add-symbolic"
         
-        Button {.add_right.}:
+        Button {.addRight.}:
           icon = "open-menu-symbolic"
 
-proc add_title*(header_bar: HeaderBar, child: Widget) =
-  if header_bar.has_title:
-    raise new_exception(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
-  header_bar.has_title = true
-  header_bar.val_title = child
+proc addTitle*(headerBar: HeaderBar, child: Widget) =
+  if headerBar.hasTitle:
+    raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
+  headerBar.hasTitle = true
+  headerBar.valTitle = child
 
-proc add_left*(header_bar: HeaderBar, child: Widget) =
-  header_bar.has_left = true
-  header_bar.val_left.add(child)
+proc addLeft*(headerBar: HeaderBar, child: Widget) =
+  headerBar.hasLeft = true
+  headerBar.valLeft.add(child)
 
-proc add_right*(header_bar: HeaderBar, child: Widget) =
-  header_bar.has_right = true
-  header_bar.val_right.add(child)
+proc addRight*(headerBar: HeaderBar, child: Widget) =
+  headerBar.hasRight = true
+  headerBar.valRight.add(child)
 
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_scrolled_window_new(nil, nil)
+    beforeBuild:
+      state.internalWidget = gtk_scrolled_window_new(nil, nil)
   
   hooks child:
-    build: build_bin(state, widget, gtk_scrolled_window_set_child)
-    update: update_bin(state, widget, gtk_scrolled_window_set_child)
+    build: buildBin(state, widget, gtk_scrolled_window_set_child)
+    update: updateBin(state, widget, gtk_scrolled_window_set_child)
   
   adder add
 
 proc add*(window: ScrolledWindow, child: Widget) =
-  if window.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a ScrolledWindow. Use a Box widget to display multiple widgets in a ScrolledWindow.")
-  window.has_child = true
-  window.val_child = child
+  if window.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a ScrolledWindow. Use a Box widget to display multiple widgets in a ScrolledWindow.")
+  window.hasChild = true
+  window.valChild = child
 
 type EntryStyle* = enum
   EntrySuccess, EntryWarning, EntryError
@@ -779,9 +779,9 @@ renderable Entry of BaseWidget:
   text: string
   placeholder: string
   width: int = -1
-  x_align: float = 0.0
+  xAlign: float = 0.0
   visibility: bool = true
-  invisible_char: Rune = '*'.Rune
+  invisibleChar: Rune = '*'.Rune
   
   style: set[EntryStyle]
   
@@ -789,44 +789,44 @@ renderable Entry of BaseWidget:
   proc activate()
 
   hooks:
-    before_build:
-      state.internal_widget = gtk_entry_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "changed", entry_event_callback)
-      state.internal_widget.connect(state.activate, "activate", event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
-      state.internal_widget.disconnect(state.activate)
+    beforeBuild:
+      state.internalWidget = gtk_entry_new()
+    connectEvents:
+      state.internalWidget.connect(state.changed, "changed", entryEventCallback)
+      state.internalWidget.connect(state.activate, "activate", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
+      state.internalWidget.disconnect(state.activate)
 
   hooks style:
     (build, update):
-      update_style(state, widget)
+      updateStyle(state, widget)
 
   hooks text:
     property:
-      gtk_editable_set_text(state.internal_widget, state.text.cstring)
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
     read:
-      state.text = $gtk_editable_get_text(state.internal_widget)
+      state.text = $gtk_editable_get_text(state.internalWidget)
   
   hooks placeholder:
     property:
-      gtk_entry_set_placeholder_text(state.internal_widget, state.placeholder.cstring)
+      gtk_entry_set_placeholder_text(state.internalWidget, state.placeholder.cstring)
   
   hooks width:
     property:
-      gtk_editable_set_width_chars(state.internal_widget, state.width.cint)
+      gtk_editable_set_width_chars(state.internalWidget, state.width.cint)
   
-  hooks x_align:
+  hooks xAlign:
     property:
-      gtk_entry_set_alignment(state.internal_widget, state.x_align.cfloat)
+      gtk_entry_set_alignment(state.internalWidget, state.xAlign.cfloat)
 
   hooks visibility:
     property:
-      gtk_entry_set_visibility(state.internal_widget, cbool(ord(state.visibility)))
+      gtk_entry_set_visibility(state.internalWidget, cbool(ord(state.visibility)))
 
-  hooks invisible_char:
+  hooks invisibleChar:
     property:
-      gtk_entry_set_invisible_char(state.internal_widget, state.invisible_char.uint32)
+      gtk_entry_set_invisible_char(state.internalWidget, state.invisibleChar.uint32)
 
   
   example:
@@ -849,81 +849,81 @@ renderable Entry of BaseWidget:
     Entry:
       placeholder = "Password"
       visibility = false
-      invisible_char = '*'.Rune
+      invisibleChar = '*'.Rune
 
 type PanedChild[T] = object
   widget: T
   resize: bool
   shrink: bool
 
-proc build_paned_child(child: PanedChild[Widget],
-                       app: Viewable,
-                       internal_widget: GtkWidget,
-                       set_child: proc(paned, child: GtkWidget) {.cdecl, locks: 0.},
-                       set_resize: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.},
-                       set_shrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.}): PanedChild[WidgetState] =
-  child.widget.assign_app(app)
+proc buildPanedChild(child: PanedChild[Widget],
+                     app: Viewable,
+                     internalWidget: GtkWidget,
+                     setChild: proc(paned, child: GtkWidget) {.cdecl, locks: 0.},
+                     setResize: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.},
+                     setShrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.}): PanedChild[WidgetState] =
+  child.widget.assignApp(app)
   result = PanedChild[WidgetState](
     widget: child.widget.build(),
     resize: child.resize,
     shrink: child.shrink
   )
-  set_child(internal_widget, result.widget.unwrap_internal_widget())
-  set_resize(internal_widget, cbool(ord(child.resize)))
-  set_shrink(internal_widget, cbool(ord(child.shrink)))
+  setChild(internalWidget, result.widget.unwrapInternalWidget())
+  setResize(internalWidget, cbool(ord(child.resize)))
+  setShrink(internalWidget, cbool(ord(child.shrink)))
 
-proc update_paned_child(state: var PanedChild[WidgetState],
-                        target: PanedChild[Widget],
-                        app: Viewable) =
-  target.widget.assign_app(app)
+proc updatePanedChild(state: var PanedChild[WidgetState],
+                      target: PanedChild[Widget],
+                      app: Viewable) =
+  target.widget.assignApp(app)
   assert target.resize == state.resize
   assert target.shrink == state.shrink
-  let new_child = target.widget.update(state.widget)
-  assert new_child.is_nil
+  let newChild = target.widget.update(state.widget)
+  assert newChild.isNil
 
 
 renderable Paned of BaseWidget:
   orient: Orient
-  initial_position: int
+  initialPosition: int
   first: PanedChild[Widget]
   second: PanedChild[Widget]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_paned_new(to_gtk(widget.val_orient))
-      state.orient = widget.val_orient
+    beforeBuild:
+      state.internalWidget = gtk_paned_new(toGtk(widget.valOrient))
+      state.orient = widget.valOrient
   
   hooks first:
     build:
-      if widget.has_first:
-        state.first = widget.val_first.build_paned_child(
-          state.app, state.internal_widget,
+      if widget.hasFirst:
+        state.first = widget.valFirst.buildPanedChild(
+          state.app, state.internalWidget,
           gtk_paned_set_start_child,
           gtk_paned_set_resize_start_child,
           gtk_paned_set_shrink_start_child
         )
     update:
-      if widget.has_first:
-        state.first.update_paned_child(widget.val_first, state.app)
+      if widget.hasFirst:
+        state.first.updatePanedChild(widget.valFirst, state.app)
 
-  hooks initial_position:
+  hooks initialPosition:
     build:
-      if widget.has_initial_position:
-        state.initial_position = widget.val_initial_position
-        gtk_paned_set_position(state.internal_widget, cint(state.initial_position))
+      if widget.hasInitialPosition:
+        state.initialPosition = widget.valInitialPosition
+        gtk_paned_set_position(state.internalWidget, cint(state.initialPosition))
   
   hooks second:
     build:
-      if widget.has_second:
-        state.second = widget.val_second.build_paned_child(
-          state.app, state.internal_widget,
+      if widget.hasSecond:
+        state.second = widget.valSecond.buildPanedChild(
+          state.app, state.internalWidget,
           gtk_paned_set_end_child,
           gtk_paned_set_resize_end_child,
           gtk_paned_set_shrink_end_child
         )
     update:
-      if widget.has_second:
-        state.second.update_paned_child(widget.val_second, state.app)
+      if widget.hasSecond:
+        state.second.updatePanedChild(widget.valSecond, state.app)
   
   adder add:
     resize: bool = true
@@ -931,24 +931,24 @@ renderable Paned of BaseWidget:
   
   example:
     Paned:
-      initial_position = 200
+      initialPosition = 200
       Box(orient = OrientY) {.resize: false.}:
         Label(text = "Sidebar")
       Box(orient = OrientY) {.resize: true.}:
         Label(text = "Content")
 
 proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false) =
-  let paned_child = PanedChild[Widget](
+  let panedChild = PanedChild[Widget](
     widget: child,
     resize: resize,
     shrink: shrink
   )
-  if paned.has_first:
-    paned.has_second = true
-    paned.val_second = paned_child
+  if paned.hasFirst:
+    paned.hasSecond = true
+    paned.valSecond = panedChild
   else:
-    paned.has_first = true
-    paned.val_first = paned_child
+    paned.hasFirst = true
+    paned.valFirst = panedChild
 
 
 type
@@ -973,7 +973,7 @@ type
     value*: int
     modifiers*: set[ModifierKey]
 
-proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
+proc initModifierSet(state: GdkModifierType): set[ModifierKey] =
   const MODIFIERS = [
     (GDK_CONTROL_MASK, ModifierCtrl),
     (GDK_ALT_MASK, ModifierAlt),
@@ -987,46 +987,46 @@ proc init_modifier_set(state: GdkModifierType): set[ModifierKey] =
 
 type
   CustomWidgetEventsObj = object
-    mouse_pressed: proc(event: ButtonEvent): bool
-    mouse_released: proc(event: ButtonEvent): bool
-    mouse_moved: proc(event: MotionEvent): bool
-    key_pressed: proc(event: KeyEvent): bool
-    key_released: proc(event: KeyEvent): bool
+    mousePressed: proc(event: ButtonEvent): bool
+    mouseReleased: proc(event: ButtonEvent): bool
+    mouseMoved: proc(event: MotionEvent): bool
+    keyPressed: proc(event: KeyEvent): bool
+    keyReleased: proc(event: KeyEvent): bool
     app: Viewable
   
   CustomWidgetEvents = ref CustomWidgetEventsObj
 
-proc gdk_event_callback(controller: GtkEventController, event: GdkEvent, data: ptr CustomWidgetEventsObj): cbool =
+proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr CustomWidgetEventsObj): cbool =
   let
-    modifiers = init_modifier_set(gdk_event_get_modifier_state(event))
+    modifiers = initModifierSet(gdk_event_get_modifier_state(event))
     time = gdk_event_get_time(event)
     pos = block:
-      var native_pos = (x: cdouble(0.0), y: cdouble(0.0))
-      discard gdk_event_get_position(event, native_pos.x.addr, native_pos.y.addr)
+      var nativePos = (x: cdouble(0.0), y: cdouble(0.0))
+      discard gdk_event_get_position(event, nativePos.x.addr, nativePos.y.addr)
       
       let
         widget = gtk_event_controller_get_widget(controller)
         root = gtk_widget_get_root(widget)
         native = gtk_widget_get_native(root)
       
-      var native_offset = (x: cdouble(0.0), y: cdouble(0.0))
-      gtk_native_get_surface_transform(native, native_offset.x.addr, native_offset.y.addr)
+      var nativeOffset = (x: cdouble(0.0), y: cdouble(0.0))
+      gtk_native_get_surface_transform(native, nativeOffset.x.addr, nativeOffset.y.addr)
       
-      var local_pos = (x: cdouble(0.0), y: cdouble(0.0))
+      var localPos = (x: cdouble(0.0), y: cdouble(0.0))
       discard gtk_widget_translate_coordinates(
         root, widget,
-        native_pos.x - native_offset.x, native_pos.y - native_offset.y,
-        local_pos.x.addr, local_pos.y.addr
+        nativePos.x - nativeOffset.x, nativePos.y - nativeOffset.y,
+        localPos.x.addr, localPos.y.addr
       )
-      local_pos
+      localPos
   
-  var stop_event = false
+  var stopEvent = false
   
   let kind = gdk_event_get_event_type(event)
   case kind:
     of GDK_MOTION_NOTIFY:
-      if not data[].mouse_moved.is_nil:
-        stop_event = data[].mouse_moved(MotionEvent(
+      if not data[].mouseMoved.isNil:
+        stopEvent = data[].mouseMoved(MotionEvent(
           time: time,
           x: float(pos.x),
           y: float(pos.y),
@@ -1041,47 +1041,47 @@ proc gdk_event_callback(controller: GtkEventController, event: GdkEvent, data: p
         modifiers: modifiers
       )
       if kind == GDK_BUTTON_PRESS:
-        if not data[].mouse_pressed.is_nil:
-          stop_event = data[].mouse_pressed(evt)
+        if not data[].mousePressed.isNil:
+          stopEvent = data[].mousePressed(evt)
       else:
-        if not data[].mouse_released.is_nil:
-          stop_event = data[].mouse_released(evt)
+        if not data[].mouseReleased.isNil:
+          stopEvent = data[].mouseReleased(evt)
     of GDK_KEY_PRESS, GDK_KEY_RELEASE:
       let
-        key_val = gdk_key_event_get_keyval(event)
+        keyVal = gdk_key_event_get_keyval(event)
         evt = KeyEvent(
           time: time,
-          rune: Rune(gdk_keyval_to_unicode(keyval)),
-          value: keyval.int,
+          rune: Rune(gdk_keyval_to_unicode(keyVal)),
+          value: keyVal.int,
           modifiers: modifiers
         )
       if kind == GDK_KEY_PRESS:
-        if not data[].key_pressed.is_nil:
-          stop_event = data[].key_pressed(evt)
+        if not data[].keyPressed.isNil:
+          stopEvent = data[].keyPressed(evt)
       else:
-        if not data[].key_released.is_nil:
-          stop_event = data[].key_released(evt)
+        if not data[].keyReleased.isNil:
+          stopEvent = data[].keyReleased(evt)
     else: discard
   
-  if data[].app.is_nil:
-    raise new_exception(ValueError, "App is nil")
+  if data[].app.isNil:
+    raise newException(ValueError, "App is nil")
   data[].app.redraw()
-  result = cbool(ord(stop_event))
+  result = cbool(ord(stopEvent))
 
-proc draw_func(widget: GtkWidget,
-               ctx: pointer,
-               width, height: cint,
-               data: pointer) {.cdecl.} =
+proc drawFunc(widget: GtkWidget,
+              ctx: pointer,
+              width, height: cint,
+              data: pointer) {.cdecl.} =
   let
     event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
-    requires_redraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
-  if requires_redraw:
-    if event[].app.is_nil:
-      raise new_exception(ValueError, "App is nil")
+    requiresRedraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
+  if requiresRedraw:
+    if event[].app.isNil:
+      raise newException(ValueError, "App is nil")
     event[].app.redraw()
 
-proc callback_or_nil[T](event: Event[T]): T =
-  if event.is_nil:
+proc callbackOrNil[T](event: Event[T]): T =
+  if event.isNil:
     result = nil
   else:
     result = event.callback
@@ -1090,121 +1090,121 @@ renderable CustomWidget of BaseWidget:
   focusable: bool
   events: CustomWidgetEvents
   
-  proc mouse_pressed(event: ButtonEvent): bool
-  proc mouse_released(event: ButtonEvent): bool
-  proc mouse_moved(event: MotionEvent): bool
-  proc key_pressed(event: KeyEvent): bool
-  proc key_released(event: KeyEvent): bool
+  proc mousePressed(event: ButtonEvent): bool
+  proc mouseReleased(event: ButtonEvent): bool
+  proc mouseMoved(event: MotionEvent): bool
+  proc keyPressed(event: KeyEvent): bool
+  proc keyReleased(event: KeyEvent): bool
   
   hooks:
     build:
       state.events = CustomWidgetEvents()
       let controller = gtk_event_controller_legacy_new()
-      discard g_signal_connect(controller, "event", gdk_event_callback, state.events[].addr)
-      gtk_widget_add_controller(state.internal_widget, controller)
-    connect_events:
+      discard g_signal_connect(controller, "event", gdkEventCallback, state.events[].addr)
+      gtk_widget_add_controller(state.internalWidget, controller)
+    connectEvents:
       state.events.app = state.app
-      state.events.mouse_pressed = state.mouse_pressed.callback_or_nil
-      state.events.mouse_released = state.mouse_released.callback_or_nil
-      state.events.mouse_moved = state.mouse_moved.callback_or_nil
-      state.events.key_pressed = state.key_pressed.callback_or_nil
-      state.events.key_released = state.key_released.callback_or_nil
+      state.events.mousePressed = state.mousePressed.callbackOrNil
+      state.events.mouseReleased = state.mouseReleased.callbackOrNil
+      state.events.mouseMoved = state.mouseMoved.callbackOrNil
+      state.events.keyPressed = state.keyPressed.callbackOrNil
+      state.events.keyReleased = state.keyReleased.callbackOrNil
   
   hooks focusable:
     property:
-      gtk_widget_set_can_focus(state.internal_widget, cbool(ord(state.focusable)))
+      gtk_widget_set_can_focus(state.internalWidget, cbool(ord(state.focusable)))
 
 renderable DrawingArea of CustomWidget:
   proc draw(ctx: CairoContext, size: (int, int)): bool
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_drawing_area_new()
-    connect_events:
-      gtk_drawing_area_set_draw_func(state.internal_widget, draw_func, state.draw[].addr, nil)
+    beforeBuild:
+      state.internalWidget = gtk_drawing_area_new()
+    connectEvents:
+      gtk_drawing_area_set_draw_func(state.internalWidget, draw_func, state.draw[].addr, nil)
     update:
-      gtk_widget_queue_draw(state.internal_widget)
+      gtk_widget_queue_draw(state.internalWidget)
 
-proc setup_event_callback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, int)): bool]) =
+proc setupEventCallback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, int)): bool]) =
   gtk_gl_area_make_current(widget)
-  if not gtk_gl_area_get_error(widget).is_nil:
-    raise new_exception(IoError, "Failed to initialize OpenGL context")
+  if not gtk_gl_area_get_error(widget).isNil:
+    raise newException(IOError, "Failed to initialize OpenGL context")
   
   let
     width = int(gtk_widget_get_allocated_width(widget))
     height = int(gtk_widget_get_allocated_height(widget))
-    requires_redraw = data[].callback((width, height))
-  if requires_redraw:
-    if data[].app.is_nil:
-      raise new_exception(ValueError, "App is nil")
+    requiresRedraw = data[].callback((width, height))
+  if requiresRedraw:
+    if data[].app.isNil:
+      raise newException(ValueError, "App is nil")
     data[].app.redraw()
 
-proc render_event_callback(widget: GtkWidget,
-                           context: pointer,
-                           data: ptr EventObj[proc (size: (int, int)): bool]): cbool =
+proc renderEventCallback(widget: GtkWidget,
+                         context: pointer,
+                         data: ptr EventObj[proc (size: (int, int)): bool]): cbool =
   let
     width = int(gtk_widget_get_allocated_width(widget))
     height = int(gtk_widget_get_allocated_height(widget))
-    requires_redraw = data[].callback((width, height))
-  if requires_redraw:
-    if data[].app.is_nil:
-      raise new_exception(ValueError, "App is nil")
+    requiresRedraw = data[].callback((width, height))
+  if requiresRedraw:
+    if data[].app.isNil:
+      raise newException(ValueError, "App is nil")
     data[].app.redraw()
   result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
-  use_es: bool = false
-  required_version: tuple[major, minor: int] = (4, 3)
-  has_depth_buffer: bool = true
-  has_stencil_buffer: bool = false
+  useEs: bool = false
+  requiredVersion: tuple[major, minor: int] = (4, 3)
+  hasDepthBuffer: bool = true
+  hasStencilBuffer: bool = false
   
   proc setup(size: (int, int)): bool
   proc render(size: (int, int)): bool
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_gl_area_new()
-    connect_events:
-      state.internal_widget.connect(state.setup, "realize", setup_event_callback)
-      state.internal_widget.connect(state.render, "render", render_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.setup)
-      state.internal_widget.disconnect(state.render)
+    beforeBuild:
+      state.internalWidget = gtk_gl_area_new()
+    connectEvents:
+      state.internalWidget.connect(state.setup, "realize", setupEventCallback)
+      state.internalWidget.connect(state.render, "render", renderEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.setup)
+      state.internalWidget.disconnect(state.render)
     update:
-      gtk_widget_queue_draw(state.internal_widget)
+      gtk_widget_queue_draw(state.internalWidget)
   
-  hooks use_es:
+  hooks useEs:
     property:
-      gtk_gl_area_set_use_es(state.internal_widget, cbool(ord(state.use_es)))
+      gtk_gl_area_set_use_es(state.internalWidget, cbool(ord(state.useEs)))
   
-  hooks has_depth_buffer:
+  hooks hasDepthBuffer:
     property:
-      gtk_gl_area_set_has_depth_buffer(state.internal_widget, cbool(ord(state.has_depth_buffer)))
+      gtk_gl_area_set_has_depth_buffer(state.internalWidget, cbool(ord(state.hasDepthBuffer)))
   
-  hooks has_stencil_buffer:
+  hooks hasStencilBuffer:
     property:
-      gtk_gl_area_set_has_stencil_buffer(state.internal_widget, cbool(ord(state.has_stencil_buffer)))
+      gtk_gl_area_set_has_stencil_buffer(state.internalWidget, cbool(ord(state.hasStencilBuffer)))
   
-  hooks required_version:
+  hooks requiredVersion:
     property:
-      gtk_gl_area_set_required_version(state.internal_widget, 
-        cint(state.required_version.major),
-        cint(state.required_version.minor)
+      gtk_gl_area_set_required_version(state.internalWidget, 
+        cint(state.requiredVersion.major),
+        cint(state.requiredVersion.minor)
       )
 
 renderable ColorButton of BaseWidget:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
-  use_alpha: bool = false
+  useAlpha: bool = false
   
   proc changed(color: tuple[r, g, b, a: float])
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_color_button_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "color-set", color_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
+    beforeBuild:
+      state.internalWidget = gtk_color_button_new()
+    connectEvents:
+      state.internalWidget.connect(state.changed, "color-set", colorEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
   
   hooks color:
     property:
@@ -1214,11 +1214,11 @@ renderable ColorButton of BaseWidget:
         b: cdouble(state.color.b),
         a: cdouble(state.color.a)
       )
-      gtk_color_chooser_set_rgba(state.internal_widget, rgba.addr)
+      gtk_color_chooser_set_rgba(state.internalWidget, rgba.addr)
   
-  hooks use_alpha:
+  hooks useAlpha:
     property:
-      gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
+      gtk_color_chooser_set_use_alpha(state.internalWidget, cbool(ord(state.useAlpha)))
 
 renderable Switch of BaseWidget:
   state: bool
@@ -1226,16 +1226,16 @@ renderable Switch of BaseWidget:
   proc changed(state: bool)
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_switch_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "state-set", switch_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
+    beforeBuild:
+      state.internalWidget = gtk_switch_new()
+    connectEvents:
+      state.internalWidget.connect(state.changed, "state-set", switchEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
   
   hooks state:
     property:
-      gtk_switch_set_state(state.internal_widget, cbool(ord(state.state)))
+      gtk_switch_set_state(state.internalWidget, cbool(ord(state.state)))
   
   example:
     Switch:
@@ -1249,16 +1249,16 @@ renderable ToggleButton of Button:
   proc changed(state: bool)
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_toggle_button_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "toggled", toggle_button_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
+    beforeBuild:
+      state.internalWidget = gtk_toggle_button_new()
+    connectEvents:
+      state.internalWidget.connect(state.changed, "toggled", toggleButtonEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
   
   hooks state:
     property:
-      gtk_toggle_button_set_active(state.internal_widget, cbool(ord(state.state)))
+      gtk_toggle_button_set_active(state.internalWidget, cbool(ord(state.state)))
   
   example:
     ToggleButton:
@@ -1272,16 +1272,16 @@ renderable LinkButton of Button:
   visited: bool
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_link_button_new("")
+    beforeBuild:
+      state.internalWidget = gtk_link_button_new("")
   
   hooks uri:
     property:
-      gtk_link_button_set_uri(state.internal_widget, cstring(state.uri))
+      gtk_link_button_set_uri(state.internalWidget, cstring(state.uri))
   
   hooks visited:
     property:
-      gtk_link_button_set_visited(state.internal_widget, cbool(ord(state.visited)))
+      gtk_link_button_set_visited(state.internalWidget, cbool(ord(state.visited)))
 
 renderable CheckButton of BaseWidget:
   state: bool
@@ -1289,16 +1289,16 @@ renderable CheckButton of BaseWidget:
   proc changed(state: bool)
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_check_button_new()
-    connect_events:
-      state.internal_widget.connect(state.changed, "toggled", check_button_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.changed)
+    beforeBuild:
+      state.internalWidget = gtk_check_button_new()
+    connectEvents:
+      state.internalWidget.connect(state.changed, "toggled", checkButtonEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
   
   hooks state:
     property:
-      gtk_check_button_set_active(state.internal_widget, cbool(ord(state.state)))
+      gtk_check_button_set_active(state.internalWidget, cbool(ord(state.state)))
   
   example:
     CheckButton:
@@ -1310,78 +1310,78 @@ renderable Popover of BaseWidget:
   child: Widget
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_popover_new(nil)
+    beforeBuild:
+      state.internalWidget = gtk_popover_new(nil)
   
   hooks child:
-    build: build_bin(state, widget, gtk_popover_set_child)
-    update: update_bin(state, widget, gtk_popover_set_child)
+    build: buildBin(state, widget, gtk_popover_set_child)
+    update: updateBin(state, widget, gtk_popover_set_child)
   
   adder add
 
 proc add*(popover: Popover, child: Widget) =
-  if popover.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Popover. Use a Box widget to display multiple widgets in a popover.")
-  popover.has_child = true
-  popover.val_child = child
+  if popover.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Popover. Use a Box widget to display multiple widgets in a popover.")
+  popover.hasChild = true
+  popover.valChild = child
 
 renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_menu_button_new()
+    beforeBuild:
+      state.internalWidget = gtk_menu_button_new()
   
   hooks child:
-    build: build_bin(state, widget, gtk_menu_button_set_child)
-    update: update_bin(state, widget, gtk_menu_button_set_child)
+    build: buildBin(state, widget, gtk_menu_button_set_child)
+    update: updateBin(state, widget, gtk_menu_button_set_child)
   
   hooks popover:
     build:
-      if widget.has_popover:
-        widget.val_popover.assign_app(state.app)
-        state.popover = widget.val_popover.build()
-        let popover_widget = unwrap_renderable(state.popover).internal_widget
-        gtk_menu_button_set_popover(state.internal_widget, popover_widget)
+      if widget.hasPopover:
+        widget.valPopover.assignApp(state.app)
+        state.popover = widget.valPopover.build()
+        let popoverWidget = unwrapRenderable(state.popover).internalWidget
+        gtk_menu_button_set_popover(state.internalWidget, popoverWidget)
     update:
-      if widget.has_popover:
-        widget.val_popover.assign_app(state.app)
-        let new_popover = widget.val_popover.update(state.popover)
-        if not new_popover.is_nil:
-          let popover_widget = new_popover.unwrap_internal_widget()
-          gtk_menu_button_set_popover(state.internal_widget, popover_widget)
-          state.popover = new_popover
+      if widget.hasPopover:
+        widget.valPopover.assignApp(state.app)
+        let newPopover = widget.valPopover.update(state.popover)
+        if not newPopover.isNil:
+          let popoverWidget = newPopover.unwrapInternalWidget()
+          gtk_menu_button_set_popover(state.internalWidget, popoverWidget)
+          state.popover = newPopover
   
   setter text: string
   setter icon: string
   
-  adder add_child
+  adder addChild
   adder add
 
-proc add_child*(menu_button: MenuButton, child: Widget) =
-  if menu_button.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a MenuButton. Use a Box widget to display multiple widgets in a MenuButton.")
-  menu_button.has_child = true
-  menu_button.val_child = child
+proc addChild*(menuButton: MenuButton, child: Widget) =
+  if menuButton.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a MenuButton. Use a Box widget to display multiple widgets in a MenuButton.")
+  menuButton.hasChild = true
+  menuButton.valChild = child
 
-proc `has_text=`*(menu_button: MenuButton, value: bool) = menu_button.has_child = value
-proc `val_text=`*(menu_button: MenuButton, value: string) =
-  menu_button.val_child = Label(has_text: true, val_text: value)
+proc `hasText=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = value
+proc `valText=`*(menuButton: MenuButton, value: string) =
+  menuButton.valChild = Label(hasText: true, valText: value)
 
-proc `has_icon=`*(menu_button: MenuButton, value: bool) = menu_button.has_child = value
-proc `val_icon=`*(menu_button: MenuButton, name: string) =
-  menu_button.val_child = Icon(has_name: true, val_name: name)
+proc `hasIcon=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = value
+proc `valIcon=`*(menuButton: MenuButton, name: string) =
+  menuButton.valChild = Icon(hasName: true, valName: name)
 
 proc add*(button: MenuButton, child: Widget) =
-  if not button.has_child:
-    button.has_child = true
-    button.val_child = child
-  elif not button.has_popover:
-    button.has_popover = true
-    button.val_popover = child
+  if not button.hasChild:
+    button.hasChild = true
+    button.valChild = child
+  elif not button.hasPopover:
+    button.hasPopover = true
+    button.valPopover = child
   else:
-    raise new_exception(ValueError, "Unable to add more than two children to MenuButton")
+    raise newException(ValueError, "Unable to add more than two children to MenuButton")
 
 #[
 renderable ModelButton of BaseWidget:
@@ -1390,17 +1390,17 @@ renderable ModelButton of BaseWidget:
   proc clicked()
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_model_button_new()
-    connect_events:
-      state.internal_widget.connect(state.clicked, "clicked", event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.clicked)
+    beforeBuild:
+      state.internalWidget = gtk_model_button_new()
+    connectEvents:
+      state.internalWidget.connect(state.clicked, "clicked", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.clicked)
   
   hooks text:
     property:
       var value = g_value_new(state.text)
-      g_object_set_property(state.internal_widget.pointer, "text", value.addr)
+      g_object_set_property(state.internalWidget.pointer, "text", value.addr)
       g_value_unset(value.addr)
 ]#
 
@@ -1408,8 +1408,8 @@ renderable Separator of BaseWidget:
   orient: Orient
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_separator_new(widget.val_orient.to_gtk())
+    beforeBuild:
+      state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
 type
   TextBufferObj = object
@@ -1418,13 +1418,13 @@ type
   TextBuffer* = ref TextBufferObj
 
 proc finalizer(buffer: TextBuffer) =
-  gobject_unref(pointer(buffer.gtk))
+  g_object_unref(pointer(buffer.gtk))
 
-proc new_text_buffer*(): TextBuffer =
+proc newTextBuffer*(): TextBuffer =
   new(result, finalizer=finalizer)
   result.gtk = gtk_text_buffer_new(nil)
 
-proc count_lines*(buffer: TextBuffer): int =
+proc countLines*(buffer: TextBuffer): int =
   result = int(gtk_text_buffer_get_line_count(buffer.gtk))
 
 proc `text=`*(buffer: TextBuffer, text: string) =
@@ -1437,22 +1437,22 @@ renderable TextView of BaseWidget:
   proc changed()
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_text_view_new()
-    connect_events:
-      GtkWidget(state.buffer.gtk).connect(state.changed, "changed", event_callback)
-    disconnect_events:
+    beforeBuild:
+      state.internalWidget = gtk_text_view_new()
+    connectEvents:
+      GtkWidget(state.buffer.gtk).connect(state.changed, "changed", eventCallback)
+    disconnectEvents:
       GtkWidget(state.buffer.gtk).disconnect(state.changed)
   
   hooks monospace:
     property:
-      gtk_text_view_set_monospace(state.internal_widget, cbool(ord(state.monospace)))
+      gtk_text_view_set_monospace(state.internalWidget, cbool(ord(state.monospace)))
   
   hooks buffer:
     property:
-      if state.buffer.is_nil:
-        raise new_exception(ValueError, "TextView.buffer must not be nil")
-      gtk_text_view_set_buffer(state.internal_widget, state.buffer.gtk)
+      if state.buffer.isNil:
+        raise newException(ValueError, "TextView.buffer must not be nil")
+      gtk_text_view_set_buffer(state.internalWidget, state.buffer.gtk)
 
 renderable ListBoxRow of BaseWidget:
   child: Widget
@@ -1460,106 +1460,106 @@ renderable ListBoxRow of BaseWidget:
   proc activate()
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_list_box_row_new()
-    connect_events:
-      state.internal_widget.connect(state.activate, "activate", event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.activate)
+    beforeBuild:
+      state.internalWidget = gtk_list_box_row_new()
+    connectEvents:
+      state.internalWidget.connect(state.activate, "activate", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
   
   hooks child:
-    build: build_bin(state, widget, gtk_list_box_row_set_child)
-    update: update_bin(state, widget, gtk_list_box_row_set_child)
+    build: buildBin(state, widget, gtk_list_box_row_set_child)
+    update: updateBin(state, widget, gtk_list_box_row_set_child)
   
   adder add
   
   example:
     ListBox:
       for it in 0..<10:
-        ListBoxRow {.add_row.}:
+        ListBoxRow {.addRow.}:
           proc activate() =
             echo it
           Label(text = $it)
 
 proc add*(row: ListBoxRow, child: Widget) =
-  if row.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a ListBoxRow. Use a Box widget to display multiple widgets in a ListBoxRow.")
-  row.has_child = true
-  row.val_child = child
+  if row.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a ListBoxRow. Use a Box widget to display multiple widgets in a ListBoxRow.")
+  row.hasChild = true
+  row.valChild = child
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
 
 renderable ListBox of BaseWidget:
   rows: seq[Widget]
-  selection_mode: SelectionMode
+  selectionMode: SelectionMode
   selected: HashSet[int]
   
   proc select(rows: HashSet[int])
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_list_box_new()
-    connect_events:
-      state.internal_widget.connect(state.select, "selected-rows-changed", list_box_event_callback)
-    disconnect_events:
-      state.internal_widget.disconnect(state.select)
+    beforeBuild:
+      state.internalWidget = gtk_list_box_new()
+    connectEvents:
+      state.internalWidget.connect(state.select, "selected-rows-changed", listBoxEventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.select)
   
   hooks rows:
     build:
-      for row in widget.val_rows:
-        row.assign_app(widget.app)
-        let row_state = row.build()
-        state.rows.add(row_state)
-        let row_widget = row_state.unwrap_internal_widget()
-        gtk_list_box_append(state.internal_widget, row_widget)
+      for row in widget.valRows:
+        row.assignApp(widget.app)
+        let rowState = row.build()
+        state.rows.add(rowState)
+        let rowWidget = rowState.unwrapInternalWidget()
+        gtk_list_box_append(state.internalWidget, rowWidget)
     update:
       var it = 0
-      while it < widget.val_rows.len and it < state.rows.len:
-        widget.val_rows[it].assign_app(state.app)
-        let new_row = widget.val_rows[it].update(state.rows[it])
-        if not new_row.is_nil:
-          gtk_list_box_remove(state.internal_widget, state.rows[it].unwrap_internal_widget())
-          gtk_list_box_insert(state.internal_widget, new_row.unwrap_internal_widget(), it.cint)
-          state.rows[it] = new_row
+      while it < widget.valRows.len and it < state.rows.len:
+        widget.valRows[it].assignApp(state.app)
+        let newRow = widget.valRows[it].update(state.rows[it])
+        if not newRow.isNil:
+          gtk_list_box_remove(state.internalWidget, state.rows[it].unwrapInternalWidget())
+          gtk_list_box_insert(state.internalWidget, newRow.unwrapInternalWidget(), it.cint)
+          state.rows[it] = newRow
         it += 1
       
-      while it < widget.val_rows.len:
-        widget.val_rows[it].assign_app(state.app)
+      while it < widget.valRows.len:
+        widget.valRows[it].assignApp(state.app)
         let
-          row_state = widget.val_rows[it].build()
-          row_widget = row_state.unwrap_internal_widget()
-        state.rows.add(row_state)
-        gtk_list_box_append(state.internal_widget, row_widget)
+          rowState = widget.valRows[it].build()
+          rowWidget = rowState.unwrapInternalWidget()
+        state.rows.add(rowState)
+        gtk_list_box_append(state.internalWidget, rowWidget)
         it += 1
       
       while it < state.rows.len:
-        let row = unwrap_renderable(state.rows.pop()).internal_widget
-        gtk_list_box_remove(state.internal_widget, row)
+        let row = unwrapRenderable(state.rows.pop()).internalWidget
+        gtk_list_box_remove(state.internalWidget, row)
   
-  hooks selection_mode:
+  hooks selectionMode:
     property:
-      gtk_list_box_set_selection_mode(state.internal_widget,
-        GtkSelectionMode(ord(state.selection_mode))
+      gtk_list_box_set_selection_mode(state.internalWidget,
+        GtkSelectionMode(ord(state.selectionMode))
       )
   
   hooks selected:
     (build, update):
-      if widget.has_selected:
-        for index in state.selected - widget.val_selected:
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
           if index >= state.rows.len:
             continue
-          let row = state.rows[index].unwrap_internal_widget()
-          gtk_list_box_unselect_row(state.internal_widget, row)
-        for index in widget.val_selected - state.selected:
-          let row = state.rows[index].unwrap_internal_widget()
-          gtk_list_box_select_row(state.internal_widget, row)
-        state.selected = widget.val_selected
+          let row = state.rows[index].unwrapInternalWidget()
+          gtk_list_box_unselect_row(state.internalWidget, row)
+        for index in widget.valSelected - state.selected:
+          let row = state.rows[index].unwrapInternalWidget()
+          gtk_list_box_select_row(state.internalWidget, row)
+        state.selected = widget.valSelected
         for row in state.selected:
           if row >= state.rows.len:
-            raise new_exception(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
+            raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
   
-  adder add_row
+  adder addRow
   adder add
   
   example:
@@ -1567,26 +1567,26 @@ renderable ListBox of BaseWidget:
       for it in 0..<10:
         Label(text = $it)
 
-proc add_row*(list_box: ListBox, row: ListBoxRow) =
-  list_box.has_rows = true
-  list_box.val_rows.add(row)
+proc addRow*(listBox: ListBox, row: ListBoxRow) =
+  listBox.hasRows = true
+  listBox.valRows.add(row)
 
-proc add*(list_box: ListBox, child: Widget) =
+proc add*(listBox: ListBox, child: Widget) =
   if child of ListBoxRow:
-    list_box.add_row(ListBoxRow(child))
+    listBox.addRow(ListBoxRow(child))
   else:
-    list_box.add_row(ListBoxRow(has_child: true, val_child: child))
+    listBox.addRow(ListBoxRow(hasChild: true, valChild: child))
 
 renderable FlowBoxChild of BaseWidget:
   child: Widget
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_flow_box_child_new()
+    beforeBuild:
+      state.internalWidget = gtk_flow_box_child_new()
   
   hooks child:
-    build: build_bin(state, widget, gtk_flow_box_child_set_child)
-    update: update_bin(state, widget, gtk_flow_box_child_set_child)
+    build: buildBin(state, widget, gtk_flow_box_child_set_child)
+    update: updateBin(state, widget, gtk_flow_box_child_set_child)
   
   adder add
   
@@ -1594,89 +1594,89 @@ renderable FlowBoxChild of BaseWidget:
     FlowBox:
       columns = 1..5
       for it in 0..<10:
-        FlowBoxChild {.add_child.}:
+        FlowBoxChild {.addChild.}:
           Label(text = $it)
 
-proc add*(flow_box_child: FlowBoxChild, child: Widget) =
-  if flow_box_child.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a FlowBoxChild. Use a Box widget to display multiple widgets in a FlowBoxChild.")
-  flow_box_child.has_child = true
-  flow_box_child.val_child = child
+proc add*(flowBoxChild: FlowBoxChild, child: Widget) =
+  if flowBoxChild.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a FlowBoxChild. Use a Box widget to display multiple widgets in a FlowBoxChild.")
+  flowBoxChild.hasChild = true
+  flowBoxChild.valChild = child
 
 renderable FlowBox of BaseWidget:
   homogeneous: bool
-  row_spacing: int
-  column_spacing: int
+  rowSpacing: int
+  columnSpacing: int
   columns: HSlice[int, int] = 1..5
-  selection_mode: SelectionMode
+  selectionMode: SelectionMode
   children: seq[Widget]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_flow_box_new()
+    beforeBuild:
+      state.internalWidget = gtk_flow_box_new()
   
   hooks homogeneous:
     property:
-      gtk_flow_box_set_homogeneous(state.internal_widget, cbool(ord(state.homogeneous)))
+      gtk_flow_box_set_homogeneous(state.internalWidget, cbool(ord(state.homogeneous)))
   
-  hooks row_spacing:
+  hooks rowSpacing:
     property:
-      gtk_flow_box_set_row_spacing(state.internal_widget, cuint(state.row_spacing))
+      gtk_flow_box_set_row_spacing(state.internalWidget, cuint(state.rowSpacing))
   
-  hooks column_spacing:
+  hooks columnSpacing:
     property:
-      gtk_flow_box_set_column_spacing(state.internal_widget, cuint(state.column_spacing))
+      gtk_flow_box_set_column_spacing(state.internalWidget, cuint(state.columnSpacing))
   
   hooks columns:
     property:
-      gtk_flow_box_set_min_children_per_line(state.internal_widget, cuint(state.columns.a))
-      gtk_flow_box_set_max_children_per_line(state.internal_widget, cuint(state.columns.b))
+      gtk_flow_box_set_min_children_per_line(state.internalWidget, cuint(state.columns.a))
+      gtk_flow_box_set_max_children_per_line(state.internalWidget, cuint(state.columns.b))
   
-  hooks selection_mode:
+  hooks selectionMode:
     property:
-      gtk_flow_box_set_selection_mode(state.internal_widget,
-        GtkSelectionMode(ord(state.selection_mode))
+      gtk_flow_box_set_selection_mode(state.internalWidget,
+        GtkSelectionMode(ord(state.selectionMode))
       )
   
   hooks children:
     (build, update):
       var it = 0
-      while it < widget.val_children.len and
+      while it < widget.valChildren.len and
             it < state.children.len:
-        let child_widget = widget.val_children[it]
-        child_widget.assign_app(state.app)
-        let new_child = child_widget.update(state.children[it])
-        if not new_child.is_nil:
+        let childWidget = widget.valChildren[it]
+        childWidget.assignApp(state.app)
+        let newChild = childWidget.update(state.children[it])
+        if not newChild.isNil:
           gtk_flow_box_remove(
-            state.internal_widget,
-            unwrap_renderable(state.children[it]).internal_widget
+            state.internalWidget,
+            unwrapRenderable(state.children[it]).internalWidget
           )
           gtk_flow_box_insert(
-            state.internal_widget,
-            unwrap_renderable(new_child).internal_widget,
+            state.internalWidget,
+            unwrapRenderable(newChild).internalWidget,
             cint(it)
           )
-          state.children[it] = new_child
+          state.children[it] = newChild
         it += 1
       
-      while it < widget.val_children.len:
-        let child_widget = widget.val_children[it]
-        child_widget.assign_app(state.app)
+      while it < widget.valChildren.len:
+        let childWidget = widget.valChildren[it]
+        childWidget.assignApp(state.app)
         let
-          child = child_widget.build()
-          child_internal = unwrap_renderable(child).internal_widget
-        gtk_flow_box_append(state.internal_widget, child_internal)
+          child = childWidget.build()
+          childInternal = unwrapRenderable(child).internalWidget
+        gtk_flow_box_append(state.internalWidget, childInternal)
         state.children.add(child)
         it += 1
       
       while it < state.children.len:
         let child = state.children.pop()
         gtk_flow_box_remove(
-          state.internal_widget,
-          unwrap_renderable(child).internal_widget
+          state.internalWidget,
+          unwrapRenderable(child).internalWidget
         )
   
-  adder add_child
+  adder addChild
   adder add
   
   example:
@@ -1685,12 +1685,12 @@ renderable FlowBox of BaseWidget:
       for it in 0..<10:
         Label(text = $it)
 
-proc add_child*(flow_box: FlowBox, child: FlowBoxChild) =
-  flow_box.has_children = true
-  flow_box.val_children.add(child)
+proc addChild*(flowBox: FlowBox, child: FlowBoxChild) =
+  flowBox.hasChildren = true
+  flowBox.valChildren.add(child)
 
-proc add*(flow_box: FlowBox, child: Widget) =
-  flow_box.add_child(FlowBoxChild(has_child: true, val_child: child))
+proc add*(flowBox: FlowBox, child: Widget) =
+  flowBox.addChild(FlowBoxChild(hasChild: true, valChild: child))
 
 renderable Frame of BaseWidget:
   label: string
@@ -1698,25 +1698,25 @@ renderable Frame of BaseWidget:
   child: Widget
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_frame_new(nil)
+    beforeBuild:
+      state.internalWidget = gtk_frame_new(nil)
   
   hooks label:
     property:
       if state.label.len == 0:
-        gtk_frame_set_label(state.internal_widget, nil)
+        gtk_frame_set_label(state.internalWidget, nil)
       else:
-        gtk_frame_set_label(state.internal_widget, state.label.cstring)
+        gtk_frame_set_label(state.internalWidget, state.label.cstring)
   
   hooks align:
     property:
-      gtk_frame_set_label_align(state.internal_widget,
+      gtk_frame_set_label_align(state.internalWidget,
         state.align.x.cfloat, state.align.y.cfloat
       )
   
   hooks child:
-    build: build_bin(state, widget, gtk_frame_set_child)
-    update: update_bin(state, widget, gtk_frame_set_child)
+    build: buildBin(state, widget, gtk_frame_set_child)
+    update: updateBin(state, widget, gtk_frame_set_child)
   
   adder add
   
@@ -1728,10 +1728,10 @@ renderable Frame of BaseWidget:
         text = "Content"
 
 proc add*(frame: Frame, child: Widget) =
-  if frame.has_child:
-    raise new_exception(ValueError, "Unable to add multiple children to a Frame. Use a Box widget to display multiple widgets in a Frame.")
-  frame.has_child = true
-  frame.val_child = child 
+  if frame.hasChild:
+    raise newException(ValueError, "Unable to add multiple children to a Frame. Use a Box widget to display multiple widgets in a Frame.")
+  frame.hasChild = true
+  frame.valChild = child 
 
 type
   DialogResponseKind* = enum
@@ -1742,13 +1742,13 @@ type
       of DialogCustom: id*: int
       else: discard
 
-proc to_dialog_response*(id: cint): DialogResponse =
+proc toDialogResponse*(id: cint): DialogResponse =
   case id:
     of -3: result = DialogResponse(kind: DialogAccept)
     of -6: result = DialogResponse(kind: DialogCancel)
     else: result = DialogResponse(kind: DialogCustom, id: int(id))
 
-proc to_gtk(resp: DialogResponse): cint =
+proc toGtk(resp: DialogResponse): cint =
   case resp.kind:
     of DialogCustom: result = resp.id.cint
     of DialogAccept: result = -3
@@ -1761,37 +1761,37 @@ renderable DialogButton:
   
   setter res: DialogResponseKind
 
-proc `has_res=`*(button: DialogButton, value: bool) =
-  button.has_response = value
+proc `hasRes=`*(button: DialogButton, value: bool) =
+  button.hasResponse = value
 
-proc `val_res=`*(button: DialogButton, kind: DialogResponseKind) =
-  button.val_response = DialogResponse(kind: kind)
+proc `valRes=`*(button: DialogButton, kind: DialogResponseKind) =
+  button.valResponse = DialogResponse(kind: kind)
 
 renderable Dialog of Window:
   buttons: seq[DialogButton]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_dialog_new_with_buttons("", nil, GTK_DIALOG_USE_HEADER_BAR, nil)
-      gtk_window_set_child(state.internal_widget, nil)
+    beforeBuild:
+      state.internalWidget = gtk_dialog_new_with_buttons("", nil, GTK_DIALOG_USE_HEADER_BAR, nil)
+      gtk_window_set_child(state.internalWidget, nil)
   
   hooks buttons:
     build:
       for button in widget.val_buttons:
         let
-          button_widget = gtk_dialog_add_button(state.internal_widget,
-            button.val_text.cstring,
-            button.val_response.to_gtk
+          buttonWidget = gtk_dialog_add_button(state.internalWidget,
+            button.valText.cstring,
+            button.valResponse.toGtk
           )
-          ctx = gtk_widget_get_style_context(button_widget)
-        for class in classes(button.val_style):
+          ctx = gtk_widget_get_style_context(buttonWidget)
+        for class in classes(button.valStyle):
           gtk_style_context_add_class(ctx, class.cstring)
   
-  adder add_button
+  adder addButton
 
-proc add_button*(dialog: Dialog, button: DialogButton) =
-  dialog.has_buttons = true
-  dialog.val_buttons.add(button)
+proc addButton*(dialog: Dialog, button: DialogButton) =
+  dialog.hasButtons = true
+  dialog.valButtons.add(button)
 
 renderable BuiltinDialog:
   title: string
@@ -1799,21 +1799,21 @@ renderable BuiltinDialog:
   
   hooks buttons:
     build:
-      for button in widget.val_buttons:
+      for button in widget.valButtons:
         let
-          button_widget = gtk_dialog_add_button(state.internal_widget,
-            button.val_text.cstring,
-            button.val_response.to_gtk
+          buttonWidget = gtk_dialog_add_button(state.internalWidget,
+            button.valText.cstring,
+            button.valResponse.toGtk
           )
-          ctx = gtk_widget_get_style_context(button_widget)
-        for class in classes(button.val_style):
+          ctx = gtk_widget_get_style_context(buttonWidget)
+        for class in classes(button.valStyle):
           gtk_style_context_add_class(ctx, class.cstring)
 
-  adder add_button
+  adder addButton
 
-proc add_button*(dialog: BuiltinDialog, button: DialogButton) =
-  dialog.has_buttons = true
-  dialog.val_buttons.add(button)
+proc addButton*(dialog: BuiltinDialog, button: DialogButton) =
+  dialog.hasButtons = true
+  dialog.valButtons.add(button)
 
 type FileChooserAction* = enum
   FileChooserOpen,
@@ -1826,29 +1826,29 @@ renderable FileChooserDialog of BuiltinDialog:
   filename: string
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_file_chooser_dialog_new(
-        widget.val_title.cstring,
+    beforeBuild:
+      state.internalWidget = gtk_file_chooser_dialog_new(
+        widget.valTitle.cstring,
         nil,
-        GtkFileChooserAction(ord(widget.val_action))
+        GtkFileChooserAction(ord(widget.valAction))
       )
   
   hooks filename:
     read:
-      let file = gtk_file_chooser_get_file(state.internal_widget)
-      if file.is_nil:
+      let file = gtk_file_chooser_get_file(state.internalWidget)
+      if file.isNil:
         state.filename = ""
       else:
         state.filename = $g_file_get_path(file)
 
 renderable ColorChooserDialog of BuiltinDialog:
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
-  use_alpha: bool = false
+  useAlpha: bool = false
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_color_chooser_dialog_new(
-        widget.val_title.cstring,
+    beforeBuild:
+      state.internalWidget = gtk_color_chooser_dialog_new(
+        widget.valTitle.cstring,
         nil
       )
   
@@ -1860,31 +1860,31 @@ renderable ColorChooserDialog of BuiltinDialog:
         b: cdouble(state.color.b),
         a: cdouble(state.color.a)
       )
-      gtk_color_chooser_set_rgba(state.internal_widget, rgba.addr)
+      gtk_color_chooser_set_rgba(state.internalWidget, rgba.addr)
     read:
       var color: GdkRgba
-      gtk_color_chooser_get_rgba(state.internal_widget, color.addr)
+      gtk_color_chooser_get_rgba(state.internalWidget, color.addr)
       state.color = (color.r.float, color.g.float, color.b.float, color.a.float)
   
-  hooks use_alpha:
+  hooks useAlpha:
     property:
-      gtk_color_chooser_set_use_alpha(state.internal_widget, cbool(ord(state.use_alpha)))
+      gtk_color_chooser_set_use_alpha(state.internalWidget, cbool(ord(state.useAlpha)))
 
 renderable MessageDialog of BuiltinDialog:
   message: string
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_message_dialog_new(
+    beforeBuild:
+      state.internalWidget = gtk_message_dialog_new(
         nil,
         GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_NONE,
-        widget.val_message.cstring
+        widget.valMessage.cstring
       )
 
 renderable AboutDialog of BaseWidget:
-  program_name: string
+  programName: string
   logo: string
   copyright: string
   version: string
@@ -1892,37 +1892,37 @@ renderable AboutDialog of BaseWidget:
   credits: seq[(string, seq[string])]
   
   hooks:
-    before_build:
-      state.internal_widget = gtk_about_dialog_new()
+    beforeBuild:
+      state.internalWidget = gtk_about_dialog_new()
   
-  hooks program_name:
+  hooks programName:
     property:
-      gtk_about_dialog_set_program_name(state.internal_widget, state.program_name.cstring)
+      gtk_about_dialog_set_program_name(state.internalWidget, state.programName.cstring)
   
   hooks logo:
     property:
-      gtk_about_dialog_set_logo_icon_name(state.internal_widget, state.logo.cstring)
+      gtk_about_dialog_set_logo_icon_name(state.internalWidget, state.logo.cstring)
   
   hooks copyright:
     property:
-      gtk_about_dialog_set_copyright(state.internal_widget, state.copyright.cstring)
+      gtk_about_dialog_set_copyright(state.internalWidget, state.copyright.cstring)
   
   hooks version:
     property:
-      gtk_about_dialog_set_version(state.internal_widget, state.version.cstring)
+      gtk_about_dialog_set_version(state.internalWidget, state.version.cstring)
   
   hooks license:
     property:
-      gtk_about_dialog_set_license(state.internal_widget, state.license.cstring)
+      gtk_about_dialog_set_license(state.internalWidget, state.license.cstring)
   
   hooks credits:
     build:
-      if widget.has_credits:
-        state.credits = widget.val_credits
-        for (section_name, people) in state.credits:
-          let names = alloc_cstring_array(people)
-          defer: dealloc_cstring_array(names)
-          gtk_about_dialog_add_credit_section(state.internal_widget, section_name.cstring, names)
+      if widget.hasCredits:
+        state.credits = widget.valCredits
+        for (sectionName, people) in state.credits:
+          let names = allocCStringArray(people)
+          defer: deallocCStringArray(names)
+          gtk_about_dialog_add_credit_section(state.internalWidget, sectionName.cstring, names)
 
 export BaseWidget, BaseWidgetState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
@@ -1935,4 +1935,4 @@ export FileChooserDialog, FileChooserDialogState
 export ColorChooserDialog, ColorChooserDialogState
 export MessageDialog, MessageDialogState
 export AboutDialog, AboutDialogState
-export build_state, update_state, assign_app_events
+export buildState, updateState, assignAppEvents

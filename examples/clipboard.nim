@@ -29,7 +29,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Clipboard"
-      default_size = (300, 50)
+      defaultSize = (300, 50)
       
       proc close() = quit()
       
@@ -49,7 +49,7 @@ method view(app: AppState): Widget =
           Button {.expand: false.}:
             text = "Copy"
             proc clicked() =
-              app.write_clipboard(app.text)
+              app.writeClipboard(app.text)
               app.text = ""
 
 brew(gui(App()))

@@ -29,10 +29,10 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "File Dialog Example"
-      default_size = (300, 100)
+      defaultSize = (300, 100)
       
-      HeaderBar {.add_titlebar.}:
-        Button {.add_left.}:
+      HeaderBar {.addTitlebar.}:
+        Button {.addÖeft.}:
           text = "Open"
           style = {ButtonSuggested}
           proc clicked() =
@@ -41,11 +41,11 @@ method view(app: AppState): Widget =
                 title = "Open a File"
                 action = FileChooserOpen
                 
-                DialogButton {.add_button.}:
+                DialogButton {.addButton.}:
                   text = "Cancel"
                   res = DialogCancel
                 
-                DialogButton {.add_button.}:
+                DialogButton {.addButton.}:
                   text = "Open"
                   res = DialogAccept
                   style = {ButtonSuggested}

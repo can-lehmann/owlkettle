@@ -28,15 +28,15 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      default_size = (400, 200)
+      defaultSize = (400, 200)
       title = "My Window"
       
-      HeaderBar {.add_titlebar.}:
-        Button {.add_left.}:
+      HeaderBar {.addTitlebar.}:
+        Button {.addLeft.}:
           icon = "list-add-symbolic"
           style = {ButtonSuggested}
         
-        Button {.add_left.}:
+        Button {.addLeft.}:
           icon = "user-trash-symbolic"
       
       Label:

@@ -32,48 +32,48 @@ type
 viewable App:
   paths: seq[Path]
   color: Color = (0.0, 0.0, 0.0, 1.0)
-  is_drawing: bool
+  isDrawing: bool
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Drawing Area"
       
-      HeaderBar {.add_titlebar.}:
-        ColorButton {.add_left.}:
+      HeaderBar {.addTitlebar.}:
+        ColorButton {.addLeft.}:
           color = app.color
-          use_alpha = true
+          useAlpha = true
           proc changed(color: Color) =
             app.color = color
       
       DrawingArea:
         proc draw(ctx: CairoContext, size: (int, int)): bool =
           ctx.rectangle(0, 0, size[0].float, size[1].float)
-          ctx.set_source(1, 1, 1, 1)
+          ctx.setSource(1, 1, 1, 1)
           ctx.fill()
           for path in app.paths:
             for it, (x, y) in path.points:
               if it == 0:
-                ctx.move_to(x, y)
+                ctx.moveTo(x, y)
               else:
-                ctx.line_to(x, y)
+                ctx.lineTo(x, y)
             ctx.source = path.color
             ctx.stroke()
         
-        proc mouse_pressed(evt: ButtonEvent): bool =
+        proc mousePressed(evt: ButtonEvent): bool =
           if evt.button == 0:
-            app.is_drawing = true
+            app.isDrawing = true
             app.paths.add(Path(
               color: app.color,
               points: @[(evt.x, evt.y)]
             ))
         
-        proc mouse_released(evt: ButtonEvent): bool =
+        proc mouseReleased(evt: ButtonEvent): bool =
           if evt.button == 0:
-            app.is_drawing = false
+            app.isDrawing = false
         
-        proc mouse_moved(evt: MotionEvent): bool =
-          if app.is_drawing and app.paths.len > 0:
+        proc mouseMoved(evt: MotionEvent): bool =
+          if app.isDrawing and app.paths.len > 0:
             app.paths[^1].points.add((evt.x, evt.y))
 
 brew(gui(App()))

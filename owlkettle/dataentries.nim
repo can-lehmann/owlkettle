@@ -23,7 +23,7 @@
 import std/[strutils]
 import widgets, widgetdef, guidsl
 
-proc is_float(value: string): bool =
+proc isFloat(value: string): bool =
   if value.len > 0:
     var
       it = 0
@@ -49,7 +49,7 @@ viewable NumberEntry:
   
   placeholder: string
   width: int = -1
-  x_align: float = 0.0
+  xAlign: float = 0.0
   
   proc changed(value: float)
   
@@ -60,8 +60,8 @@ viewable NumberEntry:
       state.consistent = true
 
 method parse(entry: NumberEntryState, text: string): (bool, float) {.base.} =
-  if is_float(text):
-    result = (true, parse_float(text))
+  if isFloat(text):
+    result = (true, parseFloat(text))
 
 method view*(entry: NumberEntryState): Widget =
   if abs(entry.value - entry.current) > entry.eps:
@@ -74,7 +74,7 @@ method view*(entry: NumberEntryState): Widget =
       
       placeholder = entry.placeholder
       width = entry.width
-      x_align = entry.x_align
+      xAlign = entry.xAlign
       
       if entry.consistent:
         style = {}
@@ -87,7 +87,7 @@ method view*(entry: NumberEntryState): Widget =
         if success:
           entry.current = value
           entry.value = value
-          if not entry.changed.is_nil:
+          if not entry.changed.isNil:
             entry.changed.callback(value)
         entry.consistent = success
       
@@ -112,19 +112,19 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
       tokens: seq[Token]
       cur: int
   
-  proc add(stream: var TokenStream, token: Token) =
+  proc add(stream: var TokenStream, token: Token) {.locks: 0.} =
     stream.tokens.add(token)
   
-  proc next(stream: TokenStream, kind: TokenKind): bool =
+  proc next(stream: TokenStream, kind: TokenKind): bool {.locks: 0.} =
     result = stream.cur < stream.tokens.len and
              stream.tokens[stream.cur].kind == kind
   
-  proc take(stream: var TokenStream, kind: TokenKind): bool =
+  proc take(stream: var TokenStream, kind: TokenKind): bool {.locks: 0.} =
     result = stream.next(kind)
     if result:
       stream.cur += 1
   
-  proc tokenize(text: string): TokenStream =
+  proc tokenize(text: string): TokenStream {.locks: 0.} =
     const
       WHITESPACE = {' ', '\n', '\r', '\t'}
       OP = {'+', '-', '*', '/'}
@@ -155,20 +155,20 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
             name.add(text[it])
             it += 1
           var kind = TokenName
-          if is_float(name):
+          if isFloat(name):
             kind = TokenNumber
           result.add(Token(kind: kind, value: name))
   
-  proc eval(stream: var TokenStream, level: int): tuple[valid: bool, val: float64] =
+  proc eval(stream: var TokenStream, level: int): tuple[valid: bool, val: float64] {.locks: 0.} =
     var prefix = 1.0
     if stream.take(TokenPrefixOp) and stream.tokens[stream.cur - 1].value == "-":
       prefix = -1.0
     
     if stream.take(TokenNumber):
       let value = stream.tokens[stream.cur - 1].value
-      result.valid = value.is_float()
+      result.valid = value.isFloat()
       if result.valid:
-        result.val = parse_float(value)
+        result.val = parseFloat(value)
     elif stream.take(TokenParOpen):
       result = stream.eval(0)
       if not stream.take(TokenParClose):
@@ -182,18 +182,18 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
     while stream.take(TokenOp):
       let
         op = stream.tokens[stream.cur - 1].value
-        op_level = case op:
+        opLevel = case op:
           of "+": 0
           of "-": 0
           of "*": 1
           of "/": 1
           else:
             return (false, 0.0)
-      if op_level < level:
+      if opLevel < level:
         stream.cur -= 1
         return
       
-      let rhs = stream.eval(op_level + 1)
+      let rhs = stream.eval(opLevel + 1)
       if not rhs.valid:
         return (false, 0.0)
       

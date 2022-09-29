@@ -91,6 +91,7 @@ type
     default: NimNode
     hooks: array[HookKind, NimNode]
     isInternal: bool
+    lineInfo: NimNode
   
   EventDef = object
     name: string
@@ -116,6 +117,14 @@ type
     adders: seq[Adder]
     types: seq[NimNode]
     examples: seq[NimNode]
+
+proc has(field: Field): NimNode =
+  result = ident("has" & capitalizeAscii(field.name))
+  result.copyLineInfo(field.lineInfo)
+
+proc value(field: Field): NimNode =
+  result = ident("val" & capitalizeAscii(field.name))
+  result.copyLineInfo(field.lineInfo)
 
 proc stateName(def: WidgetDef): string = def.name & "State"
 
@@ -230,9 +239,11 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           def.adders.add(adder)
         else:
           child[^1].expectKind(nnkStmtList)
+          let name = child[0].unwrapName()
           var field = Field(
-            name: child[0].unwrapName().strVal,
-            isInternal: not child[0].findPragma("internal").isNil
+            name: name.strVal,
+            isInternal: not child[0].findPragma("internal").isNil,
+            lineInfo: name
           )
           case child[1][0].kind:
             of nnkAsgn:
@@ -269,10 +280,10 @@ proc genWidget(def: WidgetDef): NimNode =
   result = newTree(nnkRecList)
   for field in def.fields:
     result.add(newTree(nnkIdentDefs, [
-      ident("has_" & field.name).newExport(), bindSym("bool"), newEmptyNode()
+      field.has().newExport(), bindSym("bool"), newEmptyNode()
     ]))
     result.add(newTree(nnkIdentDefs, [
-      ident("val_" & field.name).newExport(), field.typ, newEmptyNode()
+      field.value().newExport(), field.typ, newEmptyNode()
     ]))
   for event in def.events:
     result.add(event.genIdentDefs())
@@ -339,10 +350,10 @@ proc genBuildState(def: WidgetDef): NimNode =
     else:
       var cond = newTree(nnkIfStmt, [
         newTree(nnkElifBranch, [
-          newDotExpr(widget, "has_" & field.name),
+          newDotExpr(widget, field.has),
           newStmtList(newAssignment(
             newDotExpr(state, field.name),
-            newDotExpr(widget, "val_" & field.name)
+            newDotExpr(widget, field.value)
           ))
         ])
       ])
@@ -416,16 +427,16 @@ proc genUpdateState(def: WidgetDef): NimNode =
     else:
       let update = newStmtList(newAssignment(
         newDotExpr(state, field.name),
-        newDotExpr(widget, "val_" & field.name)
+        newDotExpr(widget, field.value)
       ))
-      var cond = newDotExpr(widget, "has_" & field.name)
+      var cond = newDotExpr(widget, field.has)
       if not field.hooks[HookProperty].isNil:
         update.add(field.hooks[HookProperty].clone())
         cond = newCall(bindSym("and"), [
           cond,
           newCall(bindSym("!="), [
             newDotExpr(state, field.name),
-            newDotExpr(widget, "val_" & field.name)
+            newDotExpr(widget, field.value)
           ])
         ])
       result.add(newTree(nnkIfStmt, newTree(nnkElifBranch, [
@@ -453,7 +464,6 @@ proc genUpdateState(def: WidgetDef): NimNode =
 
 proc genUpdate(def: WidgetDef): NimNode =
   let
-    name = newLit(def.name)
     widgetTyp = ident(def.name)
     stateTyp = ident(def.stateName)
     updateState = ident("updateState")
@@ -568,7 +578,7 @@ proc formatReference(widget: WidgetDef): string =
     for example in widget.examples:
       result &= "```nim" & example.repr & "\n```\n\n"
 
-proc genDocs(widget: WidgetDef): NimNode =
+proc genDocs(widget: WidgetDef): NimNode {.used.} =
   result = newCall(bindSym("echo"),
     newLit(widget.formatReference())
   )

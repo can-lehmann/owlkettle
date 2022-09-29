@@ -25,14 +25,14 @@ import owlkettle, owlkettle/dataentries
 viewable App:
   celsius: float
 
-proc to_celsius(fahrenheit: float): float = 5/9 * (fahrenheit - 32)
-proc to_fahrenheit(celsius: float): float = 9/5 * celsius + 32
+proc toCelsius(fahrenheit: float): float = 5/9 * (fahrenheit - 32)
+proc toFahrenheit(celsius: float): float = 9/5 * celsius + 32
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Temperature Converter"
-      default_size = (600, 100)
+      defaultSize = (600, 100)
       
       Box:
         orient = OrientX
@@ -47,9 +47,9 @@ method view(app: AppState): Widget =
         
         Label(text = "Fahrenheit")
         NumberEntry:
-          value = app.celsius.to_fahrenheit
+          value = app.celsius.toFahrenheit
           proc changed(value: float) =
-            app.celsius = value.to_celsius
+            app.celsius = value.toCelsius
 
 
 brew(gui(App()))

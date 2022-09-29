@@ -22,7 +22,7 @@
 
 # Domain-specific language for specifying GUI layouts
 
-import std/[macros, genasts]
+import std/[macros, strutils, genasts]
 import common, widgetdef
 
 type
@@ -203,12 +203,12 @@ proc gen(node: Node, stmts, parent: NimNode) =
         stmts.add(name)
     of NodeAttribute:
       stmts.add(newAssignment(
-        newDotExpr(parent, "has_" & node.name),
+        newDotExpr(parent, "has" & capitalizeAscii(node.name)),
         newLit(true),
         node.lineInfo
       ))
       stmts.add(newAssignment(
-        newDotExpr(parent, "val_" & node.name, node.lineInfo),
+        newDotExpr(parent, "val" & capitalizeAscii(node.name), node.lineInfo),
         node.value,
         node.lineInfo
       ))
