@@ -10,7 +10,7 @@ renderable BaseWidget
 ###### Fields
 
 - `sensitive: bool = true`
-- `size_request: tuple[x, y: int] = (-1, -1)`
+- `sizeRequest: tuple[x, y: int] = (-1, -1)`
 - `tooltip: string = ""`
 
 ###### Setters
@@ -30,7 +30,7 @@ renderable Window of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `title: string`
 - `titlebar: Widget`
-- `default_size: tuple[width, height: int] = (800, 600)`
+- `defaultSize: tuple[width, height: int] = (800, 600)`
 - `child: Widget`
 
 ###### Events
@@ -41,7 +41,7 @@ renderable Window of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
-- `add_titlebar`
+- `addTitlebar`
 
 ###### Example
 
@@ -70,8 +70,8 @@ renderable Box of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
   - `expand: bool = true`
-  - `h_align: Align = AlignFill`
-  - `v_align: Align = AlignFill`
+  - `hAlign: Align = AlignFill`
+  - `vAlign: Align = AlignFill`
 
 ###### Example
 
@@ -92,8 +92,8 @@ Box:
 ```
 
 ```nim
-HeaderBar {.add_titlebar.}:
-  Box {.add_left.}:
+HeaderBar {.addTitlebar.}:
+  Box {.addLeft.}:
     style = {BoxLinked}
     for it in 0 ..< 5:
       Button {.expand: false.}:
@@ -121,8 +121,8 @@ renderable Overlay of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
 - `add_overlay`
-  - `h_align: Align = AlignFill`
-  - `v_align: Align = AlignFill`
+  - `hAlign: Align = AlignFill`
+  - `vAlign: Align = AlignFill`
 
 
 ## Label
@@ -135,11 +135,11 @@ renderable Label of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `x_align: float = 0.5`
-- `y_align: float = 0.5`
+- `xAlign: float = 0.5`
+- `yAlign: float = 0.5`
 - `ellipsize: EllipsizeMode`
 - `wrap: bool = false`
-- `use_markup: bool = false`
+- `useMarkup: bool = false`
 - `style: set[LabelStyle]`
 
 ###### Example
@@ -147,7 +147,7 @@ renderable Label of BaseWidget
 ```nim
 Label:
   text = "Hello, world!"
-  x_align = 0.0
+  xAlign = 0.0
   ellipsize = EllipsizeEnd
 ```
 
@@ -160,7 +160,7 @@ Label:
 ```nim
 Label:
   text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
-  use_markup = true
+  useMarkup = true
 ```
 
 
@@ -174,7 +174,7 @@ renderable Icon of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `name: string`
-- `pixel_size: int = -1`
+- `pixelSize: int = -1`
 
 ###### Example
 
@@ -186,7 +186,7 @@ Icon:
 ```nim
 Icon:
   name = "object-select-symbolic"
-  pixel_size = 100
+  pixelSize = 100
 ```
 
 
@@ -250,26 +250,26 @@ renderable HeaderBar of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `title: Widget`
-- `show_title_buttons: bool = true`
+- `showTitleButtons: bool = true`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add_title`
-- `add_left`
-- `add_right`
+- `addTitle`
+- `addLeft`
+- `addRight`
 
 ###### Example
 
 ```nim
 Window:
   title = "Title"
-  HeaderBar {.add_titlebar.}:
-    Button {.add_left.}:
+  HeaderBar {.addTitlebar.}:
+    Button {.addLeft.}:
       icon = "list-add-symbolic"
-    Button {.add_right.}:
+    Button {.addRight.}:
       icon = "open-menu-symbolic"
 ```
 
@@ -303,9 +303,9 @@ renderable Entry of BaseWidget
 - `text: string`
 - `placeholder: string`
 - `width: int = -1`
-- `x_align: float = 0.0`
+- `xAlign: float = 0.0`
 - `visibility: bool = true`
-- `invisible_char: Rune = '*'.Rune`
+- `invisibleChar: Rune = '*'.Rune`
 - `style: set[EntryStyle]`
 
 ###### Events
@@ -340,7 +340,7 @@ Entry:
 Entry:
   placeholder = "Password"
   visibility = false
-  invisible_char = '*'.Rune
+  invisibleChar = '*'.Rune
 ```
 
 
@@ -354,7 +354,7 @@ renderable Paned of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `orient: Orient`
-- `initial_position: int`
+- `initialPosition: int`
 - `first: PanedChild[Widget]`
 - `second: PanedChild[Widget]`
 
@@ -369,7 +369,7 @@ renderable Paned of BaseWidget
 
 ```nim
 Paned:
-  initial_position = 200
+  initialPosition = 200
   Box(orient = OrientY) {.resize: false.}:
     Label(text = "Sidebar")
   Box(orient = OrientY) {.resize: true.}:
@@ -391,11 +391,11 @@ renderable CustomWidget of BaseWidget
 
 ###### Events
 
-- mouse_pressed: `proc (event: ButtonEvent): bool`
-- mouse_released: `proc (event: ButtonEvent): bool`
-- mouse_moved: `proc (event: MotionEvent): bool`
-- key_pressed: `proc (event: KeyEvent): bool`
-- key_released: `proc (event: KeyEvent): bool`
+- mousePressed: `proc (event: ButtonEvent): bool`
+- mouseReleased: `proc (event: ButtonEvent): bool`
+- mouseMoved: `proc (event: MotionEvent): bool`
+- keyPressed: `proc (event: KeyEvent): bool`
+- keyReleased: `proc (event: KeyEvent): bool`
 
 
 ## DrawingArea
@@ -422,10 +422,10 @@ renderable GlArea of CustomWidget
 ###### Fields
 
 - All fields from [CustomWidget](#CustomWidget)
-- `use_es: bool = false`
-- `required_version: tuple[major, minor: int] = (4, 3)`
-- `has_depth_buffer: bool = true`
-- `has_stencil_buffer: bool = false`
+- `useEs: bool = false`
+- `requiredVersion: tuple[major, minor: int] = (4, 3)`
+- `hasDepthBuffer: bool = true`
+- `hasStencilBuffer: bool = false`
 
 ###### Events
 
@@ -443,7 +443,7 @@ renderable ColorButton of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
-- `use_alpha: bool = false`
+- `useAlpha: bool = false`
 
 ###### Events
 
@@ -579,7 +579,7 @@ renderable MenuButton of BaseWidget
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add_child`
+- `addChild`
 - `add`
 
 
@@ -637,7 +637,7 @@ renderable ListBoxRow of BaseWidget
 ```nim
 ListBox:
   for it in 0 ..< 10:
-    ListBoxRow {.add_row.}:
+    ListBoxRow {.addRow.}:
       proc activate() =
         echo it
 
@@ -655,7 +655,7 @@ renderable ListBox of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
-- `selection_mode: SelectionMode`
+- `selectionMode: SelectionMode`
 - `selected: HashSet[int]`
 
 ###### Events
@@ -665,7 +665,7 @@ renderable ListBox of BaseWidget
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add_row`
+- `addRow`
 - `add`
 
 ###### Example
@@ -699,7 +699,7 @@ renderable FlowBoxChild of BaseWidget
 FlowBox:
   columns = 1 .. 5
   for it in 0 ..< 10:
-    FlowBoxChild {.add_child.}:
+    FlowBoxChild {.addChild.}:
       Label(text = $it)
 ```
 
@@ -714,16 +714,16 @@ renderable FlowBox of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `homogeneous: bool`
-- `row_spacing: int`
-- `column_spacing: int`
+- `rowSpacing: int`
+- `columnSpacing: int`
 - `columns: HSlice[int, int] = 1 .. 5`
-- `selection_mode: SelectionMode`
+- `selectionMode: SelectionMode`
 - `children: seq[Widget]`
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add_child`
+- `addChild`
 - `add`
 
 ###### Example
@@ -796,7 +796,7 @@ renderable Dialog of Window
 ###### Adders
 
 - All adders from [Window](#Window)
-- `add_button`
+- `addButton`
 
 
 ## BuiltinDialog
@@ -812,7 +812,7 @@ renderable BuiltinDialog
 
 ###### Adders
 
-- `add_button`
+- `addButton`
 
 
 ## FileChooserDialog
@@ -838,7 +838,7 @@ renderable ColorChooserDialog of BuiltinDialog
 
 - All fields from [BuiltinDialog](#BuiltinDialog)
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
-- `use_alpha: bool = false`
+- `useAlpha: bool = false`
 
 
 ## MessageDialog
@@ -862,7 +862,7 @@ renderable AboutDialog of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `program_name: string`
+- `programName: string`
 - `logo: string`
 - `copyright: string`
 - `version: string`
