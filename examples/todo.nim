@@ -21,7 +21,7 @@
 # SOFTWARE
 
 import std/sequtils
-import owlkettle, owlkettle/adw
+import owlkettle
 
 type TodoItem = object
   text: string
