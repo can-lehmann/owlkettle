@@ -97,10 +97,10 @@ proc updateStyle[State, Widget](state: State, widget: Widget) =
   mixin classes
   if widget.hasStyle:
     let ctx = gtk_widget_get_style_context(state.internalWidget)
-    for className in classes(state.style - widget.valStyle):
-      gtk_style_context_remove_class(ctx, className.cstring)
-    for className in classes(widget.valStyle - state.style):
-      gtk_style_context_add_class(ctx, className.cstring)
+    for styleClass in state.style - widget.valStyle:
+      gtk_style_context_remove_class(ctx, cstring($styleClass))
+    for styleClass in widget.valStyle - state.style:
+      gtk_style_context_add_class(ctx, cstring($styleClass))
     state.style = widget.valStyle
 
 type Margin* = object
@@ -246,15 +246,8 @@ proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 type BoxStyle* = enum
-  BoxLinked,
-  BoxCard
-
-iterator classes(styles: set[BoxStyle]): string =
-  for style in styles:
-    yield [
-      BoxLinked: "linked",
-      BoxCard: "card"
-    ][style]
+  BoxLinked = "linked",
+  BoxCard = "card"
 
 type
   Align* = enum
@@ -486,17 +479,9 @@ proc addOverlay*(overlay: Overlay, child: Widget,
   ))
 
 type LabelStyle* = enum
-  LabelHeading,
-  LabelBody,
-  LabelMonospace
-
-iterator classes(styles: set[LabelStyle]): string =
-  for style in styles:
-    yield [
-      LabelHeading: "heading",
-      LabelBody: "body",
-      LabelMonospace: "monospace"
-    ][style]
+  LabelHeading = "heading",
+  LabelBody = "body",
+  LabelMonospace = "monospace"
 
 type EllipsizeMode* = enum
   EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
@@ -588,17 +573,11 @@ renderable Icon of BaseWidget:
       pixelSize = 100
 
 type ButtonStyle* = enum
-  ButtonSuggested, ButtonDestructive, ButtonFlat, ButtonPill, ButtonCircular
-
-iterator classes(styles: set[ButtonStyle]): string =
-  for style in styles:
-    yield [
-      ButtonSuggested: "suggested-action",
-      ButtonDestructive: "destructive-action",
-      ButtonFlat: "flat",
-      ButtonPill: "pill",
-      ButtonCircular: "circular"
-    ][style]
+  ButtonSuggested = "suggested-action",
+  ButtonDestructive = "destructive-action",
+  ButtonFlat = "flat",
+  ButtonPill = "pill",
+  ButtonCircular = "circular"
 
 renderable Button of BaseWidget:
   style: set[ButtonStyle]
@@ -765,15 +744,9 @@ proc add*(window: ScrolledWindow, child: Widget) =
   window.valChild = child
 
 type EntryStyle* = enum
-  EntrySuccess, EntryWarning, EntryError
-
-iterator classes(styles: set[EntryStyle]): string =
-  for style in styles:
-    yield [
-      EntrySuccess: "success",
-      EntryWarning: "warning",
-      EntryError: "error"
-    ][style]
+  EntrySuccess = "success",
+  EntryWarning = "warning",
+  EntryError = "error"
 
 renderable Entry of BaseWidget:
   text: string
@@ -1784,8 +1757,8 @@ renderable Dialog of Window:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for class in classes(button.valStyle):
-          gtk_style_context_add_class(ctx, class.cstring)
+        for styleClass in button.valStyle:
+          gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
 
@@ -1806,8 +1779,8 @@ renderable BuiltinDialog:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for class in classes(button.valStyle):
-          gtk_style_context_add_class(ctx, class.cstring)
+        for styleClass in button.valStyle:
+          gtk_style_context_add_class(ctx, cstring($styleClass))
 
   adder addButton
 
