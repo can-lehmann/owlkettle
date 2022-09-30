@@ -155,7 +155,7 @@ template buildBin*(state, widget, child, hasChild, valChild, setChild: untyped) 
   if widget.hasChild:
     widget.valChild.assignApp(state.app)
     state.child = widget.valChild.build()
-    let childWidget = unwrapRenderable(state.child).internalWidget
+    let childWidget = unwrapInternalWidget(state.child)
     setChild(state.internalWidget, childWidget)
 
 template buildBin*(state, widget, setChild: untyped) =
@@ -195,22 +195,8 @@ renderable Window of BaseWidget:
         gtk_window_set_title(state.internalWidget, state.title.cstring)
   
   hooks titlebar:
-    build:
-      if widget.hasTitlebar:
-        widget.valTitlebar.assignApp(state.app)
-        state.titlebar = widget.valTitlebar.build()
-        gtk_window_set_titlebar(state.internalWidget,
-          state.titlebar.unwrapInternalWidget()
-        )
-    update:
-      if widget.hasTitlebar:
-        widget.valTitlebar.assignApp(state.app)
-        let newTitlebar = widget.valTitlebar.update(state.titlebar)
-        if not newTitlebar.isNil:
-          state.titlebar = newTitlebar
-          gtk_window_set_titlebar(state.internalWidget,
-            state.titlebar.unwrapInternalWidget()
-          )
+    build: buildBin(state, widget, titlebar, hasTitlebar, valTitlebar, gtk_window_set_titlebar)
+    update: updateBin(state, widget, titlebar, hasTitlebar, valTitlebar, gtk_window_set_titlebar)
   
   hooks defaultSize:
     property:
