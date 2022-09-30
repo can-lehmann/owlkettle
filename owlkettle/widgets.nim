@@ -582,6 +582,7 @@ type ButtonStyle* = enum
 renderable Button of BaseWidget:
   style: set[ButtonStyle]
   child: Widget
+  shortcut: string
   
   proc clicked()
   
@@ -592,6 +593,23 @@ renderable Button of BaseWidget:
       state.internalWidget.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.clicked)
+  
+  hooks shortcut:
+    build:
+      if widget.hasShortcut:
+        state.shortcut = widget.valShortcut
+      if state.shortcut.len > 0: 
+        let
+          trigger = gtk_shortcut_trigger_parse_string(state.shortcut.cstring)
+          action = gtk_shortcut_action_parse_string("signal(clicked)")
+          shortcut = gtk_shortcut_new(trigger, action)
+          controller = gtk_shortcut_controller_new()
+        gtk_shortcut_controller_set_scope(controller, GTK_SHORTCUT_SCOPE_MANAGED)
+        gtk_shortcut_controller_add_shortcut(controller, shortcut)
+        gtk_widget_add_controller(state.internalWidget, controller)
+    update:
+      if widget.hasShortcut:
+        assert state.shortcut == widget.valShortcut # TODO
   
   hooks style:
     (build, update):

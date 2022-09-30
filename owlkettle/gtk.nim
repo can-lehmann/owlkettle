@@ -101,6 +101,11 @@ type
     GTK_BUTTONS_YES_NO,
     GTK_BUTTONS_OK_CANCEL
   
+  GtkShortcutScope* = enum
+    GTK_SHORTCUT_SCOPE_LOCAL
+    GTK_SHORTCUT_SCOPE_MANAGED
+    GTK_SHORTCUT_SCOPE_GLOBAL
+  
   GtkDrawingAreaDrawFunc* = proc(area: GtkWidget, ctx: pointer, width, height: cint, data: pointer) {.cdecl.}
 
 type
@@ -112,6 +117,9 @@ type
   GtkSettings* = distinct pointer
   GtkCssProvider* = distinct pointer
   GtkEventController* = distinct pointer
+  GtkShortcut* = distinct pointer
+  GtkShortcutTrigger* = distinct pointer
+  GtkShortcutAction* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextIter): bool {.borrow.}
@@ -121,6 +129,9 @@ proc isNil*(obj: GtkIconTheme): bool {.borrow.}
 proc isNil*(obj: GtkSettings): bool {.borrow.}
 proc isNil*(obj: GtkCssProvider): bool {.borrow.}
 proc isNil*(obj: GtkEventController): bool {.borrow.}
+proc isNil*(obj: GtkShortcut): bool {.borrow.}
+proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
+proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -476,6 +487,21 @@ proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 
 # Gtk.EventControllerLegacy
 proc gtk_event_controller_legacy_new*(): GtkEventController
+
+# Gtk.ShortcutController
+proc gtk_shortcut_controller_new*(): GtkEventController
+proc gtk_shortcut_controller_add_shortcut*(cont: GtkEventController, shortcut: GtkShortcut)
+proc gtk_shortcut_controller_get_scope*(cont: GtkEventController): GtkShortcutScope
+proc gtk_shortcut_controller_set_scope*(cont: GtkEventController, scope: GtkShortcutScope)
+
+# Gtk.ShortcutTrigger
+proc gtk_shortcut_trigger_parse_string*(str: cstring): GtkShortcutTrigger
+
+# Gtk.ShortcutAction
+proc gtk_shortcut_action_parse_string*(str: cstring): GtkShortcutAction
+
+# Gtk.Shortcut
+proc gtk_shortcut_new*(trigger: GtkShortcutTrigger, action: GtkShortcutAction): GtkShortcut
 
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)

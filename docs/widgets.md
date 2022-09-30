@@ -201,6 +201,7 @@ renderable Button of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `style: set[ButtonStyle]`
 - `child: Widget`
+- `shortcut: string`
 
 ###### Setters
 
