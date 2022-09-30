@@ -8,7 +8,7 @@ When adding a new widget or modifying an existing widget, you will need to updat
 Since it is automatically generated from the `owlkettle/widgets.nim` module, running the following commands from the project folder will update the documentation to reflect any changes you made to the widgets.
 
 ```bash
-nim compile -d:owlkettle_docs -o:build_docs owlkettle
+nim compile -d:owlkettleDocs -o:build_docs owlkettle
 ./build_docs > docs/widgets.md
 ```
 
@@ -37,29 +37,29 @@ It is currently still under construction and should therefore **not** be viewed 
 
 ### Identifiers
 
-Owlkettle uses `snake_case` instead of `camelCase` for identifiers.
+Owlkettle uses `camelCase` for identifiers.
 The names of types and widgets are in `PascalCase`.
 
 ### Constructors
 
-The names of constructor procedures for `ref object` types should start with the prefix `new_` while constructor procedures for `object` types should start with the prefix `init_`.
-For example the constructor for a type named `MyType` would be called `new_my_type` if it is a `ref object` and `init_my_type` if it is an `object`.
+The names of constructor procedures for `ref object` types should start with the prefix `new` while constructor procedures for `object` types should start with the prefix `init`.
+For example the constructor for a type named `MyType` would be called `newMyType` if it is a `ref object` and `initMyType` if it is an `object`.
 
-Procedures which load data from disk should start with the prefix `load_` and take a path as their first argument.
-A procedure which loads `MyType` from disk may for example have the signature `proc load_my_type(path: string): MyType`.
+Procedures which load data from disk should start with the prefix `load` and take a path as their first argument.
+A procedure which loads `MyType` from disk may for example have the signature `proc loadMyType(path: string): MyType`.
 
 ### Procedure Calls
 
 Since there are multiple ways to call procedures in nim, it is necessary to have some guidelines on when to use which syntax.
 Please note that these are general guidelines and there are exceptions for some specific cases.
 
-Generally `my_object.do_something(argument1, ...)` and `do_something(argument_1, ...)` are preferred over `my_object.do_something argument_1, ...` and `do_something argument_1, ...`.
+Generally `myObject.doSomething(argument1, ...)` and `doSomething(argument1, ...)` are preferred over `myObject.doSomething argument1, ...` and `doSomething argument1, ...`.
 
 There are however a few exceptions to this rule:
 
 - **Echo:** The `echo` procedure should always be called using command syntax (Example: `echo "Hello, world!"`)
 - **Getters:** If the called procedure does not have any parameters and is so simple that it may be identified as a  getter for a field, it may be called without parentheses.
-- **Type Conversions:** Type conversions may be called without parentheses (Example: `my_int.float`).
-- **Imported Procedures:** Procedures imported from C code using `{.importc.}` should always be called using `my_proc(argument0, ...)`.
+- **Type Conversions:** Type conversions may be called without parentheses (Example: `myInt.float`).
+- **Imported Procedures:** Procedures imported from C code using `{.importc.}` should always be called using `myProc(argument0, ...)`.
 - **Macros/Templates:** Since the preferred way to call a macro heavily depends on the macro itself, macros may be called using any possible syntax.
 
