@@ -144,13 +144,11 @@ renderable Clamp of BaseWidget:
     build: buildBin(state, widget, adw_clamp_set_child)
     update: updateBin(state, widget, adw_clamp_set_child)
   
-  adder add
-
-proc add*(clamp: Clamp, child: Widget) =
-  if clamp.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Clamp. Use a Box widget to display multiple widgets in a Clamp.")
-  clamp.hasChild = true
-  clamp.valChild = child
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Clamp. Use a Box widget to display multiple widgets in a Clamp.")
+    widget.hasChild = true
+    widget.valChild = child
 
 renderable PreferencesGroup of BaseWidget:
   title: string
@@ -209,18 +207,15 @@ renderable PreferencesGroup of BaseWidget:
         let child = state.children.pop()
         adw_preferences_group_remove(state.internalWidget, child.unwrapInternalWidget())
   
-  adder add
-  adder add_suffix
-
-proc addSuffix*(group: PreferencesGroup, suffix: Widget) =
-  if group.hasSuffix:
-    raise newException(ValueError, "Unable to add multiple suffixes to a PreferencesGroup. Use a Box widget to display multiple widgets in a PreferencesGroup.")
-  group.hasSuffix = true
-  group.valSuffix = suffix
-
-proc add*(group: PreferencesGroup, row: ListBoxRow) =
-  group.hasChildren = true
-  group.valChildren.add(row)
+  adder add:
+    widget.hasChildren = true
+    widget.valChildren.add(child)
+  
+  adder addSuffix:
+    if widget.hasSuffix:
+      raise newException(ValueError, "Unable to add multiple suffixes to a PreferencesGroup. Use a Box widget to display multiple widgets in a PreferencesGroup.")
+    widget.hasSuffix = true
+    widget.valSuffix = child
 
 renderable PreferencesRow of ListBoxRow:
   title: string
@@ -270,9 +265,9 @@ renderable ActionRow of PreferencesRow:
         let suffix = state.suffixes.pop()
         adw_action_row_remove(state.internalWidget, suffix.unwrapInternalWidget())
 
-proc addSuffix*(row: ActionRow, suffix: Widget) =
-  row.hasSuffixes = true
-  row.valSuffixes.add(suffix)
+  adder addSuffix:
+    widget.hasSuffixes = true
+    widget.valSuffixes.add(child)
 
 export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow
 

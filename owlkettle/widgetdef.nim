@@ -105,6 +105,7 @@ type
   Adder = object
     name: string
     props: seq[Property]
+    body: NimNode
   
   WidgetDef = object
     name: string
@@ -227,15 +228,22 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
             typ: child[2][0]
           ))
         elif child[0].isName("adder"):
-          var adder = Adder(name: child[1].strVal)
-          if child[^1].kind == nnkStmtList:
-            for prop in child[^1]:
-              prop[^1].expectKind(nnkStmtList)
+          var adder = Adder()
+          
+          if child[1].isName():
+            adder.name = child[1].strVal
+          else:
+            child[1].expectKind(nnkPragmaExpr)
+            adder.name = child[1][0].strVal
+            for prop in child[1][1]:
+              prop.expectKind(nnkExprColonExpr)
               adder.props.add(Property(
                 name: prop[0].strVal,
-                typ: prop[1][0][0],
-                default: prop[1][0][1]
+                default: prop[1]
               ))
+          
+          if child[^1].kind == nnkStmtList:
+            adder.body = child[^1]
           def.adders.add(adder)
         else:
           child[^1].expectKind(nnkStmtList)
@@ -571,7 +579,7 @@ proc formatReference(widget: WidgetDef): string =
     for adder in widget.adders:
       result &= "- `" & adder.name & "`\n"
       for prop in adder.props:
-        result &= "  - `" & prop.name & ": " & prop.typ.repr & " = " & prop.default.repr & "`\n"
+        result &= "  - `" & prop.name & " = " & prop.default.repr & "`\n"
     result &= "\n"
   if widget.examples.len > 0:
     result &= "###### Example\n\n"
@@ -582,6 +590,28 @@ proc genDocs(widget: WidgetDef): NimNode {.used.} =
   result = newCall(bindSym("echo"),
     newLit(widget.formatReference())
   )
+
+proc genAdders(widget: WidgetDef): NimNode =
+  result = newStmtList()
+  for adder in widget.adders:
+    if adder.body.isNil:
+      continue
+    
+    var params = @[newEmptyNode(),
+      newIdentDefs(ident("widget"), ident(widget.name)),
+      newIdentDefs(ident("child"), bindSym("Widget"))
+    ]
+    
+    for prop in adder.props:
+      params.add(newTree(nnkIdentDefs,
+        ident(prop.name), newEmptyNode(), prop.default
+      ))
+    
+    result.add(newProc(
+      name = ident(adder.name).newExport(),
+      params = params,
+      body = adder.body
+    ))
 
 proc gen(widget: WidgetDef): NimNode =
   result = newStmtList([
@@ -595,7 +625,8 @@ proc gen(widget: WidgetDef): NimNode =
     widget.genUpdate(),
     widget.genAssignAppEvents(),
     widget.genAssignApp(),
-    widget.genRead()
+    widget.genRead(),
+    widget.genAdders()
   ])
   when defined(owlkettleDocs):
     result.add(widget.genDocs())

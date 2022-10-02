@@ -209,22 +209,19 @@ renderable Window of BaseWidget:
     build: buildBin(state, widget, gtk_window_set_child)
     update: updateBin(state, widget, gtk_window_set_child)
   
-  adder add
-  adder addTitlebar
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
+    widget.hasChild = true
+    widget.valChild = child
+  
+  adder addTitlebar:
+    widget.hasTitlebar = true
+    widget.valTitlebar = child
   
   example:
     Window:
       Label(text = "Hello, world")
-
-proc add*(window: Window, child: Widget) =
-  if window.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
-  window.hasChild = true
-  window.valChild = child
-
-proc addTitlebar*(window: Window, titlebar: Widget) =
-  window.hasTitlebar = true
-  window.valTitlebar = titlebar
 
 type Orient* = enum OrientX, OrientY
 
@@ -335,10 +332,16 @@ renderable Box of BaseWidget:
     (build, update):
       updateStyle(state, widget)
   
-  adder add:
-    expand: bool = true
-    hAlign: Align = AlignFill
-    vAlign: Align = AlignFill
+  adder add {.expand: true,
+              hAlign: AlignFill,
+              vAlign: AlignFill.}:
+    widget.hasChildren = true
+    widget.valChildren.add(BoxChild[Widget](
+      widget: child,
+      expand: expand,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
   
   example:
     Box:
@@ -365,18 +368,6 @@ renderable Box of BaseWidget:
             text = "Button " & $it
             proc clicked() =
               echo it
-
-proc add*(box: Box, child: Widget,
-          expand: bool = true,
-          hAlign: Align = AlignFill,
-          vAlign: Align = AlignFill) =
-  box.hasChildren = true
-  box.valChildren.add(BoxChild[Widget](
-    widget: child,
-    expand: expand,
-    hAlign: hAlign,
-    vAlign: vAlign
-  ))
 
 type OverlayChild[T] = object
   widget: T
@@ -443,26 +434,20 @@ renderable Overlay of BaseWidget:
         )
         discard state.overlays.pop()
   
-  adder add
-  adder add_overlay:
-    hAlign: Align = AlignFill
-    vAlign: Align = AlignFill
-
-proc add*(overlay: Overlay, child: Widget) =
-  if overlay.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the addOverlay adder.")
-  overlay.hasChild = true
-  overlay.valChild = child
-
-proc addOverlay*(overlay: Overlay, child: Widget,
-                  hAlign: Align = AlignFill,
-                  vAlign: Align = AlignFill) =
-  overlay.hasOverlays = true
-  overlay.valOverlays.add(OverlayChild[Widget](
-    widget: child,
-    hAlign: hAlign,
-    vAlign: vAlign
-  ))
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the addOverlay adder.")
+    widget.hasChild = true
+    widget.valChild = child
+  
+  adder addOverlay {.hAlign: AlignFill,
+                     vAlign: AlignFill.}:
+    widget.hasOverlays = true
+    widget.valOverlays.add(OverlayChild[Widget](
+      widget: child,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
 
 type LabelStyle* = enum
   LabelHeading = "heading",
@@ -607,7 +592,12 @@ renderable Button of BaseWidget:
   
   setter text: string
   setter icon: string
-  adder add
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Button. Use a Box widget to display multiple widgets in a Button.")
+    widget.hasChild = true
+    widget.valChild = child
   
   example:
     Button:
@@ -626,11 +616,6 @@ renderable Button of BaseWidget:
       text = "Inactive Button"
       sensitive = false
 
-proc add*(button: Button, child: Widget) =
-  if button.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Button. Use a Box widget to display multiple widgets in a Button.")
-  button.hasChild = true
-  button.valChild = child
 
 proc `hasText=`*(button: Button, value: bool) = button.hasChild = value
 proc `valText=`*(button: Button, value: string) =
@@ -699,9 +684,20 @@ renderable HeaderBar of BaseWidget:
     build: buildBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
     update: updateBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
   
-  adder addTitle
-  adder addLeft
-  adder addRight
+  adder addTitle:
+    if widget.hasTitle:
+      raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
+    widget.hasTitle = true
+    widget.valTitle = child
+  
+  adder addLeft:
+    widget.hasLeft = true
+    widget.valLeft.add(child)
+  
+  adder addRight:
+    widget.hasRight = true
+    widget.valRight.add(child)
+  
   
   example:
     Window:
@@ -714,20 +710,6 @@ renderable HeaderBar of BaseWidget:
         Button {.addRight.}:
           icon = "open-menu-symbolic"
 
-proc addTitle*(headerBar: HeaderBar, child: Widget) =
-  if headerBar.hasTitle:
-    raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
-  headerBar.hasTitle = true
-  headerBar.valTitle = child
-
-proc addLeft*(headerBar: HeaderBar, child: Widget) =
-  headerBar.hasLeft = true
-  headerBar.valLeft.add(child)
-
-proc addRight*(headerBar: HeaderBar, child: Widget) =
-  headerBar.hasRight = true
-  headerBar.valRight.add(child)
-
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
@@ -739,13 +721,11 @@ renderable ScrolledWindow of BaseWidget:
     build: buildBin(state, widget, gtk_scrolled_window_set_child)
     update: updateBin(state, widget, gtk_scrolled_window_set_child)
   
-  adder add
-
-proc add*(window: ScrolledWindow, child: Widget) =
-  if window.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a ScrolledWindow. Use a Box widget to display multiple widgets in a ScrolledWindow.")
-  window.hasChild = true
-  window.valChild = child
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a ScrolledWindow. Use a Box widget to display multiple widgets in a ScrolledWindow.")
+    widget.hasChild = true
+    widget.valChild = child
 
 type EntryStyle* = enum
   EntrySuccess = "success",
@@ -902,9 +882,18 @@ renderable Paned of BaseWidget:
       if widget.hasSecond:
         state.second.updatePanedChild(widget.valSecond, state.app)
   
-  adder add:
-    resize: bool = true
-    shrink: bool = false
+  adder add {.resize: true, shrink: false.}:
+    let panedChild = PanedChild[Widget](
+      widget: child,
+      resize: resize,
+      shrink: shrink
+    )
+    if widget.hasFirst:
+      widget.hasSecond = true
+      widget.valSecond = panedChild
+    else:
+      widget.hasFirst = true
+      widget.valFirst = panedChild
   
   example:
     Paned:
@@ -913,20 +902,6 @@ renderable Paned of BaseWidget:
         Label(text = "Sidebar")
       Box(orient = OrientY) {.resize: true.}:
         Label(text = "Content")
-
-proc add*(paned: Paned, child: Widget, resize: bool = true, shrink: bool = false) =
-  let panedChild = PanedChild[Widget](
-    widget: child,
-    resize: resize,
-    shrink: shrink
-  )
-  if paned.hasFirst:
-    paned.hasSecond = true
-    paned.valSecond = panedChild
-  else:
-    paned.hasFirst = true
-    paned.valFirst = panedChild
-
 
 type
   ModifierKey* = enum
@@ -1294,13 +1269,11 @@ renderable Popover of BaseWidget:
     build: buildBin(state, widget, gtk_popover_set_child)
     update: updateBin(state, widget, gtk_popover_set_child)
   
-  adder add
-
-proc add*(popover: Popover, child: Widget) =
-  if popover.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Popover. Use a Box widget to display multiple widgets in a popover.")
-  popover.hasChild = true
-  popover.valChild = child
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Popover. Use a Box widget to display multiple widgets in a popover.")
+    widget.hasChild = true
+    widget.valChild = child
 
 renderable MenuButton of BaseWidget:
   child: Widget
@@ -1333,14 +1306,21 @@ renderable MenuButton of BaseWidget:
   setter text: string
   setter icon: string
   
-  adder addChild
-  adder add
-
-proc addChild*(menuButton: MenuButton, child: Widget) =
-  if menuButton.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a MenuButton. Use a Box widget to display multiple widgets in a MenuButton.")
-  menuButton.hasChild = true
-  menuButton.valChild = child
+  adder addChild:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a MenuButton. Use a Box widget to display multiple widgets in a MenuButton.")
+    widget.hasChild = true
+    widget.valChild = child
+  
+  adder add:
+    if not widget.hasChild:
+      widget.hasChild = true
+      widget.valChild = child
+    elif not widget.hasPopover:
+      widget.hasPopover = true
+      widget.valPopover = child
+    else:
+      raise newException(ValueError, "Unable to add more than two children to MenuButton")
 
 proc `hasText=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = value
 proc `valText=`*(menuButton: MenuButton, value: string) =
@@ -1349,16 +1329,6 @@ proc `valText=`*(menuButton: MenuButton, value: string) =
 proc `hasIcon=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = value
 proc `valIcon=`*(menuButton: MenuButton, name: string) =
   menuButton.valChild = Icon(hasName: true, valName: name)
-
-proc add*(button: MenuButton, child: Widget) =
-  if not button.hasChild:
-    button.hasChild = true
-    button.valChild = child
-  elif not button.hasPopover:
-    button.hasPopover = true
-    button.valPopover = child
-  else:
-    raise newException(ValueError, "Unable to add more than two children to MenuButton")
 
 #[
 renderable ModelButton of BaseWidget:
@@ -1448,7 +1418,12 @@ renderable ListBoxRow of BaseWidget:
     build: buildBin(state, widget, gtk_list_box_row_set_child)
     update: updateBin(state, widget, gtk_list_box_row_set_child)
   
-  adder add
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a ListBoxRow. Use a Box widget to display multiple widgets in a ListBoxRow.")
+    widget.hasChild = true
+    widget.valChild = child
+
   
   example:
     ListBox:
@@ -1457,12 +1432,6 @@ renderable ListBoxRow of BaseWidget:
           proc activate() =
             echo it
           Label(text = $it)
-
-proc add*(row: ListBoxRow, child: Widget) =
-  if row.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a ListBoxRow. Use a Box widget to display multiple widgets in a ListBoxRow.")
-  row.hasChild = true
-  row.valChild = child
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
@@ -1536,23 +1505,20 @@ renderable ListBox of BaseWidget:
           if row >= state.rows.len:
             raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
   
-  adder addRow
-  adder add
+  adder addRow:
+    widget.hasRows = true
+    widget.valRows.add(child)
+  
+  adder add:
+    if child of ListBoxRow:
+      widget.addRow(ListBoxRow(child))
+    else:
+      widget.addRow(ListBoxRow(hasChild: true, valChild: child))
   
   example:
     ListBox:
       for it in 0..<10:
         Label(text = $it)
-
-proc addRow*(listBox: ListBox, row: ListBoxRow) =
-  listBox.hasRows = true
-  listBox.valRows.add(row)
-
-proc add*(listBox: ListBox, child: Widget) =
-  if child of ListBoxRow:
-    listBox.addRow(ListBoxRow(child))
-  else:
-    listBox.addRow(ListBoxRow(hasChild: true, valChild: child))
 
 renderable FlowBoxChild of BaseWidget:
   child: Widget
@@ -1565,7 +1531,11 @@ renderable FlowBoxChild of BaseWidget:
     build: buildBin(state, widget, gtk_flow_box_child_set_child)
     update: updateBin(state, widget, gtk_flow_box_child_set_child)
   
-  adder add
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a FlowBoxChild. Use a Box widget to display multiple widgets in a FlowBoxChild.")
+    widget.hasChild = true
+    widget.valChild = child
   
   example:
     FlowBox:
@@ -1573,12 +1543,6 @@ renderable FlowBoxChild of BaseWidget:
       for it in 0..<10:
         FlowBoxChild {.addChild.}:
           Label(text = $it)
-
-proc add*(flowBoxChild: FlowBoxChild, child: Widget) =
-  if flowBoxChild.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a FlowBoxChild. Use a Box widget to display multiple widgets in a FlowBoxChild.")
-  flowBoxChild.hasChild = true
-  flowBoxChild.valChild = child
 
 renderable FlowBox of BaseWidget:
   homogeneous: bool
@@ -1653,21 +1617,18 @@ renderable FlowBox of BaseWidget:
           unwrapRenderable(child).internalWidget
         )
   
-  adder addChild
-  adder add
+  adder addChild:
+    widget.hasChildren = true
+    widget.valChildren.add(child)
+
+  adder add:
+    widget.addChild(FlowBoxChild(hasChild: true, valChild: child))
   
   example:
     FlowBox:
       columns = 1..5
       for it in 0..<10:
         Label(text = $it)
-
-proc addChild*(flowBox: FlowBox, child: FlowBoxChild) =
-  flowBox.hasChildren = true
-  flowBox.valChildren.add(child)
-
-proc add*(flowBox: FlowBox, child: Widget) =
-  flowBox.addChild(FlowBoxChild(hasChild: true, valChild: child))
 
 renderable Frame of BaseWidget:
   label: string
@@ -1695,7 +1656,11 @@ renderable Frame of BaseWidget:
     build: buildBin(state, widget, gtk_frame_set_child)
     update: updateBin(state, widget, gtk_frame_set_child)
   
-  adder add
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Frame. Use a Box widget to display multiple widgets in a Frame.")
+    widget.hasChild = true
+    widget.valChild = child 
   
   example:
     Frame:
@@ -1703,12 +1668,6 @@ renderable Frame of BaseWidget:
       align = (0.2, 0.0)
       Label:
         text = "Content"
-
-proc add*(frame: Frame, child: Widget) =
-  if frame.hasChild:
-    raise newException(ValueError, "Unable to add multiple children to a Frame. Use a Box widget to display multiple widgets in a Frame.")
-  frame.hasChild = true
-  frame.valChild = child 
 
 type
   DialogResponseKind* = enum
@@ -1785,7 +1744,7 @@ renderable BuiltinDialog:
           ctx = gtk_widget_get_style_context(buttonWidget)
         for styleClass in button.valStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
-
+  
   adder addButton
 
 proc addButton*(dialog: BuiltinDialog, button: DialogButton) =

@@ -69,9 +69,9 @@ renderable Box of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
-  - `expand: bool = true`
-  - `hAlign: Align = AlignFill`
-  - `vAlign: Align = AlignFill`
+  - `expand = true`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignFill`
 
 ###### Example
 
@@ -120,9 +120,9 @@ renderable Overlay of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
-- `add_overlay`
-  - `hAlign: Align = AlignFill`
-  - `vAlign: Align = AlignFill`
+- `addOverlay`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignFill`
 
 
 ## Label
@@ -363,8 +363,8 @@ renderable Paned of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
-  - `resize: bool = true`
-  - `shrink: bool = false`
+  - `resize = true`
+  - `shrink = false`
 
 ###### Example
 
