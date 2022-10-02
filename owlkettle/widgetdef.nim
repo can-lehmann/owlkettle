@@ -152,7 +152,7 @@ proc parseName(name: NimNode, def: var WidgetDef) =
     of nnkIdent, nnkSym:
       def.name = name.strVal
     of nnkInfix:
-      if name[0].isName("of"):
+      if name[0].eqIdent("of"):
         name[1].parseName(def)
         if not name[2].isName:
           error("Expected identifier after of in widget name, but got " & $name[2].kind)
@@ -198,7 +198,7 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
         ))
       of nnkCallKinds:
         assert not child[0].unwrapName().isNil
-        if child[0].isName("hooks"):
+        if child[0].eqIdent("hooks"):
           child[^1].expectKind(nnkStmtList)
           var hooks: array[HookKind, NimNode]
           for hookDef in child[^1]:
@@ -218,16 +218,16 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
             for kind, body in hooks:
               if not body.isNil:
                 def.fields[fieldId].hooks[kind] = body
-        elif child[0].isName("example"):
+        elif child[0].eqIdent("example"):
           child[^1].expectKind(nnkStmtList)
           def.examples.add(child[1])
-        elif child[0].isName("setter"):
+        elif child[0].eqIdent("setter"):
           child[^1].expectKind(nnkStmtList)
           def.setters.add(Property(
             name: child[1].strVal,
             typ: child[2][0]
           ))
-        elif child[0].isName("adder"):
+        elif child[0].eqIdent("adder"):
           var adder = Adder()
           
           if child[1].isName():
@@ -354,7 +354,7 @@ proc genBuildState(def: WidgetDef): NimNode =
   
   for field in def.fields:
     if not field.hooks[HookBuild].isNil:
-      result.add(field.hooks[HookBuild].clone())
+      result.add(field.hooks[HookBuild].copyNimTree())
     else:
       var cond = newTree(nnkIfStmt, [
         newTree(nnkElifBranch, [
@@ -372,14 +372,14 @@ proc genBuildState(def: WidgetDef): NimNode =
         ))))
       result.add(cond)
       if not field.hooks[HookProperty].isNil:
-        result.add(field.hooks[HookProperty].clone())
+        result.add(field.hooks[HookProperty].copyNimTree())
   for event in def.events:
     result.add(newAssignment(
       newDotExpr(state, event.name),
       newDotExpr(widget, event.name)
     ))
   for body in def.hooks[HookConnectEvents]:
-    result.add(body.clone())
+    result.add(body.copyNimTree())
   
   result = newProc(
     procType=nnkProcDef,
@@ -428,7 +428,7 @@ proc genUpdateState(def: WidgetDef): NimNode =
     result.add(newCall(ident("updateState"), state, newCall(def.widgetBase, widget)))
   
   for hook in def.hooks[HookDisconnectEvents]:
-    result.add(hook.clone())
+    result.add(hook.copyNimTree())
   for field in def.fields:
     if not field.hooks[HookUpdate].isNil:
       result.add(field.hooks[HookUpdate])
@@ -439,7 +439,7 @@ proc genUpdateState(def: WidgetDef): NimNode =
       ))
       var cond = newDotExpr(widget, field.has)
       if not field.hooks[HookProperty].isNil:
-        update.add(field.hooks[HookProperty].clone())
+        update.add(field.hooks[HookProperty].copyNimTree())
         cond = newCall(bindSym("and"), [
           cond,
           newCall(bindSym("!="), [
@@ -456,9 +456,9 @@ proc genUpdateState(def: WidgetDef): NimNode =
       newDotExpr(widget, event.name)
     ))
   for hook in def.hooks[HookUpdate]:
-    result.add(hook.clone())
+    result.add(hook.copyNimTree())
   for hook in def.hooks[HookConnectEvents]:
-    result.add(hook.clone())
+    result.add(hook.copyNimTree())
   
   result = newProc(
     procType=nnkProcDef,
@@ -536,7 +536,7 @@ proc genRead(def: WidgetDef): NimNode =
   
   for field in def.fields:
     if not field.hooks[HookRead].isNil:
-      body.add(field.hooks[HookRead].clone())
+      body.add(field.hooks[HookRead].copyNimTree())
   
   result = quote:
     method read(`state`: `stateTyp`) =

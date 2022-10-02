@@ -25,7 +25,6 @@
 import std/[macros]
 
 proc isName*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
-proc isName*(node: NimNode, name: string): bool = node.isName and node.eqIdent(name)
 
 proc unwrapName*(node: NimNode): NimNode =
   result = node
@@ -44,7 +43,7 @@ proc findPragma*(node: NimNode, name: string): NimNode =
   case node.kind:
     of nnkPragma:
       for child in node:
-        if child.isName(name):
+        if child.eqIdent(name):
           return child
     else:
       for child in node:
@@ -70,16 +69,3 @@ proc newBracketExpr*(node, index: NimNode): NimNode =
 
 proc newExport*(node: NimNode): NimNode =
   result = newTree(nnkPostfix, ident("*"), node)
-
-proc clone*(node: NimNode): NimNode =
-  case node.kind:
-    of nnkIdent, nnkSym:
-      result = ident(node.strVal)
-    of nnkLiterals:
-      result = node
-    else:
-      result = newNimNode(node.kind)
-      for child in node:
-        result.add(child.clone()) 
-  result.copyLineInfo(node)
-

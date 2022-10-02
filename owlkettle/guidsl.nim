@@ -81,7 +81,7 @@ proc parseAdder(node: NimNode): Adder =
 proc parseGui(node: NimNode): Node =
   case node.kind:
     of nnkCallKinds:
-      if node[0].unwrapName().isName("insert"):
+      if node[0].unwrapName().eqIdent("insert"):
         return Node(kind: NodeInsert, insert: node[1])
       elif node[0].isName:
         result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
