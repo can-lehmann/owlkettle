@@ -29,7 +29,7 @@ type
   NodeKind = enum
     NodeWidget, NodeAttribute, NodeEvent,
     NodeBlock, NodeFor, NodeIf, NodeCase,
-    NodeInsert
+    NodeInsert, NodeLet
   
   Adder = object
     name: string
@@ -62,6 +62,8 @@ type
       of NodeInsert:
         insert: NimNode
         insertAdder: Adder
+      of NodeLet:
+        defs: seq[NimNode]
       else: discard
 
 proc parseAdder(node: NimNode): Adder =
@@ -146,6 +148,10 @@ proc parseGui(node: NimNode): Node =
             result.default = child[0].parseGui()
           else:
             error($child.kind & " is not a valid gui tree inside a case statement.", child)
+    of nnkLetSection:
+      result = Node(kind: NodeLet)
+      for def in node:
+        result.defs.add(def)
     else: error($node.kind & " is not a valid gui tree.", node)
 
 proc gen(adder: Adder, name, parent: NimNode): NimNode =
@@ -191,16 +197,18 @@ proc gen(node: Node, stmts, parent: NimNode) =
   case node.kind:
     of NodeWidget:
       let
+        body = newStmtList()
         name = gensym(nskLet)
         widgetTyp = ident(node.widget)
       widgetTyp.copyLineInfo(node.lineInfo)
-      stmts.add(newLetStmt(name, newCall(widgetTyp)))
+      body.add(newLetStmt(name, newCall(widgetTyp)))
       for child in node.children:
-        child.gen(stmts, name)
+        child.gen(body, name)
       if not parent.isNil:
-        stmts.add(node.adder.gen(name, parent))
+        body.add(node.adder.gen(name, parent))
       else:
-        stmts.add(name)
+        body.add(name)
+      stmts.add(newTree(nnkBlockStmt, newEmptyNode(), body))
     of NodeAttribute:
       stmts.add(newAssignment(
         newDotExpr(parent, "has" & capitalizeAscii(node.name)),
@@ -262,6 +270,8 @@ proc gen(node: Node, stmts, parent: NimNode) =
       stmts.add(stmt)
     of NodeInsert:
       stmts.add(node.insertAdder.gen(node.insert, parent))
+    of NodeLet:
+      stmts.add(newTree(nnkLetSection, node.defs))
 
 macro gui*(tree: untyped): untyped =
   let gui = tree.parseGui()
