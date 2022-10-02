@@ -1766,7 +1766,8 @@ renderable FileChooserDialog of BuiltinDialog:
       state.internalWidget = gtk_file_chooser_dialog_new(
         widget.valTitle.cstring,
         nil,
-        GtkFileChooserAction(ord(widget.valAction))
+        GtkFileChooserAction(ord(widget.valAction)),
+        nil
       )
   
   hooks filename:
@@ -1816,7 +1817,8 @@ renderable MessageDialog of BuiltinDialog:
         GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_NONE,
-        widget.valMessage.cstring
+        widget.valMessage.cstring,
+        nil
       )
 
 renderable AboutDialog of BaseWidget:
