@@ -736,6 +736,7 @@ renderable Entry of BaseWidget:
   text: string
   placeholder: string
   width: int = -1
+  maxWidth: int = -1
   xAlign: float = 0.0
   visibility: bool = true
   invisibleChar: Rune = '*'.Rune
@@ -772,6 +773,10 @@ renderable Entry of BaseWidget:
   hooks width:
     property:
       gtk_editable_set_width_chars(state.internalWidget, state.width.cint)
+  
+  hooks maxWidth:
+    property:
+      gtk_editable_set_max_width_chars(state.internalWidget, state.maxWidth.cint)
   
   hooks xAlign:
     property:
@@ -1279,6 +1284,8 @@ renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
   
+  style: set[ButtonStyle]
+  
   hooks:
     beforeBuild:
       state.internalWidget = gtk_menu_button_new()
@@ -1302,6 +1309,10 @@ renderable MenuButton of BaseWidget:
           let popoverWidget = newPopover.unwrapInternalWidget()
           gtk_menu_button_set_popover(state.internalWidget, popoverWidget)
           state.popover = newPopover
+  
+  hooks style:
+    (build, update):
+      updateStyle(state, widget)
   
   setter text: string
   setter icon: string

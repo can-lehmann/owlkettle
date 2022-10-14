@@ -49,6 +49,7 @@ viewable NumberEntry:
   
   placeholder: string
   width: int = -1
+  maxWidth: int = -1
   xAlign: float = 0.0
   
   proc changed(value: float)
@@ -74,6 +75,7 @@ method view*(entry: NumberEntryState): Widget =
       
       placeholder = entry.placeholder
       width = entry.width
+      maxWidth = entry.maxWidth
       xAlign = entry.xAlign
       
       if entry.consistent:

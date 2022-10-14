@@ -423,6 +423,7 @@ proc gtk_overlay_remove_overlay*(overlay, child: GtkWidget)
 proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)
 proc gtk_editable_get_text*(entry: GtkWidget): cstring
 proc gtk_editable_set_width_chars*(entry: GtkWidget, chars: cint)
+proc gtk_editable_set_max_width_chars*(entry: GtkWidget, chars: cint)
 
 # Gtk.Entry
 proc gtk_entry_new*(): GtkWidget

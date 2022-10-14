@@ -304,6 +304,7 @@ renderable Entry of BaseWidget
 - `text: string`
 - `placeholder: string`
 - `width: int = -1`
+- `maxWidth: int = -1`
 - `xAlign: float = 0.0`
 - `visibility: bool = true`
 - `invisibleChar: Rune = '*'.Rune`
@@ -571,6 +572,7 @@ renderable MenuButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 - `popover: Widget`
+- `style: set[ButtonStyle]`
 
 ###### Setters
 
