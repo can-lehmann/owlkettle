@@ -91,6 +91,8 @@ proc cairo_set_source_rgb(ctx: CairoContext, r, g, b: cdouble)
 proc cairo_set_source_rgba(ctx: CairoContext, r, g, b, a: cdouble)
 proc cairo_fill(ctx: CairoContext)
 proc cairo_stroke(ctx: CairoContext)
+proc cairo_clip(ctx: CairoContext)
+proc cairo_reset_clip(ctx: CairoContext)
 
 proc cairo_get_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
 proc cairo_set_matrix(ctx: CairoContext, mat: ptr CairoMatrix)
@@ -182,6 +184,9 @@ proc `lineWidth=`*(ctx: CairoContext, width: float) =
 
 proc fill*(ctx: CairoContext) = cairo_fill(ctx)
 proc stroke*(ctx: CairoContext) = cairo_stroke(ctx)
+
+proc clip*(ctx: CairoContext) = cairo_clip(ctx)
+proc resetClip*(ctx: CairoContext) = cairo_reset_clip(ctx)
 
 proc matrix*(ctx: CairoContext): CairoMatrix = cairo_get_matrix(ctx, result.addr)
 proc `matrix=`*(ctx: CairoContext, mat: CairoMatrix) = cairo_set_matrix(ctx, mat.unsafe_addr)
