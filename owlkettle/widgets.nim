@@ -929,6 +929,19 @@ type
     rune*: Rune
     value*: int
     modifiers*: set[ModifierKey]
+  
+  ScrollDirection* = enum
+    ScrollUp, ScrollDown, ScrollLeft, ScrollRight, ScrollSmooth
+  
+  ScrollEvent* = object
+    time*: uint32
+    modifiers*: set[ModifierKey]
+    case direction*: ScrollDirection:
+      of ScrollSmooth: dx*, dy*: float
+      else: discard
+
+proc toScrollDirection(dir: GdkScrollDirection): ScrollDirection =
+  result = ScrollDirection(ord(dir))
 
 proc initModifierSet(state: GdkModifierType): set[ModifierKey] =
   const MODIFIERS = [
@@ -947,6 +960,7 @@ type
     mousePressed: proc(event: ButtonEvent): bool
     mouseReleased: proc(event: ButtonEvent): bool
     mouseMoved: proc(event: MotionEvent): bool
+    scroll: proc(event: ScrollEvent): bool
     keyPressed: proc(event: KeyEvent): bool
     keyReleased: proc(event: KeyEvent): bool
     app: Viewable
@@ -1018,6 +1032,21 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
       else:
         if not data[].keyReleased.isNil:
           stopEvent = data[].keyReleased(evt)
+    of GDK_SCROLL:
+      if not data[].scroll.isNil:
+        var evt = ScrollEvent(
+          time: time,
+          direction: toScrollDirection(gdk_scroll_event_get_direction(event)),
+          modifiers: modifiers
+        )
+        if evt.direction == ScrollSmooth:
+          var
+            dx: cdouble
+            dy: cdouble
+          gdk_scroll_event_get_deltas(event, dx.addr, dy.addr)
+          evt.dx = float(dx)
+          evt.dy = float(dy)
+        stopEvent = data[].scroll(evt)
     else: discard
   
   if data[].app.isNil:
@@ -1050,6 +1079,7 @@ renderable CustomWidget of BaseWidget:
   proc mousePressed(event: ButtonEvent): bool
   proc mouseReleased(event: ButtonEvent): bool
   proc mouseMoved(event: MotionEvent): bool
+  proc scroll(event: ScrollEvent): bool
   proc keyPressed(event: KeyEvent): bool
   proc keyReleased(event: KeyEvent): bool
   
@@ -1064,6 +1094,7 @@ renderable CustomWidget of BaseWidget:
       state.events.mousePressed = state.mousePressed.callbackOrNil
       state.events.mouseReleased = state.mouseReleased.callbackOrNil
       state.events.mouseMoved = state.mouseMoved.callbackOrNil
+      state.events.scroll = state.scroll.callbackOrNil
       state.events.keyPressed = state.keyPressed.callbackOrNil
       state.events.keyReleased = state.keyReleased.callbackOrNil
   

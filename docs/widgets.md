@@ -396,6 +396,7 @@ renderable CustomWidget of BaseWidget
 - mousePressed: `proc (event: ButtonEvent): bool`
 - mouseReleased: `proc (event: ButtonEvent): bool`
 - mouseMoved: `proc (event: MotionEvent): bool`
+- scroll: `proc (event: ScrollEvent): bool`
 - keyPressed: `proc (event: KeyEvent): bool`
 - keyReleased: `proc (event: KeyEvent): bool`
 
