@@ -562,6 +562,17 @@ renderable Popover of BaseWidget
 - `add`
 
 
+## PopoverMenu
+
+```nim
+renderable PopoverMenu of Popover
+```
+
+###### Fields
+
+- All fields from [Popover](#Popover)
+
+
 ## MenuButton
 
 ```nim
@@ -585,6 +596,22 @@ renderable MenuButton of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `addChild`
 - `add`
+
+
+## ModelButton
+
+```nim
+renderable ModelButton of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+
+###### Events
+
+- clicked: `proc ()`
 
 
 ## Separator

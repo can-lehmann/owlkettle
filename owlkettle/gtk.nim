@@ -266,6 +266,8 @@ proc g_signal_connect_data*(widget: pointer,
                             name: cstring,
                             callback, data, destroyData: pointer,
                             flags: GConnectFlags): culong
+proc g_type_from_name*(name: cstring): GType
+proc g_object_new*(typ: GType): pointer {.varargs.}
 proc g_object_unref*(obj: pointer)
 proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
 proc g_type_fundamental*(id: GType): GType
@@ -539,6 +541,9 @@ proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
 proc gtk_popover_set_child*(popover, child: GtkWidget)
+
+# Gtk.PopoverMenu
+proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget

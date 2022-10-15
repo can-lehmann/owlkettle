@@ -1311,6 +1311,11 @@ renderable Popover of BaseWidget:
     widget.hasChild = true
     widget.valChild = child
 
+renderable PopoverMenu of Popover:
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_popover_menu_new_from_model(nil)
+
 renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
@@ -1372,7 +1377,6 @@ proc `hasIcon=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = va
 proc `valIcon=`*(menuButton: MenuButton, name: string) =
   menuButton.valChild = Icon(hasName: true, valName: name)
 
-#[
 renderable ModelButton of BaseWidget:
   text: string
   
@@ -1380,7 +1384,7 @@ renderable ModelButton of BaseWidget:
   
   hooks:
     beforeBuild:
-      state.internalWidget = gtk_model_button_new()
+      state.internalWidget = GtkWidget(g_object_new(g_type_from_name("GtkModelButton"), nil))
     connectEvents:
       state.internalWidget.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
@@ -1391,7 +1395,6 @@ renderable ModelButton of BaseWidget:
       var value = g_value_new(state.text)
       g_object_set_property(state.internalWidget.pointer, "text", value.addr)
       g_value_unset(value.addr)
-]#
 
 renderable Separator of BaseWidget:
   orient: Orient
@@ -1907,8 +1910,8 @@ renderable AboutDialog of BaseWidget:
 export BaseWidget, BaseWidgetState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
-export DrawingArea, GlArea, MenuButton, Separator, Popover, TextView
-export ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame
+export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
+export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState
