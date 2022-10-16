@@ -565,12 +565,19 @@ renderable Popover of BaseWidget
 ## PopoverMenu
 
 ```nim
-renderable PopoverMenu of Popover
+renderable PopoverMenu of BaseWidget
 ```
 
 ###### Fields
 
-- All fields from [Popover](#Popover)
+- All fields from [BaseWidget](#BaseWidget)
+- `pages: Table[string, Widget]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+  - `name = "main"`
 
 
 ## MenuButton
@@ -609,6 +616,7 @@ renderable ModelButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
 - `icon: string`
+- `menuName: string`
 
 ###### Events
 

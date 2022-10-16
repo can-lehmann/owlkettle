@@ -368,6 +368,8 @@ proc gtk_widget_get_native*(widget: GtkWidget): GtkWidget
 proc gtk_widget_get_allocation*(widget: GtkWidget, alloc: ptr GdkRectangle)
 proc gtk_widget_set_tooltip_text*(widget: GtkWidget, tooltip: cstring)
 proc gtk_widget_set_has_tooltip*(widget: GtkWidget, hasTooltip: cbool)
+proc gtk_widget_get_first_child*(widget: GtkWidget): GtkWidget
+proc gtk_widget_get_name*(widget: GtkWidget): cstring
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
@@ -541,9 +543,16 @@ proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
 proc gtk_popover_set_child*(popover, child: GtkWidget)
+proc gtk_popover_get_child*(popover: GtkWidget): GtkWidget
 
 # Gtk.PopoverMenu
 proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget
+proc gtk_popover_menu_remove_child*(popover, child: GtkWidget)
+proc gtk_popover_menu_add_child*(popover, child: GtkWidget, id: cstring)
+
+# Gtk.Stack
+proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
+proc gtk_stack_remove*(stack, child: GtkWidget)
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget

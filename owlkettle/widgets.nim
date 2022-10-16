@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets]
+import std/[unicode, sets, tables]
 import gtk, widgetdef, cairo
 
 when defined(owlkettleDocs):
@@ -1311,10 +1311,47 @@ renderable Popover of BaseWidget:
     widget.hasChild = true
     widget.valChild = child
 
-renderable PopoverMenu of Popover:
+renderable PopoverMenu of BaseWidget:
+  pages: Table[string, Widget]
+  
   hooks:
     beforeBuild:
       state.internalWidget = gtk_popover_menu_new_from_model(nil)
+  
+  hooks pages:
+    (build, update):
+      if widget.hasPages:
+        for name, page in widget.valPages:
+          page.assignApp(state.app)
+        
+        let
+          window = gtk_popover_get_child(state.internalWidget)
+          viewport = gtk_widget_get_first_child(window)
+          stack = gtk_widget_get_first_child(viewport)
+        
+        for name, page in state.pages:
+          if name notin widget.valPages:
+            gtk_stack_remove(stack, page.unwrapInternalWidget())
+        
+        for name, pageWidget in widget.valPages:
+          if name in state.pages:
+            let
+              page = state.pages[name]
+              newPage = pageWidget.update(page)
+            if not newPage.isNil:
+              gtk_stack_remove(stack, page.unwrapInternalWidget())
+              gtk_stack_add_named(stack, newPage.unwrapInternalWidget(), name.cstring)
+              state.pages[name] = newPage
+          else:
+            let page = pageWidget.build()
+            gtk_stack_add_named(stack, page.unwrapInternalWidget(), name.cstring)
+            state.pages[name] = page
+  
+  adder add {.name: "main".}:
+    if name in widget.valPages:
+      raise newException(ValueError, "Page \"" & name & "\" already exists")
+    widget.hasPages = true
+    widget.valPages[name] = child
 
 renderable MenuButton of BaseWidget:
   child: Widget
@@ -1380,6 +1417,7 @@ proc `valIcon=`*(menuButton: MenuButton, name: string) =
 renderable ModelButton of BaseWidget:
   text: string
   icon: string
+  menuName: string
   
   proc clicked()
   
@@ -1408,6 +1446,17 @@ renderable ModelButton of BaseWidget:
         var value = g_value_new(icon)
         g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
         g_value_unset(value.addr)
+  
+  hooks menuName:
+    property:
+      var value: GValue
+      discard g_value_init(value.addr, G_TYPE_STRING)
+      if state.menuName.len > 0:
+        g_value_set_string(value.addr, state.menuName.cstring)
+      else:
+        g_value_set_string(value.addr, nil)
+      g_object_set_property(state.internalWidget.pointer, "menu_name", value.addr)
+      g_value_unset(value.addr)
 
 renderable Separator of BaseWidget:
   orient: Orient
