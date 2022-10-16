@@ -1379,6 +1379,7 @@ proc `valIcon=`*(menuButton: MenuButton, name: string) =
 
 renderable ModelButton of BaseWidget:
   text: string
+  icon: string
   
   proc clicked()
   
@@ -1395,6 +1396,18 @@ renderable ModelButton of BaseWidget:
       var value = g_value_new(state.text)
       g_object_set_property(state.internalWidget.pointer, "text", value.addr)
       g_value_unset(value.addr)
+  
+  hooks icon:
+    property:
+      var value = g_value_new(state.icon.len > 0)
+      g_object_set_property(state.internalWidget.pointer, "iconic", value.addr)
+      g_value_unset(value.addr)
+      if state.icon.len > 0:
+        var err: GError
+        let icon = g_icon_new_for_string(state.icon, err.addr)
+        var value = g_value_new(icon)
+        g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
+        g_value_unset(value.addr)
 
 renderable Separator of BaseWidget:
   orient: Orient

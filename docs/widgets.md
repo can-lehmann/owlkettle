@@ -608,6 +608,7 @@ renderable ModelButton of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
+- `icon: string`
 
 ###### Events
 

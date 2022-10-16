@@ -354,7 +354,7 @@ proc genBuildState(def: WidgetDef): NimNode =
   
   for field in def.fields:
     if not field.hooks[HookBuild].isNil:
-      result.add(field.hooks[HookBuild].copyNimTree())
+      result.add(newBlockStmt(field.hooks[HookBuild].copyNimTree()))
     else:
       var cond = newTree(nnkIfStmt, [
         newTree(nnkElifBranch, [
@@ -372,14 +372,14 @@ proc genBuildState(def: WidgetDef): NimNode =
         ))))
       result.add(cond)
       if not field.hooks[HookProperty].isNil:
-        result.add(field.hooks[HookProperty].copyNimTree())
+        result.add(newBlockStmt(field.hooks[HookProperty].copyNimTree()))
   for event in def.events:
     result.add(newAssignment(
       newDotExpr(state, event.name),
       newDotExpr(widget, event.name)
     ))
   for body in def.hooks[HookConnectEvents]:
-    result.add(body.copyNimTree())
+    result.add(newBlockStmt(body.copyNimTree()))
   
   result = newProc(
     procType=nnkProcDef,
@@ -431,7 +431,7 @@ proc genUpdateState(def: WidgetDef): NimNode =
     result.add(hook.copyNimTree())
   for field in def.fields:
     if not field.hooks[HookUpdate].isNil:
-      result.add(field.hooks[HookUpdate])
+      result.add(newBlockStmt(field.hooks[HookUpdate]))
     else:
       let update = newStmtList(newAssignment(
         newDotExpr(state, field.name),
@@ -456,9 +456,9 @@ proc genUpdateState(def: WidgetDef): NimNode =
       newDotExpr(widget, event.name)
     ))
   for hook in def.hooks[HookUpdate]:
-    result.add(hook.copyNimTree())
+    result.add(newBlockStmt(hook.copyNimTree()))
   for hook in def.hooks[HookConnectEvents]:
-    result.add(hook.copyNimTree())
+    result.add(newBlockStmt(hook.copyNimTree()))
   
   result = newProc(
     procType=nnkProcDef,
