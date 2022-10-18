@@ -106,11 +106,17 @@ type
     GTK_SHORTCUT_SCOPE_MANAGED
     GTK_SHORTCUT_SCOPE_GLOBAL
   
+  GtkTextIter* = object
+    a, b: pointer
+    c, d, e, f, g, h: cint
+    i, j: pointer
+    k, l, m: cint
+    n: pointer
+  
   GtkDrawingAreaDrawFunc* = proc(area: GtkWidget, ctx: pointer, width, height: cint, data: pointer) {.cdecl.}
 
 type
   GtkTextBuffer* = distinct pointer
-  GtkTextIter* = distinct pointer
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
@@ -122,7 +128,6 @@ type
   GtkShortcutAction* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
-proc isNil*(obj: GtkTextIter): bool {.borrow.}
 proc isNil*(obj: GtkAdjustment): bool {.borrow.}
 proc isNil*(obj: GtkStyleContext): bool {.borrow.}
 proc isNil*(obj: GtkIconTheme): bool {.borrow.}
@@ -567,23 +572,33 @@ proc gtk_text_buffer_new*(table: pointer): GtkTextBuffer
 proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_char_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_modified*(buffer: GtkTextBuffer): cbool
-proc gtk_text_buffer_insert*(buffer: GtkTextBuffer, iter: GtkTextIter, text: cstring, len: cint)
-proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, start, stop: GtkTextIter)
+proc gtk_text_buffer_get_can_redo*(buffer: GtkTextBuffer): cbool
+proc gtk_text_buffer_get_can_undo*(buffer: GtkTextBuffer): cbool
+proc gtk_text_buffer_redo*(buffer: GtkTextBuffer)
+proc gtk_text_buffer_undo*(buffer: GtkTextBuffer)
+proc gtk_text_buffer_get_has_selection*(buffer: GtkTextBuffer): cbool
+proc gtk_text_buffer_get_selection_bounds*(buffer: GtkTextBuffer, a, b: ptr GtkTextIter): cbool
+proc gtk_text_buffer_insert*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, text: cstring, len: cint)
+proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, start, stop: ptr GtkTextIter)
 proc gtk_text_buffer_set_text*(buffer: GtkTextBuffer, text: cstring, len: cint)
 proc gtk_text_buffer_get_text*(buffer: GtkTextBuffer,
-                               start, stop: GtkTextIter,
+                               start, stop: ptr GtkTextIter,
                                includeHiddenChars: cbool): cstring
 proc gtk_text_buffer_begin_user_action*(buffer: GtkTextBuffer)
 proc gtk_text_buffer_end_user_action*(buffer: GtkTextBuffer)
-proc gtk_text_buffer_get_start_iter*(buffer: GtkTextBuffer, iter: GtkTextIter)
-proc gtk_text_buffer_get_end_iter*(buffer: GtkTextBuffer, iter: GtkTextIter)
-proc gtk_text_buffer_get_iter_at_line*(buffer: GtkTextBuffer, iter: GtkTextIter, line: cint)
-proc gtk_text_buffer_get_iter_at_offset*(buffer: GtkTextBuffer, iter: GtkTextIter, offset: cint)
+proc gtk_text_buffer_get_start_iter*(buffer: GtkTextBuffer, iter: ptr GtkTextIter)
+proc gtk_text_buffer_get_end_iter*(buffer: GtkTextBuffer, iter: ptr GtkTextIter)
+proc gtk_text_buffer_get_iter_at_line*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, line: cint)
+proc gtk_text_buffer_get_iter_at_offset*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, offset: cint)
 
 # Gtk.TextView
 proc gtk_text_view_new*(): GtkWidget
 proc gtk_text_view_set_buffer*(textView: GtkWidget, buffer: GtkTextBuffer)
 proc gtk_text_view_set_monospace*(textView: GtkWidget, monospace: cbool)
+proc gtk_text_view_set_cursor_visible*(textView: GtkWidget, isVisible: cbool)
+proc gtk_text_view_set_editable*(textView: GtkWidget, editable: cbool)
+proc gtk_text_view_set_accepts_tab*(textView: GtkWidget, acceptsTab: cbool)
+proc gtk_text_view_set_indent*(textView: GtkWidget, indent: cint)
 
 # Gtk.ListBox
 proc gtk_list_box_new*(): GtkWidget

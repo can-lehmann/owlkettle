@@ -645,7 +645,11 @@ renderable TextView of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `buffer: TextBuffer`
-- `monospace: bool`
+- `monospace: bool = false`
+- `cursorVisible: bool = true`
+- `editable: bool = true`
+- `acceptsTab: bool = true`
+- `indent: int = 0`
 
 ###### Events
 

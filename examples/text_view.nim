@@ -31,12 +31,28 @@ method view(app: AppState): Widget =
       title = "Text View Example"
       
       HeaderBar {.addTitlebar.}:
-        #subtitle = $app.buffer.countLines & " line(s)"
-        
         Button {.addLeft.}:
           text = "Set Text"
           proc clicked() =
             app.buffer.text = "Hello, world!\n"
+        
+        Button {.addLeft.}:
+          text = "Get Text"
+          proc clicked() =
+            if app.buffer.hasSelection:
+              echo app.buffer.text(app.buffer.selection)
+            else:
+              echo app.buffer.text
+        
+        Button {.addLeft.}:
+          text = "Insert"
+          proc clicked() =
+            app.buffer.insert(app.buffer.selection.a, "Hello, world!")
+        
+        Button {.addLeft.}:
+          text = "Delete"
+          proc clicked() =
+            app.buffer.delete(app.buffer.selection)
       
       ScrolledWindow:
         TextView:

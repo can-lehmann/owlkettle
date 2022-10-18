@@ -1470,6 +1470,9 @@ type
     gtk: GtkTextBuffer
   
   TextBuffer* = ref TextBufferObj
+  
+  TextIter* = GtkTextIter
+  TextSlice* = HSlice[TextIter, TextIter]
 
 proc finalizer(buffer: TextBuffer) =
   g_object_unref(pointer(buffer.gtk))
@@ -1478,15 +1481,71 @@ proc newTextBuffer*(): TextBuffer =
   new(result, finalizer=finalizer)
   result.gtk = gtk_text_buffer_new(nil)
 
-proc countLines*(buffer: TextBuffer): int =
+{.push inline.}
+proc lineCount*(buffer: TextBuffer): int =
   result = int(gtk_text_buffer_get_line_count(buffer.gtk))
+
+proc charCount*(buffer: TextBuffer): int =
+  result = int(gtk_text_buffer_get_char_count(buffer.gtk))
+
+proc startIter*(buffer: TextBuffer): TextIter =
+  gtk_text_buffer_get_start_iter(buffer.gtk, result.addr)
+
+proc endIter*(buffer: TextBuffer): TextIter =
+  gtk_text_buffer_get_end_iter(buffer.gtk, result.addr)
+
+proc iterAtLine*(buffer: TextBuffer, line: int): TextIter =
+  gtk_text_buffer_get_iter_at_line(buffer.gtk, result.addr, line.cint)
+
+proc iterAtOffset*(buffer: TextBuffer, offset: int): TextIter =
+  gtk_text_buffer_get_iter_at_offset(buffer.gtk, result.addr, offset.cint)
 
 proc `text=`*(buffer: TextBuffer, text: string) =
   gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
 
+proc text*(buffer: TextBuffer, start, stop: TextIter, hiddenChars: bool = true): string =
+  result = $gtk_text_buffer_get_text(
+    buffer.gtk, start.unsafeAddr, stop.unsafeAddr, cbool(ord(hiddenChars))
+  )
+
+proc text*(buffer: TextBuffer, slice: TextSlice, hiddenChars: bool = true): string =
+  result = buffer.text(slice.a, slice.b, hiddenChars)
+
+proc text*(buffer: TextBuffer, hiddenChars: bool = true): string =
+  result = buffer.text(buffer.startIter, buffer.endIter)
+
+proc isModified*(buffer: TextBuffer): bool =
+  result = gtk_text_buffer_get_modified(buffer.gtk) != 0
+
+proc hasSelection*(buffer: TextBuffer): bool =
+  result = gtk_text_buffer_get_has_selection(buffer.gtk) != 0
+
+proc selection*(buffer: TextBuffer): TextSlice =
+  discard gtk_text_buffer_get_selection_bounds(
+    buffer.gtk, result.a.addr, result.b.addr
+  )
+
+proc delete*(buffer: TextBuffer, a, b: TextIter) =
+  gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
+
+proc delete*(buffer: TextBuffer, slice: TextSlice) = buffer.delete(slice.a, slice.b)
+
+proc insert*(buffer: TextBuffer, iter: TextIter, text: string) =
+  gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
+
+proc canRedo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_redo(buffer.gtk) != 0)
+proc canUndo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_undo(buffer.gtk) != 0)
+proc redo*(buffer: TextBuffer) = gtk_text_buffer_redo(buffer.gtk)
+proc undo*(buffer: TextBuffer) = gtk_text_buffer_undo(buffer.gtk)
+{.pop.}
+
 renderable TextView of BaseWidget:
   buffer: TextBuffer
-  monospace: bool
+  monospace: bool = false
+  cursorVisible: bool = true
+  editable: bool = true
+  acceptsTab: bool = true
+  indent: int = 0
   
   proc changed()
   
@@ -1501,6 +1560,22 @@ renderable TextView of BaseWidget:
   hooks monospace:
     property:
       gtk_text_view_set_monospace(state.internalWidget, cbool(ord(state.monospace)))
+  
+  hooks cursorVisible:
+    property:
+      gtk_text_view_set_cursor_visible(state.internalWidget, cbool(ord(state.cursorVisible)))
+  
+  hooks editable:
+    property:
+      gtk_text_view_set_editable(state.internalWidget, cbool(ord(state.editable)))
+  
+  hooks acceptsTab:
+    property:
+      gtk_text_view_set_accepts_tab(state.internalWidget, cbool(ord(state.acceptsTab)))
+  
+  hooks indent:
+    property:
+      gtk_text_view_set_indent(state.internalWidget, cint(state.indent))
   
   hooks buffer:
     property:
