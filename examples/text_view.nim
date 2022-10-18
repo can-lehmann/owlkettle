@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import std/options
 import owlkettle
 
 viewable App:
@@ -53,10 +54,45 @@ method view(app: AppState): Widget =
           text = "Delete"
           proc clicked() =
             app.buffer.delete(app.buffer.selection)
+        
+        Button {.addLeft.}:
+          text = "Delete"
+          proc clicked() =
+            app.buffer.delete(app.buffer.selection)
+        
+        Button {.addRight.}:
+          text = "Unmark"
+          proc clicked() =
+            app.buffer.removeTag("marker", app.buffer.selection)
+        
+        Button {.addRight.}:
+          text = "Mark"
+          proc clicked() =
+            app.buffer.applyTag("marker", app.buffer.selection)
+        
+        Button {.addRight.}:
+          text = "Next Tag"
+          proc clicked() =
+            let tag = app.buffer.lookupTag("marker")
+            var iter = app.buffer.selection.a
+            while true:
+              if not iter.forwardToTagToggle(tag):
+                break
+              if iter.startsTag(tag):
+                var stop = iter
+                discard stop.forwardToTagToggle(tag)
+                app.buffer.select(stop, iter)
+                iter = stop
+                break
       
       ScrolledWindow:
         TextView:
           buffer = app.buffer
           proc changed() = discard
 
-brew(gui(App(buffer = newTextBuffer())))
+let buffer = newTextBuffer()
+discard buffer.registerTag("marker", TagStyle(
+  background: some("#ffff00"),
+  weight: some(700)
+))
+brew(gui(App(buffer = buffer)))

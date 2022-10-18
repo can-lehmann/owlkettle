@@ -117,6 +117,8 @@ type
 
 type
   GtkTextBuffer* = distinct pointer
+  GtkTextTag* = distinct pointer
+  GtkTextTagTable* = distinct pointer
   GtkAdjustment* = distinct pointer
   GtkStyleContext* = distinct pointer
   GtkIconTheme* = distinct pointer
@@ -128,6 +130,8 @@ type
   GtkShortcutAction* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
+proc isNil*(obj: GtkTextTag): bool {.borrow.}
+proc isNil*(obj: GtkTextTagTable): bool {.borrow.}
 proc isNil*(obj: GtkAdjustment): bool {.borrow.}
 proc isNil*(obj: GtkStyleContext): bool {.borrow.}
 proc isNil*(obj: GtkIconTheme): bool {.borrow.}
@@ -259,7 +263,11 @@ const
   G_APPLICATION_FLAGS_NONE* = GApplicationFlags(0)
 
 const
+  G_TYPE_CHAR* = GType(3 shl 2)
+  G_TYPE_UCHAR* = GType(4 shl 2)
   G_TYPE_BOOLEAN* = GType(5 shl 2)
+  G_TYPE_INT* = GType(6 shl 2)
+  G_TYPE_UINT* = GType(7 shl 2)
   G_TYPE_STRING* = GType(16 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
 
@@ -269,7 +277,7 @@ proc g_signal_handler_disconnect*(widget: GtkWidget,
                                   handlerId: culong)
 proc g_signal_connect_data*(widget: pointer,
                             name: cstring,
-                            callback, data, destroyData: pointer,
+                            callback, data, dataDestructor: pointer,
                             flags: GConnectFlags): culong
 proc g_type_from_name*(name: cstring): GType
 proc g_object_new*(typ: GType): pointer {.varargs.}
@@ -282,7 +290,11 @@ proc g_value_init*(value: ptr GValue, typ: GType): ptr GValue
 proc g_value_get_string*(value: ptr GValue): cstring
 proc g_value_set_string*(value: ptr GValue, str: cstring)
 proc g_value_set_object*(value: ptr GValue, obj: pointer)
+proc g_value_set_char*(value: ptr GValue, charVal: cchar)
+proc g_value_set_uchar*(value: ptr GValue, charVal: cuchar)
 proc g_value_set_boolean*(value: ptr GValue, boolVal: cbool)
+proc g_value_set_int*(value: ptr GValue, intVal: cint)
+proc g_value_set_uint*(value: ptr GValue, intVal: cuint)
 proc g_value_unset*(value: ptr GValue)
 
 # GLib.List
@@ -567,8 +579,9 @@ proc gtk_menu_button_set_popover*(button, popover: GtkWidget)
 # Gtk.Separator
 proc gtk_separator_new*(orient: GtkOrientation): GtkWidget
 
+
 # Gtk.TextBuffer
-proc gtk_text_buffer_new*(table: pointer): GtkTextBuffer
+proc gtk_text_buffer_new*(tagTable: GtkTextTagTable): GtkTextBuffer
 proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_char_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_modified*(buffer: GtkTextBuffer): cbool
@@ -579,10 +592,10 @@ proc gtk_text_buffer_undo*(buffer: GtkTextBuffer)
 proc gtk_text_buffer_get_has_selection*(buffer: GtkTextBuffer): cbool
 proc gtk_text_buffer_get_selection_bounds*(buffer: GtkTextBuffer, a, b: ptr GtkTextIter): cbool
 proc gtk_text_buffer_insert*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, text: cstring, len: cint)
-proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, start, stop: ptr GtkTextIter)
+proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, a, b: ptr GtkTextIter)
 proc gtk_text_buffer_set_text*(buffer: GtkTextBuffer, text: cstring, len: cint)
 proc gtk_text_buffer_get_text*(buffer: GtkTextBuffer,
-                               start, stop: ptr GtkTextIter,
+                               a, b: ptr GtkTextIter,
                                includeHiddenChars: cbool): cstring
 proc gtk_text_buffer_begin_user_action*(buffer: GtkTextBuffer)
 proc gtk_text_buffer_end_user_action*(buffer: GtkTextBuffer)
@@ -590,6 +603,47 @@ proc gtk_text_buffer_get_start_iter*(buffer: GtkTextBuffer, iter: ptr GtkTextIte
 proc gtk_text_buffer_get_end_iter*(buffer: GtkTextBuffer, iter: ptr GtkTextIter)
 proc gtk_text_buffer_get_iter_at_line*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, line: cint)
 proc gtk_text_buffer_get_iter_at_offset*(buffer: GtkTextBuffer, iter: ptr GtkTextIter, offset: cint)
+proc gtk_text_buffer_create_tag*(buffer: GtkTextBuffer, name: cstring): GtkTextTag {.varargs.}
+proc gtk_text_buffer_apply_tag*(buffer: GtkTextBuffer, tag: GtkTextTag, a, b: ptr GtkTextIter)
+proc gtk_text_buffer_apply_tag_by_name*(buffer: GtkTextBuffer, name: cstring, a, b: ptr GtkTextIter)
+proc gtk_text_buffer_remove_tag*(buffer: GtkTextBuffer, tag: GtkTextTag, a, b: ptr GtkTextIter)
+proc gtk_text_buffer_remove_all_tags*(buffer: GtkTextBuffer, a, b: ptr GtkTextIter)
+proc gtk_text_buffer_remove_tag_by_name*(buffer: GtkTextBuffer, name: cstring, a, b: ptr GtkTextIter)
+proc gtk_text_buffer_place_cursor*(buffer: GtkTextBuffer, pos: ptr GtkTextIter)
+proc gtk_text_buffer_select_range*(buffer: GtkTextBuffer, insert, other: ptr GtkTextIter)
+proc gtk_text_buffer_get_tag_table*(buffer: GtkTextBuffer): GtkTextTagTable
+
+# Gtk.TextIter
+proc gtk_text_iter_equal*(a, b: ptr GtkTextIter): cbool
+proc gtk_text_iter_compare*(a, b: ptr GtkTextIter): cint
+proc gtk_text_iter_in_range*(iter, a, b: ptr GtkTextIter): cbool
+
+proc gtk_text_iter_has_tag*(iter: ptr GtkTextIter, tag: GtkTextTag): cbool
+proc gtk_text_iter_starts_tag*(iter: ptr GtkTextIter, tag: GtkTextTag): cbool
+proc gtk_text_iter_ends_tag*(iter: ptr GtkTextIter, tag: GtkTextTag): cbool
+
+proc gtk_text_iter_is_start*(iter: ptr GtkTextIter): cbool
+proc gtk_text_iter_is_end*(iter: ptr GtkTextIter): cbool
+proc gtk_text_iter_can_insert*(iter: ptr GtkTextIter): cbool
+
+proc gtk_text_iter_forward_chars*(iter: ptr GtkTextIter, count: cint): cbool
+proc gtk_text_iter_forward_line*(iter: ptr GtkTextIter): cbool
+proc gtk_text_iter_forward_to_line_end*(iter: ptr GtkTextIter): cbool
+proc gtk_text_iter_forward_to_tag_toggle*(iter: ptr GtkTextIter, tag: GtkTextTag): cbool
+proc gtk_text_iter_backward_chars*(iter: ptr GtkTextIter, count: cint): cbool
+proc gtk_text_iter_backward_line*(iter: ptr GtkTextIter): cbool
+proc gtk_text_iter_backward_to_tag_toggle*(iter: ptr GtkTextIter, tag: GtkTextTag): cbool
+
+proc gtk_text_iter_get_offset*(iter: ptr GtkTextIter): cint
+proc gtk_text_iter_get_line*(iter: ptr GtkTextIter): cint
+proc gtk_text_iter_get_line_offset*(iter: ptr GtkTextIter): cint
+proc gtk_text_iter_set_offset*(iter: ptr GtkTextIter, value: cint)
+proc gtk_text_iter_set_line*(iter: ptr GtkTextIter, value: cint)
+proc gtk_text_iter_set_line_offset*(iter: ptr GtkTextIter, value: cint)
+
+# Gtk.TextTagTable
+proc gtk_text_tag_table_remove*(tab: GtkTextTagTable, tag: GtkTextTag)
+proc gtk_text_tag_table_lookup*(tab: GtkTextTagTable, name: cstring): GtkTextTag
 
 # Gtk.TextView
 proc gtk_text_view_new*(): GtkWidget
@@ -688,6 +742,22 @@ proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, peop
 proc g_value_new*(str: string): GValue =
   discard g_value_init(result.addr, G_TYPE_STRING)
   g_value_set_string(result.addr, str.cstring)
+
+proc g_value_new*(value: char): GValue =
+  discard g_value_init(result.addr, G_TYPE_CHAR)
+  g_value_set_char(result.addr, cchar(value))
+
+proc g_value_new*(value: uint8): GValue =
+  discard g_value_init(result.addr, G_TYPE_UCHAR)
+  g_value_set_uchar(result.addr, cuchar(value))
+
+proc g_value_new*(value: int): GValue =
+  discard g_value_init(result.addr, G_TYPE_INT)
+  g_value_set_int(result.addr, cint(value))
+
+proc g_value_new*(value: uint): GValue =
+  discard g_value_init(result.addr, G_TYPE_UINT)
+  g_value_set_uint(result.addr, cuint(value))
 
 proc g_value_new*(value: bool): GValue =
   discard g_value_init(result.addr, G_TYPE_BOOLEAN)

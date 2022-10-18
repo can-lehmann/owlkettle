@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables]
+import std/[unicode, sets, tables, options]
 import gtk, widgetdef, cairo
 
 when defined(owlkettleDocs):
@@ -1466,12 +1466,21 @@ renderable Separator of BaseWidget:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
 type
+  TagStyle* = object
+    background*: Option[string]
+    foreground*: Option[string]
+    family*: Option[string]
+    size*: Option[int]
+    strikethrough*: Option[bool]
+    weight*: Option[int]
+  
   TextBufferObj = object
     gtk: GtkTextBuffer
   
   TextBuffer* = ref TextBufferObj
   
   TextIter* = GtkTextIter
+  TextTag* = GtkTextTag
   TextSlice* = HSlice[TextIter, TextIter]
 
 proc finalizer(buffer: TextBuffer) =
@@ -1480,6 +1489,25 @@ proc finalizer(buffer: TextBuffer) =
 proc newTextBuffer*(): TextBuffer =
   new(result, finalizer=finalizer)
   result.gtk = gtk_text_buffer_new(nil)
+
+proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
+  result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)
+  for attr, value in fieldPairs(style):
+    if value.isSome:
+      var gvalue = g_value_new(get(value))
+      g_object_set_property(result.pointer, attr.cstring, gvalue.addr)
+      g_value_unset(gvalue.addr)
+
+proc lookupTag*(buffer: TextBuffer, name: string): TextTag =
+  let tab = gtk_text_buffer_get_tag_table(buffer.gtk)
+  result = gtk_text_tag_table_lookup(tab, name.cstring)
+
+proc unregisterTag*(buffer: TextBuffer, tag: TextTag) =
+  let tab = gtk_text_buffer_get_tag_table(buffer.gtk)
+  gtk_text_tag_table_remove(tab, tag)
+
+proc unregisterTag*(buffer: TextBuffer, name: string) =
+  buffer.unregisterTag(buffer.lookupTag(name))
 
 {.push inline.}
 proc lineCount*(buffer: TextBuffer): int =
@@ -1525,6 +1553,12 @@ proc selection*(buffer: TextBuffer): TextSlice =
     buffer.gtk, result.a.addr, result.b.addr
   )
 
+proc placeCursor*(buffer: TextBuffer, iter: TextIter) =
+  gtk_text_buffer_place_cursor(buffer.gtk, iter.unsafeAddr)
+
+proc select*(buffer: TextBuffer, insert, other: TextIter) =
+  gtk_text_buffer_select_range(buffer.gtk, insert.unsafeAddr, other.unsafeAddr)
+
 proc delete*(buffer: TextBuffer, a, b: TextIter) =
   gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
 
@@ -1533,10 +1567,93 @@ proc delete*(buffer: TextBuffer, slice: TextSlice) = buffer.delete(slice.a, slic
 proc insert*(buffer: TextBuffer, iter: TextIter, text: string) =
   gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
 
+proc applyTag*(buffer: TextBuffer, name: string, a, b: TextIter) =
+  gtk_text_buffer_apply_tag_by_name(buffer.gtk, name.cstring, a.unsafeAddr, b.unsafeAddr)
+
+proc applyTag*(buffer: TextBuffer, name: string, slice: TextSlice) =
+  buffer.applyTag(name, slice.a, slice.b)
+
+proc removeTag*(buffer: TextBuffer, name: string, a, b: TextIter) =
+  gtk_text_buffer_remove_tag_by_name(buffer.gtk, name.cstring, a.unsafeAddr, b.unsafeAddr)
+
+proc removeTag*(buffer: TextBuffer, name: string, slice: TextSlice) =
+  buffer.removeTag(name, slice.a, slice.b)
+
+proc removeAllTags*(buffer: TextBuffer, a, b: TextIter) =
+  gtk_text_buffer_remove_all_tags(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
+
+proc removeAllTags*(buffer: TextBuffer, slice: TextSlice) =
+  buffer.removeAllTags(slice.a, slice.b)
+
 proc canRedo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_redo(buffer.gtk) != 0)
 proc canUndo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_undo(buffer.gtk) != 0)
 proc redo*(buffer: TextBuffer) = gtk_text_buffer_redo(buffer.gtk)
 proc undo*(buffer: TextBuffer) = gtk_text_buffer_undo(buffer.gtk)
+{.pop.}
+
+{.push inline.}
+proc `==`*(a, b: TextIter): bool =
+  result = gtk_text_iter_equal(a.unsafeAddr, b.unsafeAddr) != 0
+
+proc `<`*(a, b: TextIter): bool =
+  result = gtk_text_iter_compare(a.unsafeAddr, b.unsafeAddr) < 0
+
+proc `<=`*(a, b: TextIter): bool =
+  result = gtk_text_iter_compare(a.unsafeAddr, b.unsafeAddr) <= 0
+
+proc cmp*(a, b: TextIter): int =
+  result = int(gtk_text_iter_compare(a.unsafeAddr, b.unsafeAddr))
+
+proc contains*(slice: TextSlice, iter: TextIter): bool =
+  ## Checks if `iter` is in [`slice.a`, `slice.b`)
+  result = gtk_text_iter_in_range(iter.unsafeAddr, slice.a.unsafeAddr, slice.b.unsafeAddr) != 0
+
+proc forwardChars*(iter: var TextIter, count: int): bool =
+  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil) != 0
+
+proc forwardLine*(iter: var TextIter): bool =
+  result = gtk_text_iter_forward_line(iter.addr) != 0
+
+proc forwardToLineEnd*(iter: var TextIter): bool =
+  result = gtk_text_iter_forward_to_line_end(iter.addr) != 0
+
+proc forwardToTagToggle*(iter: var TextIter): bool =
+  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil) != 0
+
+proc forwardToTagToggle*(iter: var TextIter, tag: TextTag): bool =
+  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, tag) != 0
+
+proc backwardChars*(iter: var TextIter, count: int): bool =
+  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil) != 0
+
+proc backwardLine*(iter: var TextIter): bool =
+  result = gtk_text_iter_backward_line(iter.addr) != 0
+
+proc backwardToTagToggle*(iter: var TextIter): bool =
+  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil) != 0
+
+proc backwardToTagToggle*(iter: var TextIter, tag: TextTag): bool =
+  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, tag) != 0
+
+proc isStart*(iter: TextIter): bool = gtk_text_iter_is_start(iter.unsafeAddr) != 0
+proc isEnd*(iter: TextIter): bool = gtk_text_iter_is_end(iter.unsafeAddr) != 0
+proc canInsert*(iter: TextIter): bool = gtk_text_iter_can_insert(iter.unsafeAddr) != 0
+
+proc hasTag*(iter: TextIter, tag: TextTag): bool =
+  result = gtk_text_iter_has_tag(iter.unsafeAddr, tag) != 0
+
+proc startsTag*(iter: TextIter, tag: TextTag): bool =
+  result = gtk_text_iter_starts_tag(iter.unsafeAddr, tag) != 0
+
+proc endsTag*(iter: TextIter, tag: TextTag): bool =
+  result = gtk_text_iter_ends_tag(iter.unsafeAddr, tag) != 0
+
+proc offset*(iter: TextIter): int = gtk_text_iter_get_offset(iter.unsafeAddr)
+proc line*(iter: TextIter): int = gtk_text_iter_get_line(iter.unsafeAddr)
+proc lineOffset*(iter: TextIter): int = gtk_text_iter_get_line_offset(iter.unsafeAddr)
+proc `offset=`*(iter: TextIter, val: int) = gtk_text_iter_set_offset(iter.unsafeAddr, cint(val))
+proc `line=`*(iter: TextIter, val: int) = gtk_text_iter_set_line(iter.unsafeAddr, cint(val))
+proc `lineOffset=`*(iter: TextIter, val: int) = gtk_text_iter_set_line_offset(iter.unsafeAddr, cint(val))
 {.pop.}
 
 renderable TextView of BaseWidget:
