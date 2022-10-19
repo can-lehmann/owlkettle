@@ -1466,6 +1466,10 @@ renderable Separator of BaseWidget:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
 type
+  UnderlineKind* = enum
+    UnderlineNone, UnderlineSingle, UnderlineDouble,
+    UnderlineLow, UnderlineError
+  
   TagStyle* = object
     background*: Option[string]
     foreground*: Option[string]
@@ -1473,6 +1477,8 @@ type
     size*: Option[int]
     strikethrough*: Option[bool]
     weight*: Option[int]
+    underline*: Option[UnderlineKind]
+    style*: Option[CairoFontSlant]
   
   TextBufferObj = object
     gtk: GtkTextBuffer
@@ -1489,6 +1495,21 @@ proc finalizer(buffer: TextBuffer) =
 proc newTextBuffer*(): TextBuffer =
   new(result, finalizer=finalizer)
   result.gtk = gtk_text_buffer_new(nil)
+
+{.push hint[Name]: off.}
+proc g_value_new(value: UnderlineKind): GValue =
+  discard g_value_init(result.addr, G_TYPE_INT)
+  g_value_set_int(result.addr, cint(ord(value)))
+
+proc g_value_new(value: CairoFontSlant): GValue =
+  const IDS: array[CairoFontSlant, cint] = [
+    FontSlantNormal: cint(0),
+    FontSlantItalic: cint(2),
+    FontSlantOblique: cint(1)
+  ]
+  discard g_value_init(result.addr, G_TYPE_INT)
+  g_value_set_int(result.addr, IDS[value])
+{.pop.}
 
 proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
   result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)

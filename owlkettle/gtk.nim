@@ -738,7 +738,7 @@ proc gtk_about_dialog_set_license*(dialog: GtkWidget, text: cstring)
 proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, people: cstringArray)
 {.pop.}
 
-{.push hint[Name]: off}
+{.push hint[Name]: off.}
 proc g_value_new*(str: string): GValue =
   discard g_value_init(result.addr, G_TYPE_STRING)
   g_value_set_string(result.addr, str.cstring)
