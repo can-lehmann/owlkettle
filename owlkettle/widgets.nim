@@ -278,7 +278,7 @@ renderable Box of BaseWidget:
               state.internalWidget,
               state.children[it].widget.unwrapInternalWidget()
             )
-            var sibling: GtkWidget = nil
+            var sibling: GtkWidget = nil.GtkWidget
             if it > 0:
               sibling = state.children[it - 1].widget.unwrapInternalWidget()
             let newWidget = newChild.unwrapInternalWidget()
@@ -715,7 +715,7 @@ renderable ScrolledWindow of BaseWidget:
   
   hooks:
     beforeBuild:
-      state.internalWidget = gtk_scrolled_window_new(nil, nil)
+      state.internalWidget = gtk_scrolled_window_new(nil.GtkAdjustment, nil.GtkAdjustment)
   
   hooks child:
     build: buildBin(state, widget, gtk_scrolled_window_set_child)
@@ -1299,7 +1299,7 @@ renderable Popover of BaseWidget:
   
   hooks:
     beforeBuild:
-      state.internalWidget = gtk_popover_new(nil)
+      state.internalWidget = gtk_popover_new(nil.GtkWidget)
   
   hooks child:
     build: buildBin(state, widget, gtk_popover_set_child)
@@ -1494,7 +1494,7 @@ proc finalizer(buffer: TextBuffer) =
 
 proc newTextBuffer*(): TextBuffer =
   new(result, finalizer=finalizer)
-  result.gtk = gtk_text_buffer_new(nil)
+  result.gtk = gtk_text_buffer_new(nil.GtkTextTagTable)
 
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
@@ -1630,7 +1630,7 @@ proc contains*(slice: TextSlice, iter: TextIter): bool =
   result = gtk_text_iter_in_range(iter.unsafeAddr, slice.a.unsafeAddr, slice.b.unsafeAddr) != 0
 
 proc forwardChars*(iter: var TextIter, count: int): bool =
-  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil) != 0
+  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil.GtkTextTag) != 0
 
 proc forwardLine*(iter: var TextIter): bool =
   result = gtk_text_iter_forward_line(iter.addr) != 0
@@ -1639,19 +1639,19 @@ proc forwardToLineEnd*(iter: var TextIter): bool =
   result = gtk_text_iter_forward_to_line_end(iter.addr) != 0
 
 proc forwardToTagToggle*(iter: var TextIter): bool =
-  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil) != 0
+  result = gtk_text_iter_forward_to_tag_toggle(iter.addr, nil.GtkTextTag) != 0
 
 proc forwardToTagToggle*(iter: var TextIter, tag: TextTag): bool =
   result = gtk_text_iter_forward_to_tag_toggle(iter.addr, tag) != 0
 
 proc backwardChars*(iter: var TextIter, count: int): bool =
-  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil) != 0
+  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil.GtkTextTag) != 0
 
 proc backwardLine*(iter: var TextIter): bool =
   result = gtk_text_iter_backward_line(iter.addr) != 0
 
 proc backwardToTagToggle*(iter: var TextIter): bool =
-  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil) != 0
+  result = gtk_text_iter_backward_to_tag_toggle(iter.addr, nil.GtkTextTag) != 0
 
 proc backwardToTagToggle*(iter: var TextIter, tag: TextTag): bool =
   result = gtk_text_iter_backward_to_tag_toggle(iter.addr, tag) != 0
@@ -2028,8 +2028,8 @@ renderable Dialog of Window:
   
   hooks:
     beforeBuild:
-      state.internalWidget = gtk_dialog_new_with_buttons("", nil, GTK_DIALOG_USE_HEADER_BAR, nil)
-      gtk_window_set_child(state.internalWidget, nil)
+      state.internalWidget = gtk_dialog_new_with_buttons("", nil.GtkWidget, GTK_DIALOG_USE_HEADER_BAR, nil)
+      gtk_window_set_child(state.internalWidget, nil.GtkWidget)
   
   hooks buttons:
     build:
@@ -2085,7 +2085,7 @@ renderable FileChooserDialog of BuiltinDialog:
     beforeBuild:
       state.internalWidget = gtk_file_chooser_dialog_new(
         widget.valTitle.cstring,
-        nil,
+        nil.GtkWidget,
         GtkFileChooserAction(ord(widget.valAction)),
         nil
       )
@@ -2106,7 +2106,7 @@ renderable ColorChooserDialog of BuiltinDialog:
     beforeBuild:
       state.internalWidget = gtk_color_chooser_dialog_new(
         widget.valTitle.cstring,
-        nil
+        nil.GtkWidget
       )
   
   hooks color:
@@ -2133,7 +2133,7 @@ renderable MessageDialog of BuiltinDialog:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_message_dialog_new(
-        nil,
+        nil.GtkWidget,
         GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_NONE,

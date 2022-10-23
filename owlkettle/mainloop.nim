@@ -52,4 +52,4 @@ proc setupApp*(config: AppConfig): WidgetState =
 proc runMainloop*(state: WidgetState) =
   gtk_window_present(state.unwrapInternalWidget())
   while g_list_model_get_n_items(gtk_window_get_toplevels()) > 0:
-    discard g_main_context_iteration(nil, cbool(ord(true)))
+    discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))

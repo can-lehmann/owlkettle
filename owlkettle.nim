@@ -48,7 +48,7 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
     var res = low(cint)
     discard g_signal_connect(dialog, "response", response, res.addr)
     while res == low(cint):
-      discard g_main_context_iteration(nil, cbool(ord(true)))
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
     
     state.read()
     gtk_window_destroy(dialog)
@@ -60,7 +60,7 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
     var closed = false
     discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
     while not closed:
-      discard g_main_context_iteration(nil, cbool(ord(true)))
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
     
     state.read()
     result = (DialogResponse(), state)
