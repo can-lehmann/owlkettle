@@ -291,7 +291,7 @@ proc g_value_get_string*(value: ptr GValue): cstring
 proc g_value_set_string*(value: ptr GValue, str: cstring)
 proc g_value_set_object*(value: ptr GValue, obj: pointer)
 proc g_value_set_char*(value: ptr GValue, charVal: cchar)
-proc g_value_set_uchar*(value: ptr GValue, charVal: cuchar)
+proc g_value_set_uchar*(value: ptr GValue, charVal: uint8)
 proc g_value_set_boolean*(value: ptr GValue, boolVal: cbool)
 proc g_value_set_int*(value: ptr GValue, intVal: cint)
 proc g_value_set_uint*(value: ptr GValue, intVal: cuint)
@@ -749,7 +749,7 @@ proc g_value_new*(value: char): GValue =
 
 proc g_value_new*(value: uint8): GValue =
   discard g_value_init(result.addr, G_TYPE_UCHAR)
-  g_value_set_uchar(result.addr, cuchar(value))
+  g_value_set_uchar(result.addr, value)
 
 proc g_value_new*(value: int): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)

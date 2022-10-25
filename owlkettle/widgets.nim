@@ -1449,7 +1449,7 @@ renderable ModelButton of BaseWidget:
       g_value_unset(value.addr)
       if state.icon.len > 0:
         var err: GError
-        let icon = g_icon_new_for_string(state.icon, err.addr)
+        let icon = g_icon_new_for_string(state.icon.cstring, err.addr)
         var value = g_value_new(icon)
         g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
         g_value_unset(value.addr)

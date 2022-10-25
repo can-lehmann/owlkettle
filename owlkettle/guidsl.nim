@@ -187,6 +187,7 @@ proc findVariables(node: NimNode): seq[NimNode] =
     of nnkTupleConstr, nnkVarTuple:
       for child in node:
         result.add(child.findVariables())
+    of nnkEmpty: discard
     else: echo node.kind
 
 proc findVariables(nodes: seq[NimNode]): seq[NimNode] =
