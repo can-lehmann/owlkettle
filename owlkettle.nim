@@ -41,6 +41,12 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
   gtk_window_set_modal(dialog, cbool(bool(true)))
   gtk_window_present(dialog)
   
+  proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
+    closed[] = true
+  
+  var closed = false
+  discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
+  
   if dialogState of DialogState or dialogState of BuiltinDialogState:
     proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
       res[] = responseId
@@ -51,14 +57,10 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
       discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
     
     state.read()
-    gtk_window_destroy(dialog)
+    if not closed:
+      gtk_window_destroy(dialog)
     result = (toDialogResponse(res), state)
   else:
-    proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
-      closed[] = true
-    
-    var closed = false
-    discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
     while not closed:
       discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
     
