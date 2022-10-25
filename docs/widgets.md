@@ -240,6 +240,15 @@ Button:
   sensitive = false
 ```
 
+```nim
+Button:
+  text = "Copy"
+  shortcut = "<Ctrl>C"
+  proc clicked() =
+    app.writeClipboard("Hello, world!")
+
+```
+
 
 ## HeaderBar
 

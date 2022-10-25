@@ -615,6 +615,13 @@ renderable Button of BaseWidget:
     Button:
       text = "Inactive Button"
       sensitive = false
+  
+  example:
+    Button:
+      text = "Copy"
+      shortcut = "<Ctrl>C"
+      proc clicked() =
+        app.writeClipboard("Hello, world!")
 
 
 proc `hasText=`*(button: Button, value: bool) = button.hasChild = value
