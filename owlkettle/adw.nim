@@ -228,9 +228,19 @@ renderable PreferencesRow of ListBoxRow:
     property:
       adw_preferences_row_set_title(state.internalWidget, state.title.cstring)
 
+type Suffix[T] = object
+  widget: T
+  hAlign: Align
+  vAlign: Align
+
+proc assignApp(suffix: Suffix[Widget], app: Viewable) =
+  suffix.widget.assignApp(app)
+
+proc toGtk(align: Align): GtkAlign = GtkAlign(ord(align))
+
 renderable ActionRow of PreferencesRow:
   subtitle: string
-  suffixes: seq[Widget]
+  suffixes: seq[Suffix[Widget]]
   
   hooks:
     before_build:
@@ -241,33 +251,53 @@ renderable ActionRow of PreferencesRow:
       adw_action_row_set_subtitle(state.internalWidget, state.subtitle.cstring)
   
   hooks suffixes:
-    build:
-      widget.valSuffixes.assignApp(state.app)
-      for suffixWidget in widget.valSuffixes:
-        let suffix = suffixWidget.build()
-        adw_action_row_add_suffix(state.internalWidget, suffix.unwrapInternalWidget())
-        state.suffixes.add(suffix)
-    update:
+    (build, update):
       widget.valSuffixes.assignApp(state.app)
       var it = 0
       while it < widget.valSuffixes.len and it < state.suffixes.len:
-        let newSuffix = widget.valSuffixes[it].update(state.suffixes[it])
+        let 
+          suffix = widget.valSuffixes[it]
+          newSuffix = suffix.widget.update(state.suffixes[it].widget)
         assert newSuffix.isNil
+        
+        let suffixWidget = state.suffixes[it].widget.unwrapInternalWidget()
+        
+        if suffix.hAlign != state.suffixes[it].hAlign:
+          gtk_widget_set_halign(suffixWidget, toGtk(suffix.hAlign))
+          state.suffixes[it].hAlign = suffix.hAlign
+        
+        if suffix.vAlign != state.suffixes[it].vAlign:
+          gtk_widget_set_valign(suffixWidget, toGtk(suffix.vAlign))
+          state.suffixes[it].vAlign = suffix.vAlign
+        
         it += 1
       
       while it < widget.valSuffixes.len:
-        let suffix = widget.valSuffixes[it].build()
-        adw_action_row_add_suffix(state.internalWidget, suffix.unwrapInternalWidget())
-        state.suffixes.add(suffix)
+        let
+          suffix = widget.valSuffixes[it]
+          suffixState = suffix.widget.build()
+          suffixWidget = suffixState.unwrapInternalWidget()
+        gtk_widget_set_halign(suffixWidget, toGtk(suffix.hAlign))
+        gtk_widget_set_valign(suffixWidget, toGtk(suffix.vAlign))
+        adw_action_row_add_suffix(state.internalWidget, suffixWidget)
+        state.suffixes.add(Suffix[WidgetState](
+          widget: suffixState,
+          hAlign: suffix.hAlign,
+          vAlign: suffix.vAlign
+        ))
         it += 1
       
       while it < state.suffixes.len:
         let suffix = state.suffixes.pop()
-        adw_action_row_remove(state.internalWidget, suffix.unwrapInternalWidget())
+        adw_action_row_remove(state.internalWidget, suffix.widget.unwrapInternalWidget())
 
-  adder addSuffix:
+  adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasSuffixes = true
-    widget.valSuffixes.add(child)
+    widget.valSuffixes.add(Suffix[Widget](
+      widget: child,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
 
 export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow
 
