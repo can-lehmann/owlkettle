@@ -55,10 +55,6 @@ method view(app: AppState): Widget =
           proc clicked() =
             app.buffer.delete(app.buffer.selection)
         
-        Button {.addLeft.}:
-          text = "Delete"
-          proc clicked() =
-            app.buffer.delete(app.buffer.selection)
         
         Button {.addRight.}:
           text = "Unmark"

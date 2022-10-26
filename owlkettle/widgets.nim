@@ -28,70 +28,29 @@ import gtk, widgetdef, cairo
 when defined(owlkettleDocs):
   echo "# Widgets\n\n"
 
+proc redraw[T](event: EventObj[T]) =
+  if event.app.isNil:
+    raise newException(ValueError, "App is nil")
+  event.app.redraw()
+
 proc eventCallback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
+  data[].redraw()
 
-proc entryEventCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) =
-  data[].callback($gtk_editable_get_text(widget))
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-proc switchEventCallback(widget: GtkWidget, state: cbool, data: ptr EventObj[proc (state: bool)]) =
-  data[].callback(state != 0)
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-proc toggleButtonEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
-  data[].callback(gtk_toggle_button_get_active(widget) != 0)
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-proc checkButtonEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
-  data[].callback(gtk_check_button_get_active(widget) != 0)
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-proc colorEventCallback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) =
-  var color: GdkRgba
-  gtk_color_chooser_get_rgba(widget, color.addr)
-  data[].callback((color.r.float, color.g.float, color.b.float, color.a.float))
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-proc listBoxEventCallback(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
-  let selected = gtk_list_box_get_selected_rows(widget)
-  var
-    rows = initHashSet[int]()
-    cur = selected
-  while not cur.isNil:
-    rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
-    cur = cur[].next
-  g_list_free(selected)
-  data[].callback(rows)
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  data[].app.redraw()
-
-
-proc connect[T](widget: GtkWidget,
+proc connect[T](renderable: Renderable,
                 event: Event[T],
                 name: cstring,
                 eventCallback: pointer) =
   if not event.isNil:
-    event.handler = g_signal_connect(widget, name, eventCallback, event[].addr)
+    event.widget = renderable
+    event.handler = g_signal_connect(renderable.internalWidget, name, eventCallback, event[].addr)
 
 proc disconnect[T](widget: GtkWidget, event: Event[T]) =
   if not event.isNil:
     assert event.handler > 0
     g_signal_handler_disconnect(widget, event.handler)
+    event.handler = 0
+    event.widget = nil
 
 proc updateStyle[State, Widget](state: State, widget: Widget) =
   mixin classes
@@ -185,7 +144,7 @@ renderable Window of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
     connectEvents:
-      state.internalWidget.connect(state.close, "destroy", eventCallback)
+      state.connect(state.close, "destroy", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.close)
   
@@ -561,7 +520,7 @@ renderable Button of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_button_new()
     connectEvents:
-      state.internalWidget.connect(state.clicked, "clicked", eventCallback)
+      state.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.clicked)
   
@@ -757,8 +716,14 @@ renderable Entry of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_entry_new()
     connectEvents:
-      state.internalWidget.connect(state.changed, "changed", entryEventCallback)
-      state.internalWidget.connect(state.activate, "activate", eventCallback)
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+        let text = $gtk_editable_get_text(widget)
+        EntryState(data[].widget).text = text
+        data[].callback(text)
+        data[].redraw()
+      
+      state.connect(state.changed, "changed", changedCallback)
+      state.connect(state.activate, "activate", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
       state.internalWidget.disconnect(state.activate)
@@ -1160,8 +1125,8 @@ renderable GlArea of CustomWidget:
     beforeBuild:
       state.internalWidget = gtk_gl_area_new()
     connectEvents:
-      state.internalWidget.connect(state.setup, "realize", setupEventCallback)
-      state.internalWidget.connect(state.render, "render", renderEventCallback)
+      state.connect(state.setup, "realize", setupEventCallback)
+      state.connect(state.render, "render", renderEventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.setup)
       state.internalWidget.disconnect(state.render)
@@ -1197,7 +1162,15 @@ renderable ColorButton of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_color_button_new()
     connectEvents:
-      state.internalWidget.connect(state.changed, "color-set", colorEventCallback)
+      proc colorSetCallback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) {.cdecl.} =
+        var gdkColor: GdkRgba
+        gtk_color_chooser_get_rgba(widget, gdkColor.addr)
+        let color = (gdkColor.r.float, gdkColor.g.float, gdkColor.b.float, gdkColor.a.float)
+        ColorButtonState(data[].widget).color = color
+        data[].callback(color)
+        data[].redraw()
+      
+      state.connect(state.changed, "color-set", colorSetCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
   
@@ -1215,6 +1188,7 @@ renderable ColorButton of BaseWidget:
     property:
       gtk_color_chooser_set_use_alpha(state.internalWidget, cbool(ord(state.useAlpha)))
 
+
 renderable Switch of BaseWidget:
   state: bool
   
@@ -1224,7 +1198,13 @@ renderable Switch of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_switch_new()
     connectEvents:
-      state.internalWidget.connect(state.changed, "state-set", switchEventCallback)
+      proc stateSetCallback(widget: GtkWidget, state: cbool, data: ptr EventObj[proc (state: bool)]): cbool {.cdecl.} =
+        let state = state != 0
+        SwitchState(data[].widget).state = state
+        data[].callback(state)
+        data[].redraw()
+      
+      state.connect(state.changed, "state-set", stateSetCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
   
@@ -1247,7 +1227,13 @@ renderable ToggleButton of Button:
     beforeBuild:
       state.internalWidget = gtk_toggle_button_new()
     connectEvents:
-      state.internalWidget.connect(state.changed, "toggled", toggleButtonEventCallback)
+      proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
+        let state = gtk_toggle_button_get_active(widget) != 0
+        ToggleButtonState(data[].widget).state = state
+        data[].callback(state)
+        data[].redraw()
+      
+      state.connect(state.changed, "toggled", toggledCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
   
@@ -1287,7 +1273,13 @@ renderable CheckButton of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_check_button_new()
     connectEvents:
-      state.internalWidget.connect(state.changed, "toggled", checkButtonEventCallback)
+      proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
+        let state = gtk_check_button_get_active(widget) != 0
+        CheckButtonState(data[].widget).state = state
+        data[].callback(state)
+        data[].redraw()
+      
+      state.connect(state.changed, "toggled", toggledCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
   
@@ -1432,7 +1424,7 @@ renderable ModelButton of BaseWidget:
     beforeBuild:
       state.internalWidget = GtkWidget(g_object_new(g_type_from_name("GtkModelButton"), nil))
     connectEvents:
-      state.internalWidget.connect(state.clicked, "clicked", eventCallback)
+      state.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.clicked)
   
@@ -1698,7 +1690,10 @@ renderable TextView of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_text_view_new()
     connectEvents:
-      GtkWidget(state.buffer.gtk).connect(state.changed, "changed", eventCallback)
+      if not state.changed.isNil:
+        state.changed.handler = g_signal_connect(
+          GtkWidget(state.buffer.gtk), "changed", eventCallback, state.changed[].addr
+        )
     disconnectEvents:
       GtkWidget(state.buffer.gtk).disconnect(state.changed)
   
@@ -1737,7 +1732,7 @@ renderable ListBoxRow of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_list_box_row_new()
     connectEvents:
-      state.internalWidget.connect(state.activate, "activate", eventCallback)
+      state.connect(state.activate, "activate", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.activate)
   
@@ -1774,7 +1769,20 @@ renderable ListBox of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_list_box_new()
     connectEvents:
-      state.internalWidget.connect(state.select, "selected-rows-changed", listBoxEventCallback)
+      proc selectedRowsChanged(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
+        let selected = gtk_list_box_get_selected_rows(widget)
+        var
+          rows = initHashSet[int]()
+          cur = selected
+        while not cur.isNil:
+          rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
+          cur = cur[].next
+        g_list_free(selected)
+        ListBoxState(data[].widget).selected = rows
+        data[].callback(rows)
+        data[].redraw()
+      
+      state.connect(state.select, "selected-rows-changed", selectedRowsChanged)
     disconnectEvents:
       state.internalWidget.disconnect(state.select)
   

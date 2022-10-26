@@ -42,6 +42,7 @@ type
     app*: Viewable
     callback*: T
     handler*: culong
+    widget*: Renderable
   
   Event*[T] = ref EventObj[T]
 
