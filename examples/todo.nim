@@ -37,8 +37,10 @@ method view(app: AppState): Widget =
       title = "Todo"
       defaultSize = (400, 250)
       
-      HeaderBar {.addTitlebar.}:  
-        MenuButton {.addRight.}:
+      HeaderBar:
+        @addTitlebar
+        MenuButton:
+          @addRight
           icon = "open-menu-symbolic"
           Popover:
             Box(orient=OrientY, spacing=6, margin=6):
@@ -49,12 +51,13 @@ method view(app: AppState): Widget =
                   app.todos = app.todos.filterIt(not it.done)
       
       Box(orient = OrientY, spacing = 6, margin = 12):
-        Box(orient = OrientX, spacing = 6) {.expand: false.}:
+        Box(orient = OrientX, spacing = 6, @expand = false):
           Entry:
             text = app.newItem
             proc changed(newItem: string) =
               app.newItem = newItem
-          Button {.expand: false.}:
+          Button:
+            @expand = false
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
             proc clicked() =
@@ -68,7 +71,7 @@ method view(app: AppState): Widget =
               for it, todo in app.todos:
                 Box:
                   spacing = 6
-                  CheckButton {.expand: false.}:
+                  CheckButton(@expand = false):
                     state = todo.done
                     proc changed(state: bool) =
                       app.todos[it].done = state

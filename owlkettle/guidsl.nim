@@ -28,6 +28,7 @@ import common, widgetdef
 type
   NodeKind = enum
     NodeWidget, NodeAttribute, NodeEvent,
+    NodeAdder, NodeProperty,
     NodeBlock, NodeFor, NodeIf, NodeCase,
     NodeInsert, NodeLet
   
@@ -43,9 +44,11 @@ type
       of NodeWidget:
         widget: string
         adder: Adder
-      of NodeAttribute:
+      of NodeAttribute, NodeProperty:
         name: string
         value: NimNode
+      of NodeAdder:
+        adderName: string
       of NodeEvent:
         event: string
         callback: NimNode
@@ -83,6 +86,8 @@ proc parseGui(node: NimNode): Node =
     of nnkCallKinds:
       if node[0].unwrapName().eqIdent("insert"):
         return Node(kind: NodeInsert, insert: node[1])
+      elif node[0].eqIdent("@"):
+        return Node(kind: NodeAdder, adderName: node[1].strVal)
       elif node[0].isName:
         result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
       else:
@@ -105,12 +110,13 @@ proc parseGui(node: NimNode): Node =
         if child.kind != nnkDiscardStmt:
           result.children.add(child.parseGui())
     of nnkAsgn, nnkExprEqExpr:
-      assert node[0].isName
-      result = Node(kind: NodeAttribute,
-        name: node[0].strVal,
-        value: node[1],
-        lineInfo: node
-      )
+      if node[0].kind == nnkPrefix and node[0][0].eqIdent("@"):
+        result = Node(kind: NodeProperty, name: node[0][1].strVal)
+      else:
+        assert node[0].isName
+        result = Node(kind: NodeAttribute, name: node[0].strVal)
+      result.value = node[1]
+      result.lineInfo = node
     of nnkProcDef:
       assert node[0].isName
       result = Node(kind: NodeEvent,
@@ -153,6 +159,30 @@ proc parseGui(node: NimNode): Node =
       for def in node:
         result.defs.add(def)
     else: error($node.kind & " is not a valid gui tree.", node)
+
+proc foldAdders(node: Node, adder: var Adder) =
+  var it = 0
+  while it < node.children.len:
+    let child = node.children[it]
+    case child.kind:
+      of NodeAdder:
+        adder.name = child.adderName
+        node.children.delete(it)
+      of NodeProperty:
+        adder.args.add((child.name, child.value))
+        node.children.delete(it)
+      of NodeBlock:
+        child.foldAdders(adder)
+        it += 1
+      else:
+        it += 1
+
+proc foldAdders(node: Node) =
+  for child in node.children:
+    child.foldAdders()
+  
+  if node.kind == NodeWidget:
+    node.foldAdders(node.adder)
 
 proc gen(adder: Adder, name, parent: NimNode): NimNode =
   var callee = ident("add")
@@ -273,9 +303,12 @@ proc gen(node: Node, stmts, parent: NimNode) =
       stmts.add(node.insertAdder.gen(node.insert, parent))
     of NodeLet:
       stmts.add(newTree(nnkLetSection, node.defs))
+    of NodeAdder, NodeProperty:
+      error("Adders and propeties may not appear in if statements or loops")
 
 macro gui*(tree: untyped): untyped =
   let gui = tree.parseGui()
+  gui.foldAdders()
   result = newStmtList()
   gui.gen(result, nil)
   when defined(owlkettleDebug):
