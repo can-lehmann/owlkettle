@@ -1273,7 +1273,7 @@ renderable CheckButton of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_check_button_new()
     connectEvents:
-      proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) =
+      proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
         let state = gtk_check_button_get_active(widget) != 0
         CheckButtonState(data[].widget).state = state
         data[].callback(state)
@@ -1769,7 +1769,7 @@ renderable ListBox of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_list_box_new()
     connectEvents:
-      proc selectedRowsChanged(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) =
+      proc selectedRowsChanged(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) {.cdecl.} =
         let selected = gtk_list_box_get_selected_rows(widget)
         var
           rows = initHashSet[int]()
