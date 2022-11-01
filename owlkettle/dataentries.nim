@@ -145,9 +145,8 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
             it += 1
           if (op == "+" or op == "-") and
              it < text.len and
-             it - 2 >= 0 and
              text[it] notin WHITESPACE and
-             text[it - 2] in WHITESPACE:
+             (it - 2 < 0 or text[it - 2] in WHITESPACE):
             result.add(Token(kind: TokenPrefixOp, value: op))
           else:
             result.add(Token(kind: TokenOp, value: op))
