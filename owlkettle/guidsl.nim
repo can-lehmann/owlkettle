@@ -23,6 +23,8 @@
 # Domain-specific language for specifying GUI layouts
 
 import std/[macros, strutils, genasts]
+when defined(nimPreviewSlimSystem):
+  import std/assertions
 import common, widgetdef
 
 type

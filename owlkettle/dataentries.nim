@@ -20,7 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[strutils]
+import std/strutils
+when defined(nimPreviewSlimSystem):
+  import std/formatfloat
 import widgets, widgetdef, guidsl
 
 proc isFloat(value: string): bool =

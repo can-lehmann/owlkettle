@@ -22,6 +22,8 @@
 
 # Create libadwaita apps using owlkettle
 
+when defined(nimPreviewSlimSystem):
+  import std/assertions
 import gtk, widgetdef, widgets, mainloop
 
 {.passl: "-ladwaita-1".}

@@ -23,6 +23,8 @@
 # Default widgets
 
 import std/[unicode, sets, tables, options]
+when defined(nimPreviewSlimSystem):
+  import std/assertions
 import gtk, widgetdef, cairo
 
 when defined(owlkettleDocs):
