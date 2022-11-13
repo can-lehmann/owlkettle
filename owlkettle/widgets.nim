@@ -225,67 +225,66 @@ renderable Box of BaseWidget:
 
   hooks children:
     (build, update):
-      if widget.hasChildren:
-        widget.valChildren.assignApp(state.app)
-        var it = 0
-        while it < widget.valChildren.len and it < state.children.len:
-          let
-            child = widget.valChildren[it]
-            newChild = child.widget.update(state.children[it].widget)
-          if not newChild.isNil:
-            gtk_box_remove(
-              state.internalWidget,
-              state.children[it].widget.unwrapInternalWidget()
-            )
-            var sibling: GtkWidget = nil.GtkWidget
-            if it > 0:
-              sibling = state.children[it - 1].widget.unwrapInternalWidget()
-            let newWidget = newChild.unwrapInternalWidget()
-            gtk_box_insert_child_after(state.internalWidget, newWidget, sibling)
-            state.children[it].widget = newChild
-          
-          let childWidget = state.children[it].widget.unwrapInternalWidget()
-          
-          if child.expand != state.children[it].expand:
-            case state.orient:
-              of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
-              of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
-            state.children[it].expand = child.expand
-          
-          if child.hAlign != state.children[it].hAlign:
-            state.children[it].hAlign = child.hAlign
-            gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
-          
-          if child.vAlign != state.children[it].vAlign:
-            state.children[it].vAlign = child.vAlign
-            gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
-          
-          it += 1
+      widget.valChildren.assignApp(state.app)
+      var it = 0
+      while it < widget.valChildren.len and it < state.children.len:
+        let
+          child = widget.valChildren[it]
+          newChild = child.widget.update(state.children[it].widget)
+        if not newChild.isNil:
+          gtk_box_remove(
+            state.internalWidget,
+            state.children[it].widget.unwrapInternalWidget()
+          )
+          var sibling: GtkWidget = nil.GtkWidget
+          if it > 0:
+            sibling = state.children[it - 1].widget.unwrapInternalWidget()
+          let newWidget = newChild.unwrapInternalWidget()
+          gtk_box_insert_child_after(state.internalWidget, newWidget, sibling)
+          state.children[it].widget = newChild
         
-        while it < widget.valChildren.len:
-          let
-            child = widget.valChildren[it]
-            childState = child.widget.build()
-            childWidget = childState.unwrapInternalWidget()
+        let childWidget = state.children[it].widget.unwrapInternalWidget()
+        
+        if child.expand != state.children[it].expand:
           case state.orient:
             of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
             of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
+          state.children[it].expand = child.expand
+        
+        if child.hAlign != state.children[it].hAlign:
+          state.children[it].hAlign = child.hAlign
           gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+        
+        if child.vAlign != state.children[it].vAlign:
+          state.children[it].vAlign = child.vAlign
           gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
-          gtk_box_append(state.internalWidget, childWidget)
-          state.children.add(BoxChild[WidgetState](
-            widget: childState,
-            expand: child.expand,
-            hAlign: child.hAlign,
-            vAlign: child.vAlign
-          ))
-          it += 1
-        while it < state.children.len:
-          gtk_box_remove(
-            state.internalWidget,
-            state.children[^1].widget.unwrapInternalWidget()
-          )
-          discard state.children.pop()
+        
+        it += 1
+      
+      while it < widget.valChildren.len:
+        let
+          child = widget.valChildren[it]
+          childState = child.widget.build()
+          childWidget = childState.unwrapInternalWidget()
+        case state.orient:
+          of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+          of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
+        gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+        gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
+        gtk_box_append(state.internalWidget, childWidget)
+        state.children.add(BoxChild[WidgetState](
+          widget: childState,
+          expand: child.expand,
+          hAlign: child.hAlign,
+          vAlign: child.vAlign
+        ))
+        it += 1
+      while it < state.children.len:
+        gtk_box_remove(
+          state.internalWidget,
+          state.children[^1].widget.unwrapInternalWidget()
+        )
+        discard state.children.pop()
   
   hooks style:
     (build, update):
