@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/strutils
+import std/[strutils, math]
 when defined(nimPreviewSlimSystem):
   import std/formatfloat
 import widgets, widgetdef, guidsl
@@ -131,7 +131,7 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
   proc tokenize(text: string): TokenStream {.locks: 0.} =
     const
       WHITESPACE = {' ', '\n', '\r', '\t'}
-      OP = {'+', '-', '*', '/'}
+      OP = {'+', '-', '*', '/', '^', '%'}
       STOP = {'(', ')'} + OP + WHITESPACE
     var it = 0
     while it < text.len:
@@ -190,6 +190,8 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
           of "-": 0
           of "*": 1
           of "/": 1
+          of "%": 1
+          of "^": 2
           else:
             return (false, 0.0)
       if opLevel < level:
@@ -205,6 +207,8 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
         of "-": result.val - rhs.val
         of "*": result.val * rhs.val
         of "/": result.val / rhs.val
+        of "%": result.val mod rhs.val
+        of "^": pow(result.val, rhs.val)
         else: 0.0
   
   var stream = text.tokenize()
