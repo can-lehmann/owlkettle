@@ -21,6 +21,8 @@
 # SOFTWARE.
 
 import std/[strutils, math]
+when defined(nimPreviewSlimSystem):
+  import std/formatfloat
 import widgets, widgetdef, guidsl
 
 proc isFloat(value: string): bool =

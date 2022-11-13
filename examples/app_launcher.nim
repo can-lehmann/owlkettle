@@ -24,6 +24,8 @@
 
 import owlkettle
 import std/[os, strscans, strutils, algorithm, osproc, sequtils, sugar]
+when defined(nimPreviewSlimSystem):
+  import std/[assertions, syncio]
 
 const appPath = "share" / "applications"
 let applicationPaths = [
