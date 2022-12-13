@@ -5,6 +5,7 @@ examples/apps/app_launcher
 examples/apps/temp_converter
 examples/widgets/text_view
 examples/widgets/drawing_area
+examples/widgets/popover_menu
 examples/dialogs/file_dialog
 examples/dialogs/custom_dialog
 examples/misc/clipboard
