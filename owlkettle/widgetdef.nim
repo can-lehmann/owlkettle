@@ -590,9 +590,10 @@ proc formatReference(widget: WidgetDef): string =
       result &= "```nim" & example.repr & "\n```\n\n"
 
 proc genDocs(widget: WidgetDef): NimNode {.used.} =
-  result = newCall(bindSym("echo"),
-    newLit(widget.formatReference())
-  )
+  let reference = widget.formatReference()
+  result = quote:
+    when isMainModule:
+      echo `reference`
 
 proc genAdders(widget: WidgetDef): NimNode =
   result = newStmtList()

@@ -27,7 +27,7 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo
 
-when defined(owlkettleDocs):
+when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets\n\n"
 
 proc redraw[T](event: EventObj[T]) =

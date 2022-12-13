@@ -26,6 +26,9 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, widgets, mainloop
 
+when defined(owlkettleDocs) and isMainModule:
+  echo "# Libadwaita Widgets\n\n"
+
 {.passl: "-ladwaita-1".}
 
 type
