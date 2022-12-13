@@ -1,7 +1,7 @@
 # Tutorial
 
 Let's build a simple Todo app using owlkettle.
-The source code for this example can be found [here](../examples/todo.nim).
+The source code for this example can be found [here](../examples/apps/todo.nim).
 Here is what it will look like when it is done.
 
 <img alt="Todo Application" src="assets/tutorial/todo_final.png" width="428px">
@@ -139,4 +139,4 @@ Clicking on the `MenuButton` opens the menu.
 
 <img alt="Todo Application" src="assets/tutorial/todo_5.png" width="428px">
 
-The source code for this example can be found [here](../examples/todo.nim).
+The source code for this example can be found [here](../examples/apps/todo.nim).

@@ -55,9 +55,11 @@ A tutorial for building a simple Todo application can be found [here](docs/tutor
 
 Additional examples can be found in the [examples](examples) folder.
 
+<!--
 If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
 
 A guide for migrating from owlkettle 1.x.x to 2.0.0 [is available here](docs/migrating_1_to_2.md).
+-->
 
 ## License
 
