@@ -6,6 +6,8 @@ examples/apps/temp_converter
 examples/widgets/text_view
 examples/widgets/drawing_area
 examples/widgets/popover_menu
+examples/widgets/adw/window_title
+examples/widgets/adw/preferences_group
 examples/dialogs/file_dialog
 examples/dialogs/custom_dialog
 examples/misc/clipboard

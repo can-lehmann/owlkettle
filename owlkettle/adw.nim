@@ -102,6 +102,13 @@ renderable WindowTitle of BaseWidget:
   hooks subtitle:
     property:
       adw_window_title_set_subtitle(state.internalWidget, state.subtitle.cstring)
+  
+  example:
+    Window:
+      HeaderBar {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Title"
+          subtitle = "Subtitle"
 
 renderable Avatar of BaseWidget:
   text: string
@@ -132,6 +139,12 @@ renderable Avatar of BaseWidget:
   hooks iconName:
     property:
       adw_avatar_set_icon_name(state.internalWidget, state.iconName.cstring)
+  
+  example:
+    Avatar:
+      text = "Erika Mustermann"
+      size = 100
+      showInitials = true
 
 renderable Clamp of BaseWidget:
   maximumSize: int
@@ -154,6 +167,14 @@ renderable Clamp of BaseWidget:
       raise newException(ValueError, "Unable to add multiple children to a Clamp. Use a Box widget to display multiple widgets in a Clamp.")
     widget.hasChild = true
     widget.valChild = child
+  
+  example:
+    Clamp:
+      maximumSize = 600
+      margin = 12
+      
+      PreferencesGroup:
+        title = "Settings"
 
 renderable PreferencesGroup of BaseWidget:
   title: string
@@ -221,6 +242,16 @@ renderable PreferencesGroup of BaseWidget:
       raise newException(ValueError, "Unable to add multiple suffixes to a PreferencesGroup. Use a Box widget to display multiple widgets in a PreferencesGroup.")
     widget.hasSuffix = true
     widget.valSuffix = child
+  
+  example:
+    PreferencesGroup:
+      title = "Settings"
+      description = "Application Settings"
+      
+      ActionRow:
+        title = "My Setting"
+        subtitle = "Subtitle"
+        Switch() {.addSuffix.}
 
 renderable PreferencesRow of ListBoxRow:
   title: string

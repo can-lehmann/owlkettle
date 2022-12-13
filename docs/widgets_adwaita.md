@@ -1,4 +1,4 @@
-# Adwaita Widgets
+# Libadwaita Widgets
 
 
 ## WindowTitle
@@ -12,6 +12,16 @@ renderable WindowTitle of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `title: string`
 - `subtitle: string`
+
+###### Example
+
+```nim
+Window:
+  HeaderBar {.addTitlebar.}:
+    WindowTitle {.addTitle.}:
+      title = "Title"
+      subtitle = "Subtitle"
+```
 
 
 ## Avatar
@@ -27,6 +37,15 @@ renderable Avatar of BaseWidget
 - `size: int`
 - `showInitials: bool`
 - `iconName: string = "avatar-default-symbolic"`
+
+###### Example
+
+```nim
+Avatar:
+  text = "Erika Mustermann"
+  size = 100
+  showInitials = true
+```
 
 
 ## Clamp
@@ -45,6 +64,16 @@ renderable Clamp of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
+
+###### Example
+
+```nim
+Clamp:
+  maximumSize = 600
+  margin = 12
+  PreferencesGroup:
+    title = "Settings"
+```
 
 
 ## PreferencesGroup
@@ -66,6 +95,18 @@ renderable PreferencesGroup of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
 - `addSuffix`
+
+###### Example
+
+```nim
+PreferencesGroup:
+  title = "Settings"
+  description = "Application Settings"
+  ActionRow:
+    title = "My Setting"
+    subtitle = "Subtitle"
+    Switch() {.addSuffix.}
+```
 
 
 ## PreferencesRow
