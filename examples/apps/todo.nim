@@ -54,6 +54,9 @@ method view(app: AppState): Widget =
             text = app.newItem
             proc changed(newItem: string) =
               app.newItem = newItem
+            proc activate() =
+              app.todos.add(TodoItem(text: app.newItem))
+              app.newItem = ""
           Button {.expand: false.}:
             icon = "list-add-symbolic"
             style = {ButtonSuggested}
