@@ -2197,6 +2197,19 @@ renderable AboutDialog of BaseWidget:
           let names = allocCStringArray(people)
           defer: deallocCStringArray(names)
           gtk_about_dialog_add_credit_section(state.internalWidget, sectionName.cstring, names)
+  
+  example:
+    AboutDialog:
+      programName = "My Application"
+      logo = "applications-graphics"
+      version = "1.0.0"
+      credits = @{
+        "Code": @[
+          "Erika Mustermann",
+          "Max Mustermann",
+        ],
+        "Art": @["Max Mustermann"]
+      }
 
 export BaseWidget, BaseWidgetState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry

@@ -922,4 +922,15 @@ renderable AboutDialog of BaseWidget
 - `license: string`
 - `credits: seq[(string, seq[string])]`
 
+###### Example
+
+```nim
+AboutDialog:
+  programName = "My Application"
+  logo = "applications-graphics"
+  version = "1.0.0"
+  credits = @{"Code": @["Erika Mustermann", "Max Mustermann"],
+              "Art": @["Max Mustermann"]}
+```
+
 
