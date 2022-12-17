@@ -7,10 +7,16 @@ requires "nim >= 1.6.0"
 
 import std/strutils
 
+proc findExamples(path: string): seq[string] =
+  for file in listFiles(path):
+    if file.endsWith(".nim"):
+      result.add(file)
+  for dir in listDirs(path):
+    result.add(findExamples(dir))
+
 task examples, "Build examples":
-  with_dir "examples":
-    for file in list_files("."):
-      if not file.ends_with(".nim"): continue
+  withDir "examples":
+    for file in findExamples("."):
       echo "INFO: Compile " & file
       exec "nim c --hints:off --verbosity:0 " & file
       echo "INFO: OK"
