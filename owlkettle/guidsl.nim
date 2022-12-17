@@ -104,7 +104,8 @@ proc parseGui(node: NimNode): Node =
     of nnkStmtList:
       result = Node(kind: NodeBlock)
       for child in node:
-        if child.kind != nnkDiscardStmt:
+        if child.kind != nnkDiscardStmt and
+           child.kind != nnkCommentStmt:
           result.children.add(child.parseGui())
     of nnkAsgn, nnkExprEqExpr:
       assert node[0].isName
