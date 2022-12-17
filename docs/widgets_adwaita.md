@@ -177,4 +177,21 @@ renderable Flap
 - `addFlap`
   - `width = -1`
 
+###### Example
+
+```nim
+Flap:
+  revealed = app.showFlap
+  transitionType = FlapTransitionOver
+  proc changed(revealed: bool) =
+    app.showFlap = revealed
+
+  Label(text = "Flap") {.addFlap, width: 200.}
+  Separator() {.addSeparator.}
+  Box:
+    Label:
+      text = "Content ".repeat(10)
+      wrap = true
+```
+
 

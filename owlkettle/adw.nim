@@ -493,6 +493,23 @@ renderable Flap:
       raise newException(ValueError, "Unable to add multiple flaps to a adw.Flap. Use a Box widget to display multiple widgets in a adw.Flap.")
     widget.hasFlap = true
     widget.valFlap = FlapChild[Widget](widget: child, width: width)
+  
+  example:
+    Flap:
+      revealed = app.showFlap
+      transitionType = FlapTransitionOver
+      
+      proc changed(revealed: bool) =
+        app.showFlap = revealed
+      
+      Label(text = "Flap") {.addFlap, width: 200.}
+      
+      Separator() {.addSeparator.}
+      
+      Box:
+        Label:
+          text = "Content ".repeat(10)
+          wrap = true
 
 proc `hasSwipe=`(flap: Flap, has: bool) =
   flap.hasSwipeToOpen = has
