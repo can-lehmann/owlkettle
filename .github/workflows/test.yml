@@ -34,7 +34,7 @@ jobs:
       - name: Setup dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y libgtk-4-dev
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev
       - name: Setup config.nims
         run: |
           # For referencing latest source code
