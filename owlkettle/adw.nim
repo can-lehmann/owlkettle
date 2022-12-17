@@ -40,6 +40,20 @@ type
     ColorSchemeForceDark,
     ColorSchemePreferDark,
     ColorSchemePreferLight
+  
+  FlapFoldPolicy* = enum
+    FlapFoldNever,
+    FlapFoldAlways,
+    FlapFoldAuto
+  
+  FoldThresholdPolicy* = enum
+    FoldThresholdMinimum,
+    FoldThresholdNatural
+  
+  FlapTransitionType* = enum
+    FlapTransitionOver
+    FlapTransitionUnder
+    FlapTransitionSlide
 
 {.push importc, cdecl.}
 # Adw
@@ -85,6 +99,22 @@ proc adw_action_row_add_prefix(row, child: GtkWidget)
 proc adw_action_row_add_suffix(row, child: GtkWidget)
 proc adw_action_row_remove(row, child: GtkWidget)
 proc adw_action_row_set_activatable_widget(row, child: GtkWidget)
+
+# Adw.Flap
+proc adw_flap_new(): GtkWidget
+proc adw_flap_set_content(flap, content: GtkWidget)
+proc adw_flap_set_flap(flap, child: GtkWidget)
+proc adw_flap_set_separator(flap, child: GtkWidget)
+proc adw_flap_set_fold_policy(flap: GtkWidget, foldPolicy: FlapFoldPolicy)
+proc adw_flap_set_fold_threshold_policy(flap: GtkWidget, foldThresholdPolicy: FoldThresholdPolicy)
+proc adw_flap_set_transition_type(flap: GtkWidget, transitionType: FlapTransitionType)
+proc adw_flap_set_reveal_flap(flap: GtkWidget, revealed: cbool)
+proc adw_flap_set_modal(flap: GtkWidget, modal: cbool)
+proc adw_flap_set_locked(flap: GtkWidget, locked: cbool)
+proc adw_flap_set_swipe_to_open(flap: GtkWidget, swipe: cbool)
+proc adw_flap_set_swipe_to_close(flap: GtkWidget, swipe: cbool)
+proc adw_flap_get_reveal_flap(flap: GtkWidget): cbool
+proc adw_flap_get_folded(flap: GtkWidget): cbool
 {.pop.}
 
 renderable WindowTitle of BaseWidget:
@@ -335,7 +365,144 @@ renderable ActionRow of PreferencesRow:
       vAlign: vAlign
     ))
 
-export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow
+type FlapChild[T] = object
+  widget: T
+  width: int
+
+renderable Flap:
+  content: Widget
+  separator: Widget
+  flap: FlapChild[Widget]
+  revealed: bool = false
+  foldPolicy: FlapFoldPolicy = FlapFoldAuto
+  foldThresholdPolicy: FoldThresholdPolicy = FoldThresholdNatural
+  transitionType: FlapTransitionType = FlapTransitionOver
+  modal: bool = true
+  locked: bool = false
+  swipeToClose: bool = true
+  swipeToOpen: bool = true
+  
+  proc changed(revealed: bool)
+  proc fold(folded: bool)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_flap_new()
+    connectEvents:
+      proc changedCallback(widget: GtkWidget,
+                           pspec: pointer,
+                           data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
+        let
+          revealed = adw_flap_get_reveal_flap(widget) != 0
+          state = FlapState(data[].widget)
+        if state.revealed != revealed:
+          state.revealed = revealed
+          data[].callback(revealed)
+          data[].redraw()
+      
+      state.connect(state.changed, "notify::reveal-flap", changedCallback)
+      
+      proc foldCallback(widget: GtkWidget,
+                        pspec: pointer,
+                        data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
+        data[].callback(adw_flap_get_folded(widget) != 0)
+        data[].redraw()
+      
+      state.connect(state.fold, "notify::folded", foldCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
+      state.internalWidget.disconnect(state.fold)
+  
+  hooks foldPolicy:
+    property:
+      adw_flap_set_fold_policy(state.internal_widget, state.foldPolicy)
+  
+  hooks foldThresholdPolicy:
+    property:
+      adw_flap_set_fold_threshold_policy(state.internal_widget, state.foldThresholdPolicy)
+  
+  hooks transitionType:
+    property:
+      adw_flap_set_transition_type(state.internal_widget, state.transitionType)
+  
+  hooks revealed:
+    property:
+      adw_flap_set_reveal_flap(state.internal_widget, cbool(ord(state.revealed)))
+  
+  hooks modal:
+    property:
+      adw_flap_set_modal(state.internal_widget, cbool(ord(state.modal)))
+  
+  hooks locked:
+    property:
+      adw_flap_set_locked(state.internal_widget, cbool(ord(state.locked)))
+  
+  hooks swipeToOpen:
+    property:
+      adw_flap_set_swipe_to_open(state.internal_widget, cbool(ord(state.swipeToOpen)))
+  
+  hooks swipeToClose:
+    property:
+      adw_flap_set_swipe_to_close(state.internal_widget, cbool(ord(state.swipeToClose)))
+  
+  hooks flap:
+    (build, update):
+      if widget.hasFlap:
+        widget.valFlap.widget.assignApp(state.app)
+        let newChild =
+          if state.flap.widget.isNil:
+            widget.valFlap.widget.build()
+          else:
+            widget.valFlap.widget.update(state.flap.widget)
+        if not newChild.isNil:
+          let childWidget = newChild.unwrapInternalWidget()
+          adw_flap_set_flap(state.internalWidget, childWidget)
+          let styleContext = gtk_widget_get_style_context(childWidget)
+          gtk_style_context_add_class(styleContext, "background")
+          state.flap.widget = newChild
+        
+        if state.flap.width != widget.valFlap.width:
+          state.flap.width = widget.valFlap.width
+          let childWidget = state.flap.widget.unwrapInternalWidget()
+          gtk_widget_set_size_request(childWidget, cint(state.flap.width), -1)
+  
+  hooks separator:
+    build: buildBin(state, widget, separator, hasSeparator, valSeparator, adw_flap_set_separator)
+    update: updateBin(state, widget, separator, hasSeparator, valSeparator, adw_flap_set_separator)
+  
+  hooks content:
+    build: buildBin(state, widget, content, hasContent, valContent, adw_flap_set_content)
+    update: updateBin(state, widget, content, hasContent, valContent, adw_flap_set_content)
+  
+  setter swipe: bool
+  
+  adder add:
+    if widget.hasContent:
+      raise newException(ValueError, "Unable to add multiple children to a adw.Flap. Use a Box widget to display multiple widgets in a adw.Flap.")
+    widget.hasContent = true
+    widget.valContent = child
+  
+  adder addSeparator:
+    if widget.hasSeparator:
+      raise newException(ValueError, "Unable to add multiple separators to a adw.Flap.")
+    widget.hasSeparator = true
+    widget.valSeparator = child
+  
+  adder addFlap {.width: -1.}:
+    if widget.hasFlap:
+      raise newException(ValueError, "Unable to add multiple flaps to a adw.Flap. Use a Box widget to display multiple widgets in a adw.Flap.")
+    widget.hasFlap = true
+    widget.valFlap = FlapChild[Widget](widget: child, width: width)
+
+proc `hasSwipe=`(flap: Flap, has: bool) =
+  flap.hasSwipeToOpen = has
+  flap.hasSwipeToClose = has
+
+proc `valSwipe=`(flap: Flap, swipe: bool) =
+  flap.valSwipeToOpen = swipe
+  flap.valSwipeToClose = swipe
+
+export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, Flap
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],

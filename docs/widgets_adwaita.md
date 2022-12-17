@@ -141,3 +141,40 @@ renderable ActionRow of PreferencesRow
   - `vAlign = AlignCenter`
 
 
+## Flap
+
+```nim
+renderable Flap
+```
+
+###### Fields
+
+- `content: Widget`
+- `separator: Widget`
+- `flap: FlapChild[Widget]`
+- `revealed: bool = false`
+- `foldPolicy: FlapFoldPolicy = FlapFoldAuto`
+- `foldThresholdPolicy: FoldThresholdPolicy = FoldThresholdNatural`
+- `transitionType: FlapTransitionType = FlapTransitionOver`
+- `modal: bool = true`
+- `locked: bool = false`
+- `swipeToClose: bool = true`
+- `swipeToOpen: bool = true`
+
+###### Setters
+
+- `swipe: bool`
+
+###### Events
+
+- changed: `proc (revealed: bool)`
+- fold: `proc (folded: bool)`
+
+###### Adders
+
+- `add`
+- `addSeparator`
+- `addFlap`
+  - `width = -1`
+
+

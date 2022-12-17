@@ -710,6 +710,7 @@ renderable ListBox of BaseWidget
 - `rows: seq[Widget]`
 - `selectionMode: SelectionMode`
 - `selected: HashSet[int]`
+- `style: set[ListBoxStyle] = {}`
 
 ###### Events
 

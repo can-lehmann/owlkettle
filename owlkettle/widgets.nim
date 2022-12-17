@@ -30,7 +30,7 @@ import gtk, widgetdef, cairo
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets\n\n"
 
-proc redraw[T](event: EventObj[T]) =
+proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
     raise newException(ValueError, "App is nil")
   event.app.redraw()
@@ -39,15 +39,15 @@ proc eventCallback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
   data[].redraw()
 
-proc connect[T](renderable: Renderable,
-                event: Event[T],
-                name: cstring,
-                eventCallback: pointer) =
+proc connect*[T](renderable: Renderable,
+                 event: Event[T],
+                 name: cstring,
+                 eventCallback: pointer) =
   if not event.isNil:
     event.widget = renderable
     event.handler = g_signal_connect(renderable.internalWidget, name, eventCallback, event[].addr)
 
-proc disconnect[T](widget: GtkWidget, event: Event[T]) =
+proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
   if not event.isNil:
     assert event.handler > 0
     g_signal_handler_disconnect(widget, event.handler)
@@ -629,23 +629,21 @@ renderable HeaderBar of BaseWidget:
   
   hooks left:
     (build, update):
-      if widget.hasLeft:
-        widget.valLeft.assignApp(state.app)
-        updateHeaderBar(
-          state.internalWidget,
-          state.left, widget.valLeft,
-          gtk_header_bar_pack_start
-        )
+      widget.valLeft.assignApp(state.app)
+      updateHeaderBar(
+        state.internalWidget,
+        state.left, widget.valLeft,
+        gtk_header_bar_pack_start
+      )
   
   hooks right:
     (build, update):
-      if widget.hasRight:
-        widget.valRight.assignApp(state.app)
-        updateHeaderBar(
-          state.internalWidget,
-          state.right, widget.valRight,
-          gtk_header_bar_pack_end
-        )
+      widget.valRight.assignApp(state.app)
+      updateHeaderBar(
+        state.internalWidget,
+        state.right, widget.valRight,
+        gtk_header_bar_pack_end
+      )
   
   hooks title:
     build: buildBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
@@ -1756,6 +1754,9 @@ renderable ListBoxRow of BaseWidget:
             echo it
           Label(text = $it)
 
+type ListBoxStyle* = enum
+  ListBoxNavigationSidebar = "navigation-sidebar"
+
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
 
@@ -1763,6 +1764,7 @@ renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
   selected: HashSet[int]
+  style: set[ListBoxStyle] = {}
   
   proc select(rows: HashSet[int])
   
@@ -1840,6 +1842,10 @@ renderable ListBox of BaseWidget:
         for row in state.selected:
           if row >= state.rows.len:
             raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
+  
+  hooks style:
+    (build, update):
+      updateStyle(state, widget)
   
   adder addRow:
     widget.hasRows = true
