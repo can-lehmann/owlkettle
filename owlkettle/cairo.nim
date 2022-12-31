@@ -68,6 +68,12 @@ type
     yAdvance*: cdouble
   
   CairoStatus = distinct cint # TODO
+  
+  CairoLineJoin* = enum
+    LineJoinMiter, LineJoinRound, LineJoinBevel
+  
+  CairoLineCap* = enum
+    LineJoinButt, LineJoinRound, LineJoinSquare
 
 proc `==`(a, b: CairoStatus): bool {.borrow.}
 
@@ -86,11 +92,17 @@ proc cairo_curve_to(ctx: CairoContext, x1, y1, x2, y2, x3, y3: cdouble)
 proc cairo_text_path(ctx: CairoContext, text: cstring)
 
 proc cairo_set_line_width(ctx: CairoContext, width: cdouble)
+proc cairo_set_line_join(ctx: CairoContext, join: CairoLineJoin)
+proc cairo_set_line_cap(ctx: CairoContext, cap: CairoLineCap)
+proc cairo_set_miter_limit(ctx: CairoContext, limit: cdouble)
+proc cairo_set_dash(ctx: CairoContext, dashes: ptr UncheckedArray[cdouble], count: cint, offset: cdouble)
 proc cairo_set_source(ctx: CairoContext, pattern: CairoPattern)
 proc cairo_set_source_rgb(ctx: CairoContext, r, g, b: cdouble)
 proc cairo_set_source_rgba(ctx: CairoContext, r, g, b, a: cdouble)
 proc cairo_fill(ctx: CairoContext)
+proc cairo_fill_preserve(ctx: CairoContext)
 proc cairo_stroke(ctx: CairoContext)
+proc cairo_stroke_preserve(ctx: CairoContext)
 proc cairo_clip(ctx: CairoContext)
 proc cairo_reset_clip(ctx: CairoContext)
 
@@ -182,8 +194,31 @@ proc `source=`*(ctx: CairoContext, pattern: CairoPattern) =
 proc `lineWidth=`*(ctx: CairoContext, width: float) =
   cairo_set_line_width(ctx, width.cdouble)
 
+proc `lineJoin=`*(ctx: CairoContext, join: CairoLineJoin) =
+  cairo_set_line_join(ctx, join)
+
+proc `miterLimit=`*(ctx: CairoContext, limit: float) =
+  cairo_set_miter_limit(ctx, limit.cdouble)
+
+proc `lineCap=`*(ctx: CairoContext, cap: CairoLineCap) =
+  cairo_set_line_cap(ctx, cap)
+
+proc setDash*(ctx: CairoContext, dash: openArray[float], offset: float = 0.0) =
+  if dash.len > 0:
+    var data = newSeq[cdouble](dash.len)
+    for it, value in dash:
+      data[it] = cdouble(value)
+    let dataPtr = cast[ptr UncheckedArray[cdouble]](data[0].addr)
+    cairo_set_dash(ctx, dataPtr, cint(dash.len), cdouble(offset))
+  else:
+    cairo_set_dash(ctx, nil, 0, cdouble(offset))
+
+proc `dash=`*(ctx: CairoContext, dash: openArray[float]) = ctx.setDash(dash)
+
 proc fill*(ctx: CairoContext) = cairo_fill(ctx)
 proc stroke*(ctx: CairoContext) = cairo_stroke(ctx)
+proc fillPreserve*(ctx: CairoContext) = cairo_fill_preserve(ctx)
+proc strokePreserve*(ctx: CairoContext) = cairo_stroke_preserve(ctx)
 
 proc clip*(ctx: CairoContext) = cairo_clip(ctx)
 proc resetClip*(ctx: CairoContext) = cairo_reset_clip(ctx)
