@@ -100,6 +100,20 @@ proc adw_action_row_add_suffix(row, child: GtkWidget)
 proc adw_action_row_remove(row, child: GtkWidget)
 proc adw_action_row_set_activatable_widget(row, child: GtkWidget)
 
+# Adw.ExpanderRow
+proc adw_expander_row_new(): GtkWidget
+proc adw_expander_row_set_subtitle(row: GtkWidget, subtitle: cstring)
+proc adw_expander_row_add_action(row, child: GtkWidget)
+proc adw_expander_row_add_prefix(row, child: GtkWidget)
+proc adw_expander_row_add_row(expanderRow, row: GtkWidget)
+proc adw_expander_row_remove(row, child: GtkWidget)
+
+# Adw.ComboRow
+proc adw_combo_row_new(): GtkWidget
+proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
+proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
+proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
+
 # Adw.Flap
 proc adw_flap_new(): GtkWidget
 proc adw_flap_set_content(flap, content: GtkWidget)
@@ -122,7 +136,7 @@ renderable WindowTitle of BaseWidget:
   subtitle: string
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_window_title_new(cstring(""), cstring(""))
   
   hooks title:
@@ -147,7 +161,7 @@ renderable Avatar of BaseWidget:
   iconName: string = "avatar-default-symbolic"
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_avatar_new(
         widget.valSize.cint,
         widget.valText.cstring,
@@ -181,7 +195,7 @@ renderable Clamp of BaseWidget:
   child: Widget
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_clamp_new()
   
   hooks maximumSize:
@@ -213,7 +227,7 @@ renderable PreferencesGroup of BaseWidget:
   suffix: Widget
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_preferences_group_new()
   
   hooks title:
@@ -287,29 +301,80 @@ renderable PreferencesRow of ListBoxRow:
   title: string
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_preferences_row_new()
   
   hooks title:
     property:
       adw_preferences_row_set_title(state.internalWidget, state.title.cstring)
 
-type Suffix[T] = object
+type RowChild[T] = object
   widget: T
   hAlign: Align
   vAlign: Align
 
-proc assignApp(suffix: Suffix[Widget], app: Viewable) =
-  suffix.widget.assignApp(app)
+proc assignApp(child: RowChild[Widget], app: Viewable) =
+  child.widget.assignApp(app)
 
 proc toGtk(align: Align): GtkAlign = GtkAlign(ord(align))
 
+proc updateRowChildren(state: Renderable,
+                       children: var seq[RowChild[WidgetState]],
+                       updates: seq[RowChild[Widget]],
+                       addChild: proc(widget, child: GtkWidget) {.cdecl.},
+                       removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+  updates.assignApp(state.app)
+  var
+    it = 0
+    forceReadd = false
+  while it < updates.len and it < children.len:
+    let newChild = update(updates[it].widget, children[it].widget)
+    
+    if not newChild.isNil:
+      removeChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
+      addChild(state.internalWidget, newChild.unwrapInternalWidget())
+      children[it].widget = newChild
+      forceReadd = true
+    elif forceReadd:
+      removeChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
+      addChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
+    
+    let childWidget = children[it].widget.unwrapInternalWidget()
+    
+    if updates[it].hAlign != children[it].hAlign:
+      gtk_widget_set_halign(childWidget, toGtk(updates[it].hAlign))
+      children[it].hAlign = updates[it].hAlign
+    
+    if updates[it].vAlign != children[it].vAlign:
+      gtk_widget_set_valign(childWidget, toGtk(updates[it].vAlign))
+      children[it].vAlign = updates[it].vAlign
+    
+    it += 1
+  
+  while it < updates.len:
+    let
+      childState = updates[it].widget.build()
+      childWidget = childState.unwrapInternalWidget()
+    gtk_widget_set_halign(childWidget, toGtk(updates[it].hAlign))
+    gtk_widget_set_valign(childWidget, toGtk(updates[it].vAlign))
+    addChild(state.internalWidget, childWidget)
+    children.add(RowChild[WidgetState](
+      widget: childState,
+      hAlign: updates[it].hAlign,
+      vAlign: updates[it].vAlign
+    ))
+    it += 1
+  
+  while it < children.len:
+    let child = children.pop()
+    removeChild(state.internalWidget, child.widget.unwrapInternalWidget())
+
 renderable ActionRow of PreferencesRow:
   subtitle: string
-  suffixes: seq[Suffix[Widget]]
+  suffixes: seq[RowChild[Widget]]
   
   hooks:
-    before_build:
+    beforeBuild:
       state.internalWidget = adw_action_row_new()
   
   hooks subtitle:
@@ -318,52 +383,105 @@ renderable ActionRow of PreferencesRow:
   
   hooks suffixes:
     (build, update):
-      widget.valSuffixes.assignApp(state.app)
-      var it = 0
-      while it < widget.valSuffixes.len and it < state.suffixes.len:
-        let 
-          suffix = widget.valSuffixes[it]
-          newSuffix = suffix.widget.update(state.suffixes[it].widget)
-        assert newSuffix.isNil
-        
-        let suffixWidget = state.suffixes[it].widget.unwrapInternalWidget()
-        
-        if suffix.hAlign != state.suffixes[it].hAlign:
-          gtk_widget_set_halign(suffixWidget, toGtk(suffix.hAlign))
-          state.suffixes[it].hAlign = suffix.hAlign
-        
-        if suffix.vAlign != state.suffixes[it].vAlign:
-          gtk_widget_set_valign(suffixWidget, toGtk(suffix.vAlign))
-          state.suffixes[it].vAlign = suffix.vAlign
-        
-        it += 1
-      
-      while it < widget.valSuffixes.len:
-        let
-          suffix = widget.valSuffixes[it]
-          suffixState = suffix.widget.build()
-          suffixWidget = suffixState.unwrapInternalWidget()
-        gtk_widget_set_halign(suffixWidget, toGtk(suffix.hAlign))
-        gtk_widget_set_valign(suffixWidget, toGtk(suffix.vAlign))
-        adw_action_row_add_suffix(state.internalWidget, suffixWidget)
-        state.suffixes.add(Suffix[WidgetState](
-          widget: suffixState,
-          hAlign: suffix.hAlign,
-          vAlign: suffix.vAlign
-        ))
-        it += 1
-      
-      while it < state.suffixes.len:
-        let suffix = state.suffixes.pop()
-        adw_action_row_remove(state.internalWidget, suffix.widget.unwrapInternalWidget())
+      state.updateRowChildren(state.suffixes, widget.valSuffixes,
+        adw_action_row_add_suffix,
+        adw_action_row_remove
+      )
 
   adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasSuffixes = true
-    widget.valSuffixes.add(Suffix[Widget](
+    widget.valSuffixes.add(RowChild[Widget](
       widget: child,
       hAlign: hAlign,
       vAlign: vAlign
     ))
+  
+  example:
+    ActionRow:
+      title = "Color"
+      subtitle = "Color of the object"
+      
+      ColorButton {.addSuffix.}:
+        discard
+
+renderable ExpanderRow of PreferencesRow:
+  subtitle: string
+  actions: seq[RowChild[Widget]]
+  rows: seq[RowChild[Widget]]
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_expander_row_new()
+  
+  hooks subtitle:
+    property:
+      adw_expander_row_set_subtitle(state.internalWidget, state.subtitle.cstring)
+  
+  hooks actions:
+    (build, update):
+      state.updateRowChildren(state.actions, widget.valActions,
+        adw_expander_row_add_action,
+        adw_expander_row_remove
+      )
+  
+  hooks rows:
+    (build, update):
+      state.updateRowChildren(state.rows, widget.valRows,
+        adw_expander_row_add_row,
+        adw_expander_row_remove
+      )
+  
+  adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
+    widget.hasActions = true
+    widget.valActions.add(RowChild[Widget](
+      widget: child,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
+  
+  adder addRow {.hAlign: AlignFill, vAlign: AlignFill.}:
+    widget.hasRows = true
+    widget.valRows.add(RowChild[Widget](
+      widget: child,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
+
+renderable ComboRow of ActionRow:
+  items: seq[string]
+  selected: int
+  
+  proc select(item: int)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_combo_row_new()
+    connectEvents:
+      proc selectCallback(widget: GtkWidget,
+                          pspec: pointer,
+                          data: ptr EventObj[proc (item: int)]) {.cdecl.} =
+        let
+          selected = int(adw_combo_row_get_selected(widget))
+          state = ComboRowState(data[].widget)
+        if selected != state.selected:
+          state.selected = selected
+          data[].callback(selected)
+          data[].redraw()
+      
+      state.connect(state.select, "notify::selected", selectCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.select)
+  
+  hooks items:
+    property:
+      let items = allocCStringArray(state.items)
+      defer: deallocCStringArray(items)
+      adw_combo_row_set_model(state.internalWidget, gtk_string_list_new(items))
+  
+  hooks selected:
+    property:
+      adw_combo_row_set_selected(state.internalWidget, cuint(state.selected))
+  
 
 type FlapChild[T] = object
   widget: T
@@ -519,7 +637,7 @@ proc `valSwipe=`(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, Flap
+export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
