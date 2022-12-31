@@ -73,7 +73,7 @@ type
     LineJoinMiter, LineJoinRound, LineJoinBevel
   
   CairoLineCap* = enum
-    LineJoinButt, LineJoinRound, LineJoinSquare
+    LineCapButt, LineCapRound, LineCapSquare
 
 proc `==`(a, b: CairoStatus): bool {.borrow.}
 
