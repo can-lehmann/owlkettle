@@ -131,7 +131,7 @@ renderable ActionRow of PreferencesRow
 
 - All fields from [PreferencesRow](#PreferencesRow)
 - `subtitle: string`
-- `suffixes: seq[Suffix[Widget]]`
+- `suffixes: seq[RowChild[Widget]]`
 
 ###### Adders
 
@@ -139,6 +139,56 @@ renderable ActionRow of PreferencesRow
 - `addSuffix`
   - `hAlign = AlignFill`
   - `vAlign = AlignCenter`
+
+###### Example
+
+```nim
+ActionRow:
+  title = "Color"
+  subtitle = "Color of the object"
+  ColorButton {.addSuffix.}:(discard )
+```
+
+
+## ExpanderRow
+
+```nim
+renderable ExpanderRow of PreferencesRow
+```
+
+###### Fields
+
+- All fields from [PreferencesRow](#PreferencesRow)
+- `subtitle: string`
+- `actions: seq[RowChild[Widget]]`
+- `rows: seq[RowChild[Widget]]`
+
+###### Adders
+
+- All adders from [PreferencesRow](#PreferencesRow)
+- `addAction`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignCenter`
+- `addRow`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignFill`
+
+
+## ComboRow
+
+```nim
+renderable ComboRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `items: seq[string]`
+- `selected: int`
+
+###### Events
+
+- select: `proc (item: int)`
 
 
 ## Flap

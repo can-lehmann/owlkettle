@@ -5,13 +5,10 @@ A short introduction to owlkettle's internals can be found [here](docs/internals
 ## Documentation
 
 When adding a new widget or modifying an existing widget, you will need to update the widget documentation.
-Since it is automatically generated from the `owlkettle/widgets.nim` module, running the following commands from the project folder will update the documentation to reflect any changes you made to the widgets.
+Since it is automatically generated from the `owlkettle/widgets.nim` module, running the following command from the project folder will update the documentation to reflect any changes you made to the widgets.
 
 ```bash
-nim compile -d:owlkettleDocs -o:build_docs owlkettle/widgets.nim
-./build_docs > docs/widgets.md
-nim compile -d:owlkettleDocs -o:build_docs owlkettle/adw.nim
-./build_docs > docs/widgets_adwaita.md
+make -C docs
 ```
 
 **Note:** Please do never change the `docs/widgets.md` file manually.

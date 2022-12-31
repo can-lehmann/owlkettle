@@ -819,6 +819,34 @@ Frame:
 ```
 
 
+## DropDown
+
+```nim
+renderable DropDown
+```
+
+###### Fields
+
+- `items: seq[string]`
+- `selected: int`
+- `enableSearch: bool`
+
+###### Events
+
+- select: `proc (item: int)`
+
+###### Example
+
+```nim
+DropDown:
+  items = @["Option 1", "Option 2", "Option 3"]
+  selected = app.selectedItem
+  proc select(itemIndex: int) =
+    app.selectedItem = itemIndex
+
+```
+
+
 ## DialogButton
 
 ```nim
