@@ -2011,6 +2011,55 @@ renderable Frame of BaseWidget:
       Label:
         text = "Content"
 
+renderable DropDown:
+  items: seq[string]
+  selected: int
+  enableSearch: bool
+  
+  proc select(item: int)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_drop_down_new(nil, nil)
+    connectEvents:
+      proc selectCallback(widget: GtkWidget,
+                          pspec: pointer,
+                          data: ptr EventObj[proc (item: int)]) {.cdecl.} =
+        let
+          selected = int(gtk_drop_down_get_selected(widget))
+          state = DropDownState(data[].widget)
+        if selected != state.selected:
+          state.selected = selected
+          data[].callback(selected)
+          data[].redraw()
+      
+      state.connect(state.select, "notify::selected", selectCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.select)
+  
+  hooks enableSearch:
+    property:
+      gtk_drop_down_set_enable_search(state.internalWidget, cbool(ord(state.enableSearch)))
+  
+  hooks items:
+    property:
+      let items = allocCStringArray(state.items)
+      defer: deallocCStringArray(items)
+      gtk_drop_down_set_model(state.internalWidget, gtk_string_list_new(items))
+  
+  hooks selected:
+    property:
+      gtk_drop_down_set_selected(state.internalWidget, cuint(state.selected))
+  
+  example:
+    DropDown:
+      items = @["Option 1", "Option 2", "Option 3"]
+      selected = app.selectedItem
+      
+      proc select(itemIndex: int) =
+        app.selectedItem = itemIndex
+
+
 type
   DialogResponseKind* = enum
     DialogCustom, DialogAccept, DialogCancel
@@ -2221,7 +2270,7 @@ export BaseWidget, BaseWidgetState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
-export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame
+export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame, DropDown
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

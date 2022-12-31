@@ -736,6 +736,16 @@ proc gtk_about_dialog_set_program_name*(dialog: GtkWidget, text: cstring)
 proc gtk_about_dialog_set_logo_icon_name*(dialog: GtkWidget, name: cstring)
 proc gtk_about_dialog_set_license*(dialog: GtkWidget, text: cstring)
 proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, people: cstringArray)
+
+# Gtk.StringList
+proc gtk_string_list_new*(strings: cstringArray): GListModel
+
+# Gtk.DropDown
+proc gtk_drop_down_new*(model: GListModel, expr: pointer): GtkWidget
+proc gtk_drop_down_set_model*(dropDown: GtkWidget, model: GListModel)
+proc gtk_drop_down_set_enable_search*(dropDown: GtkWidget, enabled: cbool)
+proc gtk_drop_down_set_selected*(dropDown: GtkWidget, selected: cuint)
+proc gtk_drop_down_get_selected*(dropDown: GtkWidget): cuint
 {.pop.}
 
 {.push hint[Name]: off.}
