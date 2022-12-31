@@ -25,6 +25,9 @@ when defined(nimPreviewSlimSystem):
   import std/formatfloat
 import widgets, widgetdef, guidsl
 
+when defined(owlkettleDocs) and isMainModule:
+  echo "# Dataentries Widgets\n\n"
+
 proc isFloat(value: string): bool =
   if value.len > 0:
     var
