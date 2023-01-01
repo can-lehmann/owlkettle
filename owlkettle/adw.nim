@@ -446,6 +446,14 @@ renderable ExpanderRow of PreferencesRow:
       hAlign: hAlign,
       vAlign: vAlign
     ))
+  
+  example:
+    ExpanderRow:
+      title = "Expander Row"
+      
+      for it in 0..<3:
+        ActionRow {.addRow.}:
+          title = "Nested Row " & $it
 
 renderable ComboRow of ActionRow:
   items: seq[string]
@@ -482,6 +490,14 @@ renderable ComboRow of ActionRow:
     property:
       adw_combo_row_set_selected(state.internalWidget, cuint(state.selected))
   
+  example:
+    ComboRow:
+      title = "Combo Row"
+      items = @["Option 1", "Option 2", "Option 3"]
+      
+      selected = app.selected
+      proc select(item: int) =
+        app.selected = item
 
 type FlapChild[T] = object
   widget: T
