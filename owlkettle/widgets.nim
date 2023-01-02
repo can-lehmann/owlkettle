@@ -2049,7 +2049,7 @@ renderable DropDown:
   
   hooks:
     beforeBuild:
-      state.internalWidget = gtk_drop_down_new(nil, nil)
+      state.internalWidget = gtk_drop_down_new(GListModel(nil), nil)
     connectEvents:
       proc selectCallback(widget: GtkWidget,
                           pspec: pointer,

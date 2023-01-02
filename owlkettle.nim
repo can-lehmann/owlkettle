@@ -78,6 +78,19 @@ proc withdrawNotification*(id: string) =
     raise newException(IoError, ERROR_APP_ID)
   g_application_withdraw_notification(app, id.cstring)
 
+proc redrawFromThread*(viewable: Viewable, priority: int = 200) =
+  when compileOption("threads"):
+    proc fn(data: pointer): cbool {.cdecl.} =
+      let viewable = cast[ptr Viewable](data)
+      viewable[].redraw()
+      deallocShared(viewable)
+    
+    let data = cast[ptr Viewable](allocShared(sizeof(ptr Viewable)))
+    data[] = viewable
+    discard g_idle_add_full(cint(priority), fn, data, nil)
+  else:
+    raise newException(IoError, "Threading is disabled")
+
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
     state = widget.build()

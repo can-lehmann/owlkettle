@@ -19,6 +19,7 @@ examples/misc/clipboard
 examples/misc/cairo_path
 examples/misc/css
 examples/misc/notification
+examples/misc/threading
 examples/misc/*.desktop
 examples/test.nim
 examples/test

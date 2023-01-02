@@ -254,6 +254,7 @@ type
   
   GMainContext* = distinct pointer
   
+  GSourceFunc* = proc(data: pointer): cbool {.cdecl.}
   GDestroyNotify* = proc(data: pointer) {.cdecl.}
   
   GResource* = distinct pointer
@@ -298,6 +299,7 @@ proc g_object_new*(typ: GType): pointer {.varargs.}
 proc g_object_unref*(obj: pointer)
 proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
 proc g_type_fundamental*(id: GType): GType
+proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 
 # GObject.Value
 proc g_value_init*(value: ptr GValue, typ: GType): ptr GValue

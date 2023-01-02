@@ -99,6 +99,10 @@ The `misc` directory contains miscellaneous examples.
       <img alt="Notification Dialog" src="/docs/assets/examples/notification-dialog.png" width="428px">
     </td>
   </tr>
+  <tr>
+    <td><a href="misc/threading.nim">Threading</a></td>
+    <td>No Image</td>
+  </tr>
 </table>
 
 
