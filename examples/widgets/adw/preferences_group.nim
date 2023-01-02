@@ -34,18 +34,34 @@ method view(app: AppState): Widget =
         maximumSize = 500
         margin = 12
         
-        PreferencesGroup:
-          title = "Settings"
-          description = "Application Settings"
+        Box:
+          orient = OrientY
+          spacing = 12
           
-          ActionRow:
-            title = "My Setting"
-            subtitle = "Subtitle"
-            Switch() {.addSuffix.}
+          PreferencesGroup {.expand: false.}:
+            title = "Settings"
+            description = "Application Settings"
+            
+            ActionRow:
+              title = "My Setting"
+              subtitle = "Subtitle"
+              Switch() {.addSuffix.}
+            
+            ActionRow:
+              title = "Another Setting"
+              subtitle = "Subtitle 2"
+              Entry() {.addSuffix.}
           
-          ActionRow:
-            title = "Another Setting"
-            subtitle = "Subtitle 2"
-            Entry() {.addSuffix.}
+          PreferencesGroup {.expand: false.}:
+            title = "Preferences Group with Suffix"
+            description = "Preferences Groups can optionally have a suffix widget"
+            
+            Button {.addSuffix.}:
+              text = "Suffix"
+            
+            ActionRow:
+              title = "My Setting"
+              subtitle = "Subtitle"
+              Switch() {.addSuffix.}
 
 adw.brew(gui(App()))

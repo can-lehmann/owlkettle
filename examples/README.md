@@ -126,12 +126,20 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="widgets/adw/combo_row.nim">Combo Row</a></td>
+    <td><img alt="Combo Row" src="/docs/assets/examples/combo_row.png" width="684px"></td>
+  </tr>
+  <tr>
+    <td><a href="widgets/adw/expander_row.nim">Expander Row</a></td>
+    <td><img alt="Expander Row" src="/docs/assets/examples/expander_row.png" width="803px"></td>
+  </tr>
+  <tr>
     <td><a href="widgets/adw/flap.nim">Flap</a></td>
     <td><img alt="Flap" src="/docs/assets/examples/flap.png" width="622px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/preferences_group.nim">Preferences Group</a></td>
-    <td><img alt="Preferences Group" src="/docs/assets/examples/preferences_group.png" width="758px"></td>
+    <td><img alt="Preferences Group" src="/docs/assets/examples/preferences_group.png" width="721px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/window_title.nim">Window Title</a></td>

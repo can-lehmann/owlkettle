@@ -173,6 +173,16 @@ renderable ExpanderRow of PreferencesRow
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
 
+###### Example
+
+```nim
+ExpanderRow:
+  title = "Expander Row"
+  for it in 0 ..< 3:
+    ActionRow {.addRow.}:
+      title = "Nested Row " & $it
+```
+
 
 ## ComboRow
 
@@ -189,6 +199,18 @@ renderable ComboRow of ActionRow
 ###### Events
 
 - select: `proc (item: int)`
+
+###### Example
+
+```nim
+ComboRow:
+  title = "Combo Row"
+  items = @["Option 1", "Option 2", "Option 3"]
+  selected = app.selected
+  proc select(item: int) =
+    app.selected = item
+
+```
 
 
 ## Flap
