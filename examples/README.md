@@ -96,7 +96,7 @@ The `misc` directory contains miscellaneous examples.
     <td><a href="misc/notification.nim">Notification</a></td>
     <td>
       <img alt="Notification" src="/docs/assets/examples/notification.png" width="508.5px">
-      <img alt="Notification Dialog" src="/docs/assets/examples/notification_dialog.png" width="428px">
+      <img alt="Notification Dialog" src="/docs/assets/examples/notification-dialog.png" width="428px">
     </td>
   </tr>
 </table>
