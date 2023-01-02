@@ -554,37 +554,51 @@ CheckButton:
 ```
 
 
-## Popover
+## BasePopover
 
 ```nim
-renderable Popover of BaseWidget
+renderable BasePopover of BaseWidget
 ```
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
+- `hasArrow: bool = true`
+- `offset: tuple[x, y: int] = (0, 0)`
+- `position: PopoverPosition = PopoverBottom`
+
+
+## Popover
+
+```nim
+renderable Popover of BasePopover
+```
+
+###### Fields
+
+- All fields from [BasePopover](#BasePopover)
 - `child: Widget`
 
 ###### Adders
 
-- All adders from [BaseWidget](#BaseWidget)
+- All adders from [BasePopover](#BasePopover)
 - `add`
 
 
 ## PopoverMenu
 
 ```nim
-renderable PopoverMenu of BaseWidget
+renderable PopoverMenu of BasePopover
 ```
 
 ###### Fields
 
-- All fields from [BaseWidget](#BaseWidget)
+- All fields from [BasePopover](#BasePopover)
 - `pages: Table[string, Widget]`
 
 ###### Adders
 
-- All adders from [BaseWidget](#BaseWidget)
+- All adders from [BasePopover](#BasePopover)
 - `add`
   - `name = "main"`
 

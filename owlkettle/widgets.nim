@@ -1292,7 +1292,36 @@ renderable CheckButton of BaseWidget:
       proc changed(state: bool) =
         app.state = state
 
-renderable Popover of BaseWidget:
+type PopoverPosition* = enum
+  PopoverLeft
+  PopoverRight
+  PopoverTop
+  PopoverBottom
+
+proc toGtk(pos: PopoverPosition): GtkPositionType =
+  result = GtkPositionType(ord(pos))
+
+renderable BasePopover of BaseWidget:
+  hasArrow: bool = true
+  offset: tuple[x, y: int] = (0, 0)
+  position: PopoverPosition = PopoverBottom
+  
+  hooks hasArrow:
+    property:
+      gtk_popover_set_has_arrow(state.internalWidget, cbool(ord(state.hasArrow)))
+  
+  hooks offset:
+    property:
+      gtk_popover_set_offset(state.internalWidget,
+        cint(state.offset.x),
+        cint(state.offset.y)
+      )
+  
+  hooks position:
+    property:
+      gtk_popover_set_position(state.internalWidget, toGtk(state.position))
+
+renderable Popover of BasePopover:
   child: Widget
   
   hooks:
@@ -1309,7 +1338,7 @@ renderable Popover of BaseWidget:
     widget.hasChild = true
     widget.valChild = child
 
-renderable PopoverMenu of BaseWidget:
+renderable PopoverMenu of BasePopover:
   pages: Table[string, Widget]
   
   hooks:

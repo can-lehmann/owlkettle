@@ -106,6 +106,12 @@ type
     GTK_SHORTCUT_SCOPE_MANAGED
     GTK_SHORTCUT_SCOPE_GLOBAL
   
+  GtkPositionType* = enum
+    GTK_POS_LEFT
+    GTK_POS_RIGHT
+    GTK_POS_TOP
+    GTK_POS_BOTTOM
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -561,6 +567,9 @@ proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
 proc gtk_popover_set_child*(popover, child: GtkWidget)
 proc gtk_popover_get_child*(popover: GtkWidget): GtkWidget
+proc gtk_popover_set_has_arrow*(popover: GtkWidget, hasArrow: cbool)
+proc gtk_popover_set_offset*(popover: GtkWidget, x, y: cint)
+proc gtk_popover_set_position*(popover: GtkWidget, pos: GtkPositionType)
 
 # Gtk.PopoverMenu
 proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget
