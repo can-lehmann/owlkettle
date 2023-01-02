@@ -92,6 +92,13 @@ The `misc` directory contains miscellaneous examples.
     <td><a href="misc/css.nim">CSS</a></td>
     <td><img alt="CSS" src="/docs/assets/examples/css.png" width="428px"></td>
   </tr>
+  <tr>
+    <td><a href="misc/notification.nim">Notification</a></td>
+    <td>
+      <img alt="Notification" src="/docs/assets/examples/notification.png" width="508.5px">
+      <img alt="Notification Dialog" src="/docs/assets/examples/notification_dialog.png" width="428px">
+    </td>
+  </tr>
 </table>
 
 

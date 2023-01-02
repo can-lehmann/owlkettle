@@ -31,6 +31,53 @@ proc writeClipboard*(state: WidgetState, text: string) =
     clipboard = gdk_display_get_clipboard(display)
   gdk_clipboard_set_text(clipboard, text.cstring, text.len.cint)
 
+type NotificationPriority* = enum
+  NotificationNormal,
+  NotificationLow,
+  NotificationHigh,
+  NotificationUrgent
+
+proc toGtk(priority: NotificationPriority): GNotificationPriority =
+  result = GNotificationPriority(ord(priority))
+
+const ERROR_APP_ID =
+  "Unable to send notification: " &
+  "The Application does not have an application id. " &
+  "Please pass the application id as the first parameter of the brew procedure. " &
+  "Example: brew(\"com.example.MyApplication\", gui(App()))"
+
+proc sendNotification*(id, title, body: string,
+                       category: string = "",
+                       icon: string = "",
+                       priority: NotificationPriority = NotificationNormal) =
+  let app = g_application_get_default()
+  if app.isNil:
+    raise newException(IoError, ERROR_APP_ID)
+  
+  let notification = g_notification_new(title.cstring)
+  g_notification_set_priority(notification, toGtk(priority))
+  
+  if body.len > 0:
+    g_notification_set_body(notification, body.cstring)
+  if category.len > 0:
+    g_notification_set_category(notification, category.cstring)
+  
+  if icon.len > 0:
+    var err = GError(nil)
+    let gIcon = g_icon_new_for_string(icon.cstring, err.addr)
+    if not err.isNil:
+      raise newException(IoError, "Icon \"" & icon & "\" is unknown")
+    g_notification_set_icon(notification, gIcon)
+    g_object_unref(pointer(gIcon))
+  
+  g_application_send_notification(app, id.cstring, notification)
+
+proc withdrawNotification*(id: string) =
+  let app = g_application_get_default()
+  if app.isNil:
+    raise newException(IoError, ERROR_APP_ID)
+  g_application_withdraw_notification(app, id.cstring)
+
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
     state = widget.build()

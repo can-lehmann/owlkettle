@@ -227,6 +227,12 @@ proc isNil*(obj: GdkEvent): bool {.borrow.}
 proc isNil*(obj: GdkClipboard): bool {.borrow.}
 
 type
+  GNotificationPriority* = enum
+    G_NOTIFICATION_PRIORITY_NORMAL
+    G_NOTIFICATION_PRIORITY_LOW
+    G_NOTIFICATION_PRIORITY_HIGH
+    G_NOTIFICATION_PRIORITY_URGENT
+  
   GType* = distinct csize_t
   GValue* = object
     typ: GType
@@ -254,6 +260,7 @@ type
   GIcon* = distinct pointer
   GApplication* = distinct pointer
   GFile* = distinct pointer
+  GNotification* = distinct pointer
   
   GListModel* = distinct pointer
   
@@ -263,6 +270,7 @@ proc isNil*(obj: GResource): bool {.borrow.}
 proc isNil*(obj: GIcon): bool {.borrow.}
 proc isNil*(obj: GApplication): bool {.borrow.}
 proc isNil*(obj: GFile): bool {.borrow.}
+proc isNil*(obj: GNotification): bool {.borrow.}
 proc isNil*(obj: GListModel): bool {.borrow.}
 
 const
@@ -317,11 +325,21 @@ proc g_resources_register*(res: GResource)
 proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
 
 # Gio.Application
+proc g_application_get_default*(): GApplication
+proc g_application_send_notification*(app: GApplication, id: cstring, notification: GNotification)
+proc g_application_withdraw_notification*(app: GApplication, id: cstring)
 proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
 
 # Gio.File
 proc g_file_get_path*(file: GFile): cstring
 proc g_file_get_uri*(file: GFile): cstring
+
+# Gio.Notification
+proc g_notification_new*(title: cstring): GNotification
+proc g_notification_set_body*(notification: GNotification, body: cstring)
+proc g_notification_set_category*(notification: GNotification, category: cstring)
+proc g_notification_set_icon*(notification: GNotification, icon: GIcon)
+proc g_notification_set_priority*(notification: GNotification, priority: GNotificationPriority)
 
 # Gio.GListModel
 proc g_list_model_get_n_items*(list: GListModel): cuint

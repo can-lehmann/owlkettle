@@ -18,6 +18,8 @@ examples/dialogs/custom_dialog
 examples/misc/clipboard
 examples/misc/cairo_path
 examples/misc/css
+examples/misc/notification
+examples/misc/*.desktop
 examples/test.nim
 examples/test
 examples/test2.nim
@@ -27,3 +29,4 @@ docs/social/
 docs/videos/
 build_docs
 .git-old
+todo.txt
