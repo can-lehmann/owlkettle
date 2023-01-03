@@ -20,9 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle/[gtk, widgetdef, widgets, guidsl, mainloop]
+import owlkettle/[gtk, widgetutils, widgetdef, widgets, guidsl, mainloop]
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
+export Align
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let

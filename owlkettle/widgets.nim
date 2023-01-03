@@ -268,17 +268,9 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
-type OverlayChild[T] = object
-  widget: T
-  hAlign: Align
-  vAlign: Align
-
-proc assignApp[T](child: OverlayChild[T], app: Viewable) =
-  child.widget.assignApp(app)
-
 renderable Overlay of BaseWidget:
   child: Widget
-  overlays: seq[OverlayChild[Widget]]
+  overlays: seq[AlignedChild[Widget]]
   
   hooks:
     beforeBuild:
@@ -290,48 +282,12 @@ renderable Overlay of BaseWidget:
   
   hooks overlays:
     (build, update):
-      widget.valOverlays.assignApp(state.app)
-      
-      var it = 0
-      
-      while it < widget.valOverlays.len and it < state.overlays.len:
-        let
-          child = widget.valOverlays[it]
-          newChild = child.widget.update(state.overlays[it].widget)
-        assert newChild.isNil
-        
-        let childWidget = state.overlays[it].widget.unwrapInternalWidget()
-        if child.hAlign != state.overlays[it].hAlign:
-          state.overlays[it].hAlign = child.hAlign
-          gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
-        
-        if child.vAlign != state.overlays[it].vAlign:
-          state.overlays[it].vAlign = child.vAlign
-          gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
-        
-        it += 1
-      
-      while it < widget.valOverlays.len:
-        let
-          child = widget.valOverlays[it]
-          childState = child.widget.build()
-          childWidget = unwrapInternalWidget(childState)
-        gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
-        gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
-        gtk_overlay_add_overlay(state.internalWidget, childWidget)
-        state.overlays.add(OverlayChild[WidgetState](
-          widget: childState,
-          hAlign: child.hAlign,
-          vAlign: child.vAlign
-        ))
-        it += 1
-      
-      while it < state.overlays.len:
-        gtk_overlay_remove_overlay(
-          state.internalWidget,
-          state.overlays[^1].widget.unwrapInternalWidget()
-        )
-        discard state.overlays.pop()
+      state.updateAlignedChildren(
+        state.overlays,
+        widget.valOverlays,
+        gtk_overlay_add_overlay,
+        gtk_overlay_remove_overlay
+      )
   
   adder add:
     if widget.hasChild:
@@ -342,7 +298,7 @@ renderable Overlay of BaseWidget:
   adder addOverlay {.hAlign: AlignFill,
                      vAlign: AlignFill.}:
     widget.hasOverlays = true
-    widget.valOverlays.add(OverlayChild[Widget](
+    widget.valOverlays.add(AlignedChild[Widget](
       widget: child,
       hAlign: hAlign,
       vAlign: vAlign
