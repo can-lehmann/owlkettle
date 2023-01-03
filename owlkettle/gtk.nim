@@ -299,7 +299,6 @@ proc g_object_new*(typ: GType): pointer {.varargs.}
 proc g_object_unref*(obj: pointer)
 proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
 proc g_type_fundamental*(id: GType): GType
-proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 
 # GObject.Value
 proc g_value_init*(value: ptr GValue, typ: GType): ptr GValue
@@ -312,6 +311,13 @@ proc g_value_set_boolean*(value: ptr GValue, boolVal: cbool)
 proc g_value_set_int*(value: ptr GValue, intVal: cint)
 proc g_value_set_uint*(value: ptr GValue, intVal: cuint)
 proc g_value_unset*(value: ptr GValue)
+
+# GLib
+proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
+proc g_timeout_add_full*(priority: cint, interval: cuint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
+
+# GLib.Source
+proc g_source_remove*(id: cuint): cbool
 
 # GLib.List
 proc g_list_free*(list: GList)

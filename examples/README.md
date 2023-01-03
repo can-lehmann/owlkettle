@@ -103,6 +103,10 @@ The `misc` directory contains miscellaneous examples.
     <td><a href="misc/threading.nim">Threading</a></td>
     <td>No Image</td>
   </tr>
+  <tr>
+    <td><a href="misc/timeout_event.nim">Timeout Event</a></td>
+    <td>No Image</td>
+  </tr>
 </table>
 
 

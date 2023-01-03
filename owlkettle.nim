@@ -83,13 +83,54 @@ proc redrawFromThread*(viewable: Viewable, priority: int = 200) =
     proc fn(data: pointer): cbool {.cdecl.} =
       let viewable = cast[ptr Viewable](data)
       viewable[].redraw()
+      reset(viewable[])
       deallocShared(viewable)
     
-    let data = cast[ptr Viewable](allocShared(sizeof(ptr Viewable)))
+    let data = cast[ptr Viewable](allocShared0(sizeof(ptr Viewable)))
     data[] = viewable
     discard g_idle_add_full(cint(priority), fn, data, nil)
   else:
     raise newException(IoError, "Threading is disabled")
+
+type
+  TimeoutProc* = proc(): bool {.closure.}
+  EventDescriptor* = distinct cuint
+
+proc `==`*(a, b: EventDescriptor): bool {.borrow.}
+proc `$`*(event: EventDescriptor): string = "event" & $cuint(event)
+proc isNil*(event: EventDescriptor): bool = cuint(event) == 0
+
+proc allocCallback(fn: TimeoutProc): tuple[call: GSourceFunc, data: ptr TimeoutProc, destroy: GDestroyNotify] =
+  proc call(data: pointer): cbool {.cdecl.} =
+    let fn = cast[ptr TimeoutProc](data)
+    result = cbool(ord(fn[]()))
+  
+  proc destroy(data: pointer) {.cdecl.} =
+    let fn = cast[ptr TimeoutProc](data)
+    reset(fn[])
+    deallocShared(fn)
+  
+  result.call = call
+  result.destroy = destroy
+  
+  result.data = cast[ptr TimeoutProc](allocShared0(sizeof(ptr TimeoutProc)))
+  result.data[] = fn
+
+proc addGlobalTimeout*(interval: int, fn: TimeoutProc, priority: int = 200): EventDescriptor =
+  let (call, data, destroy) = allocCallback(fn)
+  result = EventDescriptor(g_timeout_add_full(
+    cint(priority), cuint(interval), call, data, destroy
+  ))
+
+proc addGlobalIdleTask*(fn: TimeoutProc, priority: int = 200): EventDescriptor =
+  let (call, data, destroy) = allocCallback(fn)
+  result = EventDescriptor(g_idle_add_full(
+    cint(priority), call, data, destroy
+  ))
+
+proc remove*(event: EventDescriptor) =
+  if g_source_remove(cuint(event)) == 0:
+    raise newException(IoError, "Unable to remove " & $event)
 
 proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
   let
