@@ -2041,16 +2041,25 @@ renderable Frame of BaseWidget:
       Label:
         text = "Content"
 
-renderable DropDown:
+renderable DropDown of BaseWidget:
   items: seq[string]
   selected: int
   enableSearch: bool
+  showArrow: bool = true
   
   proc select(item: int)
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_drop_down_new(GListModel(nil), nil)
+      
+      proc fun(stringObject: GtkStringObject): pointer =
+        let str = gtk_string_object_get_string(stringObject)
+        result = g_strdup(str)
+      
+      let expr = gtk_cclosure_expression_new(G_TYPE_STRING, nil, 0, nil, GCallback(fun), nil, nil)
+      gtk_drop_down_set_expression(state.internalWidget, expr)
+      gtk_expression_unref(expr)
     connectEvents:
       proc selectCallback(widget: GtkWidget,
                           pspec: pointer,
@@ -2080,6 +2089,10 @@ renderable DropDown:
   hooks selected:
     property:
       gtk_drop_down_set_selected(state.internalWidget, cuint(state.selected))
+  
+  hooks showArrow:
+    property:
+      gtk_drop_down_set_show_arrow(state.internalWidget, cbool(ord(state.showArrow)))
   
   example:
     DropDown:

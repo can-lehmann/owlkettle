@@ -134,6 +134,8 @@ type
   GtkShortcut* = distinct pointer
   GtkShortcutTrigger* = distinct pointer
   GtkShortcutAction* = distinct pointer
+  GtkExpression* = distinct pointer
+  GtkStringObject* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -147,6 +149,8 @@ proc isNil*(obj: GtkEventController): bool {.borrow.}
 proc isNil*(obj: GtkShortcut): bool {.borrow.}
 proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
+proc isNil*(obj: GtkExpression): bool {.borrow.}
+proc isNil*(obj: GtkStringObject): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -257,6 +261,11 @@ type
   GSourceFunc* = proc(data: pointer): cbool {.cdecl.}
   GDestroyNotify* = proc(data: pointer) {.cdecl.}
   
+  GClosure* = distinct pointer
+  GClosureMarshal* = proc(closure: GClosure, ret: ptr GValue, paramCount: cuint, params: ptr UncheckedArray[GValue], invocationHint: pointer, data: pointer) {.cdecl.}
+  GCallback* = distinct pointer
+  GClosureNotify* = proc(data: pointer, closure: GClosure) {.cdecl.}
+  
   GResource* = distinct pointer
   GIcon* = distinct pointer
   GApplication* = distinct pointer
@@ -315,6 +324,7 @@ proc g_value_unset*(value: ptr GValue)
 # GLib
 proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_timeout_add_full*(priority: cint, interval: cuint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
+proc g_strdup*(str: cstring): pointer
 
 # GLib.Source
 proc g_source_remove*(id: cuint): cbool
@@ -775,12 +785,27 @@ proc gtk_about_dialog_add_credit_section*(dialog: GtkWidget, name: cstring, peop
 # Gtk.StringList
 proc gtk_string_list_new*(strings: cstringArray): GListModel
 
+# Gtk.StringObject
+proc gtk_string_object_get_string*(stringObject: GtkStringObject): cstring
+
+# Gtk.Expression
+proc gtk_expression_unref*(expr: GtkExpression)
+proc gtk_cclosure_expression_new*(typ: GType,
+                                  marshal: GClosureMarshal,
+                                  paramCount: cuint,
+                                  params: ptr UncheckedArray[GtkExpression],
+                                  callback: GCallback,
+                                  data: pointer,
+                                  destroy: GClosureNotify): GtkExpression
+
 # Gtk.DropDown
 proc gtk_drop_down_new*(model: GListModel, expr: pointer): GtkWidget
 proc gtk_drop_down_set_model*(dropDown: GtkWidget, model: GListModel)
 proc gtk_drop_down_set_enable_search*(dropDown: GtkWidget, enabled: cbool)
 proc gtk_drop_down_set_selected*(dropDown: GtkWidget, selected: cuint)
 proc gtk_drop_down_get_selected*(dropDown: GtkWidget): cuint
+proc gtk_drop_down_set_show_arrow*(dropDown: GtkWidget, showArrow: cbool)
+proc gtk_drop_down_set_expression*(dropDown: GtkWidget, expression: GtkExpression)
 {.pop.}
 
 {.push hint[Name]: off.}
