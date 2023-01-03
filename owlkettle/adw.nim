@@ -341,11 +341,11 @@ proc updateRowChildren(state: Renderable,
     
     let childWidget = children[it].widget.unwrapInternalWidget()
     
-    if updates[it].hAlign != children[it].hAlign:
+    if not newChild.isNil or updates[it].hAlign != children[it].hAlign:
       gtk_widget_set_halign(childWidget, toGtk(updates[it].hAlign))
       children[it].hAlign = updates[it].hAlign
     
-    if updates[it].vAlign != children[it].vAlign:
+    if not newChild.isNil or updates[it].vAlign != children[it].vAlign:
       gtk_widget_set_valign(childWidget, toGtk(updates[it].vAlign))
       children[it].vAlign = updates[it].vAlign
     

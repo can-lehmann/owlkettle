@@ -247,17 +247,17 @@ renderable Box of BaseWidget:
         
         let childWidget = state.children[it].widget.unwrapInternalWidget()
         
-        if child.expand != state.children[it].expand:
+        if not newChild.isNil or child.expand != state.children[it].expand:
           case state.orient:
             of OrientX: gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
             of OrientY: gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
           state.children[it].expand = child.expand
         
-        if child.hAlign != state.children[it].hAlign:
+        if not newChild.isNil or child.hAlign != state.children[it].hAlign:
           state.children[it].hAlign = child.hAlign
           gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
         
-        if child.vAlign != state.children[it].vAlign:
+        if not newChild.isNil or child.vAlign != state.children[it].vAlign:
           state.children[it].vAlign = child.vAlign
           gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
         
@@ -281,6 +281,7 @@ renderable Box of BaseWidget:
           vAlign: child.vAlign
         ))
         it += 1
+      
       while it < state.children.len:
         gtk_box_remove(
           state.internalWidget,
