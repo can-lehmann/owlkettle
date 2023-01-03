@@ -25,44 +25,10 @@
 import std/[unicode, sets, tables, options]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, cairo
+import gtk, widgetdef, cairo, widgetutils
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets\n\n"
-
-proc redraw*[T](event: EventObj[T]) =
-  if event.app.isNil:
-    raise newException(ValueError, "App is nil")
-  event.app.redraw()
-
-proc eventCallback(widget: GtkWidget, data: ptr EventObj[proc ()]) =
-  data[].callback()
-  data[].redraw()
-
-proc connect*[T](renderable: Renderable,
-                 event: Event[T],
-                 name: cstring,
-                 eventCallback: pointer) =
-  if not event.isNil:
-    event.widget = renderable
-    event.handler = g_signal_connect(renderable.internalWidget, name, eventCallback, event[].addr)
-
-proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
-  if not event.isNil:
-    assert event.handler > 0
-    g_signal_handler_disconnect(widget, event.handler)
-    event.handler = 0
-    event.widget = nil
-
-proc updateStyle[State, Widget](state: State, widget: Widget) =
-  mixin classes
-  if widget.hasStyle:
-    let ctx = gtk_widget_get_style_context(state.internalWidget)
-    for styleClass in state.style - widget.valStyle:
-      gtk_style_context_remove_class(ctx, cstring($styleClass))
-    for styleClass in widget.valStyle - state.style:
-      gtk_style_context_add_class(ctx, cstring($styleClass))
-    state.style = widget.valStyle
 
 type Margin* = object
   top*, bottom*, left*, right*: int
@@ -111,28 +77,6 @@ proc `valMargin=`*(widget: BaseWidget, width: int) =
 
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
   widget.valInternalMargin = margin
-
-template buildBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
-  if widget.hasChild:
-    widget.valChild.assignApp(state.app)
-    state.child = widget.valChild.build()
-    let childWidget = unwrapInternalWidget(state.child)
-    setChild(state.internalWidget, childWidget)
-
-template buildBin*(state, widget, setChild: untyped) =
-  buildBin(state, widget, child, hasChild, valChild, setChild)
-
-template updateBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
-  if widget.hasChild:
-    widget.valChild.assignApp(state.app)
-    let newChild = widget.valChild.update(state.child)
-    if not newChild.isNil:
-      let childWidget = newChild.unwrapInternalWidget()
-      setChild(state.internalWidget, childWidget)
-      state.child = newChild
-
-template updateBin*(state, widget, setChild: untyped) =
-  updateBin(state, widget, child, hasChild, valChild, setChild)
 
 renderable Window of BaseWidget:
   title: string
@@ -193,17 +137,11 @@ type BoxStyle* = enum
   BoxLinked = "linked",
   BoxCard = "card"
 
-type
-  Align* = enum
-    AlignFill, AlignStart, AlignEnd, AlignCenter
-  
-  BoxChild[T] = object
-    widget: T
-    expand: bool
-    hAlign: Align
-    vAlign: Align
-
-proc toGtk(align: Align): GtkAlign = GtkAlign(ord(align))
+type BoxChild[T] = object
+  widget: T
+  expand: bool
+  hAlign: Align
+  vAlign: Align
 
 proc assignApp[T](child: BoxChild[T], app: Viewable) =
   child.widget.assignApp(app)
@@ -2053,11 +1991,11 @@ renderable DropDown of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_drop_down_new(GListModel(nil), nil)
       
-      proc fun(stringObject: GtkStringObject): pointer =
+      proc getString(stringObject: GtkStringObject): pointer {.cdecl.} =
         let str = gtk_string_object_get_string(stringObject)
         result = g_strdup(str)
       
-      let expr = gtk_cclosure_expression_new(G_TYPE_STRING, nil, 0, nil, GCallback(fun), nil, nil)
+      let expr = gtk_cclosure_expression_new(G_TYPE_STRING, nil, 0, nil, GCallback(getString), nil, nil)
       gtk_drop_down_set_expression(state.internalWidget, expr)
       gtk_expression_unref(expr)
     connectEvents:

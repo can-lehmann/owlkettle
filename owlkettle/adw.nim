@@ -24,7 +24,7 @@
 
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, widgets, mainloop
+import gtk, widgetdef, widgets, mainloop, widgetutils
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
@@ -308,70 +308,9 @@ renderable PreferencesRow of ListBoxRow:
     property:
       adw_preferences_row_set_title(state.internalWidget, state.title.cstring)
 
-type RowChild[T] = object
-  widget: T
-  hAlign: Align
-  vAlign: Align
-
-proc assignApp(child: RowChild[Widget], app: Viewable) =
-  child.widget.assignApp(app)
-
-proc toGtk(align: Align): GtkAlign = GtkAlign(ord(align))
-
-proc updateRowChildren(state: Renderable,
-                       children: var seq[RowChild[WidgetState]],
-                       updates: seq[RowChild[Widget]],
-                       addChild: proc(widget, child: GtkWidget) {.cdecl.},
-                       removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
-  updates.assignApp(state.app)
-  var
-    it = 0
-    forceReadd = false
-  while it < updates.len and it < children.len:
-    let newChild = update(updates[it].widget, children[it].widget)
-    
-    if not newChild.isNil:
-      removeChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
-      addChild(state.internalWidget, newChild.unwrapInternalWidget())
-      children[it].widget = newChild
-      forceReadd = true
-    elif forceReadd:
-      removeChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
-      addChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
-    
-    let childWidget = children[it].widget.unwrapInternalWidget()
-    
-    if not newChild.isNil or updates[it].hAlign != children[it].hAlign:
-      gtk_widget_set_halign(childWidget, toGtk(updates[it].hAlign))
-      children[it].hAlign = updates[it].hAlign
-    
-    if not newChild.isNil or updates[it].vAlign != children[it].vAlign:
-      gtk_widget_set_valign(childWidget, toGtk(updates[it].vAlign))
-      children[it].vAlign = updates[it].vAlign
-    
-    it += 1
-  
-  while it < updates.len:
-    let
-      childState = updates[it].widget.build()
-      childWidget = childState.unwrapInternalWidget()
-    gtk_widget_set_halign(childWidget, toGtk(updates[it].hAlign))
-    gtk_widget_set_valign(childWidget, toGtk(updates[it].vAlign))
-    addChild(state.internalWidget, childWidget)
-    children.add(RowChild[WidgetState](
-      widget: childState,
-      hAlign: updates[it].hAlign,
-      vAlign: updates[it].vAlign
-    ))
-    it += 1
-  
-  while it < children.len:
-    let child = children.pop()
-    removeChild(state.internalWidget, child.widget.unwrapInternalWidget())
-
 renderable ActionRow of PreferencesRow:
   subtitle: string
-  suffixes: seq[RowChild[Widget]]
+  suffixes: seq[AlignedChild[Widget]]
   
   hooks:
     beforeBuild:
@@ -383,14 +322,14 @@ renderable ActionRow of PreferencesRow:
   
   hooks suffixes:
     (build, update):
-      state.updateRowChildren(state.suffixes, widget.valSuffixes,
+      state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
         adw_action_row_add_suffix,
         adw_action_row_remove
       )
 
   adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasSuffixes = true
-    widget.valSuffixes.add(RowChild[Widget](
+    widget.valSuffixes.add(AlignedChild[Widget](
       widget: child,
       hAlign: hAlign,
       vAlign: vAlign
@@ -406,8 +345,8 @@ renderable ActionRow of PreferencesRow:
 
 renderable ExpanderRow of PreferencesRow:
   subtitle: string
-  actions: seq[RowChild[Widget]]
-  rows: seq[RowChild[Widget]]
+  actions: seq[AlignedChild[Widget]]
+  rows: seq[AlignedChild[Widget]]
   
   hooks:
     beforeBuild:
@@ -419,21 +358,21 @@ renderable ExpanderRow of PreferencesRow:
   
   hooks actions:
     (build, update):
-      state.updateRowChildren(state.actions, widget.valActions,
+      state.updateAlignedChildren(state.actions, widget.valActions,
         adw_expander_row_add_action,
         adw_expander_row_remove
       )
   
   hooks rows:
     (build, update):
-      state.updateRowChildren(state.rows, widget.valRows,
+      state.updateAlignedChildren(state.rows, widget.valRows,
         adw_expander_row_add_row,
         adw_expander_row_remove
       )
   
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
-    widget.valActions.add(RowChild[Widget](
+    widget.valActions.add(AlignedChild[Widget](
       widget: child,
       hAlign: hAlign,
       vAlign: vAlign
@@ -441,7 +380,7 @@ renderable ExpanderRow of PreferencesRow:
   
   adder addRow {.hAlign: AlignFill, vAlign: AlignFill.}:
     widget.hasRows = true
-    widget.valRows.add(RowChild[Widget](
+    widget.valRows.add(AlignedChild[Widget](
       widget: child,
       hAlign: hAlign,
       vAlign: vAlign
