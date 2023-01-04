@@ -243,39 +243,13 @@ renderable PreferencesGroup of BaseWidget:
       state.updateChild(state.suffix, widget.valSuffix, adw_preferences_group_set_header_suffix)
   
   hooks children:
-    build:
-      widget.valChildren.assignApp(state.app)
-      for childWidget in widget.valChildren:
-        let child = childWidget.build()
-        adw_preferences_group_add(state.internalWidget, child.unwrapInternalWidget())
-        state.children.add(child)
-    update:
-      widget.valChildren.assignApp(state.app)
-      var
-        it = 0
-        forceReadd = false
-      while it < widget.valChildren.len and it < state.children.len:
-        let newChild = widget.valChildren[it].update(state.children[it])
-        if not newChild.isNil:
-          adw_preferences_group_remove(state.internalWidget, state.children[it].unwrapInternalWidget())
-          adw_preferences_group_add(state.internalWidget, newChild.unwrapInternalWidget())
-          state.children[it] = newChild
-          forceReadd = true
-        elif forceReadd:
-          let widget = state.children[it].unwrapInternalWidget()
-          adw_preferences_group_remove(state.internalWidget, widget)
-          adw_preferences_group_add(state.internalWidget, widget)
-        it += 1
-      
-      while it < widget.valChildren.len:
-        let child = widget.valChildren[it].build()
-        adw_preferences_group_add(state.internalWidget, child.unwrapInternalWidget())
-        state.children.add(child)
-        it += 1
-      
-      while it < state.children.len:
-        let child = state.children.pop()
-        adw_preferences_group_remove(state.internalWidget, child.unwrapInternalWidget())
+    (build, update):
+      state.updateChildren(
+        state.children,
+        widget.valChildren,
+        adw_preferences_group_add,
+        adw_preferences_group_remove
+      )
   
   adder add:
     widget.hasChildren = true

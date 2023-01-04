@@ -68,14 +68,10 @@ proc updateChild*(state: Renderable,
       setChild(state.internalWidget, nil)
   else:
     updater.assignApp(state.app)
-    if child.isNil:
-      child = updater.build()
+    let newChild = if child.isNil: updater.build() else: updater.update(child)
+    if not newChild.isNil:
+      child = newChild
       setChild(state.internalWidget, unwrapInternalWidget(child))
-    else:
-      let newChild = updater.update(child)
-      if not newChild.isNil:
-        child = newChild
-        setChild(state.internalWidget, unwrapInternalWidget(child))
 
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
@@ -95,8 +91,11 @@ proc updateChildren*(state: Renderable,
       children[it] = newChild
       forceReadd = true
     elif forceReadd:
-      removeChild(state.internalWidget, children[it].unwrapInternalWidget())
-      addChild(state.internalWidget, children[it].unwrapInternalWidget())
+      let widget = children[it].unwrapInternalWidget()
+      g_object_ref(pointer(widget))
+      removeChild(state.internalWidget, widget)
+      addChild(state.internalWidget, widget)
+      g_object_unref(pointer(widget))
     it += 1
   
   while it < updates.len:
@@ -108,8 +107,8 @@ proc updateChildren*(state: Renderable,
     it += 1
   
   while it < children.len:
-    removeChild(state.internalWidget, children[it].unwrapInternalWidget())
-    children.del(it)
+    let child = children.pop()
+    removeChild(state.internalWidget, child.unwrapInternalWidget())
 
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
@@ -174,8 +173,11 @@ proc updateAlignedChildren*(state: Renderable,
       children[it].widget = newChild
       forceReadd = true
     elif forceReadd:
-      removeChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
-      addChild(state.internalWidget, children[it].widget.unwrapInternalWidget())
+      let widget = children[it].widget.unwrapInternalWidget()
+      g_object_ref(pointer(widget))
+      removeChild(state.internalWidget, widget)
+      addChild(state.internalWidget, widget)
+      g_object_unref(pointer(widget))
     
     let childWidget = children[it].widget.unwrapInternalWidget()
     

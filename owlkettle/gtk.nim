@@ -305,6 +305,7 @@ proc g_signal_connect_data*(widget: pointer,
                             flags: GConnectFlags): culong
 proc g_type_from_name*(name: cstring): GType
 proc g_object_new*(typ: GType): pointer {.varargs.}
+proc g_object_ref*(obj: pointer)
 proc g_object_unref*(obj: pointer)
 proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
 proc g_type_fundamental*(id: GType): GType
