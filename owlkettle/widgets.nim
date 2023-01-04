@@ -488,25 +488,6 @@ proc `valIcon=`*(button: Button, name: string) =
   button.valChild = Icon(hasName: true, valName: name)
 
 
-proc updateHeaderBar(internalWidget: GtkWidget,
-                     children: var seq[WidgetState],
-                     target: seq[Widget],
-                     pack: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
-  var it = 0
-  while it < target.len and it < children.len:
-    let newChild = target[it].update(children[it])
-    assert newChild.isNil
-    it += 1
-  while it < target.len:
-    let
-      child = target[it].build()
-      childWidget = child.unwrapInternalWidget()
-    pack(internalWidget, childWidget)
-    children.add(child)
-    it += 1
-  while it < children.len:
-    gtk_header_bar_remove(internalWidget, children[it].unwrapInternalWidget())
-    children.del(it)
 
 renderable HeaderBar of BaseWidget:
   title: Widget
@@ -524,20 +505,20 @@ renderable HeaderBar of BaseWidget:
   
   hooks left:
     (build, update):
-      widget.valLeft.assignApp(state.app)
-      updateHeaderBar(
-        state.internalWidget,
-        state.left, widget.valLeft,
-        gtk_header_bar_pack_start
+      state.updateChildren(
+        state.left,
+        widget.valLeft,
+        gtk_header_bar_pack_start,
+        gtk_header_bar_remove
       )
   
   hooks right:
     (build, update):
-      widget.valRight.assignApp(state.app)
-      updateHeaderBar(
-        state.internalWidget,
-        state.right, widget.valRight,
-        gtk_header_bar_pack_end
+      state.updateChildren(
+        state.right,
+        widget.valRight,
+        gtk_header_bar_pack_end,
+        gtk_header_bar_remove
       )
   
   hooks title:
@@ -1714,36 +1695,14 @@ renderable ListBox of BaseWidget:
       state.internalWidget.disconnect(state.select)
   
   hooks rows:
-    build:
-      for row in widget.valRows:
-        row.assignApp(widget.app)
-        let rowState = row.build()
-        state.rows.add(rowState)
-        let rowWidget = rowState.unwrapInternalWidget()
-        gtk_list_box_append(state.internalWidget, rowWidget)
-    update:
-      var it = 0
-      while it < widget.valRows.len and it < state.rows.len:
-        widget.valRows[it].assignApp(state.app)
-        let newRow = widget.valRows[it].update(state.rows[it])
-        if not newRow.isNil:
-          gtk_list_box_remove(state.internalWidget, state.rows[it].unwrapInternalWidget())
-          gtk_list_box_insert(state.internalWidget, newRow.unwrapInternalWidget(), it.cint)
-          state.rows[it] = newRow
-        it += 1
-      
-      while it < widget.valRows.len:
-        widget.valRows[it].assignApp(state.app)
-        let
-          rowState = widget.valRows[it].build()
-          rowWidget = rowState.unwrapInternalWidget()
-        state.rows.add(rowState)
-        gtk_list_box_append(state.internalWidget, rowWidget)
-        it += 1
-      
-      while it < state.rows.len:
-        let row = unwrapRenderable(state.rows.pop()).internalWidget
-        gtk_list_box_remove(state.internalWidget, row)
+    (build, update):
+      state.updateChildren(
+        state.rows,
+        widget.valRows,
+        gtk_list_box_append,
+        gtk_list_box_insert,
+        gtk_list_box_remove
+      )
   
   hooks selectionMode:
     property:
@@ -1847,41 +1806,13 @@ renderable FlowBox of BaseWidget:
   
   hooks children:
     (build, update):
-      var it = 0
-      while it < widget.valChildren.len and
-            it < state.children.len:
-        let childWidget = widget.valChildren[it]
-        childWidget.assignApp(state.app)
-        let newChild = childWidget.update(state.children[it])
-        if not newChild.isNil:
-          gtk_flow_box_remove(
-            state.internalWidget,
-            unwrapRenderable(state.children[it]).internalWidget
-          )
-          gtk_flow_box_insert(
-            state.internalWidget,
-            unwrapRenderable(newChild).internalWidget,
-            cint(it)
-          )
-          state.children[it] = newChild
-        it += 1
-      
-      while it < widget.valChildren.len:
-        let childWidget = widget.valChildren[it]
-        childWidget.assignApp(state.app)
-        let
-          child = childWidget.build()
-          childInternal = unwrapRenderable(child).internalWidget
-        gtk_flow_box_append(state.internalWidget, childInternal)
-        state.children.add(child)
-        it += 1
-      
-      while it < state.children.len:
-        let child = state.children.pop()
-        gtk_flow_box_remove(
-          state.internalWidget,
-          unwrapRenderable(child).internalWidget
-        )
+      state.updateChildren(
+        state.children,
+        widget.valChildren,
+        gtk_flow_box_append,
+        gtk_flow_box_insert,
+        gtk_flow_box_remove
+      )
   
   adder addChild:
     widget.hasChildren = true

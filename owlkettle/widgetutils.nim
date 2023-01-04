@@ -80,6 +80,71 @@ template updateBin*(state, widget, child, hasChild, valChild, setChild: untyped)
 template updateBin*(state, widget, setChild: untyped) =
   updateBin(state, widget, child, hasChild, valChild, setChild)
 
+proc updateChildren*(state: Renderable,
+                     children: var seq[WidgetState],
+                     updates: seq[Widget],
+                     addChild: proc(widget, child: GtkWidget) {.cdecl.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+  updates.assignApp(state.app)
+  
+  var
+    it = 0
+    forceReadd = false
+  while it < updates.len and it < children.len:
+    let newChild = updates[it].update(children[it])
+    if not newChild.isNil:
+      removeChild(state.internalWidget, children[it].unwrapInternalWidget())
+      addChild(state.internalWidget, newChild.unwrapInternalWidget())
+      children[it] = newChild
+      forceReadd = true
+    elif forceReadd:
+      removeChild(state.internalWidget, children[it].unwrapInternalWidget())
+      addChild(state.internalWidget, children[it].unwrapInternalWidget())
+    it += 1
+  
+  while it < updates.len:
+    let
+      child = updates[it].build()
+      childWidget = child.unwrapInternalWidget()
+    addChild(state.internalWidget, childWidget)
+    children.add(child)
+    it += 1
+  
+  while it < children.len:
+    removeChild(state.internalWidget, children[it].unwrapInternalWidget())
+    children.del(it)
+
+proc updateChildren*(state: Renderable,
+                     children: var seq[WidgetState],
+                     updates: seq[Widget],
+                     addChild: proc(widget, child: GtkWidget) {.cdecl.},
+                     insertChild: proc(widget, child: GtkWidget, index: cint) {.cdecl.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+  updates.assignApp(state.app)
+  
+  var it = 0
+  while it < updates.len and it < children.len:
+    let newChild = updates[it].update(children[it])
+    if not newChild.isNil:
+      removeChild(state.internalWidget, unwrapInternalWidget(children[it]))
+      insertChild(
+        state.internalWidget,
+        unwrapInternalWidget(newChild),
+        cint(it)
+      )
+      children[it] = newChild
+    it += 1
+  
+  while it < updates.len:
+    let child = updates[it].build()
+    addChild(state.internalWidget, unwrapInternalWidget(child))
+    children.add(child)
+    it += 1
+  
+  while it < children.len:
+    let child = unwrapInternalWidget(children.pop())
+    removeChild(state.internalWidget, child)
+
 type
   Align* = enum
     AlignFill, AlignStart, AlignEnd, AlignCenter
