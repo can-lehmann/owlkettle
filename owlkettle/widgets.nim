@@ -100,8 +100,8 @@ renderable Window of BaseWidget:
         gtk_window_set_title(state.internalWidget, state.title.cstring)
   
   hooks titlebar:
-    build: buildBin(state, widget, titlebar, hasTitlebar, valTitlebar, gtk_window_set_titlebar)
-    update: updateBin(state, widget, titlebar, hasTitlebar, valTitlebar, gtk_window_set_titlebar)
+    (build, update):
+      state.updateChild(state.titlebar, widget.valTitlebar, gtk_window_set_titlebar)
   
   hooks defaultSize:
     property:
@@ -111,8 +111,8 @@ renderable Window of BaseWidget:
       )
   
   hooks child:
-    build: buildBin(state, widget, gtk_window_set_child)
-    update: updateBin(state, widget, gtk_window_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_window_set_child)
   
   adder add:
     if widget.hasChild:
@@ -277,8 +277,8 @@ renderable Overlay of BaseWidget:
       state.internalWidget = gtk_overlay_new()
   
   hooks child:
-    build: buildBin(state, widget, gtk_overlay_set_child)
-    update: updateBin(state, widget, gtk_overlay_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_overlay_set_child)
   
   hooks overlays:
     (build, update):
@@ -442,8 +442,8 @@ renderable Button of BaseWidget:
       updateStyle(state, widget)
   
   hooks child:
-    build: buildBin(state, widget, gtk_button_set_child)
-    update: updateBin(state, widget, gtk_button_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_button_set_child)
   
   setter text: string
   setter icon: string
@@ -522,8 +522,8 @@ renderable HeaderBar of BaseWidget:
       )
   
   hooks title:
-    build: buildBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
-    update: updateBin(state, widget, title, hasTitle, valTitle, gtk_header_bar_set_title_widget)
+    (build, update):
+      state.updateChild(state.title, widget.valTitle, gtk_header_bar_set_title_widget)
   
   adder addTitle:
     if widget.hasTitle:
@@ -559,8 +559,8 @@ renderable ScrolledWindow of BaseWidget:
       state.internalWidget = gtk_scrolled_window_new(nil.GtkAdjustment, nil.GtkAdjustment)
   
   hooks child:
-    build: buildBin(state, widget, gtk_scrolled_window_set_child)
-    update: updateBin(state, widget, gtk_scrolled_window_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_scrolled_window_set_child)
   
   adder add:
     if widget.hasChild:
@@ -1205,8 +1205,8 @@ renderable Popover of BasePopover:
       state.internalWidget = gtk_popover_new(nil.GtkWidget)
   
   hooks child:
-    build: buildBin(state, widget, gtk_popover_set_child)
-    update: updateBin(state, widget, gtk_popover_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_popover_set_child)
   
   adder add:
     if widget.hasChild:
@@ -1267,8 +1267,8 @@ renderable MenuButton of BaseWidget:
       state.internalWidget = gtk_menu_button_new()
   
   hooks child:
-    build: buildBin(state, widget, gtk_menu_button_set_child)
-    update: updateBin(state, widget, gtk_menu_button_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_menu_button_set_child)
   
   hooks popover:
     build:
@@ -1641,8 +1641,8 @@ renderable ListBoxRow of BaseWidget:
       state.internalWidget.disconnect(state.activate)
   
   hooks child:
-    build: buildBin(state, widget, gtk_list_box_row_set_child)
-    update: updateBin(state, widget, gtk_list_box_row_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_list_box_row_set_child)
   
   adder add:
     if widget.hasChild:
@@ -1753,8 +1753,8 @@ renderable FlowBoxChild of BaseWidget:
       state.internalWidget = gtk_flow_box_child_new()
   
   hooks child:
-    build: buildBin(state, widget, gtk_flow_box_child_set_child)
-    update: updateBin(state, widget, gtk_flow_box_child_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_flow_box_child_set_child)
   
   adder add:
     if widget.hasChild:
@@ -1850,8 +1850,8 @@ renderable Frame of BaseWidget:
       )
   
   hooks child:
-    build: buildBin(state, widget, gtk_frame_set_child)
-    update: updateBin(state, widget, gtk_frame_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_frame_set_child)
   
   adder add:
     if widget.hasChild:

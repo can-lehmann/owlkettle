@@ -203,8 +203,8 @@ renderable Clamp of BaseWidget:
       adw_clamp_set_maximum_size(state.internalWidget, cint(state.maximumSize))
   
   hooks child:
-    build: buildBin(state, widget, adw_clamp_set_child)
-    update: updateBin(state, widget, adw_clamp_set_child)
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_clamp_set_child)
   
   adder add:
     if widget.hasChild:
@@ -239,8 +239,8 @@ renderable PreferencesGroup of BaseWidget:
       adw_preferences_group_set_description(state.internalWidget, state.description.cstring)
   
   hooks suffix:
-    build: buildBin(state, widget, suffix, hasSuffix, valSuffix, adw_preferences_group_set_header_suffix)
-    update: updateBin(state, widget, suffix, hasSuffix, valSuffix, adw_preferences_group_set_header_suffix)
+    (build, update):
+      state.updateChild(state.suffix, widget.valSuffix, adw_preferences_group_set_header_suffix)
   
   hooks children:
     build:
@@ -540,12 +540,12 @@ renderable Flap:
           gtk_widget_set_size_request(childWidget, cint(state.flap.width), -1)
   
   hooks separator:
-    build: buildBin(state, widget, separator, hasSeparator, valSeparator, adw_flap_set_separator)
-    update: updateBin(state, widget, separator, hasSeparator, valSeparator, adw_flap_set_separator)
+    (build, update):
+      state.updateChild(state.separator, widget.valSeparator, adw_flap_set_separator)
   
   hooks content:
-    build: buildBin(state, widget, content, hasContent, valContent, adw_flap_set_content)
-    update: updateBin(state, widget, content, hasContent, valContent, adw_flap_set_content)
+    (build, update):
+      state.updateChild(state.content, widget.valContent, adw_flap_set_content)
   
   setter swipe: bool
   

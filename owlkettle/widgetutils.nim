@@ -58,27 +58,24 @@ proc updateStyle*[State, Widget](state: State, widget: Widget) =
       gtk_style_context_add_class(ctx, cstring($styleClass))
     state.style = widget.valStyle
 
-template buildBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
-  if widget.hasChild:
-    widget.valChild.assignApp(state.app)
-    state.child = widget.valChild.build()
-    let childWidget = unwrapInternalWidget(state.child)
-    setChild(state.internalWidget, childWidget)
-
-template buildBin*(state, widget, setChild: untyped) =
-  buildBin(state, widget, child, hasChild, valChild, setChild)
-
-template updateBin*(state, widget, child, hasChild, valChild, setChild: untyped) =
-  if widget.hasChild:
-    widget.valChild.assignApp(state.app)
-    let newChild = widget.valChild.update(state.child)
-    if not newChild.isNil:
-      let childWidget = newChild.unwrapInternalWidget()
-      setChild(state.internalWidget, childWidget)
-      state.child = newChild
-
-template updateBin*(state, widget, setChild: untyped) =
-  updateBin(state, widget, child, hasChild, valChild, setChild)
+proc updateChild*(state: Renderable,
+                  child: var WidgetState,
+                  updater: Widget,
+                  setChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+  if updater.isNil:
+    if not child.isNil:
+      child = nil
+      setChild(state.internalWidget, nil)
+  else:
+    updater.assignApp(state.app)
+    if child.isNil:
+      child = updater.build()
+      setChild(state.internalWidget, unwrapInternalWidget(child))
+    else:
+      let newChild = updater.update(child)
+      if not newChild.isNil:
+        child = newChild
+        setChild(state.internalWidget, unwrapInternalWidget(child))
 
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
