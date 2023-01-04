@@ -61,7 +61,7 @@ proc updateStyle*[State, Widget](state: State, widget: Widget) =
 proc updateChild*(state: Renderable,
                   child: var WidgetState,
                   updater: Widget,
-                  setChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   if updater.isNil:
     if not child.isNil:
       child = nil
@@ -80,8 +80,8 @@ proc updateChild*(state: Renderable,
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
                      updates: seq[Widget],
-                     addChild: proc(widget, child: GtkWidget) {.cdecl.},
-                     removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+                     addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   updates.assignApp(state.app)
   
   var
@@ -114,9 +114,9 @@ proc updateChildren*(state: Renderable,
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
                      updates: seq[Widget],
-                     addChild: proc(widget, child: GtkWidget) {.cdecl.},
-                     insertChild: proc(widget, child: GtkWidget, index: cint) {.cdecl.},
-                     removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+                     addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
+                     insertChild: proc(widget, child: GtkWidget, index: cint) {.cdecl, locks: 0.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   updates.assignApp(state.app)
   
   var it = 0
@@ -159,8 +159,8 @@ proc toGtk*(align: Align): GtkAlign = GtkAlign(ord(align))
 proc updateAlignedChildren*(state: Renderable,
                             children: var seq[AlignedChild[WidgetState]],
                             updates: seq[AlignedChild[Widget]],
-                            addChild: proc(widget, child: GtkWidget) {.cdecl.},
-                            removeChild: proc(widget, child: GtkWidget) {.cdecl.}) =
+                            addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
+                            removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
   updates.assignApp(state.app)
   var
     it = 0

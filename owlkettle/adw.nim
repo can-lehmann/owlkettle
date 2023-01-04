@@ -584,11 +584,11 @@ renderable Flap:
           text = "Content ".repeat(10)
           wrap = true
 
-proc `hasSwipe=`(flap: Flap, has: bool) =
+proc `hasSwipe=`*(flap: Flap, has: bool) =
   flap.hasSwipeToOpen = has
   flap.hasSwipeToClose = has
 
-proc `valSwipe=`(flap: Flap, swipe: bool) =
+proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
