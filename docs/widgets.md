@@ -114,7 +114,7 @@ renderable Overlay of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
-- `overlays: seq[OverlayChild[Widget]]`
+- `overlays: seq[AlignedChild[Widget]]`
 
 ###### Adders
 
@@ -259,7 +259,7 @@ renderable HeaderBar of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `title: Widget`
+- `title: BoxChild[Widget]`
 - `showTitleButtons: bool = true`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
@@ -268,6 +268,9 @@ renderable HeaderBar of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `addTitle`
+  - `expand = false`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignFill`
 - `addLeft`
 - `addRight`
 
@@ -836,14 +839,16 @@ Frame:
 ## DropDown
 
 ```nim
-renderable DropDown
+renderable DropDown of BaseWidget
 ```
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `items: seq[string]`
 - `selected: int`
 - `enableSearch: bool`
+- `showArrow: bool = true`
 
 ###### Events
 

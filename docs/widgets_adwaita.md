@@ -131,7 +131,7 @@ renderable ActionRow of PreferencesRow
 
 - All fields from [PreferencesRow](#PreferencesRow)
 - `subtitle: string`
-- `suffixes: seq[RowChild[Widget]]`
+- `suffixes: seq[AlignedChild[Widget]]`
 
 ###### Adders
 
@@ -160,8 +160,8 @@ renderable ExpanderRow of PreferencesRow
 
 - All fields from [PreferencesRow](#PreferencesRow)
 - `subtitle: string`
-- `actions: seq[RowChild[Widget]]`
-- `rows: seq[RowChild[Widget]]`
+- `actions: seq[AlignedChild[Widget]]`
+- `rows: seq[AlignedChild[Widget]]`
 
 ###### Adders
 

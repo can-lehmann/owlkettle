@@ -487,10 +487,42 @@ proc `hasIcon=`*(button: Button, value: bool) = button.hasChild = value
 proc `valIcon=`*(button: Button, name: string) =
   button.valChild = Icon(hasName: true, valName: name)
 
-
+proc updateChild*(state: Renderable,
+                  child: var BoxChild[WidgetState],
+                  updater: BoxChild[Widget],
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+  if updater.widget.isNil:
+    if not child.widget.isNil:
+      child.widget = nil
+      setChild(state.internalWidget, nil)
+  else:
+    updater.assignApp(state.app)
+    let newChild =
+      if child.widget.isNil:
+        updater.widget.build()
+      else:
+        updater.widget.update(child.widget)
+    
+    if not newChild.isNil:
+      child.widget = newChild
+      setChild(state.internalWidget, unwrapInternalWidget(child.widget))
+    
+    let childWidget = unwrapInternalWidget(child.widget)
+    
+    if not newChild.isNil or updater.hAlign != child.hAlign:
+      child.hAlign = updater.hAlign
+      gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+    
+    if not newChild.isNil or updater.vAlign != child.vAlign:
+      child.vAlign = updater.vAlign
+      gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
+    
+    if not newChild.isNil or updater.expand != child.expand:
+      child.expand = updater.expand
+      gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
 
 renderable HeaderBar of BaseWidget:
-  title: Widget
+  title: BoxChild[Widget]
   showTitleButtons: bool = true
   left: seq[Widget]
   right: seq[Widget]
@@ -525,11 +557,18 @@ renderable HeaderBar of BaseWidget:
     (build, update):
       state.updateChild(state.title, widget.valTitle, gtk_header_bar_set_title_widget)
   
-  adder addTitle:
+  adder addTitle {.expand: false,
+                   hAlign: AlignFill,
+                   vAlign: AlignFill.}:
     if widget.hasTitle:
       raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
     widget.hasTitle = true
-    widget.valTitle = child
+    widget.valTitle = BoxChild[Widget](
+      widget: child,
+      expand: expand,
+      hAlign: hAlign,
+      vAlign: vAlign
+    )
   
   adder addLeft:
     widget.hasLeft = true

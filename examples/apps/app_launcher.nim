@@ -108,9 +108,9 @@ method view(app: AppState): Widget =
       defaultSize = (600, 400)
       
       HeaderBar {.addTitlebar.}:
-        Entry {.addTitle.}:
+        Entry {.addTitle, expand: true.}:
           placeholder = "Search..."
-          width = 40
+          width = 30
           proc changed(query: string) =
             app.query = query
       
