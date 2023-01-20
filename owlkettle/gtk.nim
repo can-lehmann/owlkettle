@@ -422,6 +422,7 @@ proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_set_halign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_set_valign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
+proc gtk_widget_remove_controller*(widget: GtkWidget, cont: GtkEventController)
 proc gtk_widget_translate_coordinates*(src, dest: GtkWidget, srcX, srcY: cdouble, destX, destY: ptr cdouble): cbool
 proc gtk_widget_get_root*(widget: GtkWidget): GtkWidget
 proc gtk_widget_get_native*(widget: GtkWidget): GtkWidget
@@ -430,6 +431,7 @@ proc gtk_widget_set_tooltip_text*(widget: GtkWidget, tooltip: cstring)
 proc gtk_widget_set_has_tooltip*(widget: GtkWidget, hasTooltip: cbool)
 proc gtk_widget_get_first_child*(widget: GtkWidget): GtkWidget
 proc gtk_widget_get_name*(widget: GtkWidget): cstring
+proc gtk_widget_measure*(widget: GtkWidget, orient: GtkOrientation, size: cint, min, natural, minBaseline, naturalBaseline: ptr cint)
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
@@ -553,6 +555,12 @@ proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 # Gtk.EventControllerLegacy
 proc gtk_event_controller_legacy_new*(): GtkEventController
 
+# Gtk.GestureSingle
+proc gtk_gesture_single_set_button*(gesture: GtkEventController, button: cuint)
+
+# Gtk.GestureClick
+proc gtk_gesture_click_new*(): GtkEventController
+
 # Gtk.ShortcutController
 proc gtk_shortcut_controller_new*(): GtkEventController
 proc gtk_shortcut_controller_add_shortcut*(cont: GtkEventController, shortcut: GtkShortcut)
@@ -602,11 +610,13 @@ proc gtk_check_button_get_active*(widget: GtkWidget): cbool
 proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
 proc gtk_popover_popdown*(popover: GtkWidget)
+proc gtk_popover_present*(popover: GtkWidget)
 proc gtk_popover_set_child*(popover, child: GtkWidget)
 proc gtk_popover_get_child*(popover: GtkWidget): GtkWidget
 proc gtk_popover_set_has_arrow*(popover: GtkWidget, hasArrow: cbool)
 proc gtk_popover_set_offset*(popover: GtkWidget, x, y: cint)
 proc gtk_popover_set_position*(popover: GtkWidget, pos: GtkPositionType)
+proc gtk_popover_set_pointing_to*(popover: GtkWidget, rect: ptr GdkRectangle)
 
 # Gtk.PopoverMenu
 proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget

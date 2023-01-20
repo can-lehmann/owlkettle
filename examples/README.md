@@ -120,6 +120,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="widgets/context_menu.nim">Context Menu</a></td>
+    <td><img alt="Context Menu" src="/docs/assets/examples/context_menu.png" width="328px"></td>
+  </tr>
+  <tr>
     <td><a href="widgets/drawing_area.nim">Drawing Area</a></td>
     <td><img alt="Drawing Area" src="/docs/assets/examples/drawing_area.png" width="671px"></td>
   </tr>

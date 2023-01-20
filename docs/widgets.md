@@ -642,6 +642,7 @@ renderable ModelButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
 - `icon: string`
+- `shortcut: string`
 - `menuName: string`
 
 ###### Events
@@ -864,6 +865,24 @@ DropDown:
     app.selectedItem = itemIndex
 
 ```
+
+
+## ContextMenu
+
+```nim
+renderable ContextMenu
+```
+
+###### Fields
+
+- `child: Widget`
+- `menu: Widget`
+- `controller: GtkEventController = GtkEventController(nil)`
+
+###### Adders
+
+- `add`
+- `addMenu`
 
 
 ## DialogButton

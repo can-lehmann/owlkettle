@@ -58,20 +58,46 @@ proc updateStyle*[State, Widget](state: State, widget: Widget) =
       gtk_style_context_add_class(ctx, cstring($styleClass))
     state.style = widget.valStyle
 
+
 proc updateChild*(state: Renderable,
                   child: var WidgetState,
                   updater: Widget,
-                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                  replaceChild: proc(widget, oldChild, newChild: GtkWidget) {.locks: 0.}) =
   if updater.isNil:
     if not child.isNil:
+      replaceChild(state.internalWidget, unwrapInternalWidget(child), nil)
       child = nil
-      setChild(state.internalWidget, nil)
   else:
     updater.assignApp(state.app)
     let newChild = if child.isNil: updater.build() else: updater.update(child)
     if not newChild.isNil:
+      replaceChild(state.internalWidget,
+        if child.isNil: nil else: unwrapInternalWidget(child),
+        unwrapInternalWidget(newChild)
+      )
       child = newChild
-      setChild(state.internalWidget, unwrapInternalWidget(child))
+
+proc updateChild*(state: Renderable,
+                  child: var WidgetState,
+                  updater: Widget,
+                  addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
+                  removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+  proc replace(widget, oldChild, newChild: GtkWidget) =
+    if not oldChild.isNil:
+      removeChild(widget, oldChild)
+    if not newChild.isNil:
+      addChild(widget, newChild)
+  
+  state.updateChild(child, updater, replace)
+
+proc updateChild*(state: Renderable,
+                  child: var WidgetState,
+                  updater: Widget,
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+  proc replace(widget, oldChild, newChild: GtkWidget) =
+    setChild(widget, newChild)
+  
+  state.updateChild(child, updater, replace)
 
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],

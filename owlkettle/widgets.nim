@@ -1359,6 +1359,7 @@ proc `valIcon=`*(menuButton: MenuButton, name: string) =
 renderable ModelButton of BaseWidget:
   text: string
   icon: string
+  shortcut: string
   menuName: string
   
   proc clicked()
@@ -1398,6 +1399,12 @@ renderable ModelButton of BaseWidget:
       else:
         g_value_set_string(value.addr, nil)
       g_object_set_property(state.internalWidget.pointer, "menu_name", value.addr)
+      g_value_unset(value.addr)
+  
+  hooks shortcut:
+    property:
+      var value = g_value_new(state.shortcut)
+      g_object_set_property(state.internalWidget.pointer, "accel", value.addr)
       g_value_unset(value.addr)
 
 renderable Separator of BaseWidget:
@@ -1966,6 +1973,73 @@ renderable DropDown of BaseWidget:
       proc select(itemIndex: int) =
         app.selectedItem = itemIndex
 
+renderable ContextMenu:
+  child: Widget
+  menu: Widget
+  controller: GtkEventController = GtkEventController(nil)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0)
+  
+  hooks controller:
+    (build, update):
+      discard
+  
+  hooks child:
+    (build, update):
+      proc addChild(box, child: GtkWidget) {.cdecl.} =
+        gtk_widget_set_hexpand(child, 1)
+        gtk_box_append(box, child)
+      
+      state.updateChild(state.child, widget.valChild, addChild, gtk_box_remove)
+  
+  hooks menu:
+    (build, update):
+      proc replace(box, oldMenu, newMenu: GtkWidget) =
+        if not oldMenu.isNil:
+          gtk_widget_remove_controller(box, state.controller)
+          state.controller = GtkEventController(nil)
+          gtk_box_remove(box, oldMenu)
+        assert state.controller.isNil
+        
+        if not newMenu.isNil:
+          const RIGHT_CLICK = cuint(3)
+          let cont = gtk_gesture_click_new()
+          gtk_gesture_single_set_button(cont, RIGHT_CLICK)
+          
+          proc pressed(gesture: GtkEventController,
+                       n_press: cint,
+                       x, y: cdouble,
+                       data: pointer) =
+            let popover = GtkWidget(data)
+            gtk_popover_present(popover)
+            var rect = GdkRectangle(x: cint(x), y: cint(y), width: 1, height: 1)
+            gtk_popover_set_pointing_to(popover, rect.addr)
+            gtk_popover_popup(popover)
+          
+          discard g_signal_connect(cont, "pressed", pressed, pointer(newMenu))
+          
+          gtk_widget_add_controller(box, cont)
+          state.controller = cont
+          
+          gtk_widget_set_halign(newMenu, GTK_ALIGN_START)
+          gtk_box_append(box, newMenu)
+      
+      state.updateChild(state.menu, widget.valMenu, replace)
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a ContextMenu.")
+    widget.hasChild = true
+    widget.valChild = child
+  
+  adder addMenu:
+    if widget.hasMenu:
+      raise newException(ValueError, "Unable to add multiple menus to a ContextMenu.")
+    widget.hasMenu = true
+    widget.valMenu = child
+
 
 type
   DialogResponseKind* = enum
@@ -2177,7 +2251,8 @@ export BaseWidget, BaseWidgetState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
-export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild, Frame, DropDown
+export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
+export Frame, DropDown, ContextMenu
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState
