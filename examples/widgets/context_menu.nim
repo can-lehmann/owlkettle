@@ -23,7 +23,7 @@
 import owlkettle
 
 viewable App:
-  swapWidget: bool = false
+  discard
 
 method view(app: AppState): Widget =
   result = gui:
