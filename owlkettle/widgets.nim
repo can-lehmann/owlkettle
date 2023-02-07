@@ -34,10 +34,10 @@ type Margin* = object
   top*, bottom*, left*, right*: int
 
 renderable BaseWidget:
-  sensitive: bool = true
-  sizeRequest: tuple[x, y: int] = (-1, -1)
+  sensitive: bool = true ## If the widget is interactive
+  sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   internalMargin {.internal.}: Margin = Margin()
-  tooltip: string = ""
+  tooltip: string = "" ## The widget's tooltip is shown on hover
   
   hooks sensitive:
     property:
@@ -80,11 +80,11 @@ proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
 
 renderable Window of BaseWidget:
   title: string
-  titlebar: Widget
-  defaultSize: tuple[width, height: int] = (800, 600)
+  titlebar: Widget ## Custom widget set as the titlebar of the window
+  defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
   child: Widget
   
-  proc close()
+  proc close() ## Called when the window is closed
   
   hooks:
     beforeBuild:
@@ -115,12 +115,14 @@ renderable Window of BaseWidget:
       state.updateChild(state.child, widget.valChild, gtk_window_set_child)
   
   adder add:
+    ## Adds a child to the window. Each window may only have one child.
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
     widget.hasChild = true
     widget.valChild = child
   
   adder addTitlebar:
+    ## Sets a custom titlebar for the window
     widget.hasTitlebar = true
     widget.valTitlebar = child
   
@@ -147,8 +149,9 @@ proc assignApp[T](child: BoxChild[T], app: Viewable) =
   child.widget.assignApp(app)
 
 renderable Box of BaseWidget:
-  orient: Orient
-  spacing: int
+  ## A Box arranges its child widgets along one dimension.
+  orient: Orient ## Orientation of the Box. May be one of OrientX or OrientY
+  spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
   style: set[BoxStyle]
   
@@ -234,6 +237,10 @@ renderable Box of BaseWidget:
   adder add {.expand: true,
               hAlign: AlignFill,
               vAlign: AlignFill.}:
+    ## Adds a child to the Box.
+    ## When expand is true, the child grows to fill up the remaining space in the Box.
+    ## The hAlign and vAlign properties allow you to set the alignment of the child
+    ## within its allocated area.
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
@@ -408,7 +415,7 @@ type ButtonStyle* = enum
 renderable Button of BaseWidget:
   style: set[ButtonStyle]
   child: Widget
-  shortcut: string
+  shortcut: string ## Keyboard shortcut
   
   proc clicked()
   
@@ -446,7 +453,7 @@ renderable Button of BaseWidget:
       state.updateChild(state.child, widget.valChild, gtk_button_set_child)
   
   setter text: string
-  setter icon: string
+  setter icon: string ## Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md) for a list of icons)
   
   adder add:
     if widget.hasChild:
@@ -623,8 +630,8 @@ renderable Entry of BaseWidget:
   
   style: set[EntryStyle]
   
-  proc changed(text: string)
-  proc activate()
+  proc changed(text: string) ## Called when the text in the Entry changed
+  proc activate() ## Called when the user presses enter/return
 
   hooks:
     beforeBuild:
@@ -731,8 +738,8 @@ proc updatePanedChild(state: var PanedChild[WidgetState],
 
 
 renderable Paned of BaseWidget:
-  orient: Orient
-  initialPosition: int
+  orient: Orient ## Orientation of the panes
+  initialPosition: int ## Initial position of the separator in pixels
   first: PanedChild[Widget]
   second: PanedChild[Widget]
   
@@ -1974,6 +1981,9 @@ renderable DropDown of BaseWidget:
         app.selectedItem = itemIndex
 
 renderable ContextMenu:
+  ## Adds a context menu to a widget.
+  ## Context menus are shown when the user right clicks the widget.
+  
   child: Widget
   menu: Widget
   controller: GtkEventController = GtkEventController(nil)
@@ -2039,7 +2049,19 @@ renderable ContextMenu:
       raise newException(ValueError, "Unable to add multiple menus to a ContextMenu.")
     widget.hasMenu = true
     widget.valMenu = child
-
+  
+  example:
+    ContextMenu:
+      Label:
+        text = "Right click here"
+      
+      PopoverMenu {.addMenu.}:
+        hasArrow = false
+        
+        Box(orient = OrientY):
+          for it in 0..<3:
+            ModelButton:
+              text = "Menu Entry " & $it
 
 type
   DialogResponseKind* = enum

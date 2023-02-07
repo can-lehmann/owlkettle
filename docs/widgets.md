@@ -9,9 +9,9 @@ renderable BaseWidget
 
 ###### Fields
 
-- `sensitive: bool = true`
-- `sizeRequest: tuple[x, y: int] = (-1, -1)`
-- `tooltip: string = ""`
+- `sensitive: bool = true` If the widget is interactive
+- `sizeRequest: tuple[x, y: int] = (-1, -1)` Requested widget size. A value of -1 means that the natural size of the widget will be used.
+- `tooltip: string = ""` The widget's tooltip is shown on hover
 
 ###### Setters
 
@@ -29,19 +29,21 @@ renderable Window of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `title: string`
-- `titlebar: Widget`
-- `defaultSize: tuple[width, height: int] = (800, 600)`
+- `titlebar: Widget` Custom widget set as the titlebar of the window
+- `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
 - `child: Widget`
 
 ###### Events
 
-- close: `proc ()`
+- close: `proc ()` Called when the window is closed
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add`
-- `addTitlebar`
+- `add` Adds a child to the window. Each window may only have one child.
+
+- `addTitlebar` Sets a custom titlebar for the window
+
 
 ###### Example
 
@@ -57,18 +59,24 @@ Window:
 renderable Box of BaseWidget
 ```
 
+A Box arranges its child widgets along one dimension.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `orient: Orient`
-- `spacing: int`
+- `orient: Orient` Orientation of the Box. May be one of OrientX or OrientY
+- `spacing: int` Spacing between the children of the Box
 - `children: seq[BoxChild[Widget]]`
 - `style: set[BoxStyle]`
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add`
+- `add` Adds a child to the Box.
+When expand is true, the child grows to fill up the remaining space in the Box.
+The hAlign and vAlign properties allow you to set the alignment of the child
+within its allocated area.
+
   - `expand = true`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
@@ -201,12 +209,12 @@ renderable Button of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `style: set[ButtonStyle]`
 - `child: Widget`
-- `shortcut: string`
+- `shortcut: string` Keyboard shortcut
 
 ###### Setters
 
 - `text: string`
-- `icon: string`
+- `icon: string` Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md) for a list of icons)
 
 ###### Events
 
@@ -324,8 +332,8 @@ renderable Entry of BaseWidget
 
 ###### Events
 
-- changed: `proc (text: string)`
-- activate: `proc ()`
+- changed: `proc (text: string)` Called when the text in the Entry changed
+- activate: `proc ()` Called when the user presses enter/return
 
 ###### Example
 
@@ -367,8 +375,8 @@ renderable Paned of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `orient: Orient`
-- `initialPosition: int`
+- `orient: Orient` Orientation of the panes
+- `initialPosition: int` Initial position of the separator in pixels
 - `first: PanedChild[Widget]`
 - `second: PanedChild[Widget]`
 
@@ -873,6 +881,9 @@ DropDown:
 renderable ContextMenu
 ```
 
+Adds a context menu to a widget.
+Context menus are shown when the user right clicks the widget.
+
 ###### Fields
 
 - `child: Widget`
@@ -883,6 +894,20 @@ renderable ContextMenu
 
 - `add`
 - `addMenu`
+
+###### Example
+
+```nim
+ContextMenu:
+  Label:
+    text = "Right click here"
+  PopoverMenu {.addMenu.}:
+    hasArrow = false
+    Box(orient = OrientY):
+      for it in 0 ..< 3:
+        ModelButton:
+          text = "Menu Entry " & $it
+```
 
 
 ## DialogButton

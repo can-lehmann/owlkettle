@@ -95,20 +95,24 @@ type
     hooks: array[HookKind, NimNode]
     isInternal: bool
     lineInfo: NimNode
+    doc: string
   
   EventDef = object
     name: string
     signature: NimNode
+    doc: string
   
   Property = object
     name: string
     typ: NimNode
     default: NimNode
+    doc: string
   
   Adder = object
     name: string
     props: seq[Property]
     body: NimNode
+    doc: string
   
   WidgetDef = object
     name: string
@@ -121,6 +125,7 @@ type
     adders: seq[Adder]
     types: seq[NimNode]
     examples: seq[NimNode]
+    doc: string
 
 proc has(field: Field): NimNode =
   result = ident("has" & capitalizeAscii(field.name))
@@ -188,16 +193,30 @@ proc parseHookKinds(node: NimNode): seq[HookKind] =
     else:
       error("Unable to parse hook kinds from " & $node.kind)
 
+proc extractDocComment(node: NimNode): string =
+  let
+    str = node.repr
+    pos = str.find("##")
+  if pos == -1:
+    return ""
+  var newline = str.find("\n", pos)
+  if newline == -1:
+    newline = str.len - 1
+  result = str[(pos + 2)..newline].strip()
+
 proc parseBody(body: NimNode, def: var WidgetDef) =
   assert def.fields.len == 0
   var fieldLookup = newTable[string, int]()
   for child in body:
     case child.kind:
+      of nnkCommentStmt:
+        def.doc &= child.strVal & "\n"
       of nnkProcDef:
         assert child.name.isName
         def.events.add(EventDef(
           name: child.name.strVal,
-          signature: child.params
+          signature: child.params,
+          doc: child.extractDocComment()
         ))
       of nnkCallKinds:
         assert not child[0].unwrapName().isNil
@@ -228,7 +247,8 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           child[^1].expectKind(nnkStmtList)
           def.setters.add(Property(
             name: child[1].strVal,
-            typ: child[2][0]
+            typ: child[2][0],
+            doc: child[2].extractDocComment()
           ))
         elif child[0].eqIdent("adder"):
           var adder = Adder()
@@ -247,6 +267,11 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           
           if child[^1].kind == nnkStmtList:
             adder.body = child[^1]
+          
+          for stmt in child[^1]:
+            if stmt.kind == nnkCommentStmt:
+              adder.doc &= stmt.strVal & "\n"
+          
           def.adders.add(adder)
         else:
           child[^1].expectKind(nnkStmtList)
@@ -254,7 +279,8 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           var field = Field(
             name: name.strVal,
             isInternal: not child[0].findPragma("internal").isNil,
-            lineInfo: name
+            lineInfo: name,
+            doc: child[1].extractDocComment()
           )
           case child[1][0].kind:
             of nnkAsgn:
@@ -553,6 +579,9 @@ proc formatReference(widget: WidgetDef): string =
   if widget.base.len > 0:
     result &= " of " & widget.base
   result &= "\n```\n\n"
+  if widget.doc.len > 0:
+    result &= widget.doc.strip()
+    result &= "\n\n"
   if widget.fields.len > 0 or widget.base.len > 0:
     result &= "###### Fields\n\n"
     if widget.base.len > 0:
@@ -562,25 +591,36 @@ proc formatReference(widget: WidgetDef): string =
         result &= "- `" & field.name & ": " & field.typ.repr
         if not field.default.isNil:
           result &= " = " & field.default.repr
-        result &= "`\n"
+        result &= "`"
+        if field.doc.len > 0:
+          result &= " " & field.doc
+        result &= "\n"
     result &= "\n"
   if widget.setters.len > 0:
     result &= "###### Setters\n\n"
     for setter in widget.setters:
       result &= "- `" & setter.name & ": " & setter.typ.repr & "`"
+      if setter.doc.len > 0:
+        result &= " " & setter.doc
       result &= "\n"
     result &= "\n"
   if widget.events.len > 0:
     result &= "###### Events\n\n"
     for event in widget.events:
-      result &= "- " & event.name & ": `proc " & event.signature.repr & "`\n"
+      result &= "- " & event.name & ": `proc " & event.signature.repr & "`"
+      if event.doc.len > 0:
+        result &= " " & event.doc
+      result &= "\n"
     result &= "\n"
   if widget.adders.len > 0:
     result &= "###### Adders\n\n"
     if widget.base.len > 0:
       result &= "- All adders from [" & widget.base & "](#" & widget.base & ")\n"
     for adder in widget.adders:
-      result &= "- `" & adder.name & "`\n"
+      result &= "- `" & adder.name & "`"
+      if adder.doc.len > 0:
+        result &= " " & adder.doc
+      result &= "\n"
       for prop in adder.props:
         result &= "  - `" & prop.name & " = " & prop.default.repr & "`\n"
     result &= "\n"
