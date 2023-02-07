@@ -381,7 +381,7 @@ renderable Label of BaseWidget:
       useMarkup = true
 
 renderable Icon of BaseWidget:
-  name: string
+  name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   pixelSize: int = -1
   
   hooks:
@@ -453,7 +453,7 @@ renderable Button of BaseWidget:
       state.updateChild(state.child, widget.valChild, gtk_button_set_child)
   
   setter text: string
-  setter icon: string ## Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md) for a list of icons)
+  setter icon: string ## Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
   
   adder add:
     if widget.hasChild:
@@ -567,6 +567,7 @@ renderable HeaderBar of BaseWidget:
   adder addTitle {.expand: false,
                    hAlign: AlignFill,
                    vAlign: AlignFill.}:
+    ## Adds a custom title widget to the HeaderBar.
     if widget.hasTitle:
       raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
     widget.hasTitle = true
@@ -578,10 +579,12 @@ renderable HeaderBar of BaseWidget:
     )
   
   adder addLeft:
+    ## Adds a widget to the left side of the HeaderBar.
     widget.hasLeft = true
     widget.valLeft.add(child)
   
   adder addRight:
+    ## Adds a widget to the right side of the HeaderBar.
     widget.hasRight = true
     widget.valRight.add(child)
   
@@ -621,7 +624,7 @@ type EntryStyle* = enum
 
 renderable Entry of BaseWidget:
   text: string
-  placeholder: string
+  placeholder: string ## Shown when the Entry is empty.
   width: int = -1
   maxWidth: int = -1
   xAlign: float = 0.0
@@ -996,7 +999,10 @@ renderable CustomWidget of BaseWidget:
       gtk_widget_set_can_focus(state.internalWidget, cbool(ord(state.focusable)))
 
 renderable DrawingArea of CustomWidget:
-  proc draw(ctx: CairoContext, size: (int, int)): bool
+  ## Allows you to render 2d scenes using cairo.
+  ## The `owlkettle/cairo` module provides bindings for cairo.
+  
+  proc draw(ctx: CairoContext, size: (int, int)): bool ## Called when the widget is rendered. Redraws the application if the callback returns true.
   
   hooks:
     beforeBuild:
@@ -1034,13 +1040,15 @@ proc renderEventCallback(widget: GtkWidget,
   result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
+  ## Allows you to render 3d scenes using OpenGL.
+  
   useEs: bool = false
   requiredVersion: tuple[major, minor: int] = (4, 3)
   hasDepthBuffer: bool = true
   hasStencilBuffer: bool = false
   
-  proc setup(size: (int, int)): bool
-  proc render(size: (int, int)): bool
+  proc setup(size: (int, int)): bool ## Called after the OpenGL Context is initialized. Redraws the application if the callback returns true.
+  proc render(size: (int, int)): bool ## Called when the widget is rendered. Your rendering code should be executed here. Redraws the application if the callback returns true.
   
   hooks:
     beforeBuild:
@@ -1074,7 +1082,7 @@ renderable GlArea of CustomWidget:
       )
 
 renderable ColorButton of BaseWidget:
-  color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
+  color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0) ## Red, Geen, Blue, Alpha as floating point numbers in the range [0.0, 1.0]
   useAlpha: bool = false
   
   proc changed(color: tuple[r, g, b, a: float])
@@ -1170,6 +1178,8 @@ renderable ToggleButton of Button:
         app.state = state
 
 renderable LinkButton of Button:
+  ## A clickable link.
+  
   uri: string
   visited: bool
   
@@ -1337,7 +1347,7 @@ renderable MenuButton of BaseWidget:
       updateStyle(state, widget)
   
   setter text: string
-  setter icon: string
+  setter icon: string ## Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   
   adder addChild:
     if widget.hasChild:
@@ -1365,7 +1375,7 @@ proc `valIcon=`*(menuButton: MenuButton, name: string) =
 
 renderable ModelButton of BaseWidget:
   text: string
-  icon: string
+  icon: string ## The icon of the ModelButton (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
   shortcut: string
   menuName: string
   

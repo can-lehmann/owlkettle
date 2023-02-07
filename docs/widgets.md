@@ -181,7 +181,7 @@ renderable Icon of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `name: string`
+- `name: string` See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
 - `pixelSize: int = -1`
 
 ###### Example
@@ -214,7 +214,7 @@ renderable Button of BaseWidget
 ###### Setters
 
 - `text: string`
-- `icon: string` Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md) for a list of icons)
+- `icon: string` Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
 
 ###### Events
 
@@ -275,12 +275,15 @@ renderable HeaderBar of BaseWidget
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `addTitle`
+- `addTitle` Adds a custom title widget to the HeaderBar.
+
   - `expand = false`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
-- `addLeft`
-- `addRight`
+- `addLeft` Adds a widget to the left side of the HeaderBar.
+
+- `addRight` Adds a widget to the right side of the HeaderBar.
+
 
 ###### Example
 
@@ -322,7 +325,7 @@ renderable Entry of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `placeholder: string`
+- `placeholder: string` Shown when the Entry is empty.
 - `width: int = -1`
 - `maxWidth: int = -1`
 - `xAlign: float = 0.0`
@@ -427,13 +430,16 @@ renderable CustomWidget of BaseWidget
 renderable DrawingArea of CustomWidget
 ```
 
+Allows you to render 2d scenes using cairo.
+The `owlkettle/cairo` module provides bindings for cairo.
+
 ###### Fields
 
 - All fields from [CustomWidget](#CustomWidget)
 
 ###### Events
 
-- draw: `proc (ctx: CairoContext; size: (int, int)): bool`
+- draw: `proc (ctx: CairoContext; size: (int, int)): bool` Called when the widget is rendered. Redraws the application if the callback returns true.
 
 
 ## GlArea
@@ -441,6 +447,8 @@ renderable DrawingArea of CustomWidget
 ```nim
 renderable GlArea of CustomWidget
 ```
+
+Allows you to render 3d scenes using OpenGL.
 
 ###### Fields
 
@@ -452,8 +460,8 @@ renderable GlArea of CustomWidget
 
 ###### Events
 
-- setup: `proc (size: (int, int)): bool`
-- render: `proc (size: (int, int)): bool`
+- setup: `proc (size: (int, int)): bool` Called after the OpenGL Context is initialized. Redraws the application if the callback returns true.
+- render: `proc (size: (int, int)): bool` Called when the widget is rendered. Your rendering code should be executed here. Redraws the application if the callback returns true.
 
 
 ## ColorButton
@@ -465,7 +473,7 @@ renderable ColorButton of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
+- `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)` Red, Geen, Blue, Alpha as floating point numbers in the range [0.0, 1.0]
 - `useAlpha: bool = false`
 
 ###### Events
@@ -531,6 +539,8 @@ ToggleButton:
 ```nim
 renderable LinkButton of Button
 ```
+
+A clickable link.
 
 ###### Fields
 
@@ -630,7 +640,7 @@ renderable MenuButton of BaseWidget
 ###### Setters
 
 - `text: string`
-- `icon: string`
+- `icon: string` Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
 
 ###### Adders
 
@@ -649,7 +659,7 @@ renderable ModelButton of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `icon: string`
+- `icon: string` The icon of the ModelButton (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
 - `shortcut: string`
 - `menuName: string`
 
