@@ -65,14 +65,14 @@ proc updateChild*(state: Renderable,
                   replaceChild: proc(widget, oldChild, newChild: GtkWidget) {.locks: 0.}) =
   if updater.isNil:
     if not child.isNil:
-      replaceChild(state.internalWidget, unwrapInternalWidget(child), nil)
+      replaceChild(state.internalWidget, unwrapInternalWidget(child), nil.GtkWidget)
       child = nil
   else:
     updater.assignApp(state.app)
     let newChild = if child.isNil: updater.build() else: updater.update(child)
     if not newChild.isNil:
       replaceChild(state.internalWidget,
-        if child.isNil: nil else: unwrapInternalWidget(child),
+        if child.isNil: nil.GtkWidget else: unwrapInternalWidget(child),
         unwrapInternalWidget(newChild)
       )
       child = newChild
