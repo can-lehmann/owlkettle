@@ -501,7 +501,7 @@ proc updateChild*(state: Renderable,
   if updater.widget.isNil:
     if not child.widget.isNil:
       child.widget = nil
-      setChild(state.internalWidget, nil)
+      setChild(state.internalWidget, nil.GtkWidget)
   else:
     updater.assignApp(state.app)
     let newChild =
