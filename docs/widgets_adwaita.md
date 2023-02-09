@@ -1,6 +1,46 @@
 # Libadwaita Widgets
 
 
+## WindowSurface
+
+```nim
+renderable WindowSurface of BaseWindow
+```
+
+A Window that does not have a title bar.
+A WindowSurface is equivalent to an `Adw.Window`.
+
+###### Fields
+
+- All fields from [BaseWindow](#BaseWindow)
+- `content: Widget`
+
+###### Adders
+
+- All adders from [BaseWindow](#BaseWindow)
+- `add` Adds a child to the window surface. Each window surface may only have one child.
+
+
+###### Example
+
+```nim
+WindowSurface:
+  Box:
+    orient = OrientX
+    Box {.expand: false.}:
+      sizeRequest = (250, -1)
+      orient = OrientY
+      HeaderBar {.expand: false.}:
+        showTitleButtons = false
+      Label(text = "Sidebar")
+    Separator() {.expand: false.}
+    Box:
+      orient = OrientY
+      HeaderBar() {.expand: false.}
+      Label(text = "Main Content")
+```
+
+
 ## WindowTitle
 
 ```nim
@@ -57,7 +97,7 @@ renderable Clamp of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `maximumSize: int`
+- `maximumSize: int` Maximum width of the content
 - `child: Widget`
 
 ###### Adders

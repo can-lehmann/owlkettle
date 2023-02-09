@@ -78,21 +78,32 @@ proc `valMargin=`*(widget: BaseWidget, width: int) =
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
   widget.valInternalMargin = margin
 
-renderable Window of BaseWidget:
-  title: string
-  titlebar: Widget ## Custom widget set as the titlebar of the window
+renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
-  child: Widget
   
   proc close() ## Called when the window is closed
   
   hooks:
-    beforeBuild:
-      state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
     connectEvents:
       state.connect(state.close, "destroy", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.close)
+  
+  hooks defaultSize:
+    property:
+      gtk_window_set_default_size(state.internalWidget,
+        state.defaultSize.width.cint,
+        state.defaultSize.height.cint
+      )
+
+renderable Window of BaseWindow:
+  title: string
+  titlebar: Widget ## Custom widget set as the titlebar of the window
+  child: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
   
   hooks title:
     property:
@@ -102,13 +113,6 @@ renderable Window of BaseWidget:
   hooks titlebar:
     (build, update):
       state.updateChild(state.titlebar, widget.valTitlebar, gtk_window_set_titlebar)
-  
-  hooks defaultSize:
-    property:
-      gtk_window_set_default_size(state.internalWidget,
-        state.defaultSize.width.cint,
-        state.defaultSize.height.cint
-      )
   
   hooks child:
     (build, update):
@@ -2279,7 +2283,7 @@ renderable AboutDialog of BaseWidget:
         "Art": @["Max Mustermann"]
       }
 
-export BaseWidget, BaseWidgetState
+export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu

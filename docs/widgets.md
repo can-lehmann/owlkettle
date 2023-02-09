@@ -19,27 +19,38 @@ renderable BaseWidget
 - `margin: Margin`
 
 
-## Window
+## BaseWindow
 
 ```nim
-renderable Window of BaseWidget
+renderable BaseWindow of BaseWidget
 ```
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `title: string`
-- `titlebar: Widget` Custom widget set as the titlebar of the window
 - `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
-- `child: Widget`
 
 ###### Events
 
 - close: `proc ()` Called when the window is closed
 
+
+## Window
+
+```nim
+renderable Window of BaseWindow
+```
+
+###### Fields
+
+- All fields from [BaseWindow](#BaseWindow)
+- `title: string`
+- `titlebar: Widget` Custom widget set as the titlebar of the window
+- `child: Widget`
+
 ###### Adders
 
-- All adders from [BaseWidget](#BaseWidget)
+- All adders from [BaseWindow](#BaseWindow)
 - `add` Adds a child to the window. Each window may only have one child.
 
 - `addTitlebar` Sets a custom titlebar for the window
