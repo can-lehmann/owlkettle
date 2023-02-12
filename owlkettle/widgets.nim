@@ -323,7 +323,11 @@ type LabelStyle* = enum
   LabelMonospace = "monospace"
 
 type EllipsizeMode* = enum
-  EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
+  ## Determines whether to ellipsize text when text does not fit in a given space
+  EllipsizeNone ## Do not ellipsize 
+  EllipsizeStart, ## Start ellipsizing at the start of the text
+  EllipsizeMiddle, ## Start ellipsizing in the middle of the text
+  EllipsizeEnd ## Start ellipsizing at the end of the text
 
 renderable Label of BaseWidget:
   ## The default widget to display text.
@@ -333,10 +337,11 @@ renderable Label of BaseWidget:
   xAlign: float = 0.5
   yAlign: float = 0.5
   ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it.
+  ## May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
   wrap: bool = false ## Enables/Disable wrapping of text.
   useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
   
-  style: set[LabelStyle]
+  style: set[LabelStyle] ## The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
   
   hooks:
     beforeBuild:
