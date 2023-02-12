@@ -38,7 +38,7 @@ renderable BaseWidget:
   ## by calling `<WidgetName>State.app.redraw()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
-  internalMargin {.internal.}: Margin = Margin()
+  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
   tooltip: string = "" ## The widget's tooltip is shown on hover
   
   hooks sensitive:
@@ -156,7 +156,7 @@ proc assignApp[T](child: BoxChild[T], app: Viewable) =
 
 renderable Box of BaseWidget:
   ## A Box arranges its child widgets along one dimension.
-  orient: Orient ## Orientation of the Box. May be one of OrientX or OrientY
+  orient: Orient ## Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
   spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
   style: set[BoxStyle]
