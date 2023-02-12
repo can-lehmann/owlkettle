@@ -2,6 +2,14 @@
 
 A list of tools to help with developing owlkettle/gtk4 applications.
 
+## Inspecting your applications CSS/Actions/CSS-Nodes and more
+
+Often times you need to figure how much space a given component takes up, play around with the CSS it uses or you may just want to inspect the component tree yourself.
+
+For all kinds of such things, there is a tool provided by GTK called [GTK-Inspector](https://wiki.gnome.org/Projects/GTK/Inspector). You may need to enable it, consult the wiki for further information.
+
+To open it, press CTRL+SHIFT+I.
+
 ## Icons
 
 Some Widgets such as [Buttons](https://github.com/can-lehmann/owlkettle/blob/main/docs/widgets.md#button) come with `icon`-setters, that you provide a gtk4-icon-string and it will render the corresponding icon.
