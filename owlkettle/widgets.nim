@@ -245,13 +245,14 @@ renderable Box of BaseWidget:
               vAlign: AlignFill.}:
     ## Adds a child to the Box.
     ## When expand is true, the child grows to fill up the remaining space in the Box.
-    ## The hAlign and vAlign properties allow you to set the alignment of the child
-    ## within its allocated area.
+    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
+    ## `AlignStart`, `AlignEnd` or `AlignCenter`.
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
       expand: expand,
-      hAlign: hAlign,
+      hAlign: hAlign, 
       vAlign: vAlign
     ))
   
