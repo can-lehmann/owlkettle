@@ -34,6 +34,8 @@ type Margin* = object
   top*, bottom*, left*, right*: int
 
 renderable BaseWidget:
+  ## The base widget of all widgets. Supports redrawing the entire Application
+  ## by calling `<WidgetName>State.app.redraw()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   internalMargin {.internal.}: Margin = Margin()
