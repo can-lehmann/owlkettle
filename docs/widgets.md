@@ -9,9 +9,9 @@ renderable BaseWidget
 
 ###### Fields
 
-- `sensitive: bool = true`
-- `sizeRequest: tuple[x, y: int] = (-1, -1)`
-- `tooltip: string = ""`
+- `sensitive: bool = true` If the widget is interactive
+- `sizeRequest: tuple[x, y: int] = (-1, -1)` Requested widget size. A value of -1 means that the natural size of the widget will be used.
+- `tooltip: string = ""` The widget's tooltip is shown on hover
 
 ###### Setters
 
@@ -19,29 +19,42 @@ renderable BaseWidget
 - `margin: Margin`
 
 
-## Window
+## BaseWindow
 
 ```nim
-renderable Window of BaseWidget
+renderable BaseWindow of BaseWidget
 ```
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `title: string`
-- `titlebar: Widget`
-- `defaultSize: tuple[width, height: int] = (800, 600)`
-- `child: Widget`
+- `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
 
 ###### Events
 
-- close: `proc ()`
+- close: `proc ()` Called when the window is closed
+
+
+## Window
+
+```nim
+renderable Window of BaseWindow
+```
+
+###### Fields
+
+- All fields from [BaseWindow](#BaseWindow)
+- `title: string`
+- `titlebar: Widget` Custom widget set as the titlebar of the window
+- `child: Widget`
 
 ###### Adders
 
-- All adders from [BaseWidget](#BaseWidget)
-- `add`
-- `addTitlebar`
+- All adders from [BaseWindow](#BaseWindow)
+- `add` Adds a child to the window. Each window may only have one child.
+
+- `addTitlebar` Sets a custom titlebar for the window
+
 
 ###### Example
 
@@ -57,18 +70,24 @@ Window:
 renderable Box of BaseWidget
 ```
 
+A Box arranges its child widgets along one dimension.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `orient: Orient`
-- `spacing: int`
+- `orient: Orient` Orientation of the Box. May be one of OrientX or OrientY
+- `spacing: int` Spacing between the children of the Box
 - `children: seq[BoxChild[Widget]]`
 - `style: set[BoxStyle]`
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add`
+- `add` Adds a child to the Box.
+When expand is true, the child grows to fill up the remaining space in the Box.
+The hAlign and vAlign properties allow you to set the alignment of the child
+within its allocated area.
+
   - `expand = true`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
@@ -173,7 +192,7 @@ renderable Icon of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `name: string`
+- `name: string` See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
 - `pixelSize: int = -1`
 
 ###### Example
@@ -201,12 +220,12 @@ renderable Button of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `style: set[ButtonStyle]`
 - `child: Widget`
-- `shortcut: string`
+- `shortcut: string` Keyboard shortcut
 
 ###### Setters
 
 - `text: string`
-- `icon: string`
+- `icon: string` Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
 
 ###### Events
 
@@ -267,12 +286,15 @@ renderable HeaderBar of BaseWidget
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `addTitle`
+- `addTitle` Adds a custom title widget to the HeaderBar.
+
   - `expand = false`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
-- `addLeft`
-- `addRight`
+- `addLeft` Adds a widget to the left side of the HeaderBar.
+
+- `addRight` Adds a widget to the right side of the HeaderBar.
+
 
 ###### Example
 
@@ -314,7 +336,7 @@ renderable Entry of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `placeholder: string`
+- `placeholder: string` Shown when the Entry is empty.
 - `width: int = -1`
 - `maxWidth: int = -1`
 - `xAlign: float = 0.0`
@@ -324,8 +346,8 @@ renderable Entry of BaseWidget
 
 ###### Events
 
-- changed: `proc (text: string)`
-- activate: `proc ()`
+- changed: `proc (text: string)` Called when the text in the Entry changed
+- activate: `proc ()` Called when the user presses enter/return
 
 ###### Example
 
@@ -367,8 +389,8 @@ renderable Paned of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `orient: Orient`
-- `initialPosition: int`
+- `orient: Orient` Orientation of the panes
+- `initialPosition: int` Initial position of the separator in pixels
 - `first: PanedChild[Widget]`
 - `second: PanedChild[Widget]`
 
@@ -419,13 +441,16 @@ renderable CustomWidget of BaseWidget
 renderable DrawingArea of CustomWidget
 ```
 
+Allows you to render 2d scenes using cairo.
+The `owlkettle/cairo` module provides bindings for cairo.
+
 ###### Fields
 
 - All fields from [CustomWidget](#CustomWidget)
 
 ###### Events
 
-- draw: `proc (ctx: CairoContext; size: (int, int)): bool`
+- draw: `proc (ctx: CairoContext; size: (int, int)): bool` Called when the widget is rendered. Redraws the application if the callback returns true.
 
 
 ## GlArea
@@ -433,6 +458,8 @@ renderable DrawingArea of CustomWidget
 ```nim
 renderable GlArea of CustomWidget
 ```
+
+Allows you to render 3d scenes using OpenGL.
 
 ###### Fields
 
@@ -444,8 +471,8 @@ renderable GlArea of CustomWidget
 
 ###### Events
 
-- setup: `proc (size: (int, int)): bool`
-- render: `proc (size: (int, int)): bool`
+- setup: `proc (size: (int, int)): bool` Called after the OpenGL Context is initialized. Redraws the application if the callback returns true.
+- render: `proc (size: (int, int)): bool` Called when the widget is rendered. Your rendering code should be executed here. Redraws the application if the callback returns true.
 
 
 ## ColorButton
@@ -457,7 +484,7 @@ renderable ColorButton of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
+- `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)` Red, Geen, Blue, Alpha as floating point numbers in the range [0.0, 1.0]
 - `useAlpha: bool = false`
 
 ###### Events
@@ -523,6 +550,8 @@ ToggleButton:
 ```nim
 renderable LinkButton of Button
 ```
+
+A clickable link.
 
 ###### Fields
 
@@ -622,7 +651,7 @@ renderable MenuButton of BaseWidget
 ###### Setters
 
 - `text: string`
-- `icon: string`
+- `icon: string` Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
 
 ###### Adders
 
@@ -641,7 +670,7 @@ renderable ModelButton of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `icon: string`
+- `icon: string` The icon of the ModelButton (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
 - `shortcut: string`
 - `menuName: string`
 
@@ -873,6 +902,9 @@ DropDown:
 renderable ContextMenu
 ```
 
+Adds a context menu to a widget.
+Context menus are shown when the user right clicks the widget.
+
 ###### Fields
 
 - `child: Widget`
@@ -883,6 +915,20 @@ renderable ContextMenu
 
 - `add`
 - `addMenu`
+
+###### Example
+
+```nim
+ContextMenu:
+  Label:
+    text = "Right click here"
+  PopoverMenu {.addMenu.}:
+    hasArrow = false
+    Box(orient = OrientY):
+      for it in 0 ..< 3:
+        ModelButton:
+          text = "Menu Entry " & $it
+```
 
 
 ## DialogButton

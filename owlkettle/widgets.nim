@@ -34,10 +34,10 @@ type Margin* = object
   top*, bottom*, left*, right*: int
 
 renderable BaseWidget:
-  sensitive: bool = true
-  sizeRequest: tuple[x, y: int] = (-1, -1)
+  sensitive: bool = true ## If the widget is interactive
+  sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   internalMargin {.internal.}: Margin = Margin()
-  tooltip: string = ""
+  tooltip: string = "" ## The widget's tooltip is shown on hover
   
   hooks sensitive:
     property:
@@ -78,21 +78,32 @@ proc `valMargin=`*(widget: BaseWidget, width: int) =
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
   widget.valInternalMargin = margin
 
-renderable Window of BaseWidget:
-  title: string
-  titlebar: Widget
-  defaultSize: tuple[width, height: int] = (800, 600)
-  child: Widget
+renderable BaseWindow of BaseWidget:
+  defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
   
-  proc close()
+  proc close() ## Called when the window is closed
   
   hooks:
-    beforeBuild:
-      state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
     connectEvents:
       state.connect(state.close, "destroy", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.close)
+  
+  hooks defaultSize:
+    property:
+      gtk_window_set_default_size(state.internalWidget,
+        state.defaultSize.width.cint,
+        state.defaultSize.height.cint
+      )
+
+renderable Window of BaseWindow:
+  title: string
+  titlebar: Widget ## Custom widget set as the titlebar of the window
+  child: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
   
   hooks title:
     property:
@@ -103,24 +114,19 @@ renderable Window of BaseWidget:
     (build, update):
       state.updateChild(state.titlebar, widget.valTitlebar, gtk_window_set_titlebar)
   
-  hooks defaultSize:
-    property:
-      gtk_window_set_default_size(state.internalWidget,
-        state.defaultSize.width.cint,
-        state.defaultSize.height.cint
-      )
-  
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_window_set_child)
   
   adder add:
+    ## Adds a child to the window. Each window may only have one child.
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Window. Use a Box widget to display multiple widgets in a Window.")
     widget.hasChild = true
     widget.valChild = child
   
   adder addTitlebar:
+    ## Sets a custom titlebar for the window
     widget.hasTitlebar = true
     widget.valTitlebar = child
   
@@ -147,8 +153,9 @@ proc assignApp[T](child: BoxChild[T], app: Viewable) =
   child.widget.assignApp(app)
 
 renderable Box of BaseWidget:
-  orient: Orient
-  spacing: int
+  ## A Box arranges its child widgets along one dimension.
+  orient: Orient ## Orientation of the Box. May be one of OrientX or OrientY
+  spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
   style: set[BoxStyle]
   
@@ -234,6 +241,10 @@ renderable Box of BaseWidget:
   adder add {.expand: true,
               hAlign: AlignFill,
               vAlign: AlignFill.}:
+    ## Adds a child to the Box.
+    ## When expand is true, the child grows to fill up the remaining space in the Box.
+    ## The hAlign and vAlign properties allow you to set the alignment of the child
+    ## within its allocated area.
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
@@ -374,7 +385,7 @@ renderable Label of BaseWidget:
       useMarkup = true
 
 renderable Icon of BaseWidget:
-  name: string
+  name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   pixelSize: int = -1
   
   hooks:
@@ -408,7 +419,7 @@ type ButtonStyle* = enum
 renderable Button of BaseWidget:
   style: set[ButtonStyle]
   child: Widget
-  shortcut: string
+  shortcut: string ## Keyboard shortcut
   
   proc clicked()
   
@@ -446,7 +457,7 @@ renderable Button of BaseWidget:
       state.updateChild(state.child, widget.valChild, gtk_button_set_child)
   
   setter text: string
-  setter icon: string
+  setter icon: string ## Sets the icon of the Button (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
   
   adder add:
     if widget.hasChild:
@@ -494,7 +505,7 @@ proc updateChild*(state: Renderable,
   if updater.widget.isNil:
     if not child.widget.isNil:
       child.widget = nil
-      setChild(state.internalWidget, nil)
+      setChild(state.internalWidget, nil.GtkWidget)
   else:
     updater.assignApp(state.app)
     let newChild =
@@ -560,6 +571,7 @@ renderable HeaderBar of BaseWidget:
   adder addTitle {.expand: false,
                    hAlign: AlignFill,
                    vAlign: AlignFill.}:
+    ## Adds a custom title widget to the HeaderBar.
     if widget.hasTitle:
       raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
     widget.hasTitle = true
@@ -571,10 +583,12 @@ renderable HeaderBar of BaseWidget:
     )
   
   adder addLeft:
+    ## Adds a widget to the left side of the HeaderBar.
     widget.hasLeft = true
     widget.valLeft.add(child)
   
   adder addRight:
+    ## Adds a widget to the right side of the HeaderBar.
     widget.hasRight = true
     widget.valRight.add(child)
   
@@ -614,7 +628,7 @@ type EntryStyle* = enum
 
 renderable Entry of BaseWidget:
   text: string
-  placeholder: string
+  placeholder: string ## Shown when the Entry is empty.
   width: int = -1
   maxWidth: int = -1
   xAlign: float = 0.0
@@ -623,8 +637,8 @@ renderable Entry of BaseWidget:
   
   style: set[EntryStyle]
   
-  proc changed(text: string)
-  proc activate()
+  proc changed(text: string) ## Called when the text in the Entry changed
+  proc activate() ## Called when the user presses enter/return
 
   hooks:
     beforeBuild:
@@ -731,8 +745,8 @@ proc updatePanedChild(state: var PanedChild[WidgetState],
 
 
 renderable Paned of BaseWidget:
-  orient: Orient
-  initialPosition: int
+  orient: Orient ## Orientation of the panes
+  initialPosition: int ## Initial position of the separator in pixels
   first: PanedChild[Widget]
   second: PanedChild[Widget]
   
@@ -989,7 +1003,10 @@ renderable CustomWidget of BaseWidget:
       gtk_widget_set_can_focus(state.internalWidget, cbool(ord(state.focusable)))
 
 renderable DrawingArea of CustomWidget:
-  proc draw(ctx: CairoContext, size: (int, int)): bool
+  ## Allows you to render 2d scenes using cairo.
+  ## The `owlkettle/cairo` module provides bindings for cairo.
+  
+  proc draw(ctx: CairoContext, size: (int, int)): bool ## Called when the widget is rendered. Redraws the application if the callback returns true.
   
   hooks:
     beforeBuild:
@@ -1027,13 +1044,15 @@ proc renderEventCallback(widget: GtkWidget,
   result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
+  ## Allows you to render 3d scenes using OpenGL.
+  
   useEs: bool = false
   requiredVersion: tuple[major, minor: int] = (4, 3)
   hasDepthBuffer: bool = true
   hasStencilBuffer: bool = false
   
-  proc setup(size: (int, int)): bool
-  proc render(size: (int, int)): bool
+  proc setup(size: (int, int)): bool ## Called after the OpenGL Context is initialized. Redraws the application if the callback returns true.
+  proc render(size: (int, int)): bool ## Called when the widget is rendered. Your rendering code should be executed here. Redraws the application if the callback returns true.
   
   hooks:
     beforeBuild:
@@ -1067,7 +1086,7 @@ renderable GlArea of CustomWidget:
       )
 
 renderable ColorButton of BaseWidget:
-  color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
+  color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0) ## Red, Geen, Blue, Alpha as floating point numbers in the range [0.0, 1.0]
   useAlpha: bool = false
   
   proc changed(color: tuple[r, g, b, a: float])
@@ -1163,6 +1182,8 @@ renderable ToggleButton of Button:
         app.state = state
 
 renderable LinkButton of Button:
+  ## A clickable link.
+  
   uri: string
   visited: bool
   
@@ -1330,7 +1351,7 @@ renderable MenuButton of BaseWidget:
       updateStyle(state, widget)
   
   setter text: string
-  setter icon: string
+  setter icon: string ## Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   
   adder addChild:
     if widget.hasChild:
@@ -1358,7 +1379,7 @@ proc `valIcon=`*(menuButton: MenuButton, name: string) =
 
 renderable ModelButton of BaseWidget:
   text: string
-  icon: string
+  icon: string ## The icon of the ModelButton (see [recommended_tools.md](recommended_tools.md#icons) for a list of icons)
   shortcut: string
   menuName: string
   
@@ -1974,6 +1995,9 @@ renderable DropDown of BaseWidget:
         app.selectedItem = itemIndex
 
 renderable ContextMenu:
+  ## Adds a context menu to a widget.
+  ## Context menus are shown when the user right clicks the widget.
+  
   child: Widget
   menu: Widget
   controller: GtkEventController = GtkEventController(nil)
@@ -2039,7 +2063,19 @@ renderable ContextMenu:
       raise newException(ValueError, "Unable to add multiple menus to a ContextMenu.")
     widget.hasMenu = true
     widget.valMenu = child
-
+  
+  example:
+    ContextMenu:
+      Label:
+        text = "Right click here"
+      
+      PopoverMenu {.addMenu.}:
+        hasArrow = false
+        
+        Box(orient = OrientY):
+          for it in 0..<3:
+            ModelButton:
+              text = "Menu Entry " & $it
 
 type
   DialogResponseKind* = enum
@@ -2247,7 +2283,7 @@ renderable AboutDialog of BaseWidget:
         "Art": @["Max Mustermann"]
       }
 
-export BaseWidget, BaseWidgetState
+export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu

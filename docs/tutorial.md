@@ -140,3 +140,19 @@ Clicking on the `MenuButton` opens the menu.
 <img alt="Todo Application" src="assets/tutorial/todo_5.png" width="428px">
 
 The source code for this example can be found [here](../examples/apps/todo.nim).
+
+## Next Steps
+
+- Improve the Todo App
+  - Add an option to hide completed items
+  - Replace the "Delete" button with a `ModelButton` and create a simple menu structure.
+    Check out [the popover_menu example](/examples/widgets/popover_menu.nim) for how to create a simple menu structure.
+  - Use `owlkettle/adw` to convert the Todo app to a libadwaita application.
+  - Save and load todos from a file
+- Check out the other [examples](/examples)
+- Start working on your own projects! You might find the following links useful:
+  - Here is a list of [examples](/examples)
+  - [widgets.md](widgets.md) is a reference of all owlkettle widgets
+  - [widgets_adwaita.md](widgets_adwaita.md) is a reference of all libadwaita widgets supported by owlkettle
+
+

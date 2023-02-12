@@ -63,6 +63,10 @@ proc adw_init()
 proc adw_style_manager_get_default(): StyleManager
 proc adw_style_manager_set_color_scheme(manager: StyleManager, colorScheme: ColorScheme)
 
+# Adw.Window
+proc adw_window_new(): GtkWidget
+proc adw_window_set_content(window, content: GtkWidget)
+
 # Adw.WindowTitle
 proc adw_window_title_new(title, subtitle: cstring): GtkWidget
 proc adw_window_title_set_title(widget: GtkWidget, title: cstring)
@@ -131,6 +135,49 @@ proc adw_flap_get_reveal_flap(flap: GtkWidget): cbool
 proc adw_flap_get_folded(flap: GtkWidget): cbool
 {.pop.}
 
+renderable WindowSurface of BaseWindow:
+  ## A Window that does not have a title bar.
+  ## A WindowSurface is equivalent to an `Adw.Window`.
+  
+  content: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_window_new()
+  
+  hooks content:
+    (build, update):
+      state.updateChild(state.content, widget.valContent, adw_window_set_content)
+  
+  adder add:
+    ## Adds a child to the window surface. Each window surface may only have one child.
+    if widget.hasContent:
+      raise newException(ValueError, "Unable to add multiple children to a WindowSurface. Use a Box widget to display multiple widgets in a WindowSurface.")
+    widget.hasContent = true
+    widget.valContent = child
+  
+  example:
+    WindowSurface:
+      Box:
+        orient = OrientX
+        
+        Box {.expand: false.}:
+          sizeRequest = (250, -1)
+          orient = OrientY
+          
+          HeaderBar {.expand: false.}:
+            showTitleButtons = false
+          
+          Label(text = "Sidebar")
+        
+        Separator() {.expand: false.}
+        
+        Box:
+          orient = OrientY
+          
+          HeaderBar() {.expand: false.}
+          Label(text = "Main Content")
+
 renderable WindowTitle of BaseWidget:
   title: string
   subtitle: string
@@ -191,7 +238,7 @@ renderable Avatar of BaseWidget:
       showInitials = true
 
 renderable Clamp of BaseWidget:
-  maximumSize: int
+  maximumSize: int ## Maximum width of the content
   child: Widget
   
   hooks:
@@ -566,7 +613,7 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-export WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap
+export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
