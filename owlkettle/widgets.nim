@@ -430,7 +430,7 @@ type ButtonStyle* = enum
 renderable Button of BaseWidget:
   style: set[ButtonStyle] ## Applies special styling to the button. 
   ## May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`.
-  ## Consult the ## [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  ## Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   child: Widget
   shortcut: string ## Keyboard shortcut
   
@@ -585,6 +585,10 @@ renderable HeaderBar of BaseWidget:
                    hAlign: AlignFill,
                    vAlign: AlignFill.}:
     ## Adds a custom title widget to the HeaderBar.
+    ## When expand is true, it grows to fill up the remaining space in the headerbar.
+    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
+    ## `AlignStart`, `AlignEnd` or `AlignCenter`.
     if widget.hasTitle:
       raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
     widget.hasTitle = true
