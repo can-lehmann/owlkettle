@@ -324,12 +324,15 @@ type EllipsizeMode* = enum
   EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
 
 renderable Label of BaseWidget:
-  text: string
+  ## The default widget to display text.
+  ## Supports rendering [Pango Markup](https://docs.gtk.org/Pango/pango_markup.html#pango-markup) 
+  ## if `useMarkup` is enabled.
+  text: string ## The text of the Label to render
   xAlign: float = 0.5
   yAlign: float = 0.5
-  ellipsize: EllipsizeMode
-  wrap: bool = false
-  useMarkup: bool = false
+  ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it.
+  wrap: bool = false ## Enables/Disable wrapping of text.
+  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
   
   style: set[LabelStyle]
   
