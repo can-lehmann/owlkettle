@@ -2020,7 +2020,7 @@ renderable ContextMenu:
   
   hooks menu:
     (build, update):
-      proc replace(box, oldMenu, newMenu: GtkWidget) =
+      proc replace(box, oldMenu, newMenu: GtkWidget) {.locks: 0.} =
         if not oldMenu.isNil:
           gtk_widget_remove_controller(box, state.controller)
           state.controller = GtkEventController(nil)
