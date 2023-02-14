@@ -1,11 +1,20 @@
-# Widgets
+    # Widgets
 
+    ## Custom Widgets
+    When writing your application or custom widgets you will typically be writing a `viewable` (see [internals.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/internals.md) for more information). All `viewables` have the following available to them by default:
+      - BaseWidget-fields and setters
 
+    ## Owlkettle Widgets
+    \n\n
+  
 ## BaseWidget
 
 ```nim
 renderable BaseWidget
 ```
+
+The base widget of all widgets. Supports redrawing the entire Application
+by calling `<WidgetName>State.app.redraw()
 
 ###### Fields
 
@@ -75,7 +84,7 @@ A Box arranges its child widgets along one dimension.
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `orient: Orient` Orientation of the Box. May be one of OrientX or OrientY
+- `orient: Orient` Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
 - `spacing: int` Spacing between the children of the Box
 - `children: seq[BoxChild[Widget]]`
 - `style: set[BoxStyle]`
@@ -85,8 +94,11 @@ A Box arranges its child widgets along one dimension.
 - All adders from [BaseWidget](#BaseWidget)
 - `add` Adds a child to the Box.
 When expand is true, the child grows to fill up the remaining space in the Box.
-The hAlign and vAlign properties allow you to set the alignment of the child
-within its allocated area.
+The hAlign and vAlign properties allow you to set the horizontal and vertical 
+alignment of the child within its allocated area. They may be one of `AlignFill`, 
+`AlignStart`, `AlignEnd` or `AlignCenter`.
+
+Note: **Any** widgets contained in a Box-Widget get access the `expand` adder, to control their behaviour inside of the Box!
 
   - `expand = true`
   - `hAlign = AlignFill`
@@ -150,16 +162,20 @@ renderable Overlay of BaseWidget
 renderable Label of BaseWidget
 ```
 
+The default widget to display text.
+Supports rendering [Pango Markup](https://docs.gtk.org/Pango/pango_markup.html#pango-markup) 
+if `useMarkup` is enabled.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `text: string`
+- `text: string` The text of the Label to render
 - `xAlign: float = 0.5`
 - `yAlign: float = 0.5`
-- `ellipsize: EllipsizeMode`
-- `wrap: bool = false`
-- `useMarkup: bool = false`
-- `style: set[LabelStyle]`
+- `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it.
+- `wrap: bool = false` Enables/Disable wrapping of text.
+- `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup or not.
+- `style: set[LabelStyle]` The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
 
 ###### Example
 
@@ -193,7 +209,7 @@ renderable Icon of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `name: string` See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
-- `pixelSize: int = -1`
+- `pixelSize: int = -1` Determines the size of the icon
 
 ###### Example
 
@@ -218,7 +234,7 @@ renderable Button of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `style: set[ButtonStyle]`
+- `style: set[ButtonStyle]` Applies special styling to the button.
 - `child: Widget`
 - `shortcut: string` Keyboard shortcut
 
@@ -287,6 +303,10 @@ renderable HeaderBar of BaseWidget
 
 - All adders from [BaseWidget](#BaseWidget)
 - `addTitle` Adds a custom title widget to the HeaderBar.
+When expand is true, it grows to fill up the remaining space in the headerbar.
+The hAlign and vAlign properties allow you to set the horizontal and vertical 
+alignment of the child within its allocated area. They may be one of `AlignFill`, 
+`AlignStart`, `AlignEnd` or `AlignCenter`.
 
   - `expand = false`
   - `hAlign = AlignFill`
@@ -646,7 +666,7 @@ renderable MenuButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 - `popover: Widget`
-- `style: set[ButtonStyle]`
+- `style: set[ButtonStyle]` Applies special styling to the button.
 
 ###### Setters
 
@@ -941,7 +961,7 @@ renderable DialogButton
 
 - `text: string`
 - `response: DialogResponse`
-- `style: set[ButtonStyle]`
+- `style: set[ButtonStyle]` Applies special styling to the button.
 
 ###### Setters
 
