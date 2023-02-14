@@ -29,15 +29,13 @@ import gtk, widgetdef, cairo, widgetutils
 
 when defined(owlkettleDocs) and isMainModule:
   echo """
-    # Widgets
+# Widgets
 
-    ## Custom Widgets
-    When writing your application or custom widgets you will typically be writing a `viewable` (see [internals.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/internals.md) for more information). All `viewables` have the following available to them by default:
-      - BaseWidget-fields and setters
+## Custom Widgets
+When writing your application or custom widgets you will typically be writing a `viewable` (see [internals.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/internals.md) for more information). All `viewables` have the following available to them by default:
+  - BaseWidget-fields and setters
 
-    ## Owlkettle Widgets
-    \n\n
-  """
+"""
 
 type Margin* = object
   top*, bottom*, left*, right*: int
