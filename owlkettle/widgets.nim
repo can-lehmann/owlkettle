@@ -31,12 +31,11 @@ when defined(owlkettleDocs) and isMainModule:
   echo """
     # Widgets
 
-    ### Custom Widgets
+    ## Custom Widgets
     When writing your application or custom widgets you will typically be writing a `viewable` (see [internals.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/internals.md) for more information). All `viewables` have the following available to them by default:
       - BaseWidget-fields and setters
-      - The `expand`-Adder - Determines whether a widget expands to take up all available space to it or not
 
-    It should be noted that widgets can be annotated with *any* Adder, even those that don't exist. Invalid adders and those that don't exist will be silently ignored by owlkettle and have no effect, so only use Adders that are documented for the given widget. 
+    ## Owlkettle Widgets
     \n\n
   """
 
@@ -258,6 +257,8 @@ renderable Box of BaseWidget:
     ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
     ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
     ## `AlignStart`, `AlignEnd` or `AlignCenter`.
+    ## 
+    ## Note: **Any** widgets contained in a Box-Widget get access the `expand` adder, to control their behaviour inside of the Box!
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
