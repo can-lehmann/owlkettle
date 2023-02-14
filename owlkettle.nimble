@@ -21,3 +21,6 @@ task examples, "Build examples":
       exec "nim c --hints:off --verbosity:0 " & file
       echo "INFO: OK"
       echo "================================================================================"
+
+task genDocs, "Generate owlkettle docs":
+  exec "make -C docs"
