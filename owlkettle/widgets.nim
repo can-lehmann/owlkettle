@@ -140,8 +140,10 @@ proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 type BoxStyle* = enum
-  BoxLinked = "linked",
+  BoxLinked = "linked"
   BoxCard = "card"
+  BoxToolbar = "toolbar"
+  BoxOsd = "osd"
 
 type BoxChild[T] = object
   widget: T
@@ -316,8 +318,13 @@ renderable Overlay of BaseWidget:
     ))
 
 type LabelStyle* = enum
-  LabelHeading = "heading",
-  LabelBody = "body",
+  LabelTitle1 = "title-1"
+  LabelTitle2 = "title-2"
+  LabelTitle3 = "title-3"
+  LabelTitle4 = "title-4"
+  
+  LabelHeading = "heading"
+  LabelBody = "body"
   LabelMonospace = "monospace"
 
 type EllipsizeMode* = enum
