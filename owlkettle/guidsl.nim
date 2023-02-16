@@ -84,7 +84,9 @@ proc parseGui(node: NimNode): Node =
   case node.kind:
     of nnkCallKinds:
       if node[0].unwrapName().eqIdent("insert"):
-        return Node(kind: NodeInsert, insert: node[1])
+        if node.len != 2:
+          error("The insert statement must have exactly one argument", node)
+        return Node(kind: NodeInsert, insert: node[1], lineInfo: node)
       elif node[0].isName:
         result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
       else:
@@ -167,6 +169,9 @@ proc gen(adder: Adder, name, parent: NimNode): NimNode =
     result.add(newTree(nnkExprEqExpr, ident(key), value))
   result.copyLineInfo(adder.lineInfo)
 
+proc isDefault(adder: Adder): bool =
+  result = adder.name.len == 0 and adder.args.len == 0
+
 macro customCapture(vars: varargs[typed], body: untyped): untyped =
   var
     params = @[newEmptyNode()]
@@ -211,6 +216,8 @@ proc gen(node: Node, stmts, parent: NimNode) =
       if not parent.isNil:
         body.add(node.adder.gen(name, parent))
       else:
+        if not node.adder.isDefault():
+          error("The top-level widget in a gui tree may not have an adder", node.lineInfo)
         body.add(name)
       stmts.add(newTree(nnkBlockStmt, newEmptyNode(), body))
     of NodeAttribute:
@@ -273,7 +280,12 @@ proc gen(node: Node, stmts, parent: NimNode) =
         stmt.add(newTree(nnkElse, bodyStmts))
       stmts.add(stmt)
     of NodeInsert:
-      stmts.add(node.insertAdder.gen(node.insert, parent))
+      if parent.isNil:
+        if not node.insertAdder.isDefault():
+          error("The top-level widget in a gui tree may not have an adder", node.lineInfo)
+        stmts.add(node.insert)
+      else:
+        stmts.add(node.insertAdder.gen(node.insert, parent))
     of NodeLet:
       stmts.add(newTree(nnkLetSection, node.defs))
 
