@@ -72,12 +72,14 @@ proc unwrapRenderable*(state: WidgetState): Renderable =
 proc unwrapInternalWidget*(state: WidgetState): GtkWidget =
   result = state.unwrapRenderable().internalWidget
 
-proc redraw*(viewable: Viewable) =
+proc redraw*(viewable: Viewable): bool =
+  ## Redraws the given viewable. Returns true if viewable.viewed changed.
   let widget = viewable.view()
   widget.assignApp(viewable.app)
   let newWidget = widget.update(viewable.viewed)
   if not newWidget.isNil:
     viewable.viewed = newWidget
+    result = true
 
 type
   WidgetKind = enum WidgetRenderable, WidgetViewable
@@ -427,18 +429,23 @@ proc genBuild(def: WidgetDef): NimNode =
     result.add(body)
   result.add: quote:
     `state`.app = `widget`.app
+  
   if def.kind == WidgetViewable:
     result.add: quote:
       if isNil(`state`.app):
         `state`.app = Viewable(`state`)
+  
   result.add(newCall(ident("buildState"), state, widget))
-  for body in def.hooks[HookAfterBuild]:
-    result.add(body)
+  
   if def.kind == WidgetViewable:
     result.add: quote:
       let viewedWidget = `state`.view()
       viewedWidget.assignApp(`state`.app)
       `state`.viewed = viewedWidget.build()
+  
+  for body in def.hooks[HookAfterBuild]:
+    result.add(body)
+  
   result.add(newTree(nnkReturnStmt, state))
   result = newProc(
     procType=nnkMethodDef,
@@ -517,7 +524,8 @@ proc genUpdate(def: WidgetDef): NimNode =
       read(state)
       `updateState`(state, widget)
       when `isViewable`:
-        redraw(state)
+        if redraw(state):
+          result = state
 
 proc genAssignAppEvents(def: WidgetDef): NimNode =
   let (widget, app) = (ident("widget"), ident("app"))

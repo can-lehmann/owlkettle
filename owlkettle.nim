@@ -83,7 +83,7 @@ proc redrawFromThread*(viewable: Viewable, priority: int = 200) =
   when compileOption("threads"):
     proc fn(data: pointer): cbool {.cdecl.} =
       let viewable = cast[ptr Viewable](data)
-      viewable[].redraw()
+      discard viewable[].redraw()
       reset(viewable[])
       deallocShared(viewable)
     

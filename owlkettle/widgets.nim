@@ -951,7 +951,7 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
   
   if data[].app.isNil:
     raise newException(ValueError, "App is nil")
-  data[].app.redraw()
+  discard data[].app.redraw()
   result = cbool(ord(stopEvent))
 
 proc drawFunc(widget: GtkWidget,
@@ -962,9 +962,7 @@ proc drawFunc(widget: GtkWidget,
     event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
     requiresRedraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
   if requiresRedraw:
-    if event[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    event[].app.redraw()
+    event[].redraw()
 
 proc callbackOrNil[T](event: Event[T]): T =
   if event.isNil:
@@ -1026,9 +1024,7 @@ proc setupEventCallback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, 
     height = int(gtk_widget_get_allocated_height(widget))
     requiresRedraw = data[].callback((width, height))
   if requiresRedraw:
-    if data[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    data[].app.redraw()
+    data[].redraw()
 
 proc renderEventCallback(widget: GtkWidget,
                          context: pointer,
@@ -1038,9 +1034,7 @@ proc renderEventCallback(widget: GtkWidget,
     height = int(gtk_widget_get_allocated_height(widget))
     requiresRedraw = data[].callback((width, height))
   if requiresRedraw:
-    if data[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    data[].app.redraw()
+    data[].redraw()
   result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
