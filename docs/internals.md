@@ -12,6 +12,8 @@ Owlkettle applications and any custom widgets written by you are usually impleme
 
 Regardless of that distinction, all widget consists of a `State`, which is used to generate a `Widget` instance via a `view` method.
 
+Any field on a `State` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
+
 We shall go into more detail for Viewables in the next sections.
 
 ## **Custom Widgets**
@@ -248,10 +250,65 @@ All hooks have implicit access to a variable called `state`, which contains the 
 
 With the exception of `read`, all hooks also have implicit access to a variable called `widget`, which is the `Widget` instance.
 
-#### Build-Hook
-The intended usecase for build-hooks is writing custom-constructors (read: procs that fill the widget's `State`)
+Generally the `build` and `update` hook are likely to have the highest utility for you. Consult their individual sections for more information.
 
-# TODO: Finish writing this
+#### Build Hook
+The intended usecase for build-hooks is adding logic that sets fields on `WidgetState` that don't have default-values.
+
+One such usecase could be that a Widget may need to load data from elsewhere, like a file or via HTTP request from the internet. Doing this in the `view` method would cause you to rerun the code every time the widget re-renders. By putting it in a build-hook you make sure that code only runs once.
+
+Here a simple example for useage:
+```nim
+import std/json
+
+type Config = object
+  name: string
+
+viewable MyViewable:
+  config: Config
+    
+  hooks:
+    build:
+      state.config = "./src/bla.json".readFile().parseJson().to(Config)
+
+method view(state: MyViewableState): Widget =
+  result = gui:
+    Label:
+      text = state.config.name
+
+
+## The App
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable()
+
+brew(gui(App()))
+```
+
+#### Before-Build Hook
+# TODO: Write this
+
+#### After-Build Hook
+# TODO: Write this
+
+#### ConnectEvents Hook
+# TODO: Write this
+
+#### DisconnectEvents Hook
+# TODO: Write this
+
+#### Update Hook
+# TODO: Write this
+
+#### Property Hook
+# TODO: Write this
+
+#### Read Hook
+# TODO: Write this
 
 ### **Custom CSS**
 
