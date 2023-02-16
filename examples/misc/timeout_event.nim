@@ -29,7 +29,7 @@ viewable App:
 method view(app: AppState): Widget =
   proc eventHandler(): bool =
     app.count += 1
-    app.redraw()
+    discard app.redraw()
     result = true # Do not remove event
   
   result = gui:
