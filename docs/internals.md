@@ -388,35 +388,29 @@ But what if we want to have a parent widget decide the text to render once and t
 That leads us to what `afterBuild` hooks are...
 
 #### After-Build Hook
-The `afterBuild`-hook runs after initial values (default-values, values passed in by other components during instantiation) have been assigned to the `WidgetState`.
+The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
-They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in.
+They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
 
 It should be noted that unlike `build` hooks, `afterBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
 
-For a technical example, here a widget that infers the value of an "inital" number based on an enum that gets passed in:
+Let's return to our earlier renderable example and write it so that the parent-widget can decide what text the `MyRenderable` should display: 
 
 ```nim
 import owlkettle
-import std/tables
+import owlkettle/gtk
+import std/json
 
-type MyEnum = enum
-  A, B, C, D
-
-viewable MyViewable:
-  table: Table[MyEnum, int] = {A: 5, B: 2, C: 50, D: 600}.toTable()
-  key: MyEnum
-  initialValue: int
-
+renderable MyRenderable:
+  text: string
+    
   hooks:
+    beforeBuild:
+      echo state.repr
+      state.internalWidget = gtk_label_new("")
+    
     afterBuild:
-      state.initialValue = state.table[state.key]
-
-
-method view(state: MyViewableState): Widget =
-  result = gui:
-    Label:
-      text = $state.initialValue
+      gtk_label_set_text(state.internalWidget, state.text.cstring)
 
 viewable App:
   discard
@@ -424,10 +418,13 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      MyViewable(key = C)
+      MyRenderable(text = "Defined by App")
 
 brew(gui(App()))
 ```
+
+Note: The value of the Label is set only *once*  during build-time and never updated afterwards!
+If you want this section to be updated when the input from the parent-widget changes, you may want to look into `property` hooks.
 
 #### ConnectEvents/DisconnectEvents Hook
 
