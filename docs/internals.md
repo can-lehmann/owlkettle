@@ -366,9 +366,6 @@ import owlkettle
 import owlkettle/gtk
 import std/json
 
-type Config = object
-  name: string
-
 renderable MyRenderable:
   text: string
     
