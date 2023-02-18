@@ -369,10 +369,7 @@ renderable MyRenderable:
   hooks:
     beforeBuild:
       echo state.repr
-      state.internalWidget = gtk_label_new("")
-
-    afterBuild:
-      gtk_label_set_text(state.internalWidget, state.text.cstring)
+      state.internalWidget = gtk_label_new("ExampleText")
 
 viewable App:
   discard
@@ -380,12 +377,13 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      MyRenderable(text = "potato")
+      MyRenderable()
 
 brew(gui(App()))
 ```
 
-Note how we had to set the actual value in a `afterBuild` hook, because the value assigned by the App (`"potato"`) is passed in *after* the build-stage. Usually you would use a `property` hook, but `afterBuild` hooks are simpler to explain for now.
+We set the label-text to render directly via the `gtk_label_new` proc.
+But what if we want to have a parent widget decide the text to render once and then never update it again?  
 
 That leads us to what `afterBuild` hooks are...
 
