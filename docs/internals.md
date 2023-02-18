@@ -255,7 +255,7 @@ With the exception of `read`, all hooks also have implicit access to a variable 
 Generally the `build` and `update` hook are likely to have the highest utility for you. Consult their individual sections for more information.
 
 #### Build Hook
-The `build` hook runs just before any values are assigned to the `WidgetState`.
+The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
 The intended usecase for build-hooks is adding logic that sets fields on `WidgetState` that don't have default-values.
 
@@ -292,7 +292,7 @@ brew(gui(App()))
 ```
 
 
-`build` hooks also are inherited from the parent-component. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
+`build` hooks also are inherited from the parent-widget. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
 
 To demonstrate this, here a small example:
 
@@ -350,7 +350,7 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
 #### Before-Build Hook
-The `beforeBuild` hook runs before the build-hook and thus also before any values are assigned to the `WidgetState`.
+The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
 
