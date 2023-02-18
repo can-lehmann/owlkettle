@@ -264,32 +264,29 @@ Example: A Widget may need to load data from elsewhere, via a file or HTTP reque
 Here a simple code-example:
 
 ```nim
+# example.json
+{"name":"example"}
+
+# main.nim
 import std/json
+import owlkettle
+import owlkettle/gtk
 
 type Config = object
   name: string
 
-viewable MyViewable:
+viewable App:
   config: Config
-    
+
   hooks:
     build:
-      state.config = "./src/bla.json".readFile().parseJson().to(Config)
+      state.config = "./src/example.json".readFile().parseJson().to(Config)
 
-method view(state: MyViewableState): Widget =
-  result = gui:
-    Label:
-      text = state.config.name
-
-
-## The App
-viewable App:
-  discard
-
-method view(app: AppState): Widget =
+method view(state: AppState): Widget =
   result = gui:
     Window:
-      MyViewable()
+      Label:
+        text = state.config.name
 
 brew(gui(App()))
 ```
