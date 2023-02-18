@@ -339,8 +339,7 @@ renderable Label of BaseWidget:
   text: string ## The text of the Label to render
   xAlign: float = 0.5
   yAlign: float = 0.5
-  ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it.
-  ## May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
+  ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
   wrap: bool = false ## Enables/Disable wrapping of text.
   useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
   
@@ -430,9 +429,7 @@ type ButtonStyle* = enum
   ButtonCircular = "circular"
 
 renderable Button of BaseWidget:
-  style: set[ButtonStyle] ## Applies special styling to the button. 
-  ## May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`.
-  ## Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   child: Widget
   shortcut: string ## Keyboard shortcut
   
@@ -1339,7 +1336,7 @@ renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
   
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the ## [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   
   hooks:
     beforeBuild:
@@ -2120,7 +2117,7 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the ## [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   
   setter res: DialogResponseKind
 
