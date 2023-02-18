@@ -80,6 +80,7 @@ It implicitly receives the parameters 1) `widget` of type `Widget` (the custom w
 Note: Any field you define under `viewable` will be present on `widget` in the form of the boolean field `has<FieldName>` and `val<FieldName>`. `has<FieldName>` controls whether the field is dis/enabled. `val<FieldName>` is the actual field value. 
 
 Let's look at an example for a `CustomBox`:
+
 ```nim
 import owlkettle
 
@@ -130,6 +131,7 @@ viewable CustomBox:
   adder add {.key: none(string).}: 
 ...
 ``` 
+
 Additional parameters passed to adders like that are called "properties". Properties **must** have a default value, their type is inferred based on that value. If you do not want to provide a default value, you can use an `Option` type.
 
 Let's assert that anyone using `CustomBox` also passes a key and doesn't accidentally reuse a key that has already been used to store a Widget that in the table:
@@ -253,11 +255,14 @@ With the exception of `read`, all hooks also have implicit access to a variable 
 Generally the `build` and `update` hook are likely to have the highest utility for you. Consult their individual sections for more information.
 
 #### Build Hook
+The `build` hook runs just before any values are assigned to the `WidgetState`.
+
 The intended usecase for build-hooks is adding logic that sets fields on `WidgetState` that don't have default-values.
 
-One such usecase could be that a Widget may need to load data from elsewhere, like a file or via HTTP request from the internet. Doing this in the `view` method would cause you to rerun the code every time the widget re-renders. By putting it in a build-hook you make sure that code only runs once.
+Example: A Widget may need to load data from elsewhere, via a file or HTTP request. Doing this in the `view` method would rerun the code every time the widget re-renders. But in the build-hook, it only runs once during widget-creation. 
 
-Here a simple example for useage:
+Here a simple code-example:
+
 ```nim
 import std/json
 
@@ -290,10 +295,85 @@ brew(gui(App()))
 ```
 
 #### Before-Build Hook
-# TODO: Write this
+The `beforeBuild` hook runs before the build-hook and thus also before any values are assigned to the `WidgetState`.
+
+Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
+
+Here a simple code-example:
+
+```nim
+import owlkettle
+import owlkettle/gtk
+import std/json
+
+type Config = object
+  name: string
+
+renderable MyRenderable:
+  text: string
+    
+  hooks:
+    beforeBuild:
+      echo state.repr
+      state.internalWidget = gtk_label_new("")
+
+    afterBuild:
+      gtk_label_set_text(state.internalWidget, state.text.cstring)
+
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyRenderable(text = "potato")
+
+brew(gui(App()))
+```
+
+Note how we had to set the actual value in a `afterBuild` hook, because the value assigned by the App (`"potato"`) is passed in *after* the build-stage. Usually you would use a `property` hook, but `afterBuild` hooks are simpler to explain for now.
+
+That leads us to what `afterBuild` hooks are...
 
 #### After-Build Hook
-# TODO: Write this
+The `afterBuild`-hook runs after initial values (default-values, values passed in by other components during instantiation) have been assigned to the `WidgetState`.
+
+They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in.
+
+For a technical example, here a widget that infers the value of an "inital" number based on an enum that gets passed in:
+
+```nim
+import owlkettle
+import std/tables
+
+type MyEnum = enum
+  A, B, C, D
+
+viewable MyViewable:
+  table: Table[MyEnum, int] = {A: 5, B: 2, C: 50, D: 600}.toTable()
+  key: MyEnum
+  initialValue: int
+
+  hooks:
+    afterBuild:
+      state.initialValue = state.table[state.key]
+
+
+method view(state: MyViewableState): Widget =
+  result = gui:
+    Label:
+      text = $state.initialValue
+
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable(key = C)
+
+brew(gui(App()))
+```
 
 #### ConnectEvents Hook
 # TODO: Write this
