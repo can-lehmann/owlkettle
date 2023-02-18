@@ -375,11 +375,45 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-#### ConnectEvents Hook
-# TODO: Write this
+#### ConnectEvents/DisconnectEvents Hook
 
-#### DisconnectEvents Hook
-# TODO: Write this
+The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. 
+
+These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 
+
+Here a minimal example of a custom button widget that connects an event-listener proc to the gtk click event and disconnects it on update:
+
+```nim
+import owlkettle
+import std/tables
+import owlkettle/[widgetutils, gtk]
+
+renderable MyButton of BaseWidget:  
+  proc clicked()
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_button_new()
+
+    connectEvents:
+      echo "Connect"
+      state.connect(state.clicked, "clicked", eventCallback)
+    
+    disconnectEvents:
+      echo "Disconnect"
+      state.internalWidget.disconnect(state.clicked)
+
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyButton():
+        proc clicked() = echo "Potato"
+
+brew(gui(App()))
+```
 
 #### Update Hook
 # TODO: Write this
