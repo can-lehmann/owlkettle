@@ -230,7 +230,6 @@ when isMainModule:
 If no adder is specified, `Widget`s will always be added using the `add` adder. Otherwise the adder defined by the pragma annotation will be used.
 
 ### **Hooks**
-
 Hooks are a concept introduced by owlkettle that allows you to execute code throughout a widget's lifecycle, or when an action on one of its fields occurs.
 
 Most hooks are defined only for Widgets, some are defined for both and `property` is only available as a hook for fields.
@@ -252,7 +251,7 @@ All hooks have implicit access to a variable called `state`, which contains the 
 
 With the exception of `read`, all hooks also have implicit access to a variable called `widget`, which is the `Widget` instance.
 
-Generally the `build` and `update` hook are likely to have the highest utility for you. Consult their individual sections for more information.
+Generally the `build`, `property` and `update` hooks are likely to have the highest utility for you. Consult their individual sections for more information.
 
 #### Build Hook
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
@@ -290,7 +289,6 @@ method view(state: AppState): Widget =
 
 brew(gui(App()))
 ```
-
 
 `build` hooks also are inherited from the parent-widget. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
 
@@ -427,8 +425,7 @@ Note: The value of the Label is set only *once*  during build-time and never upd
 If you want this section to be updated when the input from the parent-widget changes, you may want to look into `property` hooks.
 
 #### ConnectEvents/DisconnectEvents Hook
-
-The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. 
+The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. It should be noted that triggering an event also causes an update phase to run.
 
 These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 
 
@@ -467,7 +464,42 @@ brew(gui(App()))
 ```
 
 #### Update Hook
-# TODO: Write this
+The `update` hook runs every time the `Widget` updates the `WidgetState`. In other words, whenever the application is redrawn, which occurs every time an event is thrown and every time the `WidgetState.redraw` method is called.
+
+It is best used for scenarios where multiple fields are inferred from other fields in a complex manner, or where inferring data is expensive and you need to first assert that it is necessary before doing the calculations. For simpler cases, consider the `property`-hook (see the `property`-hook for more).
+
+Here an example demonstrating how the `update`-hook can be used:
+
+```nim
+import owlkettle
+
+## The custom widget
+viewable MyViewable:
+  text: string
+
+  hooks:
+    update:
+      echo "Original Value: ", state.text
+      state.text = state.text & " - Addition"
+      echo "New Value     : ", state.text
+
+method view(state: MyViewableState): Widget =
+  gui:
+    Button(text = state.text):
+      proc clicked() =
+        echo "Event triggering update"
+
+## The App
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable(text = "Defined by App")
+
+brew(gui(App()))
+```
 
 #### Property Hook
 # TODO: Write this
