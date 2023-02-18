@@ -294,12 +294,72 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
+
+`build` hooks also are inherited from the parent-component. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
+
+To demonstrate this, here a small example:
+
+```nim
+import owlkettle
+
+viewable Parent:
+  hooks:
+    build:
+      echo "Parent.build"
+    beforeBuild:
+      echo "Parent.beforeBuild"
+    afterBuild:
+      echo "Parent.afterBuild"
+
+method view(state: ParentState): Widget =
+  gui:
+    Label(text="Parent")
+
+viewable Child of Parent:
+  hooks:
+    build:
+      echo "Child.build"
+    beforeBuild:
+      echo "Child.beforeBuild"
+    afterBuild:
+      echo "Child.afterBuild"
+
+method view(state: ChildState): Widget =
+  gui:
+    Label(text="Child")
+
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      Child()
+
+brew(gui(App()))
+```
+This will print:
+```txt
+Child.beforeBuild
+Parent.build
+Child.build
+Child.afterBuild
+```
+
+This makes sense, as only the purpose of the `build` hook (handling instantiating data not provided elsewhere) is also useful for any child-widgets.
+
+Given that the purpose of `beforeBuild` is to handle instantiating renderables and `afterBuild` is about doing any extra handling of transforming of data given to the widget, both of which are very specific for their respective widget, it makes sense that they are "overwritten" instead of inherited.
+
+For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
+
 #### Before-Build Hook
 The `beforeBuild` hook runs before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
 
-Here a simple code-example:
+It should be noted that unlike `build` hooks, `beforeBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
+
+Here a simple code-example for writing a `beforeBuild` hook:
 
 ```nim
 import owlkettle
@@ -339,6 +399,8 @@ That leads us to what `afterBuild` hooks are...
 The `afterBuild`-hook runs after initial values (default-values, values passed in by other components during instantiation) have been assigned to the `WidgetState`.
 
 They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in.
+
+It should be noted that unlike `build` hooks, `afterBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
 
 For a technical example, here a widget that infers the value of an "inital" number based on an enum that gets passed in:
 
