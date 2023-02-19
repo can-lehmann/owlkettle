@@ -386,7 +386,7 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour as well.
+Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour, or `property` hook if you need both.
 
 ### **Before-Build Hook**
 The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
@@ -579,12 +579,49 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
+Note that this hook is not run initially, so when the widget is first being built these changes are likely not applied yet. Look at the `build` hook if you need that behaviour, or `property` hook if you need both.
 
-#### Read Hook
-# TODO: Write this
+### **Property Hook**
+`property` hooks run every time the hook-field changed its value during either the update or build phases. They are called by the default `build` and `update` field hooks near the end of their runtime and exist mostly for convenience. If you want to have the same additional behaviour during build and update phases, you can define a `property` hook instead of a `build` and `update` hook.
 
-### **Custom CSS**
+They require some consideration when writing renderables, which very often do define explicit `build` and `update` hooks instead when dealing with child-widgets. This is required because we need to access the current state of the widget before the update is performed, to correctly add/remove child widgets of the underlying GTK widget.
 
+Let's take the examples of the `update` and `build` hook sections and unify them using the property hook:
+
+```nim
+import owlkettle
+import std/[sysrand, base64]
+
+## The custom widget
+viewable MyViewable:
+  text: string
+
+  hooks text:
+    property:
+      echo "Property Hook"
+      state.text = widget.valText & "Addition by property hook"
+
+method view(state: MyViewableState): Widget =
+  gui:
+    Button(text = state.text):
+      proc clicked() =
+        echo "\nEvent triggering update"
+
+## The App
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable(text = "Example-" & urandom(2).encode())
+
+brew(gui(App()))
+```
+
+Note that there is no `update` or `build` hook defined for the `text` field. If we had defined those, they would need to include sections that call each individual `property` hook like their default implementations would. 
+
+### **Read Hook**
 # TODO: Write this
 
 
