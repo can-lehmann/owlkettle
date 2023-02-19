@@ -241,7 +241,7 @@ The available hooks are:
   - (W) connectEvents   : Only relevant for renderables. Executed every time a callback is supposed to be attached to the underlying GTK widget. It defines how to do so.
   - (W) disconnectEvents: Only relevant for renderables. Executed every time a callback is supposed to be removed from the underlying GTK widget. It defines how to do so.
   - (WF) update         : Executed every time `WidgetState` is updated by `Widget`.
-  - (F) property        : Executed every time the hook-field changed its value in both the update and build phases.
+  - (F) property        : Executed every time the hook-field changed its value during the update or build phases.
   - (F) read            : Used in `Dialog`. Executes every time the state of the underlying GTK-Widget changes.
 
 W: Can act as hook for Widgets
@@ -253,10 +253,10 @@ With the exception of `read`, all hooks also have implicit access to a variable 
 
 Generally the `build`, `property` and `update` hooks are likely to have the highest utility for you. Consult their individual sections for more information.
 
-### Build Hook
+### **Build Hook**
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
-#### For Widgets
+#### **For Widgets**
 `build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation. Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
 
 Example: A Widget may need to load data from elsewhere, via a file or HTTP request for one field, and a second field must be inferred from a value of the first field.
@@ -348,7 +348,7 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
-#### For Fields
+#### **For Fields**
 Owlkettle provides default `build` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before initially assigning it to a field. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` during the build-phase.
 
 `build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
@@ -388,7 +388,7 @@ brew(gui(App()))
 
 Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour as well.
 
-### Before-Build Hook
+### **Before-Build Hook**
 The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
@@ -426,7 +426,7 @@ But what if we want to have a parent widget decide the text to render once and t
 
 That leads us to what `afterBuild` hooks are...
 
-### After-Build Hook
+### **After-Build Hook**
 The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
 They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
@@ -465,7 +465,7 @@ brew(gui(App()))
 Note: The value of the Label is set only *once*  during build-time and never updated afterwards!
 If you want this section to be updated when the input from the parent-widget changes, you may want to look into `property` hooks.
 
-### ConnectEvents/DisconnectEvents Hook
+### **ConnectEvents/DisconnectEvents Hook**
 The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. It should be noted that triggering an event also causes an update phase to run.
 
 These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 
@@ -504,10 +504,10 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-### Update Hook
+### **Update Hook**
 `update` hooks runs every time the `Widget` updates the `WidgetState`. In other words, whenever the application is redrawn, which occurs every time an event is thrown and every time the `WidgetState.redraw` method is called.
 
-#### For Widgets
+#### **For Widgets**
 On widgets the `update` hook is for cases where you want to update fields, but using an `update` hook on a single field is not a clean solution, e.g. where fields share an expensive operation that you do not want to repeat unnecessarily. For simpler cases, consider the `property`-hook (see the `property`-hook for more) or an `update` hook on that specific field.
 
 Here an example demonstrating how the `update`-hook on a widget can be used:
@@ -543,7 +543,7 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-#### For Fields
+#### **For Fields**
 Owlkettle provides default `update` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before updating a field with it. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` as desired.
 
 Here an example for how an `update` hook on a field can be used:
