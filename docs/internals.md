@@ -253,12 +253,13 @@ With the exception of `read`, all hooks also have implicit access to a variable 
 
 Generally the `build`, `property` and `update` hooks are likely to have the highest utility for you. Consult their individual sections for more information.
 
-#### Build Hook
+### Build Hook
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
-The intended usecase for build-hooks is adding logic that sets fields on `WidgetState` that don't have default-values.
+#### For Widgets
+`build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation. Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
 
-Example: A Widget may need to load data from elsewhere, via a file or HTTP request. Doing this in the `view` method would rerun the code every time the widget re-renders. But in the build-hook, it only runs once during widget-creation. 
+Example: A Widget may need to load data from elsewhere, via a file or HTTP request for one field, and a second field must be inferred from a value of the first field.
 
 Here a simple code-example:
 
@@ -290,7 +291,7 @@ method view(state: AppState): Widget =
 brew(gui(App()))
 ```
 
-`build` hooks also are inherited from the parent-widget. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
+`build` hooks on widgets also are inherited from the parent-widget. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
 
 To demonstrate this, here a small example:
 
@@ -347,7 +348,47 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
-#### Before-Build Hook
+#### For Fields
+Owlkettle provides default `build` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before initially assigning it to a field. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` during the build-phase.
+
+`build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
+
+Here an example for how a `build` hook on a field can be used:
+
+```nim
+import owlkettle
+
+## The custom widget
+viewable MyViewable:
+  text: string
+      
+  hooks text:
+    build:
+      echo "Received via Widget:    ", widget.valText
+      state.text = widget.valText & " build hook addition"
+      echo "Applied to WidgetState: ", state.text
+
+method view(state: MyViewableState): Widget =
+  gui:
+    Button(text = state.text):
+      proc clicked() =
+        echo "\nEvent triggering update"
+
+## The App
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable(text = "Example")
+
+brew(gui(App()))
+```
+
+Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour as well.
+
+### Before-Build Hook
 The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
@@ -385,7 +426,7 @@ But what if we want to have a parent widget decide the text to render once and t
 
 That leads us to what `afterBuild` hooks are...
 
-#### After-Build Hook
+### After-Build Hook
 The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
 They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
@@ -424,7 +465,7 @@ brew(gui(App()))
 Note: The value of the Label is set only *once*  during build-time and never updated afterwards!
 If you want this section to be updated when the input from the parent-widget changes, you may want to look into `property` hooks.
 
-#### ConnectEvents/DisconnectEvents Hook
+### ConnectEvents/DisconnectEvents Hook
 The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. It should be noted that triggering an event also causes an update phase to run.
 
 These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 
@@ -463,12 +504,13 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-#### Update Hook
-The `update` hook runs every time the `Widget` updates the `WidgetState`. In other words, whenever the application is redrawn, which occurs every time an event is thrown and every time the `WidgetState.redraw` method is called.
+### Update Hook
+`update` hooks runs every time the `Widget` updates the `WidgetState`. In other words, whenever the application is redrawn, which occurs every time an event is thrown and every time the `WidgetState.redraw` method is called.
 
-It is best used for scenarios where multiple fields are inferred from other fields in a complex manner, or where inferring data is expensive and you need to first assert that it is necessary before doing the calculations. For simpler cases, consider the `property`-hook (see the `property`-hook for more).
+#### For Widgets
+On widgets the `update` hook is for cases where you want to update fields, but using an `update` hook on a single field is not a clean solution, e.g. where fields share an expensive operation that you do not want to repeat unnecessarily. For simpler cases, consider the `property`-hook (see the `property`-hook for more) or an `update` hook on that specific field.
 
-Here an example demonstrating how the `update`-hook can be used:
+Here an example demonstrating how the `update`-hook on a widget can be used:
 
 ```nim
 import owlkettle
@@ -501,8 +543,42 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-#### Property Hook
-# TODO: Write this
+#### For Fields
+Owlkettle provides default `update` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before updating a field with it. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` as desired.
+
+Here an example for how an `update` hook on a field can be used:
+
+```nim
+import owlkettle
+
+## The custom widget
+viewable MyViewable:
+  text: string
+      
+  hooks text:
+    update:
+      echo "Received via Widget:    ", widget.valText
+      state.text = widget.valText & " update hook addition"
+      echo "Applied to WidgetState: ", state.text
+
+method view(state: MyViewableState): Widget =
+  gui:
+    Button(text = state.text):
+      proc clicked() =
+        echo "\nEvent triggering update"
+
+## The App
+viewable App:
+  discard
+
+method view(app: AppState): Widget =
+  result = gui:
+    Window:
+      MyViewable(text = "Example")
+
+brew(gui(App()))
+```
+
 
 #### Read Hook
 # TODO: Write this
