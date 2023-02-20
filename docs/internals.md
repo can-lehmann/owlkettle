@@ -10,11 +10,47 @@ For example `Button`, `Window` and `Entry` are renderable widgets.
 `Viewable` widgets are abstractions over renderable widgets.
 Owlkettle applications and any custom widgets written by you are usually implemented as viewable widgets.
 
-Regardless of that distinction, all widget consists of a `State`, which is used to generate a `Widget` instance via a `view` method.
+Regardless of that distinction, all widget consists of a `WidgetState` and a `Widget`. The `Widget` represents the actual widget that gets rendered. It receives data from either parent-widgets or user-inputs and is used to update the `WidgetState` with them. The `WidgetState` is the overal internal widget state, that transforms data it receives as necessary and uses that to update the `Widget` instance. By separating the instance that receives new values (`Widget`) from the instance that records internal state (`WidgetState`) and requiring logic that defines how to transfer changes from one to the other, owlkettle manages to preserve the widget's state without unintentionally losing data.
 
-Any field on a `State` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
+In `Viewable` Widgets the `WidgetState` is used to generate a new `Widget` instance initially and whenever it gets updated via a `view` method. It should be noted that in the `gui` section of a `view` method you are effectively calling `view` methods of whatever widget you use in there until you reach a renderable. 
 
-We shall go into more detail for Viewables in the next sections.
+In `Renderable` widgets the `Widget` is updated, if necessary, via hooks, there is no `view` method that generates new Widgets.
+
+```mermaid
+classDiagram
+  class Widget {
+    build() WidgetState
+    update(state: WidgetState) WidgetState
+  }
+  class WidgetState {
+    read()
+  }
+  class Viewable {
+    view() WidgetState
+  }
+  class Renderable {
+  }
+  Viewable --> Widget: view
+  WidgetState <|-- Viewable
+  WidgetState <|-- Renderable
+  Widget --> WidgetState: build/update
+```
+
+Any field on a `WidgetState` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
+
+```mermaid
+flowchart LR
+  subgraph updater
+    direction BT
+    Window .->|child| Label
+  end
+  App -->|build| AppState -->|view| updater
+  updater -->|build/update| state
+  subgraph state
+    direction BT
+    WindowState .->|child| LabelState
+  end
+```
 
 ## **Custom Widgets**
 To make one, just declare the `Viewable` and the fields on its state, then write a `view` method that creates the `Widget`.
@@ -229,7 +265,7 @@ when isMainModule:
 
 If no adder is specified, `Widget`s will always be added using the `add` adder. Otherwise the adder defined by the pragma annotation will be used.
 
-### **Hooks**
+## **Hooks**
 Hooks are a concept introduced by owlkettle that allows you to execute code throughout a widget's lifecycle, or when an action on one of its fields occurs.
 
 Most hooks are defined only for Widgets, some are defined for both and `property` is only available as a hook for fields.
@@ -679,47 +715,3 @@ Only then will it update the state with the chosen color. How to extract the dat
 
 Note that during the choosing of the color and when updating `WidgetState` via the `read` hook, no `update` hook is being executed.
 
-
-
-```mermaid
-classDiagram
-  class Widget {
-    build() WidgetState
-    update(state: WidgetState) WidgetState
-  }
-  class WidgetState {
-    read()
-  }
-  class Viewable {
-    view() WidgetState
-  }
-  class Renderable {
-  }
-  Viewable --> Widget: view
-  WidgetState <|-- Viewable
-  WidgetState <|-- Renderable
-  Widget --> WidgetState: build/update
-```
-
-Every widget has a state (`WidgetState`) and an updater object (`Widget`).
-The updater is used to update the internal widget state.
-It records which fields of the state the parent widget wants to set and which values these fields should be set to.
-This allows owlkettle to preserve the rest of widget's state.
-
-Every viewable widget has a `view` method which returns the updaters for its child widget states.
-Viewable widgets are expanded using `view` until a renderable widget is reached.
-
-
-```mermaid
-flowchart LR
-  subgraph updater
-    direction BT
-    Window .->|child| Label
-  end
-  App -->|build| AppState -->|view| updater
-  updater -->|build/update| state
-  subgraph state
-    direction BT
-    WindowState .->|child| LabelState
-  end
-```
