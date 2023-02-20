@@ -558,7 +558,8 @@ viewable MyViewable:
   hooks text:
     update:
       echo "Received via Widget:    ", widget.valText
-      state.text = widget.valText & " update hook addition"
+      if widget.hasText:
+        state.text = widget.valText & " update hook addition"
       echo "Applied to WidgetState: ", state.text
 
 method view(state: MyViewableState): Widget =
@@ -580,6 +581,8 @@ brew(gui(App()))
 ```
 
 Note that this hook is not run initially, so when the widget is first being built these changes are likely not applied yet. Look at the `build` hook if you need that behaviour, or `property` hook if you need both.
+
+Also note that we checked if the `Widget.hasText` value is true before assigning values to that field. This check is useful as widgets may disable their field, in which case their updates should not be propagated back to the `WidgetState`.
 
 ### **Property Hook**
 `property` hooks run every time the hook-field changed its value during either the update or build phases. They are called by the default `build` and `update` field hooks near the end of their runtime and exist mostly for convenience. If you want to have the same additional behaviour during build and update phases, you can define a `property` hook instead of a `build` and `update` hook.
