@@ -28,15 +28,17 @@ when defined(nimPreviewSlimSystem):
 import gtk, widgetdef, cairo, widgetutils
 
 when defined(owlkettleDocs) and isMainModule:
-  echo "# Widgets\n\n"
+  echo "# Widgets"
 
 type Margin* = object
   top*, bottom*, left*, right*: int
 
 renderable BaseWidget:
+  ## The base widget of all widgets. Supports redrawing the entire Application
+  ## by calling `<WidgetName>State.app.redraw()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
-  internalMargin {.internal.}: Margin = Margin()
+  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
   tooltip: string = "" ## The widget's tooltip is shown on hover
   
   hooks sensitive:
@@ -156,7 +158,7 @@ proc assignApp[T](child: BoxChild[T], app: Viewable) =
 
 renderable Box of BaseWidget:
   ## A Box arranges its child widgets along one dimension.
-  orient: Orient ## Orientation of the Box. May be one of OrientX or OrientY
+  orient: Orient ## Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
   spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
   style: set[BoxStyle]
@@ -245,13 +247,16 @@ renderable Box of BaseWidget:
               vAlign: AlignFill.}:
     ## Adds a child to the Box.
     ## When expand is true, the child grows to fill up the remaining space in the Box.
-    ## The hAlign and vAlign properties allow you to set the alignment of the child
-    ## within its allocated area.
+    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
+    ## `AlignStart`, `AlignEnd` or `AlignCenter`.
+    ## 
+    ## Note: **Any** widgets contained in a Box-Widget get access the `expand` adder, to control their behaviour inside of the Box!
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
       expand: expand,
-      hAlign: hAlign,
+      hAlign: hAlign, 
       vAlign: vAlign
     ))
   
@@ -328,17 +333,24 @@ type LabelStyle* = enum
   LabelMonospace = "monospace"
 
 type EllipsizeMode* = enum
-  EllipsizeNone, EllipsizeStart, EllipsizeMiddle, EllipsizeEnd
+  ## Determines whether to ellipsize text when text does not fit in a given space
+  EllipsizeNone ## Do not ellipsize 
+  EllipsizeStart, ## Start ellipsizing at the start of the text
+  EllipsizeMiddle, ## Start ellipsizing in the middle of the text
+  EllipsizeEnd ## Start ellipsizing at the end of the text
 
 renderable Label of BaseWidget:
-  text: string
+  ## The default widget to display text.
+  ## Supports rendering [Pango Markup](https://docs.gtk.org/Pango/pango_markup.html#pango-markup) 
+  ## if `useMarkup` is enabled.
+  text: string ## The text of the Label to render
   xAlign: float = 0.5
   yAlign: float = 0.5
-  ellipsize: EllipsizeMode
-  wrap: bool = false
-  useMarkup: bool = false
+  ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
+  wrap: bool = false ## Enables/Disable wrapping of text.
+  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
   
-  style: set[LabelStyle]
+  style: set[LabelStyle] ## The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
   
   hooks:
     beforeBuild:
@@ -393,7 +405,7 @@ renderable Label of BaseWidget:
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
-  pixelSize: int = -1
+  pixelSize: int = -1 ## Determines the size of the icon
   
   hooks:
     beforeBuild:
@@ -424,7 +436,7 @@ type ButtonStyle* = enum
   ButtonCircular = "circular"
 
 renderable Button of BaseWidget:
-  style: set[ButtonStyle]
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   child: Widget
   shortcut: string ## Keyboard shortcut
   
@@ -579,6 +591,10 @@ renderable HeaderBar of BaseWidget:
                    hAlign: AlignFill,
                    vAlign: AlignFill.}:
     ## Adds a custom title widget to the HeaderBar.
+    ## When expand is true, it grows to fill up the remaining space in the headerbar.
+    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
+    ## `AlignStart`, `AlignEnd` or `AlignCenter`.
     if widget.hasTitle:
       raise newException(ValueError, "Unable to add multiple title widgets to a HeaderBar.")
     widget.hasTitle = true
@@ -1321,7 +1337,7 @@ renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
   
-  style: set[ButtonStyle]
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   
   hooks:
     beforeBuild:
@@ -2102,7 +2118,7 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  style: set[ButtonStyle]
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   
   setter res: DialogResponseKind
 
