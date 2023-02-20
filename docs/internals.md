@@ -10,11 +10,12 @@ For example `Button`, `Window` and `Entry` are renderable widgets.
 `Viewable` widgets are abstractions over renderable widgets.
 Owlkettle applications and any custom widgets written by you are usually implemented as viewable widgets.
 
-Regardless of that distinction, all widget consists of a `WidgetState` and a `Widget`. The `Widget` represents the actual widget that gets rendered. It receives data from either parent-widgets or user-inputs and is used to update the `WidgetState` with them. The `WidgetState` is the overal internal widget state, that transforms data it receives as necessary and uses that to update the `Widget` instance. By separating the instance that receives new values (`Widget`) from the instance that records internal state (`WidgetState`) and requiring logic that defines how to transfer changes from one to the other, owlkettle manages to preserve the widget's state without unintentionally losing data.
+Every widget consists of a `WidgetState` and a `Widget`, independent of whether it is `renderable` or `viewable`.
+The `WidgetState` represents the internal state of the widget which is persistent between redraws.
+Its state is updated on every redraw by the `Widget`.
+The `Widget` records which fields are set (`has<FieldName>`) and what their values are (`val<FieldName>`).
 
-In `Viewable` Widgets the `WidgetState` is used to generate a new `Widget` instance initially and whenever it gets updated via a `view` method. It should be noted that in the `gui` section of a `view` method you are effectively calling `view` methods of whatever widget you use in there until you reach a renderable. 
-
-In `Renderable` widgets the `Widget` is updated, if necessary, via hooks, there is no `view` method that generates new Widgets.
+By separating the instance that receives new values (`Widget`) from the instance that records internal state (`WidgetState`) and requiring logic that defines how to transfer changes from one to the other, owlkettle manages to preserve the widget's state between redraws.
 
 ```mermaid
 classDiagram
@@ -36,7 +37,9 @@ classDiagram
   Widget --> WidgetState: build/update
 ```
 
-Any field on a `WidgetState` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
+`viewable` widgets are abstractions over `renderable` or other `viewable` widgets.
+Their `view` method returns a widget tree which is used to update the `WidgetState` of their expansion.
+When you return another `viewable` widget from the `view` method owlkettle recursively calls `view` on it until `renderable` is reached. 
 
 ```mermaid
 flowchart LR
@@ -52,7 +55,10 @@ flowchart LR
   end
 ```
 
+When the state of a `renderable` widget is updated, it not only copies the set values from the `Widget`, but also applies any changes to the underlying GTK widget.
+
 ## **Custom Widgets**
+
 To make one, just declare the `Viewable` and the fields on its state, then write a `view` method that creates the `Widget`.
 
 Let's look at a `CustomLabel` widget with a `text`-field that renders the text and another piece of text besides it.
@@ -84,7 +90,9 @@ when isMainModule:
   brew(gui(App()))
 ```
 
-And that's your CustomLabel. Note though, that you can't write:
+## **Adding Widgets with Adders**
+
+Note though, that you can't write:
 
 ```nim
 ...
@@ -96,22 +104,24 @@ method view*(state: AppState): Widget =
 ...
 ```
 
-because CustomLabel doesn't have the ability to store or render child-Widgets!
-For that we need adders!
+because `CustomLabel` doesn't have the ability to store or render child widgets!
+In order to add child widgets to our own widgets, we need to define an adder.
 
-## **Adding Widgets with Adders**
 ### **One Adder**
+
 Not all Widgets have adders. But all Widgets that want to be passed other Widgets from the outside to contain (like `Box` for example) need at least one.
 
-To do this you must:
-1) Add a field to your widget-state that can store child-Widgets (e.g. one with type `seq[Widget]`)
+To create a widget that can contain other widgets, you must:
+1) Add a field to your widget that can store child-Widgets (e.g. one with type `seq[Widget]`)
 2) Define an adder that enables the child-widget-field and adds a given widget to it
-3) Define in your `view` method where to put the child-widgets from the widget-state
+3) Define in your `view` method how to display the child-widgets
 
 An adder is a proc that enables the field that stores child-widgets and defines how to add widgets to that field.
 It implicitly receives the parameters 1) `widget` of type `Widget` (the custom widget itself) and 2) `child` of type `Widget` (the child-widget to add).
 
-"Enabling" a field of your custom widget means that it allows an "outside"-Widget to mutate it. In this case it allows adding `Widget`s to the child-widget-field. Without that, manipulating the child-widget-field field is not possible. 
+"Enabling" a field of your custom widget causes it to overwrite the current value in the widget state.
+In this case it allows adding `Widget`s to the `child` field.
+If the `child` field was not enabled, any children added to the `CustomBox` would be ignored.
 
 Note: Any field you define under `viewable` will be present on `widget` in the form of the boolean field `has<FieldName>` and `val<FieldName>`. `has<FieldName>` controls whether the field is dis/enabled. `val<FieldName>` is the actual field value. 
 
@@ -154,7 +164,9 @@ We define `myChildren` and "enable" it in the `add` adder via `widget.hasMyChild
 Then we define how to add the `child` Widget to it, which in this case is simply us adding it to the seq.
 
 But what if we want to store child-widgets in a table-field on `CustomBox` ? We would need to pass the key to store the child-widget under to the adder...
+
 ### **Adders with properties**
+
 Let's make a custom widget that stores Widgets in a `Table[string, Widget]` and displays the widget next to the key it was stored with.
 
 First we need to modify our adder, telling it that there will be additional parameters. 
@@ -168,7 +180,9 @@ viewable CustomBox:
 ...
 ``` 
 
-Additional parameters passed to adders like that are called "properties". Properties **must** have a default value, their type is inferred based on that value. If you do not want to provide a default value, you can use an `Option` type.
+Additional parameters passed to adders like that are called "properties".
+Properties **must** have a default value, their type is inferred based on that value.
+If you do not want to provide a default value, you can use an `Option` type.
 
 Let's assert that anyone using `CustomBox` also passes a key and doesn't accidentally reuse a key that has already been used to store a Widget that in the table:
 
@@ -215,6 +229,7 @@ If we were to remove the "#" in front of the last Label, we would be facing a ru
 Note: When using optionals, due to the macros involved, you can only use the `some(<value>)`/`none(<typedesc>)` syntax.
 
 ### **Multiple Adders**
+
 In addition to passing properties to an adder, you can naturally also have multiple different adders. They just need different names.
 
 Let's look at a `CustomBox` widget with 2 `seq[Widget]` fields that you add to with different adders:
@@ -266,7 +281,8 @@ when isMainModule:
 If no adder is specified, `Widget`s will always be added using the `add` adder. Otherwise the adder defined by the pragma annotation will be used.
 
 ## **Hooks**
-Hooks are a concept introduced by owlkettle that allows you to execute code throughout a widget's lifecycle, or when an action on one of its fields occurs.
+
+Hooks allow you to execute code at different points throughout a widget's lifecycle, or when an action on one of its fields occurs.
 
 Most hooks are defined only for Widgets, some are defined for both and `property` is only available as a hook for fields.
 
@@ -274,7 +290,7 @@ The available hooks are:
 
 |Hook Type | For renderables | For viewables | Name | Description|
 |---|---|---|---|---|
-|W | Yes | No  | BeforeBuild | Executed only once before the `WidgetState` is created.|
+|W | Yes | Yes  | BeforeBuild | Executed only once before the `WidgetState` is created.|
 |WF | Yes | Yes | Build       | Executed only once after `WidgetState` is instantiated from `Widget`. Default values have not yet been applied and will overwrite any values set within this hook.|
 | W | Yes | Yes | AfterBuild  |  Executed only once after the `WidgetState` was created. Is executed *after* all default values have been applied.|
 | W | Yes | No  | ConnectEvents  | Only relevant for renderables. Executed every time a callback is supposed to be attached to the underlying GTK widget. It defines how to do so.|
@@ -293,20 +309,27 @@ With the exception of `read`, all hooks also have implicit access to a variable 
 Generally the `build`, `property` and `update` hooks are likely to have the highest utility for you. Consult their individual sections for more information.
 
 ### **Build Hook**
+
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
 #### **For Widgets**
-`build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation. Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
+
+`build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation.
+Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
 
 Example: A Widget may need to load data from elsewhere, via a file or HTTP request for one field, and a second field must be inferred from a value of the first field.
 
-Here a simple code-example:
+Here a simple example that uses the `build` hook to load a configuration file for the application:
+
+example.json
+
+```json
+{"name":"example"}
+```
+
+main.nim
 
 ```nim
-# example.json
-{"name":"example"}
-
-# main.nim
 import std/json
 import owlkettle
 import owlkettle/gtk
@@ -388,7 +411,10 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
 #### **For Fields**
-Owlkettle provides default `build` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before initially assigning it to a field. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` during the build-phase.
+
+A `build` hook is responsible for transfering the value of a field from the `Widget` to the `WidgetState` during the build-phase.
+Owlkettle provides default `build` hooks for every field, that simply assign the value of the field in the `Widget` to the field in the `WidgetState` if it is set.
+Overwriting the `build` hook is useful if you need to define custom behaviour, such as modifying the input slightly before initially assigning it to a field.
 
 `build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
 
@@ -428,9 +454,9 @@ brew(gui(App()))
 Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour, or `property` hook if you need both.
 
 ### **BeforeBuild Hook**
-The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
-Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
+The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
+They are mainly used in `renderables` to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
 
 It should be noted that unlike `build` hooks, `beforeBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
 
@@ -466,9 +492,11 @@ But what if we want to have a parent widget decide the text to render once and t
 That leads us to what `afterBuild` hooks are...
 
 ### **AfterBuild Hook**
-The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
-They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
+The `afterBuild`-hook runs once after initial values (default-values or values propagated from the `Widget`) have been assigned to the `WidgetState`.
+
+They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in.
+In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
 
 It should be noted that unlike `build` hooks, `afterBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
 
@@ -505,11 +533,14 @@ Note: The value of the Label is set only *once*  during build-time and never upd
 If you want this section to be updated when the input from the parent-widget changes, you may want to look into `property` hooks.
 
 ### **ConnectEvents/DisconnectEvents Hook**
-The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. It should be noted that triggering an event also causes an update phase to run.
 
-These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 
+The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook.
+The `disconnectEvents` hook meanwhile only runs at the start of the update phase.
+It should be noted that triggering an event also causes an update phase to run.
 
-Here a minimal example of a custom button widget that connects an event-listener proc to the gtk click event and disconnects it on update:
+These hooks are only relevant for renderables, as their task is to attach/detach event-listeners passed to `WidgetState` to/from the underlying GTK-widget. 
+
+Here a minimal example of a custom button widget that provides a `clicked` event:
 
 ```nim
 import owlkettle
@@ -547,7 +578,9 @@ brew(gui(App()))
 `update` hooks runs every time the `Widget` updates the `WidgetState`. In other words, whenever the application is redrawn, which occurs every time an event is thrown and every time the `WidgetState.redraw` method is called.
 
 #### **For Widgets**
-On widgets the `update` hook is for cases where you want to update fields, but using an `update` hook on a single field is not a clean solution, e.g. where fields share an expensive operation that you do not want to repeat unnecessarily. For simpler cases, consider the `property`-hook (see the `property`-hook for more) or an `update` hook on that specific field.
+
+On widgets the `update` hook is for cases where you want to update fields, but using an `update` hook on a single field is not a clean solution, e.g. where fields share an expensive operation that you do not want to repeat unnecessarily.
+For simpler cases, consider the `property`-hook (see the `property`-hook for more) or an `update` hook on that specific field.
 
 Here an example demonstrating how the `update`-hook on a widget can be used:
 
@@ -583,7 +616,10 @@ brew(gui(App()))
 ```
 
 #### **For Fields**
-Owlkettle provides default `update` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before updating a field with it. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` as desired.
+
+Owlkettle provides default `update` hooks for every field.
+`update` hooks are useful if you need simple custom behaviour, such as modifying the input slightly before updating a field with it.
+It is their responsibility to transfer data from `Widget` to their field in `WidgetState`.
 
 Here an example for how an `update` hook on a field can be used:
 
@@ -619,14 +655,19 @@ method view(app: AppState): Widget =
 brew(gui(App()))
 ```
 
-Note that this hook is not run initially, so when the widget is first being built these changes are likely not applied yet. Look at the `build` hook if you need that behaviour, or `property` hook if you need both.
+We checked if the `Widget.hasText` value is true before assigning values to that field. This check is useful, since if the field is not set in the `Widget`, its value should not be propagated to the `WidgetState`.
 
-Also note that we checked if the `Widget.hasText` value is true before assigning values to that field. This check is useful as widgets may disable their field, in which case their updates should not be propagated back to the `WidgetState`.
+Note that this hook is not run initially, so when the widget is first being built any changes in made in the `update` hook are not applied yet. Look at the `build` hook if you need that behaviour, or `property` hook if you need both.
+
 
 ### **Property Hook**
-`property` hooks run every time the hook-field changed its value during either the update or build phases. They are called by the default `build` and `update` field hooks near the end of their runtime and exist mostly for convenience. If you want to have the same additional behaviour during build and update phases, you can define a `property` hook instead of a `build` and `update` hook.
 
-They require some consideration when writing renderables, which very often do define explicit `build` and `update` hooks instead when dealing with child-widgets. This is required because we need to access the current state of the widget before the update is performed, to correctly add/remove child widgets of the underlying GTK widget.
+`property` hooks run every time the hook-field changed its value during either the update or build phases.
+They are called by the default `build` and `update` field hooks near the end of their runtime and exist mostly for convenience.
+If you want to have the same additional behaviour during build and update phases, you can define a `property` hook instead of a `build` and `update` hook.
+
+They require some consideration when writing renderables, which very often do define explicit `build` and `update` hooks instead when dealing with child-widgets.
+This is required because we need to access the current state of the widget before the update is performed, to correctly add/remove child widgets of the underlying GTK widget.
 
 Let's take the examples of the `update` and `build` hook sections and unify them using the property hook:
 
@@ -664,9 +705,11 @@ brew(gui(App()))
 Note that there is no `update` or `build` hook defined for the `text` field. If we had defined those, they would need to include sections that call each individual `property` hook like their default implementations would. 
 
 ### **Read Hook**
-The `read` hook is a custom hook solely used by widgets that are renderables and deal with user input. They may need a hook at times that sends back the current state within a `Widget` whenever the user changes said state through interaction. This hook is then responsible for propagating the changes done by the user from the state of `Widget` to `WidgetState`.
 
-Let's look at a minimal example of the `ColorChooserDialog`:
+The `read` hook is a custom hook solely used by widgets that are renderables and deal with user input.
+It is then responsible for propagating the changes done by the user back to the `WidgetState`.
+
+Let's look at a minimal example from the `ColorChooserDialog` widget:
 
 ```nim
 

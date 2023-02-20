@@ -251,7 +251,7 @@ renderable Box of BaseWidget:
     ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
     ## `AlignStart`, `AlignEnd` or `AlignCenter`.
     ## 
-    ## Note: **Any** widgets contained in a Box-Widget get access the `expand` adder, to control their behaviour inside of the Box!
+    ## Note: **Any** widgets contained in a Box-Widget get access to all properties of the adder (such add `expand`=, to control their behaviour inside of the Box!
     widget.hasChildren = true
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
