@@ -235,14 +235,17 @@ Hooks are a concept introduced by owlkettle that allows you to execute code thro
 Most hooks are defined only for Widgets, some are defined for both and `property` is only available as a hook for fields.
 
 The available hooks are:
-  - (W) beforeBuild     : Executed only once before the `WidgetState` is created.
-  - (WF) build           : Executed once after `WidgetState` is instantiated from `Widget`. Default values have not yet been applied and will overwrite any values set within this hook.
-  - (W) afterBuild      : Executed only once after the `WidgetState` was created. Is executed *after* all default values have been applied.
-  - (W) connectEvents   : Only relevant for renderables. Executed every time a callback is supposed to be attached to the underlying GTK widget. It defines how to do so.
-  - (W) disconnectEvents: Only relevant for renderables. Executed every time a callback is supposed to be removed from the underlying GTK widget. It defines how to do so.
-  - (WF) update         : Executed every time `WidgetState` is updated by `Widget`.
-  - (F) property        : Executed every time the hook-field changed its value during the update or build phases.
-  - (F) read            : Used in `Dialog`. Executes every time the state of the underlying GTK-Widget changes.
+
+|Hook Type | For renderables | For viewables | Name | Description|
+|---|---|---|---|---|
+|W | Yes | No  | BeforeBuild | Executed only once before the `WidgetState` is created.|
+|WF | Yes | Yes | Build       | Executed only once after `WidgetState` is instantiated from `Widget`. Default values have not yet been applied and will overwrite any values set within this hook.|
+| W | Yes | Yes | AfterBuild  |  Executed only once after the `WidgetState` was created. Is executed *after* all default values have been applied.|
+| W | Yes | No  | ConnectEvents  | Only relevant for renderables. Executed every time a callback is supposed to be attached to the underlying GTK widget. It defines how to do so.|
+| W | Yes | No  | DisconnectEvents  | Only relevant for renderables. Executed every time a callback is supposed to be removed from the underlying GTK widget. It defines how to do so.|
+| WF | Yes | Yes | Update | Executed every time `WidgetState` is updated by `Widget`.  |
+| F | Yes | Yes | Property  | Executed every time the hook-field changed its value during the update or build phases.|
+| F | Yes | No  | Read  | Used in `Dialog`. Executes every time the state of the underlying GTK-Widget changes. |
 
 W: Can act as hook for Widgets
 F: Can act as hook for fields
