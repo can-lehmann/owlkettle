@@ -253,6 +253,31 @@ ComboRow:
 ```
 
 
+## EntryRow
+
+```nim
+renderable EntryRow of PreferencesRow
+```
+
+###### Fields
+
+- All fields from [PreferencesRow](#PreferencesRow)
+- `subtitle: string`
+- `suffixes: seq[AlignedChild[Widget]]`
+- `text: string`
+
+###### Events
+
+- changed: `proc (text: string)`
+
+###### Adders
+
+- All adders from [PreferencesRow](#PreferencesRow)
+- `addSuffix`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignCenter`
+
+
 ## Flap
 
 ```nim
