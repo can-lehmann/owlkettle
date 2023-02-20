@@ -1,10 +1,4 @@
 # Widgets
-
-## Custom Widgets
-When writing your application or custom widgets you will typically be writing a `viewable` (see [internals.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/internals.md) for more information). All `viewables` have the following available to them by default:
-  - BaseWidget-fields and setters
-
-
 ## BaseWidget
 
 ```nim
@@ -170,7 +164,7 @@ if `useMarkup` is enabled.
 - `text: string` The text of the Label to render
 - `xAlign: float = 0.5`
 - `yAlign: float = 0.5`
-- `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it.
+- `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
 - `wrap: bool = false` Enables/Disable wrapping of text.
 - `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup or not.
 - `style: set[LabelStyle]` The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
@@ -232,7 +226,7 @@ renderable Button of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `style: set[ButtonStyle]` Applies special styling to the button.
+- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 - `child: Widget`
 - `shortcut: string` Keyboard shortcut
 
@@ -664,7 +658,7 @@ renderable MenuButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 - `popover: Widget`
-- `style: set[ButtonStyle]` Applies special styling to the button.
+- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 ###### Setters
 
@@ -959,7 +953,7 @@ renderable DialogButton
 
 - `text: string`
 - `response: DialogResponse`
-- `style: set[ButtonStyle]` Applies special styling to the button.
+- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 ###### Setters
 
