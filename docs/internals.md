@@ -388,7 +388,7 @@ brew(gui(App()))
 
 Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour, or `property` hook if you need both.
 
-### **Before-Build Hook**
+### **BeforeBuild Hook**
 The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.
@@ -426,7 +426,7 @@ But what if we want to have a parent widget decide the text to render once and t
 
 That leads us to what `afterBuild` hooks are...
 
-### **After-Build Hook**
+### **AfterBuild Hook**
 The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
 They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.
