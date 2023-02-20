@@ -142,8 +142,10 @@ proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 type BoxStyle* = enum
-  BoxLinked = "linked",
+  BoxLinked = "linked"
   BoxCard = "card"
+  BoxToolbar = "toolbar"
+  BoxOsd = "osd"
 
 type BoxChild[T] = object
   widget: T
@@ -321,8 +323,13 @@ renderable Overlay of BaseWidget:
     ))
 
 type LabelStyle* = enum
-  LabelHeading = "heading",
-  LabelBody = "body",
+  LabelTitle1 = "title-1"
+  LabelTitle2 = "title-2"
+  LabelTitle3 = "title-3"
+  LabelTitle4 = "title-4"
+  
+  LabelHeading = "heading"
+  LabelBody = "body"
   LabelMonospace = "monospace"
 
 type EllipsizeMode* = enum
@@ -967,7 +974,7 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
   
   if data[].app.isNil:
     raise newException(ValueError, "App is nil")
-  data[].app.redraw()
+  discard data[].app.redraw()
   result = cbool(ord(stopEvent))
 
 proc drawFunc(widget: GtkWidget,
@@ -978,9 +985,7 @@ proc drawFunc(widget: GtkWidget,
     event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
     requiresRedraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
   if requiresRedraw:
-    if event[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    event[].app.redraw()
+    event[].redraw()
 
 proc callbackOrNil[T](event: Event[T]): T =
   if event.isNil:
@@ -1042,9 +1047,7 @@ proc setupEventCallback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, 
     height = int(gtk_widget_get_allocated_height(widget))
     requiresRedraw = data[].callback((width, height))
   if requiresRedraw:
-    if data[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    data[].app.redraw()
+    data[].redraw()
 
 proc renderEventCallback(widget: GtkWidget,
                          context: pointer,
@@ -1054,9 +1057,7 @@ proc renderEventCallback(widget: GtkWidget,
     height = int(gtk_widget_get_allocated_height(widget))
     requiresRedraw = data[].callback((width, height))
   if requiresRedraw:
-    if data[].app.isNil:
-      raise newException(ValueError, "App is nil")
-    data[].app.redraw()
+    data[].redraw()
   result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
@@ -2036,7 +2037,7 @@ renderable ContextMenu:
   
   hooks menu:
     (build, update):
-      proc replace(box, oldMenu, newMenu: GtkWidget) =
+      proc replace(box, oldMenu, newMenu: GtkWidget) {.locks: 0.} =
         if not oldMenu.isNil:
           gtk_widget_remove_controller(box, state.controller)
           state.controller = GtkEventController(nil)

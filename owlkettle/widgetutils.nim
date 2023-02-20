@@ -27,7 +27,7 @@ import gtk, widgetdef
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
     raise newException(ValueError, "App is nil")
-  event.app.redraw()
+  discard event.app.redraw()
 
 proc eventCallback*(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
