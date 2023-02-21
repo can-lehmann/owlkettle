@@ -6,7 +6,6 @@ var book = initBookWithToc:
   entry("Welcome to Owlkettle!", "README.md")
   
   section("Internals", "book/internals.nim"):
-    entry("Widget Basics", "internals/widget_basics.nim")
     entry("Custom Widgets", "internals/custom_widgets.nim")
     
     section("Adders", "internals/adders.nim"):
