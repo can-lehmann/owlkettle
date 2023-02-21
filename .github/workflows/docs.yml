@@ -45,12 +45,12 @@ jobs:
         with:
           name: api-docs
           path: |
-            docs/bookCompiled
+            bookCompiled
 
   deploy-docs:
     needs:
       - api-docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Download all docs
         uses: actions/download-artifact@v3
@@ -61,7 +61,7 @@ jobs:
 
       - name: Setup docs
         run: |
-          ls
+          ls api-docs/
           mv api-docs/bookCompiled docs/
 
       - name: Deploy
