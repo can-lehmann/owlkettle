@@ -469,6 +469,7 @@ renderable EntryRow of PreferencesRow:
   suffixes: seq[AlignedChild[Widget]]
   
   text: string
+  style: set[EntryStyle]
   
   proc changed(text: string)
   
@@ -485,6 +486,10 @@ renderable EntryRow of PreferencesRow:
       state.connect(state.changed, "changed", changedCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
+  
+  hooks style:
+    (build, update):
+      updateStyle(state, widget)
   
   hooks suffixes:
     (build, update):

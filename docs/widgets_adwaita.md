@@ -265,6 +265,7 @@ renderable EntryRow of PreferencesRow
 - `subtitle: string`
 - `suffixes: seq[AlignedChild[Widget]]`
 - `text: string`
+- `style: set[EntryStyle]`
 
 ###### Events
 
