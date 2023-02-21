@@ -1348,20 +1348,8 @@ renderable MenuButton of BaseWidget:
       state.updateChild(state.child, widget.valChild, gtk_menu_button_set_child)
   
   hooks popover:
-    build:
-      if widget.hasPopover:
-        widget.valPopover.assignApp(state.app)
-        state.popover = widget.valPopover.build()
-        let popoverWidget = unwrapRenderable(state.popover).internalWidget
-        gtk_menu_button_set_popover(state.internalWidget, popoverWidget)
-    update:
-      if widget.hasPopover:
-        widget.valPopover.assignApp(state.app)
-        let newPopover = widget.valPopover.update(state.popover)
-        if not newPopover.isNil:
-          let popoverWidget = newPopover.unwrapInternalWidget()
-          gtk_menu_button_set_popover(state.internalWidget, popoverWidget)
-          state.popover = newPopover
+    (build, update):
+      state.updateChild(state.popover, widget.valPopover, gtk_menu_button_set_popover)
   
   hooks style:
     (build, update):
