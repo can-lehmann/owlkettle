@@ -1,0 +1,9 @@
+[nimib]
+srcDir = "."
+homeDir = "compiledBook"
+
+[nimibook]
+language = "en-us"
+title = "Owlkettle"
+description = "Freshly brewed user interfaces."
+git_repository_url = "https://github.com/can-lehmann/owlkettle"
