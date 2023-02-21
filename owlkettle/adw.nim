@@ -118,10 +118,11 @@ proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
 proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
 proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
 
-# Adw.EntryRow
-proc adw_entry_row_new(): GtkWidget
-proc adw_entry_row_add_suffix(row, child: GtkWidget)
-proc adw_entry_row_remove(row, child: GtkWidget)
+when defined(adwaita12):
+  # Adw.EntryRow
+  proc adw_entry_row_new(): GtkWidget
+  proc adw_entry_row_add_suffix(row, child: GtkWidget)
+  proc adw_entry_row_remove(row, child: GtkWidget)
 
 # Adw.Flap
 proc adw_flap_new(): GtkWidget
@@ -464,53 +465,56 @@ renderable ComboRow of ActionRow:
       proc select(item: int) =
         app.selected = item
 
-renderable EntryRow of PreferencesRow:
-  subtitle: string
-  suffixes: seq[AlignedChild[Widget]]
+when defined(adwaita12):
+  renderable EntryRow of PreferencesRow:
+    subtitle: string
+    suffixes: seq[AlignedChild[Widget]]
+    
+    text: string
+    style: set[EntryStyle]
+    
+    proc changed(text: string)
+    
+    hooks:
+      beforeBuild:
+        state.internalWidget = adw_entry_row_new()
+      connectEvents:
+        proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+          let text = $gtk_editable_get_text(widget)
+          EntryRowState(data[].widget).text = text
+          data[].callback(text)
+          data[].redraw()
+        
+        state.connect(state.changed, "changed", changedCallback)
+      disconnectEvents:
+        state.internalWidget.disconnect(state.changed)
+    
+    hooks style:
+      (build, update):
+        updateStyle(state, widget)
+    
+    hooks suffixes:
+      (build, update):
+        state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
+          adw_entry_row_add_suffix,
+          adw_entry_row_remove
+        )
+    
+    hooks text:
+      property:
+        gtk_editable_set_text(state.internalWidget, state.text.cstring)
+      read:
+        state.text = $gtk_editable_get_text(state.internalWidget)
   
-  text: string
-  style: set[EntryStyle]
+    adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
+      widget.hasSuffixes = true
+      widget.valSuffixes.add(AlignedChild[Widget](
+        widget: child,
+        hAlign: hAlign,
+        vAlign: vAlign
+      ))
   
-  proc changed(text: string)
-  
-  hooks:
-    beforeBuild:
-      state.internalWidget = adw_entry_row_new()
-    connectEvents:
-      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
-        let text = $gtk_editable_get_text(widget)
-        EntryRowState(data[].widget).text = text
-        data[].callback(text)
-        data[].redraw()
-      
-      state.connect(state.changed, "changed", changedCallback)
-    disconnectEvents:
-      state.internalWidget.disconnect(state.changed)
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
-  hooks suffixes:
-    (build, update):
-      state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
-        adw_entry_row_add_suffix,
-        adw_entry_row_remove
-      )
-  
-  hooks text:
-    property:
-      gtk_editable_set_text(state.internalWidget, state.text.cstring)
-    read:
-      state.text = $gtk_editable_get_text(state.internalWidget)
-
-  adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
-    widget.hasSuffixes = true
-    widget.valSuffixes.add(AlignedChild[Widget](
-      widget: child,
-      hAlign: hAlign,
-      vAlign: vAlign
-    ))
+  export EntryRow
 
 type FlapChild[T] = object
   widget: T
@@ -666,7 +670,7 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, EntryRow, Flap
+export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
