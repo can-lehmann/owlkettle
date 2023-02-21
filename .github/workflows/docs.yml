@@ -17,13 +17,13 @@ jobs:
   api-docs:
     runs-on: ${{ matrix.os }}
     strategy:
-    matrix:
-      os:
-        - ubuntu-22.04
-        # - windows-latest
-        # - macOS-latest
-      nim:
-        - '1.6.10'
+      matrix:
+        os:
+          - ubuntu-22.04
+          # - windows-latest
+          # - macOS-latest
+        nim:
+          - '1.6.10'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
