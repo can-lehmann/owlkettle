@@ -4,7 +4,7 @@ Let's build a simple Todo app using owlkettle.
 The source code for this example can be found [here](../examples/apps/todo.nim).
 Here is what it will look like when it is done.
 
-<img alt="Todo Application" src="assets/tutorial/todo_final.png" width="428px">
+<img alt="Todo Application" src="/docs/assets/tutorial/todo_final.png" width="428px">
 
 First we model the application state.
 In this case we need to store a list of todo items (`todos`) where each item has a text and can be marked as done.
@@ -41,7 +41,7 @@ brew(gui(App(todos = @[
 
 Here is what our application looks like currently:
 
-<img alt="An empty window" src="assets/tutorial/todo_1.png" width="428px">
+<img alt="An empty window" src="/docs/assets/tutorial/todo_1.png" width="428px">
 
 Let's show the placeholder todo items in a list.
 We use a `ListBox` which contains a `Label` for each item.
@@ -66,7 +66,7 @@ Window:
               x_align = 0
 ```
 
-<img alt="The application displays the placeholder items" src="assets/tutorial/todo_2.png" width="428px">
+<img alt="The application displays the placeholder items" src="/docs/assets/tutorial/todo_2.png" width="428px">
 
 In order to allow the user to mark items as done, we add a `CheckButton` next to each label.
 The `changed` event handler is called when the user toggles the `CheckButton`.
@@ -88,7 +88,7 @@ In this case, we update the current state of the `TodoItem`.
          x_align = 0
 ```
 
-<img alt="Items can be marked as done" src="assets/tutorial/todo_3.png" width="428px">
+<img alt="Items can be marked as done" src="/docs/assets/tutorial/todo_3.png" width="428px">
 
 Next, we add an entry which allows the user to add new items to the todo list.
 The `expand` attribute of the `Box` which contains the entry and button is set to `false` in order to prevent the `Box` from growing to take up remaining space in the parent widget.
@@ -114,7 +114,7 @@ Window:
         ...
 ```
 
-<img alt="Todo application with an entry to add new items" src="assets/tutorial/todo_4.png" width="428px">
+<img alt="Todo application with an entry to add new items" src="/docs/assets/tutorial/todo_4.png" width="428px">
 
 Finally we add a `HeaderBar` and a menu which contains a button used to delete all checked items.
 
@@ -137,7 +137,7 @@ Window:
 
 Clicking on the `MenuButton` opens the menu.
 
-<img alt="Todo Application" src="assets/tutorial/todo_5.png" width="428px">
+<img alt="Todo Application" src="/docs/assets/tutorial/todo_5.png" width="428px">
 
 The source code for this example can be found [here](../examples/apps/todo.nim).
 

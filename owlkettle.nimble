@@ -24,3 +24,18 @@ task examples, "Build examples":
 
 task genDocs, "Generate owlkettle docs":
   exec "make -C docs"
+
+task setupBook, "Compiles the nimibook CLI-binary used for generating the docs":
+  exec "nimble install -y nimib@#head nimibook@#head"
+  exec "nim c -d:release --mm:refc nbook.nim"
+
+task genBook, "Generate the owlkettle nimibook book docs":
+  exec "nimble setupBook"
+  exec "nimble genDocs"
+  
+  exec "./nbook --mm:refc init"
+  exec "./nbook --mm:refc update"
+  try:
+    exec "./nbook --mm:refc build"
+  except CatchableError:
+    discard
