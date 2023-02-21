@@ -15,34 +15,27 @@ on:
 
 jobs:
   api-docs:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+    matrix:
+      os:
+        - ubuntu-22.04
+        # - windows-latest
+        # - macOS-latest
+      nim:
+        - '1.6.10'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Cache choosenim
-        id: cache-choosenim
-        uses: actions/cache@v3
-        with:
-          path: ~/.choosenim
-          key: ${{ runner.os }}-choosenim-stable
-
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v3
-        with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-${{ hashFiles('snorlogue.nimble') }}
-          restore-keys: |
-            ${{ runner.os }}-nimble-
-
-      - name: Setup nim
-        uses: jiro4989/setup-nim-action@v1
+      - uses: jiro4989/setup-nim-action@v1
         with:
           nim-version: ${{ matrix.nim }}
 
-      - name: Install Packages
-        run: nimble install -y
+      - run: nimble install -Y
+      - name: Setup dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev
 
       - name: Build nimibook docs
         run: nimble --verbose genBook
