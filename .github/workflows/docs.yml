@@ -61,7 +61,7 @@ jobs:
 
       - name: Setup docs
         run: |
-          ls *
+          ls
           mv api-docs/bookCompiled docs/
 
       - name: Deploy
