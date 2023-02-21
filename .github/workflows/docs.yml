@@ -45,7 +45,7 @@ jobs:
         with:
           name: api-docs
           path: |
-            bookCompiled
+            compiledBook
 
   deploy-docs:
     needs:
