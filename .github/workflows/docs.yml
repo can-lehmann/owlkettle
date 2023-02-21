@@ -62,7 +62,7 @@ jobs:
       - name: Setup docs
         run: |
           ls api-docs/
-          mv api-docs/bookCompiled docs/
+          mv api-docs/ docs/
 
       - name: Deploy
         if: success()
