@@ -34,3 +34,5 @@ docs/videos/
 build_docs
 .git-old
 todo.txt
+compiledBook/*
+nbook
