@@ -3,7 +3,6 @@ name: github pages
 on:
   push:
     branches:
-      - feature/nimibook-branch
       - main
     paths-ignore:
       - 'README**'
