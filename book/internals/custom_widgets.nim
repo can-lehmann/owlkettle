@@ -9,6 +9,7 @@ To make one, just declare the `Viewable` and the fields on its state, then write
 Let's look at a `CustomLabel` widget with a `text`-field that renders the text and another piece of text besides it.
 
 """
+
 nbCode:
   import owlkettle 
 
@@ -51,3 +52,5 @@ method view*(state: AppState): Widget =
 because CustomLabel doesn't have the ability to store or render child-Widgets!
 For that we need adders!
 """"
+
+nbSave
