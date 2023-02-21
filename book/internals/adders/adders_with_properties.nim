@@ -15,7 +15,9 @@ viewable CustomBox:
   adder add {.key: none(string).}: 
 ...
 ``` 
+"""
 
+nbText: """
 Additional parameters passed to adders like that are called "properties". Properties **must** have a default value, their type is inferred based on that value. If you do not want to provide a default value, you can use an `Option` type.
 
 Let's assert that anyone using `CustomBox` also passes a key and doesn't accidentally reuse a key that has already been used to store a Widget that in the table:
