@@ -7,6 +7,17 @@ var book = initBookWithToc:
   entry("Tutorial", "docs/tutorial.md")
   entry("General Examples", "../examples/README.md")
   
+  entry("Tooling", "docs/recommended_tools.md")
+  
+  section("Reference", "book/reference.nim"):
+    entry("General Widget Reference", "../docs/widgets.md")
+    entry("Adwaita Widget Reference", "../docs/widgets_adwaita.md")
+    entry("DataEntry Widget Reference", "../docs/widgets_dataentries.md")
+  
+  #entry("Migrating", "docs/migrating_1_to_2.md")
+  #entry("Cross Compiling", "docs/cross_compiling.md")
+  entry("Contributing", "CONTRIBUTING.md")
+  
   section("Internals", "book/internals.nim"):
     entry("Custom Widgets", "internals/custom_widgets.nim")
     
@@ -23,16 +34,5 @@ var book = initBookWithToc:
       entry("Update Hook", "hooks/update_hook.nim")
       entry("Property Hook", "hooks/property_hook.nim")
       entry("Read Hook", "hooks/read_hook.nim")
-  
-  entry("Tooling", "docs/recommended_tools.md")
-  
-  section("Reference", "book/reference.nim"):
-    entry("General Widget Reference", "../docs/widgets.md")
-    entry("Adwaita Widget Reference", "../docs/widgets_adwaita.md")
-    entry("DataEntry Widget Reference", "../docs/widgets_dataentries.md")
-  
-  #entry("Migrating", "docs/migrating_1_to_2.md")
-  #entry("Cross Compiling", "docs/cross_compiling.md")
-  entry("Contributing", "CONTRIBUTING.md")
 
 nimibookCli(book)
