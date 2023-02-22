@@ -31,11 +31,16 @@ task setupBook, "Compiles the nimibook CLI-binary used for generating the docs":
 
 task genBook, "Generate the owlkettle nimibook book docs":
   exec "nimble setupBook"
+  echo "BOOK-CLI-GENERATED"
+
   exec "nimble genDocs"
-  
+  echo "WIDGETS-DOCS-GENERATED"
+
   exec "./nbook --mm:refc init"
-  exec "./nbook --mm:refc update"
+  echo "INITIALIZED NIMIBOOK"
+
   try:
     exec "./nbook --mm:refc build"
+    echo "BUILT NIMIBOOK"
   except CatchableError:
     discard
