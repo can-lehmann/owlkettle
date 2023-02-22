@@ -13,7 +13,7 @@ Let's look at a `CustomLabel` widget with a `text`-field that renders the text a
 nbCode:
   import owlkettle 
 
-  ### Custom Label Widget
+  ## Custom Label Widget
   viewable CustomLabel:
     text: string
 

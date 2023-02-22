@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **ConnectEvents/DisconnectEvents Hook**
+## **ConnectEvents/DisconnectEvents Hook**
 The `connectEvents` hook runs during the build-phase as well as during every update-phase after the `disconnectEvents` hook. The `disconnectEvents` hook meanwhile only runs during the update phase. It should be noted that triggering an event also causes an update phase to run.
 
 These hooks are only relevant for renderables, as their task is to attach/detach event-listeners stored in `WidgetState` to/from the underlying GTK-widget. 

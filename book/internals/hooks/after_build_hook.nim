@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **AfterBuild Hook**
+## **AfterBuild Hook**
 The `afterBuild`-hook runs once after initial values (default-values, values passed in by other widgets during instantiation) have been assigned to the `WidgetState`.
 
 They are useful if any processing on the initial data that is passed in must happen. Example are validating data, inferring data from passed in data, or fetching other data based on what was passed in. In renderables they are also useful to update the GTK widget once with data from the initial `WidgetState`.

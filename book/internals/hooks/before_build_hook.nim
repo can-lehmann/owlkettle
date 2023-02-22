@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **BeforeBuild Hook**
+## **BeforeBuild Hook**
 The `beforeBuild` hook runs once before the build-hook and thus also before any values are assigned to the `WidgetState`.
 
 Their main usecase is renderables, where they are used to instantiate the GTK-Widget and assign it to `internalWidget` on `WidgetState`.

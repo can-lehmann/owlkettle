@@ -4,6 +4,8 @@ import nimibook
 
 var book = initBookWithToc:
   entry("Welcome to Owlkettle!", "README.md")
+  entry("Tutorial", "docs/tutorial.md")
+  entry("General Examples", "../examples/README.md")
   
   section("Internals", "book/internals.nim"):
     entry("Custom Widgets", "internals/custom_widgets.nim")
@@ -23,16 +25,12 @@ var book = initBookWithToc:
       entry("Read Hook", "hooks/read_hook.nim")
   
   entry("Tooling", "docs/recommended_tools.md")
-  entry("Tutorial", "docs/tutorial.md")
   
   section("Reference", "book/reference.nim"):
     entry("General Widget Reference", "../docs/widgets.md")
     entry("Adwaita Widget Reference", "../docs/widgets_adwaita.md")
     entry("DataEntry Widget Reference", "../docs/widgets_dataentries.md")
-
-  section("Examples", "book/examples.nim"):
-    entry("General Examples", "../examples/README.md")
-
+  
   entry("Migrating", "docs/migrating_1_to_2.md")
   entry("Cross Compiling", "docs/cross_compiling.md")
   entry("Contributing", "CONTRIBUTING.md")

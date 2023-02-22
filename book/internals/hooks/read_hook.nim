@@ -3,7 +3,7 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 
-### **Read Hook**
+## **Read Hook**
 The `read` hook is a custom hook solely used by widgets that are renderables and deal with user input. They may need a hook at times that sends back the current state within a `Widget` whenever the user changes said state through interaction. This hook is then responsible for propagating the changes done by the user from the state of `Widget` to `WidgetState`.
 
 Let's look at a minimal example of the `ColorChooserDialog`:

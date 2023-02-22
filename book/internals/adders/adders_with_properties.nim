@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **Adders with properties**
+## **Adders with properties**
 Let's make a custom widget that stores Widgets in a `Table[string, Widget]` and displays the widget next to the key it was stored with.
 
 First we need to modify our adder, telling it that there will be additional parameters. 

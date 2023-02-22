@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **One Adder**
+## **One Adder**
 The simplest way to use adders is just to have one.
 
 To add one you must:

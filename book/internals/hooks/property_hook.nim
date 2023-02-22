@@ -2,7 +2,7 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **Property Hook**
+## **Property Hook**
 `property` hooks run every time the hook-field changed its value during either the update or build phases. They are called by the default `build` and `update` field hooks near the end of their runtime and exist mostly for convenience. If you want to have the same additional behaviour during build and update phases, you can define a `property` hook instead of a `build` and `update` hook.
 
 They require some consideration when writing renderables, which very often do define explicit `build` and `update` hooks instead when dealing with child-widgets. This is required because we need to access the current state of the widget before the update is performed, to correctly add/remove child widgets of the underlying GTK widget.

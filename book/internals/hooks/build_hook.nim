@@ -2,10 +2,10 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-### **Build Hook**
+## **Build Hook**
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
-#### **For Widgets**
+### **For Widgets**
 `build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation. Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
 
 Example: A Widget may need to load data from elsewhere, via a file or HTTP request for one field, and a second field must be inferred from a value of the first field.
@@ -101,7 +101,7 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
-#### **For Fields**
+### **For Fields**
 Owlkettle provides default `build` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before initially assigning it to a field. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` during the build-phase.
 
 `build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
