@@ -132,6 +132,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Drop Down" src="/docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
+    <td><a href="widgets/picture.nim">Picture</a></td>
+    <td><img alt="Picture" src="/docs/assets/examples/picture.png" width="870px"></td>
+  </tr>
+  <tr>
     <td><a href="widgets/popover_menu.nim">Popover Menu</a></td>
     <td><img alt="Popover Menu" src="/docs/assets/examples/popover_menu.png" width="328px"></td>
   </tr>
