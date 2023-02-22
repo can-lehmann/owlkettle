@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options]
+import std/[unicode, sets, tables, options, asyncfutures]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils
@@ -481,6 +481,59 @@ proc loadPixbuf*(path: string,
     raise newException(IoError, "Unable to load pixbuf: " & message)
   
   result = newPixbuf(pixbuf)
+
+proc openInputStream(path: string): GInputStream =
+  let file = g_file_new_for_path(path.cstring)
+  var error = GError(nil)
+  result = g_file_read(file, nil, error.addr)
+  if not error.isNil:
+    let message = $error[].message
+    raise newException(IoError, "Unable to load pixbuf: " & message)
+
+proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.cdecl.} =
+  let future = unwrapSharedCell(cast[ptr Future[Pixbuf]](data))
+  
+  var error = GError(nil)
+  let pixbuf = gdk_pixbuf_new_from_stream_finish(result, error.addr)
+  if error.isNil:
+    future.complete(Pixbuf(gdk: pixbuf))
+  else:
+    let message = $error[].message
+    future.fail(newException(IoError, "Unable to load pixbuf: " & message))
+  
+  if not stream.isNil:
+    var error = GError(nil)
+    discard g_input_stream_close(GInputStream(stream), nil, error.addr)
+    if not error.isNil:
+      let message = $error[].message
+      raise newException(IoError, "Unable to close stream: " & message)
+    error = GError(nil)
+    discard g_input_stream_close(GInputStream(stream), nil, error.addr)
+    if not error.isNil:
+      let message = $error[].message
+      raise newException(IoError, "Unable to close stream: " & message)
+    g_object_unref(stream)
+
+proc loadPixbufAsync*(path: string): Future[Pixbuf] =
+  result = newFuture[Pixbuf]("loadPixbufAsync")
+  let
+    stream = openInputStream(path)
+    data = allocSharedCell(result)
+  gdk_pixbuf_new_from_stream_async(stream, nil, handlePixbufReady, data)
+
+proc loadPixbufAsync*(path: string,
+                      width, height: int,
+                      preserveAspectRatio: bool = false): Future[Pixbuf] =
+  result = newFuture[Pixbuf]("loadPixbufAsync")
+  gdk_pixbuf_new_from_stream_at_scale_async(
+    openInputStream(path),
+    width.cint,
+    height.cint,
+    cbool(ord(preserveAspectRatio)),
+    nil,
+    handlePixbufReady,
+    allocSharedCell(result)
+  )
 
 proc bitsPerSample*(pixbuf: Pixbuf): int =
   result = int(gdk_pixbuf_get_bits_per_sample(pixbuf.gdk))

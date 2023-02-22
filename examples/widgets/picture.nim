@@ -20,11 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import std/[asyncfutures]
 import owlkettle, owlkettle/adw
 
 const APP_NAME = "Image Example"
 
 viewable App:
+  loading: bool
   pixbuf: Pixbuf
 
 method view(app: AppState): Widget =
@@ -65,12 +67,25 @@ method view(app: AppState): Widget =
                   style = {ButtonSuggested}
             
             if res.kind == DialogAccept:
-              try:
-                let path = FileChooserDialogState(state).filename
-                app.pixbuf = loadPixbuf(path)
-              except IoError as err:
-                echo err.msg
+              let path = FileChooserDialogState(state).filename
+              
+              when defined(pixbufAsync):
+                # Load async
+                let future = loadPixbufAsync(path)
+                future.addCallback:
+                  proc (pixbuf: Future[Pixbuf]) =
+                    app.loading = false
+                    app.pixbuf = pixbuf.read()
+                    discard app.redraw()
+                app.loading = true
                 app.pixbuf = nil
+              else:
+                # Load sync
+                try:
+                  app.pixbuf = loadPixbuf(path)
+                except IoError as err:
+                  echo err.msg
+                  app.pixbuf = nil
         
         Button {.addLeft.}:
           text = "Save"
@@ -142,7 +157,10 @@ method view(app: AppState): Widget =
         
       
       if app.pixbuf.isNil:
-        Label(text = "No image")
+        if app.loading:
+          Label(text = "Loading...")
+        else:
+          Label(text = "No image")
       else:
         Picture:
           pixbuf = app.pixbuf

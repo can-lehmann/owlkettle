@@ -82,13 +82,10 @@ proc withdrawNotification*(id: string) =
 proc redrawFromThread*(viewable: Viewable, priority: int = 200) =
   when compileOption("threads"):
     proc fn(data: pointer): cbool {.cdecl.} =
-      let viewable = cast[ptr Viewable](data)
-      discard viewable[].redraw()
-      reset(viewable[])
-      deallocShared(viewable)
+      let cell = cast[ptr Viewable](data)
+      discard unwrapSharedCell(cell).redraw()
     
-    let data = cast[ptr Viewable](allocShared0(sizeof(ptr Viewable)))
-    data[] = viewable
+    let data = allocSharedCell(viewable)
     discard g_idle_add_full(cint(priority), fn, data, nil)
   else:
     raise newException(IoError, "Threading is disabled")

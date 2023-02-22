@@ -290,10 +290,14 @@ type
   GCallback* = distinct pointer
   GClosureNotify* = proc(data: pointer, closure: GClosure) {.cdecl.}
   
+  GAsyncResult* = distinct pointer
+  GAsyncReadyCallback* = proc(obj: pointer, result: GAsyncResult, data: pointer) {.cdecl.}
+  
   GResource* = distinct pointer
   GIcon* = distinct pointer
   GApplication* = distinct pointer
   GFile* = distinct pointer
+  GInputStream* = distinct pointer
   GNotification* = distinct pointer
   
   GListModel* = distinct pointer
@@ -304,6 +308,7 @@ proc isNil*(obj: GResource): bool {.borrow.}
 proc isNil*(obj: GIcon): bool {.borrow.}
 proc isNil*(obj: GApplication): bool {.borrow.}
 proc isNil*(obj: GFile): bool {.borrow.}
+proc isNil*(obj: GInputStream): bool {.borrow.}
 proc isNil*(obj: GNotification): bool {.borrow.}
 proc isNil*(obj: GListModel): bool {.borrow.}
 
@@ -374,8 +379,13 @@ proc g_application_withdraw_notification*(app: GApplication, id: cstring)
 proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
 
 # Gio.File
+proc g_file_new_for_path*(path: cstring): GFile
+proc g_file_read*(file: GFile, cancelable: pointer, error: ptr GError): GInputStream
 proc g_file_get_path*(file: GFile): cstring
 proc g_file_get_uri*(file: GFile): cstring
+
+# Gio.InputStream
+proc g_input_stream_close*(stream: GInputStream, cancelable: pointer, error: ptr GError): cbool
 
 # Gio.Notification
 proc g_notification_new*(title: cstring): GNotification
@@ -424,6 +434,18 @@ proc gdk_pixbuf_new_from_file_at_scale*(path: cstring,
                                         w, h: cint,
                                         preserveAspectRatio: cbool,
                                         error: ptr GError): GdkPixbuf
+
+proc gdk_pixbuf_new_from_stream_async*(stream: GInputStream,
+                                       cancelable: pointer,
+                                       callback: GAsyncReadyCallback,
+                                       data: pointer)
+proc gdk_pixbuf_new_from_stream_at_scale_async*(stream: GInputStream,
+                                                w, h: cint,
+                                                preserveAspectRatio: cbool,
+                                                cancelable: pointer,
+                                                callback: GAsyncReadyCallback,
+                                                data: pointer)
+proc gdk_pixbuf_new_from_stream_finish*(result: GAsyncResult, error: ptr GError): GdkPixbuf
 
 proc gdk_pixbuf_get_colorspace*(pixbuf: GdkPixbuf): GdkColorspace
 proc gdk_pixbuf_get_bits_per_sample*(pixbuf: GdkPixbuf): cint
