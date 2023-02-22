@@ -507,11 +507,6 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
     if not error.isNil:
       let message = $error[].message
       raise newException(IoError, "Unable to close stream: " & message)
-    error = GError(nil)
-    discard g_input_stream_close(GInputStream(stream), nil, error.addr)
-    if not error.isNil:
-      let message = $error[].message
-      raise newException(IoError, "Unable to close stream: " & message)
     g_object_unref(stream)
 
 proc loadPixbufAsync*(path: string): Future[Pixbuf] =
