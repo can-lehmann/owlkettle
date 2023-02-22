@@ -428,6 +428,177 @@ renderable Icon of BaseWidget:
       name = "object-select-symbolic"
       pixelSize = 100
 
+type
+  Colorspace* = enum
+    ColorspaceRgb
+  
+  Pixbuf* = ref object
+    gdk: GdkPixbuf
+
+proc finalizer(pixbuf: Pixbuf) =
+  g_object_unref(pointer(pixbuf.gdk))
+
+proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
+  if gdk.isNil:
+    raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
+  new(result, finalizer=finalizer)
+  result.gdk = gdk
+
+proc newPixbuf*(width, height: int,
+                bitsPerSample: int,
+                hasAlpha: bool = false,
+                colorspace: Colorspace = ColorspaceRgb): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_new(
+    GdkColorspace(ord(colorspace)),
+    cbool(ord(hasAlpha)),
+    bitsPerSample.cint,
+    width.cint,
+    height.cint
+  ))
+
+proc loadPixbuf*(path: string): Pixbuf =
+  var error = GError(nil)
+  let pixbuf = gdk_pixbuf_new_from_file(path.cstring, error.addr)
+  if not error.isNil:
+    let message = $error[].message
+    raise newException(IoError, "Unable to load pixbuf: " & message)
+  
+  result = newPixbuf(pixbuf)
+
+proc loadPixbuf*(path: string,
+                 width, height: int,
+                 preserveAspectRatio: bool = false): Pixbuf =
+  var error = GError(nil)
+  let pixbuf = gdk_pixbuf_new_from_file_at_scale(
+    path.cstring,
+    width.cint,
+    height.cint,
+    cbool(ord(preserveAspectRatio)),
+    error.addr
+  )
+  if not error.isNil:
+    let message = $error[].message
+    raise newException(IoError, "Unable to load pixbuf: " & message)
+  
+  result = newPixbuf(pixbuf)
+
+proc bitsPerSample*(pixbuf: Pixbuf): int =
+  result = int(gdk_pixbuf_get_bits_per_sample(pixbuf.gdk))
+
+proc width*(pixbuf: Pixbuf): int =
+  result = int(gdk_pixbuf_get_width(pixbuf.gdk))
+
+proc height*(pixbuf: Pixbuf): int =
+  result = int(gdk_pixbuf_get_height(pixbuf.gdk))
+
+proc channels*(pixbuf: Pixbuf): int =
+  result = int(gdk_pixbuf_get_n_channels(pixbuf.gdk))
+
+proc hasAlpha*(pixbuf: Pixbuf): bool =
+  result = gdk_pixbuf_get_has_alpha(pixbuf.gdk) != 0
+
+proc pixels*(pixbuf: Pixbuf): seq[byte] =
+  let size = gdk_pixbuf_get_byte_length(pixbuf.gdk)
+  result = newSeq[byte](size)
+  if size > 0:
+    let data = gdk_pixbuf_read_pixels(pixbuf.gdk)
+    copyMem(result[0].addr, data, size)
+
+proc flipVertical*(pixbuf: Pixbuf): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_flip(pixbuf.gdk, 0))
+
+proc flipHorizontal*(pixbuf: Pixbuf): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_flip(pixbuf.gdk, 1))
+
+proc crop*(pixbuf: Pixbuf, x, y, w, h: int): Pixbuf =
+  let dest = gdk_pixbuf_new(
+    gdk_pixbuf_get_colorspace(pixbuf.gdk),
+    gdk_pixbuf_get_has_alpha(pixbuf.gdk),
+    gdk_pixbuf_get_bits_per_sample(pixbuf.gdk),
+    w.cint,
+    h.cint
+  )
+  gdk_pixbuf_copy_area(
+    pixbuf.gdk, x.cint, y.cint, w.cint, h.cint,
+    dest, 0, 0
+  )
+  result = newPixbuf(dest)
+
+proc scale*(pixbuf: Pixbuf, w, h: int, bilinear: bool = false): Pixbuf =
+  var interp = GDK_INTERP_NEAREST
+  if bilinear:
+    interp = GDK_INTERP_BILINEAR
+  result = newPixbuf(gdk_pixbuf_scale_simple(
+    pixbuf.gdk, w.cint, h.cint, interp
+  ))
+
+proc rotate90*(pixbuf: Pixbuf): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_rotate_simple(
+    pixbuf.gdk, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE
+  ))
+
+proc rotate180*(pixbuf: Pixbuf): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_rotate_simple(
+    pixbuf.gdk, GDK_PIXBUF_ROTATE_UPSIDEDOWN
+  ))
+
+proc rotate270*(pixbuf: Pixbuf): Pixbuf =
+  result = newPixbuf(gdk_pixbuf_rotate_simple(
+    pixbuf.gdk, GDK_PIXBUF_ROTATE_CLOCKWISE
+  ))
+
+proc save*(pixbuf: Pixbuf,
+           path: string,
+           fileType: string,
+           options: openArray[(string, string)] = []) =
+  var
+    keys: seq[string] = @[]
+    values: seq[string] = @[]
+  for (key, value) in options:
+    keys.add(key)
+    values.add(value)
+  
+  let
+    keysArray = allocCStringArray(keys)
+    valuesArray = allocCStringArray(values)
+  defer:
+    deallocCStringArray(keysArray)
+    deallocCStringArray(valuesArray)
+  
+  var error = GError(nil)
+  discard gdk_pixbuf_savev(pixbuf.gdk,
+    path.cstring,
+    fileType.cstring,
+    keysArray,
+    valuesArray,
+    error.addr
+  )
+  if not error.isNil:
+    let message = $error[].message
+    raise newException(IoError, "Unable to save pixbuf: " & message)
+
+type ContentFit* = enum
+  ContentFill
+  ContentContain
+  ContentCover
+  ContentScaleDown
+
+renderable Picture of BaseWidget:
+  pixbuf: Pixbuf
+  contentFit: ContentFit = ContentContain
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_picture_new()
+  
+  hooks pixbuf:
+    property:
+      gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
+  
+  hooks contentFit:
+    property:
+      gtk_picture_set_content_fit(state.internalWidget, GtkContentFit(ord(state.contentFit)))
+
 type ButtonStyle* = enum
   ButtonSuggested = "suggested-action",
   ButtonDestructive = "destructive-action",
@@ -2289,7 +2460,7 @@ renderable AboutDialog of BaseWidget:
       }
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
-export Window, Box, Overlay, Label, Icon, Button, HeaderBar, ScrolledWindow, Entry
+export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild

@@ -217,6 +217,19 @@ Icon:
 ```
 
 
+## Picture
+
+```nim
+renderable Picture of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `pixbuf: Pixbuf`
+- `contentFit: ContentFit = ContentContain`
+
+
 ## Button
 
 ```nim

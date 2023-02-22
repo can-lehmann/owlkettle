@@ -112,6 +112,12 @@ type
     GTK_POS_TOP
     GTK_POS_BOTTOM
   
+  GtkContentFit* = enum
+    GTK_CONTENT_FIT_FILL
+    GTK_CONTENT_FIT_CONTAIN
+    GTK_CONTENT_FIT_COVER
+    GTK_CONTENT_FIT_SCALE_DOWN
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -205,6 +211,23 @@ type
   GdkRectangle* = object
     x*, y*: cint
     width*, height*: cint 
+  
+  GdkPixbuf* = distinct pointer
+  
+  GdkColorspace* = enum
+    GDK_COLORSPACE_RGB
+  
+  GdkInterpType* = enum
+    GDK_INTERP_NEAREST
+    GDK_INTERP_TILES
+    GDK_INTERP_BILINEAR
+    GDK_INTERP_HYPER
+  
+  GdkPixbufRotation* = enum
+    GDK_PIXBUF_ROTATE_NONE = 0
+    GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE = 90
+    GDK_PIXBUF_ROTATE_UPSIDEDOWN = 180
+    GDK_PIXBUF_ROTATE_CLOCKWISE = 270
 
 const
   GDK_POINTER_MOTION_MASK* = GdkEventMask(1 shl 2)
@@ -229,6 +252,7 @@ defineBitSet(GdkModifierType)
 
 proc isNil*(obj: GdkEvent): bool {.borrow.}
 proc isNil*(obj: GdkClipboard): bool {.borrow.}
+proc isNil*(obj: GdkPixbuf): bool {.borrow.}
 
 type
   GNotificationPriority* = enum
@@ -391,6 +415,40 @@ proc gdk_display_get_clipboard*(display: GdkDisplay): GdkClipboard
 # Gdk.Clipboard
 proc gdk_clipboard_set_text*(clipboard: GdkClipboard, text: cstring, length: cint)
 
+# Gdk.Pixbuf
+proc gdk_pixbuf_new*(colorspace: GdkColorspace,
+                     hasAlpha: cbool,
+                     bitsPerSample, w, h: cint): GdkPixbuf
+proc gdk_pixbuf_new_from_file*(path: cstring, error: ptr GError): GdkPixbuf
+proc gdk_pixbuf_new_from_file_at_scale*(path: cstring,
+                                        w, h: cint,
+                                        preserveAspectRatio: cbool,
+                                        error: ptr GError): GdkPixbuf
+
+proc gdk_pixbuf_get_colorspace*(pixbuf: GdkPixbuf): GdkColorspace
+proc gdk_pixbuf_get_bits_per_sample*(pixbuf: GdkPixbuf): cint
+proc gdk_pixbuf_get_width*(pixbuf: GdkPixbuf): cint
+proc gdk_pixbuf_get_height*(pixbuf: GdkPixbuf): cint
+proc gdk_pixbuf_get_n_channels*(pixbuf: GdkPixbuf): cint
+proc gdk_pixbuf_get_has_alpha*(pixbuf: GdkPixbuf): cbool
+proc gdk_pixbuf_read_pixels*(pixbuf: GdkPixbuf): ptr byte
+proc gdk_pixbuf_get_byte_length*(pixbuf: GdkPixbuf): csize
+
+
+proc gdk_pixbuf_copy*(pixbuf: GdkPixbuf): GdkPixbuf
+proc gdk_pixbuf_flip*(pixbuf: GdkPixbuf, horizontal: cbool): GdkPixbuf
+proc gdk_pixbuf_copy_area*(src: GdkPixbuf,
+                           x, y, w, h: cint,
+                           dest: GdkPixbuf,
+                           destX, destY: cint)
+proc gdk_pixbuf_scale_simple*(pixbuf: GdkPixbuf, w, h: cint, interpolation: GdkInterpType): GdkPixbuf
+proc gdk_pixbuf_rotate_simple*(pixbuf: GdkPixbuf, rotation: GdkPixbufRotation): GdkPixbuf
+
+proc gdk_pixbuf_savev*(pixbuf: GdkPixbuf,
+                       filename, fileType: cstring,
+                       keys, vals: cstringArray,
+                       error: ptr GError): bool
+
 # Gtk
 proc gtk_init*()
 
@@ -528,6 +586,12 @@ proc gtk_icon_theme_add_search_path*(theme: GtkIconTheme, path: cstring)
 proc gtk_image_new*(): GtkWidget
 proc gtk_image_set_from_icon_name*(image: GtkWidget, iconName: cstring, size: GtkIconSize)
 proc gtk_image_set_pixel_size*(image: GtkWidget, pixelSize: cint)
+proc gtk_image_set_from_pixbuf*(image: GtkWidget, pixbuf: GdkPixbuf)
+
+# Gtk.Picture
+proc gtk_picture_new*(): GtkWidget
+proc gtk_picture_set_pixbuf*(picture: GtkWidget, pixbuf: GdkPixbuf)
+proc gtk_picture_set_content_fit*(picture: GtkWidget, fit: GtkContentFit)
 
 # Gtk.Paned
 proc gtk_paned_new*(orientation: GtkOrientation): GtkWidget
