@@ -72,11 +72,13 @@ method view(app: AppState): Widget =
               when defined(pixbufAsync):
                 # Load async
                 let future = loadPixbufAsync(path)
-                future.addCallback:
-                  proc (pixbuf: Future[Pixbuf]) =
-                    app.loading = false
-                    app.pixbuf = pixbuf.read()
-                    discard app.redraw()
+                
+                proc callback(pixbuf: Future[Pixbuf]) =
+                  app.loading = false
+                  app.pixbuf = pixbuf.read()
+                  discard app.redraw()
+                
+                future.addCallback(callback)
                 app.loading = true
                 app.pixbuf = nil
               else:
