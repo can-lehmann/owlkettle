@@ -31,8 +31,8 @@ var book = initBookWithToc:
     entry("Adwaita Widget Reference", "../docs/widgets_adwaita.md")
     entry("DataEntry Widget Reference", "../docs/widgets_dataentries.md")
   
-  draft("Migrating", "docs/migrating_1_to_2.md")
-  draft("Cross Compiling", "docs/cross_compiling.md")
+  #entry("Migrating", "docs/migrating_1_to_2.md")
+  #entry("Cross Compiling", "docs/cross_compiling.md")
   entry("Contributing", "CONTRIBUTING.md")
 
 nimibookCli(book)
