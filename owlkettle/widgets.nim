@@ -585,7 +585,7 @@ type ContentFit* = enum
 
 renderable Picture of BaseWidget:
   pixbuf: Pixbuf
-  contentFit: ContentFit = ContentContain
+  contentFit: ContentFit = ContentContain ## Requires GTK 4.8 to fully work, compile with `-d:gtk48` to enable
   
   hooks:
     beforeBuild:
@@ -597,7 +597,13 @@ renderable Picture of BaseWidget:
   
   hooks contentFit:
     property:
-      gtk_picture_set_content_fit(state.internalWidget, GtkContentFit(ord(state.contentFit)))
+      when defined(gtk48):
+        gtk_picture_set_content_fit(state.internalWidget, GtkContentFit(ord(state.contentFit)))
+      else:
+        gtk_picture_set_keep_aspect_ratio(
+          state.internalWidget,
+          cbool(ord(state.contentFit != ContentFill))
+        )
 
 type ButtonStyle* = enum
   ButtonSuggested = "suggested-action",

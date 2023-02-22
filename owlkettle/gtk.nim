@@ -432,7 +432,7 @@ proc gdk_pixbuf_get_height*(pixbuf: GdkPixbuf): cint
 proc gdk_pixbuf_get_n_channels*(pixbuf: GdkPixbuf): cint
 proc gdk_pixbuf_get_has_alpha*(pixbuf: GdkPixbuf): cbool
 proc gdk_pixbuf_read_pixels*(pixbuf: GdkPixbuf): ptr byte
-proc gdk_pixbuf_get_byte_length*(pixbuf: GdkPixbuf): csize
+proc gdk_pixbuf_get_byte_length*(pixbuf: GdkPixbuf): csize_t
 
 
 proc gdk_pixbuf_copy*(pixbuf: GdkPixbuf): GdkPixbuf
@@ -591,7 +591,10 @@ proc gtk_image_set_from_pixbuf*(image: GtkWidget, pixbuf: GdkPixbuf)
 # Gtk.Picture
 proc gtk_picture_new*(): GtkWidget
 proc gtk_picture_set_pixbuf*(picture: GtkWidget, pixbuf: GdkPixbuf)
-proc gtk_picture_set_content_fit*(picture: GtkWidget, fit: GtkContentFit)
+when defined(gtk48):
+  proc gtk_picture_set_content_fit*(picture: GtkWidget, fit: GtkContentFit)
+else:
+  proc gtk_picture_set_keep_aspect_ratio*(picture: GtkWidget, keep: cbool)
 
 # Gtk.Paned
 proc gtk_paned_new*(orientation: GtkOrientation): GtkWidget

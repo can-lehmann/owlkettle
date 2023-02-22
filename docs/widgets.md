@@ -227,7 +227,7 @@ renderable Picture of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `pixbuf: Pixbuf`
-- `contentFit: ContentFit = ContentContain`
+- `contentFit: ContentFit = ContentContain` Requires GTK 4.8 to fully work, compile with `-d:gtk48` to enable
 
 
 ## Button
