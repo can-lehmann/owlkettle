@@ -14,7 +14,6 @@ viewable CustomBox:
 
   adder add {.key: none(string).}: 
 ...
-``` 
 """
 
 nbText: """
