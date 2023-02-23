@@ -5,7 +5,7 @@ import nimibook
 var book = initBookWithToc:
   entry("Welcome to Owlkettle!", "README.md")
   entry("Tutorial", "docs/tutorial.md")
-  entry("General Examples", "../examples/README.md")
+  entry("General Examples", "examples/README.md")
   
   entry("Tooling", "docs/recommended_tools.md")
   
