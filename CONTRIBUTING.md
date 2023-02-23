@@ -1,6 +1,6 @@
 # Contributing to Owlkettle
 
-A short introduction to owlkettle's internals can be found [here](docs/internals.md).
+A short introduction to owlkettle's internals can be found [here](https://philippmdoerner.github.io/owlkettle/book/internals.html).
 
 ## Documentation
 
