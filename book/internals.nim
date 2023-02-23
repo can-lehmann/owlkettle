@@ -10,7 +10,7 @@ Every widget in owlkettle is either a `renderable` or a `viewable` widget.
 `Renderable` widgets provide declarative interfaces to GTK widgets.
 For example `Button`, `Window` and `Entry` are renderable widgets.
 
-<img alt="Owlkettle Class Diagram" src="/docs/assets/internals/class_diagram.png" width="500px">
+<img alt="Owlkettle Class Diagram" src="../docs/assets/internals/class_diagram.png" width="500px">
 
 `Viewable` widgets are abstractions over renderable widgets.
 Owlkettle applications and any custom widgets written by you are usually implemented as viewable widgets.
@@ -21,7 +21,7 @@ In `Viewable` Widgets the `WidgetState` is used to generate a new `Widget` insta
 
 In `Renderable` widgets the `Widget` is updated, if necessary, via hooks, there is no `view` method that generates new Widgets.
 
-<img alt="Owlkettle Class Diagram" src="/docs/assets/internals/workflow.png" width="800px">
+<img alt="Owlkettle Class Diagram" src="../docs/assets/internals/workflow.png" width="800px">
 
 Any field on a `WidgetState` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
 

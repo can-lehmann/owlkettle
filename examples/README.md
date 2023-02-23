@@ -7,7 +7,7 @@
   </tr>
   <tr>
     <td><a href="counter.nim">Counter</a></td>
-    <td><img alt="Counter Application" src="/docs/assets/examples/counter.png" width="228px"></td>
+    <td><img alt="Counter Application" src="../docs/assets/examples/counter.png" width="228px"></td>
   </tr>
 </table>
 
@@ -25,17 +25,17 @@ The `apps` directory contains full application examples.
     <td>
       No Image
       <!--
-      <img alt="App Launcher" src="/docs/assets/examples/app-launcher.png" width="228px">
+      <img alt="App Launcher" src="../docs/assets/examples/app-launcher.png" width="228px">
       -->
     </td>
   </tr>
   <tr>
     <td><a href="apps/temp_converter.nim">Temperature Converter</a></td>
-    <td><img alt="Temperature Converter" src="/docs/assets/examples/temp_converter.png" width="628px"></td>
+    <td><img alt="Temperature Converter" src="../docs/assets/examples/temp_converter.png" width="628px"></td>
   </tr>
   <tr>
     <td><a href="apps/todo.nim">Todo</a></td>
-    <td><img alt="Todo Application" src="/docs/assets/examples/todo.png" width="428px"></td>
+    <td><img alt="Todo Application" src="../docs/assets/examples/todo.png" width="428px"></td>
   </tr>
 </table>
 
@@ -53,21 +53,21 @@ The `dialogs` directory contains examples of how to use the different built-in d
     <td>
       No Image
       <!--
-      <img alt="About Dialog" src="/docs/assets/examples/about_dialog.png" width="228px">
+      <img alt="About Dialog" src="../docs/assets/examples/about_dialog.png" width="228px">
       -->
     </td>
   </tr>
   <tr>
     <td><a href="dialogs/custom_dialog.nim">Custom Dialog</a></td>
-    <td><img alt="Custom Dialog" src="/docs/assets/examples/custom_dialog.png" width="348px"></td>
+    <td><img alt="Custom Dialog" src="../docs/assets/examples/custom_dialog.png" width="348px"></td>
   </tr>
   <tr>
     <td><a href="dialogs/file_dialog.nim">File Dialog</a></td>
-    <td><img alt="File Dialog" src="/docs/assets/examples/file_dialog.png" width="988px"></td>
+    <td><img alt="File Dialog" src="../docs/assets/examples/file_dialog.png" width="988px"></td>
   </tr>
   <tr>
     <td><a href="dialogs/message_dialog.nim">Message Dialog</a></td>
-    <td><img alt="Message Dialog" src="/docs/assets/examples/message_dialog.png" width="167px"></td>
+    <td><img alt="Message Dialog" src="../docs/assets/examples/message_dialog.png" width="167px"></td>
   </tr>
 </table>
 
@@ -82,21 +82,21 @@ The `misc` directory contains miscellaneous examples.
   </tr>
   <tr>
     <td><a href="misc/cairo_path.nim">Cairo Path</a></td>
-    <td><img alt="Cairo Path" src="/docs/assets/examples/cairo_path.png" width="968px"></td>
+    <td><img alt="Cairo Path" src="../docs/assets/examples/cairo_path.png" width="968px"></td>
   </tr>
   <tr>
     <td><a href="misc/clipboard.nim">Clipboard</a></td>
-    <td><img alt="Clipboard" src="/docs/assets/examples/clipboard.png" width="328px"></td>
+    <td><img alt="Clipboard" src="../docs/assets/examples/clipboard.png" width="328px"></td>
   </tr>
   <tr>
     <td><a href="misc/css.nim">CSS</a></td>
-    <td><img alt="CSS" src="/docs/assets/examples/css.png" width="428px"></td>
+    <td><img alt="CSS" src="../docs/assets/examples/css.png" width="428px"></td>
   </tr>
   <tr>
     <td><a href="misc/notification.nim">Notification</a></td>
     <td>
-      <img alt="Notification" src="/docs/assets/examples/notification.png" width="508.5px">
-      <img alt="Notification Dialog" src="/docs/assets/examples/notification-dialog.png" width="428px">
+      <img alt="Notification" src="../docs/assets/examples/notification.png" width="508.5px">
+      <img alt="Notification Dialog" src="../docs/assets/examples/notification-dialog.png" width="428px">
     </td>
   </tr>
   <tr>
@@ -121,23 +121,23 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="widgets/context_menu.nim">Context Menu</a></td>
-    <td><img alt="Context Menu" src="/docs/assets/examples/context_menu.png" width="328px"></td>
+    <td><img alt="Context Menu" src="../docs/assets/examples/context_menu.png" width="328px"></td>
   </tr>
   <tr>
     <td><a href="widgets/drawing_area.nim">Drawing Area</a></td>
-    <td><img alt="Drawing Area" src="/docs/assets/examples/drawing_area.png" width="671px"></td>
+    <td><img alt="Drawing Area" src="../docs/assets/examples/drawing_area.png" width="671px"></td>
   </tr>
   <tr>
     <td><a href="widgets/drop_down.nim">Drop Down</a></td>
-    <td><img alt="Drop Down" src="/docs/assets/examples/drop_down.png" width="378px"></td>
+    <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
     <td><a href="widgets/popover_menu.nim">Popover Menu</a></td>
-    <td><img alt="Popover Menu" src="/docs/assets/examples/popover_menu.png" width="328px"></td>
+    <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="328px"></td>
   </tr>
   <tr>
     <td><a href="widgets/text_view.nim">Text View</a></td>
-    <td><img alt="Text View" src="/docs/assets/examples/text_view.png" width="757px"></td>
+    <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="757px"></td>
   </tr>
 </table>
 
@@ -150,23 +150,23 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="widgets/adw/combo_row.nim">Combo Row</a></td>
-    <td><img alt="Combo Row" src="/docs/assets/examples/combo_row.png" width="684px"></td>
+    <td><img alt="Combo Row" src="../docs/assets/examples/combo_row.png" width="684px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/expander_row.nim">Expander Row</a></td>
-    <td><img alt="Expander Row" src="/docs/assets/examples/expander_row.png" width="803px"></td>
+    <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="803px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/flap.nim">Flap</a></td>
-    <td><img alt="Flap" src="/docs/assets/examples/flap.png" width="622px"></td>
+    <td><img alt="Flap" src="../docs/assets/examples/flap.png" width="622px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/preferences_group.nim">Preferences Group</a></td>
-    <td><img alt="Preferences Group" src="/docs/assets/examples/preferences_group.png" width="721px"></td>
+    <td><img alt="Preferences Group" src="../docs/assets/examples/preferences_group.png" width="721px"></td>
   </tr>
   <tr>
     <td><a href="widgets/adw/window_title.nim">Window Title</a></td>
-    <td><img alt="Window Title" src="/docs/assets/examples/window_title.png" width="288px"></td>
+    <td><img alt="Window Title" src="../docs/assets/examples/window_title.png" width="288px"></td>
   </tr>
 </table>
 

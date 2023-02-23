@@ -44,3 +44,7 @@ task genBook, "Generate the owlkettle nimibook book docs":
     echo "BUILT NIMIBOOK"
   except CatchableError:
     discard
+
+  ## Needed as the nimibook will serve these images, while the raw md files 
+  ## in the repository will serve the others 
+  exec "cp -r ./docs/assets ./compiledBook/docs"
