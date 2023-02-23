@@ -118,7 +118,7 @@ proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
 proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
 proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
 
-when defined(adwaita12):
+when defined(adwaita12) or defined(owlkettleDocs):
   # Adw.EntryRow
   proc adw_entry_row_new(): GtkWidget
   proc adw_entry_row_add_suffix(row, child: GtkWidget)
@@ -139,6 +139,11 @@ proc adw_flap_set_swipe_to_open(flap: GtkWidget, swipe: cbool)
 proc adw_flap_set_swipe_to_close(flap: GtkWidget, swipe: cbool)
 proc adw_flap_get_reveal_flap(flap: GtkWidget): cbool
 proc adw_flap_get_folded(flap: GtkWidget): cbool
+
+# Adw.SplitButton
+proc adw_split_button_new(): GtkWidget
+proc adw_split_button_set_child(button, child: GtkWidget)
+proc adw_split_button_set_popover(button, child: GtkWidget)
 {.pop.}
 
 renderable WindowSurface of BaseWindow:
@@ -465,7 +470,7 @@ renderable ComboRow of ActionRow:
       proc select(item: int) =
         app.selected = item
 
-when defined(adwaita12):
+when defined(adwaita12) or defined(owlkettleDocs):
   renderable EntryRow of PreferencesRow:
     subtitle: string
     suffixes: seq[AlignedChild[Widget]]
@@ -670,7 +675,62 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap
+renderable SplitButton of BaseWidget:
+  child: Widget
+  popover: Widget
+  
+  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  
+  proc clicked()
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_split_button_new()
+    connectEvents:
+      state.connect(state.clicked, "clicked", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.clicked)
+  
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_split_button_set_child)
+  
+  hooks popover:
+    (build, update):
+      state.updateChild(state.popover, widget.valPopover, adw_split_button_set_popover)
+  
+  hooks style:
+    (build, update):
+      updateStyle(state, widget)
+  
+  setter text: string
+  setter icon: string ## Sets the icon of the SplitButton. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
+  
+  adder addChild:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a SplitButton. Use a Box widget to display multiple widgets in a SplitButton.")
+    widget.hasChild = true
+    widget.valChild = child
+  
+  adder add:
+    if not widget.hasChild:
+      widget.hasChild = true
+      widget.valChild = child
+    elif not widget.hasPopover:
+      widget.hasPopover = true
+      widget.valPopover = child
+    else:
+      raise newException(ValueError, "Unable to add more than two children to SplitButton")
+
+proc `hasText=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild = value
+proc `valText=`*(splitButton: SplitButton, value: string) =
+  splitButton.valChild = Label(hasText: true, valText: value)
+
+proc `hasIcon=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild = value
+proc `valIcon=`*(splitButton: SplitButton, name: string) =
+  splitButton.valChild = Icon(hasName: true, valName: name)
+
+export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],

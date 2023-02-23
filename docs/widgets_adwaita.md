@@ -333,3 +333,32 @@ Flap:
 ```
 
 
+## SplitButton
+
+```nim
+renderable SplitButton of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+- `popover: Widget`
+- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+
+###### Setters
+
+- `text: string`
+- `icon: string` Sets the icon of the SplitButton. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
+
+###### Events
+
+- clicked: `proc ()`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addChild`
+- `add`
+
+

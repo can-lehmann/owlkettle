@@ -217,6 +217,19 @@ Icon:
 ```
 
 
+## Picture
+
+```nim
+renderable Picture of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `pixbuf: Pixbuf`
+- `contentFit: ContentFit = ContentContain` Requires GTK 4.8 to fully work, compile with `-d:gtk48` to enable
+
+
 ## Button
 
 ```nim

@@ -29,6 +29,17 @@ proc redraw*[T](event: EventObj[T]) =
     raise newException(ValueError, "App is nil")
   discard event.app.redraw()
 
+proc allocSharedCell*[T](data: T): ptr T =
+  result = cast[ptr T](allocShared0(sizeof(T)))
+  result[] = data
+
+proc unwrapSharedCell*[T](data: ptr T): T =
+  if data.isNil:
+    raise newException(ValueError, "Unable to unwrap nil cell")
+  result = data[]
+  reset(data[])
+  deallocShared(data)
+
 proc eventCallback*(widget: GtkWidget, data: ptr EventObj[proc ()]) =
   data[].callback()
   data[].redraw()
