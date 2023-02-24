@@ -3,6 +3,7 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 ## **Multiple Adders**
+
 In addition to passing properties to an adder, you can naturally also have multiple different adders. They just need different names.
 
 Let's look at a `CustomBox` widget with 2 `seq[Widget]` fields that you add to with different adders:

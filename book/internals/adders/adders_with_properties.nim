@@ -3,6 +3,7 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 ## **Adders with properties**
+
 Let's make a custom widget that stores Widgets in a `Table[string, Widget]` and displays the widget next to the key it was stored with.
 
 First we need to modify our adder, telling it that there will be additional parameters. 
@@ -17,7 +18,9 @@ viewable CustomBox:
 """
 
 nbText: """
-Additional parameters passed to adders like that are called "properties". Properties **must** have a default value, their type is inferred based on that value. If you do not want to provide a default value, you can use an `Option` type.
+Additional parameters passed to adders like that are called "properties".
+Properties **must** have a default value, their type is inferred based on that value.
+If you do not want to provide a default value, you can use an `Option` type.
 
 Let's assert that anyone using `CustomBox` also passes a key and doesn't accidentally reuse a key that has already been used to store a Widget that in the table:
 """

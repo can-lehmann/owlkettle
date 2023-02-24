@@ -3,13 +3,13 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 ## **One Adder**
+
 The simplest way to use adders is just to have one.
 
-To add one you must:
-1) Add a field to your widget-state that can store child-Widgets (e.g. one with type `seq[Widget]`)
-2) Define an adder that enables the child-widget-field and adds a given widget to it
-3) Define in your `view` method where to put the child-widgets from the widget-state
-
+To create a widget that can contain other widgets, you must:
+  1) Add a field to your widget that can store child-Widgets (e.g. one with type `seq[Widget]`)
+  2) Define an adder that enables the child-widget-field and adds a given widget to it
+  3) Define in your `view` method how to display the child-widgets
 
 Let's look at an example for a `CustomBox`:
 """
@@ -43,7 +43,8 @@ nbCode:
           Label(text = "Me too!")
           Label(text = "Me three!")
 
-  # brew(gui(App())) # Uncomment to execute app
+  when false:
+    brew(gui(App())) # Uncomment to execute app
 
 nbText: """
 We define `myChildren` and "enable" it in the `add` adder via `widget.hasMyChildren = true`.

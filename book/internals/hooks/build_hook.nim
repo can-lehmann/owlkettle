@@ -3,21 +3,27 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 ## **Build Hook**
+
 The `build` hook runs once just before any values are assigned to the `WidgetState`.
 
 ### **For Widgets**
-`build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation. Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
+
+
+`build` hooks on widgets should be used when additional logic is necessary that sets multiple fields on `WidgetState` during widget instantiation.
+Note that such fields should not have assigned default values, as they will be overwritten when default values get applied after the build phase.
 
 Example: A Widget may need to load data from elsewhere, via a file or HTTP request for one field, and a second field must be inferred from a value of the first field.
 
-Here a simple code-example:
+Here a simple example that uses the `build` hook to load a configuration file for the application:
 
+example.json
+
+```json
+{"name":"example"}
+```
 """
 
 nbCode:
-  # example.json
-  # {"name":"example"}
-
   # main.nim
   import std/json
   import owlkettle
@@ -102,7 +108,10 @@ Given that the purpose of `beforeBuild` is to handle instantiating renderables a
 For more info on the purpose of `beforeBuild` and `afterBuild` hooks, consult their respective sections in this file.
 
 ### **For Fields**
-Owlkettle provides default `build` hooks for every field. They are useful if you need simple custom behaviour, such as modifying the input slightly before initially assigning it to a field. It is their responsibility to transfer data from `Widget` to their field in `WidgetState` during the build-phase.
+
+A `build` hook is responsible for transfering the value of a field from the `Widget` to the `WidgetState` during the build-phase.
+Owlkettle provides default `build` hooks for every field, that simply assign the value of the field in the `Widget` to the field in the `WidgetState` if it is set.
+Overwriting the `build` hook is useful if you need to define custom behaviour, such as modifying the input slightly before initially assigning it to a field.
 
 `build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
 

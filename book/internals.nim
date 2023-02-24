@@ -15,16 +15,20 @@ For example `Button`, `Window` and `Entry` are renderable widgets.
 `Viewable` widgets are abstractions over renderable widgets.
 Owlkettle applications and any custom widgets written by you are usually implemented as viewable widgets.
 
-Regardless of that distinction, all widget consists of a `WidgetState` and a `Widget`. The `Widget` represents the actual widget that gets rendered. It receives data from either parent-widgets or user-inputs and is used to update the `WidgetState` with them. The `WidgetState` is the overal internal widget state, that transforms data it receives as necessary and uses that to update the `Widget` instance. By separating the instance that receives new values (`Widget`) from the instance that records internal state (`WidgetState`) and requiring logic that defines how to transfer changes from one to the other, owlkettle manages to preserve the widget's state without unintentionally losing data.
+Every widget consists of a `WidgetState` and a `Widget`, independent of whether it is `renderable` or `viewable`.
+The `WidgetState` represents the internal state of the widget which is persistent between redraws.
+Its state is updated on every redraw by the `Widget`.
+The `Widget` records which fields are set (`has<FieldName>`) and what their values are (`val<FieldName>`).
 
-In `Viewable` Widgets the `WidgetState` is used to generate a new `Widget` instance initially and whenever it gets updated via a `view` method. It should be noted that in the `gui` section of a `view` method you are effectively calling `view` methods of whatever widget you use in there until you reach a renderable. 
-
-In `Renderable` widgets the `Widget` is updated, if necessary, via hooks, there is no `view` method that generates new Widgets.
+By separating the instance that receives new values (`Widget`) from the instance that records internal state (`WidgetState`) and requiring logic that defines how to transfer changes from one to the other, owlkettle manages to preserve the widget's state between redraws.
 
 <img alt="Owlkettle Class Diagram" src="../docs/assets/internals/workflow.png" width="800px">
 
-Any field on a `WidgetState` is represented on the generated Widget via the fields `has<Field>` and `val<Field>`.
+`viewable` widgets are abstractions over `renderable` or other `viewable` widgets.
+Their `view` method returns a widget tree which is used to update the `WidgetState` of their expansion.
+When you return another `viewable` widget from the `view` method owlkettle recursively calls `view` on it until `renderable` is reached. 
 
+When the state of a `renderable` widget is updated, it not only copies the set values from the `Widget`, but also applies any changes to the underlying GTK widget.
 """
 
 nbSave

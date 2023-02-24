@@ -4,6 +4,7 @@ nbInit(theme = useNimibook)
 
 nbText: """
 ## **Custom Widgets**
+
 To make one, just declare the `Viewable` and the fields on its state, then write a `view` method that creates the `Widget`.
 
 Let's look at a `CustomLabel` widget with a `text`-field that renders the text and another piece of text besides it.
@@ -34,23 +35,5 @@ nbCode:
         CustomLabel(text = "test")
 
   # brew(gui(App())) # Uncomment to execute gui
-
-nbText: """
-
-And that's your CustomLabel. Note though, that you can't write:
-
-```nim
-...
-method view*(state: AppState): Widget =
-  gui:
-    Window:
-      CustomLabel(text = "test"):
-        Label(text = "Also render me!")
-...
-```
-
-because CustomLabel doesn't have the ability to store or render child-Widgets!
-For that we need adders!
-""""
 
 nbSave
