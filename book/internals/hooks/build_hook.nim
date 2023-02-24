@@ -45,7 +45,8 @@ nbCode:
         Label:
           text = state.config.name
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 `build` hooks on widgets also are inherited from the parent-widget. In those scenarios, during the build-phase owlkettle will first execute the `build` hook of the parent and then the `build` hook of the child.
@@ -90,7 +91,8 @@ nbCode:
       Window:
         Child()
 
-  # brew(gui(App2())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App2()))
 
 nbText: """
 This will print:
@@ -113,7 +115,7 @@ A `build` hook is responsible for transfering the value of a field from the `Wid
 Owlkettle provides default `build` hooks for every field, that simply assign the value of the field in the `Widget` to the field in the `WidgetState` if it is set.
 Overwriting the `build` hook is useful if you need to define custom behaviour, such as modifying the input slightly before initially assigning it to a field.
 
-`build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`. 
+`build` hooks on fields should be used when additional logic is necessary that sets this single field on `WidgetState`.
 
 Here an example for how a `build` hook on a field can be used:
 
@@ -124,7 +126,7 @@ nbCode:
   ## The custom widget
   viewable MyViewable:
     text: string
-        
+
     hooks text:
       build:
         echo "Received via Widget:    ", widget.valText
@@ -146,7 +148,8 @@ nbCode:
       Window:
         MyViewable(text = "Example")
 
-  # brew(gui(App3())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App3()))
 
 nbText: """
 Note that this hook is not run during updates, so any changes here may be lost if an update overwrites them. Look at the `update` hook if you need that behaviour, or `property` hook if you need both.

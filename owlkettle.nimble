@@ -40,11 +40,11 @@ task genBook, "Generate the owlkettle nimibook book docs":
   echo "INITIALIZED NIMIBOOK"
 
   try:
-    exec "./nbook --mm:refc build"
+    exec "./nbook --mm:refc --define:owlkettleDocs build"
     echo "BUILT NIMIBOOK"
   except CatchableError:
     discard
 
-  ## Needed as the nimibook will serve the copied images, while the raw md files 
-  ## in the repository will serve the originals 
+  ## Needed as the nimibook will serve the copied images, while the raw md files
+  ## in the repository will serve the originals
   exec "cp -r ./docs/assets ./compiledBook/docs"

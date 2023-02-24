@@ -19,7 +19,7 @@ nbCode:
 
   renderable MyRenderable:
     text: string
-      
+
     hooks:
       beforeBuild:
         echo state.repr
@@ -33,11 +33,12 @@ nbCode:
       Window:
         MyRenderable()
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 We set the label-text to render directly via the `gtk_label_new` proc.
-But what if we want to have a parent widget decide the text to render once and then never update it again?  
+But what if we want to have a parent widget decide the text to render once and then never update it again?
 
 That leads us to what `afterBuild` hooks are...
 """

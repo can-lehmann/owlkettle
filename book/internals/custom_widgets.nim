@@ -12,7 +12,7 @@ Let's look at a `CustomLabel` widget with a `text`-field that renders the text a
 """
 
 nbCode:
-  import owlkettle 
+  import owlkettle
 
   ## Custom Label Widget
   viewable CustomLabel:
@@ -34,6 +34,7 @@ nbCode:
       Window:
         CustomLabel(text = "test")
 
-  # brew(gui(App())) # Uncomment to execute gui
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbSave

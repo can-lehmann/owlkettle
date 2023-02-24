@@ -16,22 +16,22 @@ nbCode:
     myChildren1: seq[Widget]
     myChildren2: seq[Widget]
 
-    adder add: 
-      widget.hasMyChildren1 = true 
+    adder add:
+      widget.hasMyChildren1 = true
       widget.valMyChildren1.add child
-    
+
     adder add2:
       widget.hasMyChildren2 = true
       widget.valMyChildren2.add child
 
   method view(state: CustomBoxState): Widget =
-    gui: 
+    gui:
       Box(orient = OrientY):
         Box():
           Label(text = "First Box")
           for widget in state.myChildren1:
             insert widget
-          
+
         Box():
           Label(text = "Second Box")
           for widget in state.myChildren2:
@@ -45,11 +45,12 @@ nbCode:
     gui:
       Window:
         CustomBox():
-          Label(text = "I was passed in from the outside") # Uses "add"-adder implicitly by default 
+          Label(text = "I was passed in from the outside") # Uses "add"-adder implicitly by default
           Label(text = "Me too!") {.add.} # Uses "add"-adder explicitly
           Label(text = "Me three!") {.add2.} # Uses "add2"-adder explicitly
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 

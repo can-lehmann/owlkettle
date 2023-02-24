@@ -7,7 +7,7 @@ The `connectEvents` hook runs during the build-phase as well as during every upd
 The `disconnectEvents` hook meanwhile only runs at the start of the update phase.
 It should be noted that triggering an event also causes an update phase to run.
 
-These hooks are only relevant for renderables, as their task is to attach/detach event-listeners passed to `WidgetState` to/from the underlying GTK-widget. 
+These hooks are only relevant for renderables, as their task is to attach/detach event-listeners passed to `WidgetState` to/from the underlying GTK-widget.
 
 Here a minimal example of a custom button widget that provides a `clicked` event:
 """
@@ -16,9 +16,9 @@ nbCode:
   import std/tables
   import owlkettle/[widgetutils, gtk]
 
-  renderable MyButton of BaseWidget:  
+  renderable MyButton of BaseWidget:
     proc clicked()
-    
+
     hooks:
       beforeBuild:
         state.internalWidget = gtk_button_new()
@@ -26,7 +26,7 @@ nbCode:
       connectEvents:
         echo "Connect"
         state.connect(state.clicked, "clicked", eventCallback)
-      
+
       disconnectEvents:
         echo "Disconnect"
         state.internalWidget.disconnect(state.clicked)
@@ -40,7 +40,8 @@ nbCode:
         MyButton():
           proc clicked() = echo "Potato"
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 
 nbSave

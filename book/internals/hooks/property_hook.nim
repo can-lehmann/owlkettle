@@ -41,9 +41,10 @@ nbCode:
       Window:
         MyViewable(text = "Example-" & urandom(2).encode())
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
-Note that there is no `update` or `build` hook defined for the `text` field. If we had defined those, they would need to include sections that call each individual `property` hook like their default implementations would. 
+Note that there is no `update` or `build` hook defined for the `text` field. If we had defined those, they would need to include sections that call each individual `property` hook like their default implementations would.
 """
 nbSave

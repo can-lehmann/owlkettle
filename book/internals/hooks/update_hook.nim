@@ -41,7 +41,8 @@ nbCode:
       Window:
         MyViewable(text = "Defined by App")
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 ### **For Fields**
@@ -58,7 +59,7 @@ nbCode:
   ## The custom widget
   viewable MyViewable2:
     text: string
-        
+
     hooks text:
       update:
         echo "Received via Widget:    ", widget.valText
@@ -81,7 +82,8 @@ nbCode:
       Window:
         MyViewable2(text = "Example")
 
-  # brew(gui(App2())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App2()))
 
 nbText: """
 We checked if the `Widget.hasText` value is true before assigning values to that field. This check is useful, since if the field is not set in the `Widget`, its value should not be propagated to the `WidgetState`.

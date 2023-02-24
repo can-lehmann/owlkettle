@@ -26,7 +26,7 @@ nbCode:
       widget.valMyChildren.add(child) # Adds the child-Widget to `myChildren`
 
   method view(state: CustomBoxState): Widget =
-    gui: 
+    gui:
       Box(orient = OrientY):
         for child in state.myChildren:
           insert child # Inserts child-widget into this CustomBox-widget
@@ -43,8 +43,8 @@ nbCode:
           Label(text = "Me too!")
           Label(text = "Me three!")
 
-  when false:
-    brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 We define `myChildren` and "enable" it in the `add` adder via `widget.hasMyChildren = true`.

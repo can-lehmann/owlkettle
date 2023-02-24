@@ -17,14 +17,14 @@ nbCode:
   # The custom widget
   renderable MyColorChooserDialog of BuiltinDialog:
     color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
-    
+
     hooks:
       beforeBuild: ## Necessary for renderable to instantiate Widget in general
         state.internalWidget = gtk_color_chooser_dialog_new(
           widget.valTitle.cstring,
           nil.GtkWidget
         )
-    
+
     hooks color:
       read: ## Will execute after userinput was provided, propagates value to to `WidgetState`
         var color: GdkRgba
@@ -48,7 +48,8 @@ nbCode:
               let (res, state) = app.open: gui:
                 MyColorChooserDialog()
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 The `read` hook will execute after a color was chosen and confirmed.

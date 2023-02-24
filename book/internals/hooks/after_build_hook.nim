@@ -10,7 +10,7 @@ In renderables they are also useful to update the GTK widget once with data from
 
 It should be noted that unlike `build` hooks, `afterBuild` hooks are not inherited by any child-widget. For more information, see the `build` hooks section.
 
-Let's return to our earlier renderable example and write it so that the parent-widget can decide what text the `MyRenderable` should display: 
+Let's return to our earlier renderable example and write it so that the parent-widget can decide what text the `MyRenderable` should display:
 """
 
 nbCode:
@@ -20,12 +20,12 @@ nbCode:
 
   renderable MyRenderable:
     text: string
-      
+
     hooks:
       beforeBuild:
         echo state.repr
         state.internalWidget = gtk_label_new("")
-      
+
       afterBuild:
         gtk_label_set_text(state.internalWidget, state.text.cstring)
 
@@ -37,7 +37,8 @@ nbCode:
       Window:
         MyRenderable(text = "Defined by App")
 
-  # brew(gui(App())) # Uncomment to execute app
+  when not defined(owlkettleDocs):
+    brew(gui(App()))
 
 nbText: """
 Note: The value of the Label is set only *once*  during build-time and never updated afterwards!
