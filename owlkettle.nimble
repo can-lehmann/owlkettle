@@ -22,7 +22,7 @@ task examples, "Build examples":
       echo "INFO: OK"
       echo "================================================================================"
 
-task genDocs, "Generate owlkettle docs":
+task genDocs, "Generate owlkettle wigets.md file from widgets.nim":
   exec "make -C docs"
 
 task setupBook, "Compiles the nimibook CLI-binary used for generating the docs":
@@ -45,6 +45,6 @@ task genBook, "Generate the owlkettle nimibook book docs":
   except CatchableError:
     discard
 
-  ## Needed as the nimibook will serve these images, while the raw md files 
-  ## in the repository will serve the others 
+  ## Needed as the nimibook will serve the copied images, while the raw md files 
+  ## in the repository will serve the originals 
   exec "cp -r ./docs/assets ./compiledBook/docs"
