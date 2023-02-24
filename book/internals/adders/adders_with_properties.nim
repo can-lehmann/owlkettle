@@ -15,9 +15,8 @@ viewable CustomBox:
 
   adder add {.key: none(string).}: 
 ...
-"""
+```
 
-nbText: """
 Additional parameters passed to adders like that are called "properties".
 Properties **must** have a default value, their type is inferred based on that value.
 If you do not want to provide a default value, you can use an `Option` type.
