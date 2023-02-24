@@ -118,7 +118,7 @@ proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
 proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
 proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
 
-when defined(adwaita12) or defined(owlkettleDocs):
+when defined(adwaita12):
   # Adw.EntryRow
   proc adw_entry_row_new(): GtkWidget
   proc adw_entry_row_add_suffix(row, child: GtkWidget)
@@ -482,7 +482,10 @@ when defined(adwaita12) or defined(owlkettleDocs):
     
     hooks:
       beforeBuild:
-        state.internalWidget = adw_entry_row_new()
+        when defined(adwaita12):
+          state.internalWidget = adw_entry_row_new()
+        else:
+          raise newException(ValueError, "Compile with -d:adwaita12 to enable the EntryRow widget.")
       connectEvents:
         proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
           let text = $gtk_editable_get_text(widget)
@@ -500,10 +503,11 @@ when defined(adwaita12) or defined(owlkettleDocs):
     
     hooks suffixes:
       (build, update):
-        state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
-          adw_entry_row_add_suffix,
-          adw_entry_row_remove
-        )
+        when defined(adwaita12):
+          state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
+            adw_entry_row_add_suffix,
+            adw_entry_row_remove
+          )
     
     hooks text:
       property:
