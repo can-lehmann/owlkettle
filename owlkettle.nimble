@@ -26,7 +26,7 @@ task genDocs, "Generate owlkettle wigets.md file from widgets.nim":
   exec "make -C docs"
 
 task setupBook, "Compiles the nimibook CLI-binary used for generating the docs":
-  exec "nimble install -y nimib@#head nimibook@#head"
+  exec "nimble install -y nimib@#head nimibook@#head markdown@0.8.5"
   exec "nim c -d:release --mm:refc nbook.nim"
 
 task genBook, "Generate the owlkettle nimibook book docs":
