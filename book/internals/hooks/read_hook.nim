@@ -48,7 +48,7 @@ nbCode:
               let (res, state) = app.open: gui:
                 MyColorChooserDialog()
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """

@@ -41,7 +41,7 @@ nbCode:
       Window:
         MyViewable(text = "Defined by App")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """
@@ -82,7 +82,7 @@ nbCode:
       Window:
         MyViewable2(text = "Example")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App2()))
 
 nbText: """

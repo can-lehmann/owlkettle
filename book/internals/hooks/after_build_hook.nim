@@ -37,7 +37,7 @@ nbCode:
       Window:
         MyRenderable(text = "Defined by App")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """

@@ -34,7 +34,7 @@ nbCode:
       Window:
         CustomLabel(text = "test")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbSave

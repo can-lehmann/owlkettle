@@ -40,7 +40,7 @@ nbCode:
         MyButton():
           proc clicked() = echo "Potato"
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 

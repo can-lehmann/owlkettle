@@ -41,7 +41,7 @@ nbCode:
       Window:
         MyViewable(text = "Example-" & urandom(2).encode())
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """

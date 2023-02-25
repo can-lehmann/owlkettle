@@ -60,7 +60,7 @@ nbCode:
           Label(text = "Me too!") {.key: some("key2").}
           Label(text = "Me three!") {.key: some("key3").}
           # Label(text = "Me four!") {.key: some("key3").} # Will cause a runtime error because key3 is already in use
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText:"""

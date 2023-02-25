@@ -49,7 +49,7 @@ nbCode:
           Label(text = "Me too!") {.add.} # Uses "add"-adder explicitly
           Label(text = "Me three!") {.add2.} # Uses "add2"-adder explicitly
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """

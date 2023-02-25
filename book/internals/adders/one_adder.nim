@@ -43,7 +43,7 @@ nbCode:
           Label(text = "Me too!")
           Label(text = "Me three!")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """

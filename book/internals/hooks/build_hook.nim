@@ -45,7 +45,7 @@ nbCode:
         Label:
           text = state.config.name
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """
@@ -91,7 +91,7 @@ nbCode:
       Window:
         Child()
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App2()))
 
 nbText: """
@@ -148,7 +148,7 @@ nbCode:
       Window:
         MyViewable(text = "Example")
 
-  when not defined(owlkettleDocs):
+  when not defined(owlkettleNimiDocs):
     brew(gui(App3()))
 
 nbText: """
