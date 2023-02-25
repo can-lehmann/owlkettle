@@ -17,7 +17,7 @@ method view(app: AppState): Widget =
     Window:
       title = "Counter"
       defaultSize = (200, 60)
-      
+
       Box(orient = OrientX, margin = 12, spacing = 6):
         Label(text = $app.counter)
         Button {.expand: false.}:
@@ -49,12 +49,11 @@ $ nimble install owlkettle
 
 ## Documentation
 
-[Click here]() for reference documentation of all widgets, including libadwaita widgets. 
+You can find a reference of all widgets in [docs/widgets.md](docs/widgets.md).
 
-[Click here]() for a tutorial for building a simple Todo application.
+A tutorial for building a simple Todo application can be found [here](docs/tutorial.md).
 
-[Click here]() for additional examples Additional examples can be found in the [examples](examples) folder.
-
+Additional examples can be found in the [examples](examples) folder.
 <!--
 If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
 
