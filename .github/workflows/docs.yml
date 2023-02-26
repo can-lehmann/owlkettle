@@ -7,8 +7,9 @@ on:
       - feature/nimibook-branch2
 
 permissions:
-  contents: read
-  pull-requests: write
+  pages: write
+  id-token: write
+
 
 jobs:
   api-docs:
