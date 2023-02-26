@@ -429,6 +429,12 @@ proc gdk_clipboard_set_text*(clipboard: GdkClipboard, text: cstring, length: cin
 proc gdk_pixbuf_new*(colorspace: GdkColorspace,
                      hasAlpha: cbool,
                      bitsPerSample, w, h: cint): GdkPixbuf
+proc gdk_pixbuf_new_from_data*(pixels: pointer,
+                               colorspace: GdkColorspace,
+                               hasAlpha: cbool,
+                               bitsPerSample, w, h, stride: cint,
+                               destroy: proc(pixels, data: pointer) {.cdecl.},
+                               destroyData: pointer): GdkPixbuf
 proc gdk_pixbuf_new_from_file*(path: cstring, error: ptr GError): GdkPixbuf
 proc gdk_pixbuf_new_from_file_at_scale*(path: cstring,
                                         w, h: cint,

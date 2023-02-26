@@ -445,7 +445,7 @@ proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   result.gdk = gdk
 
 proc newPixbuf*(width, height: int,
-                bitsPerSample: int,
+                bitsPerSample: int = 8,
                 hasAlpha: bool = false,
                 colorspace: Colorspace = ColorspaceRgb): Pixbuf =
   result = newPixbuf(gdk_pixbuf_new(
@@ -454,6 +454,33 @@ proc newPixbuf*(width, height: int,
     bitsPerSample.cint,
     width.cint,
     height.cint
+  ))
+
+proc newPixbuf*(width, height: int,
+                data: openArray[uint8],
+                bitsPerSample: int = 8,
+                hasAlpha: bool = false,
+                colorspace: Colorspace = ColorspaceRgb): Pixbuf =
+  let channels = if hasAlpha: 4 else: 3
+  assert width * height * channels * (bitsPerSample div 8) == data.len
+  
+  proc destroy(pixels: pointer, data: pointer) {.cdecl.} =
+    dealloc(pixels)
+  
+  let buffer = cast[ptr UncheckedArray[uint8]](alloc(data.len))
+  if data.len > 0:
+    copyMem(buffer, data[0].unsafeAddr, data.len)
+  
+  result = newPixbuf(gdk_pixbuf_new_from_data(
+    buffer,
+    GdkColorspace(ord(colorspace)),
+    cbool(ord(hasAlpha)),
+    bitsPerSample.cint,
+    width.cint,
+    height.cint,
+    cint(channels * width * (bitsPerSample div 8)),
+    destroy,
+    nil
   ))
 
 proc loadPixbuf*(path: string): Pixbuf =
