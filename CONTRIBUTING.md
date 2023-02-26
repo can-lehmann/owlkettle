@@ -21,13 +21,30 @@ You can add examples for how to use a widget by using the `example` widget prope
 ```nim
 renderable MyWidget:
   text: string
-  
+
   example:
     MyWidget:
       text = "Hello, world!"
 ```
 
 All examples you add to widgets in this way will also be included in the widget documentation the next time you regenerate it.
+
+### Images
+
+When adding any images to the nimibook documentation, try to account for light and dark-modes.
+You can do so easily by first making sure your image looks good in nimibooks `light` mode,
+and then adding a text block containing a css rule like this to your `.md` or `.nim` file:
+
+```html
+<style>
+.coal img.invertable-image,
+.navy img.invertable-image,
+.ayu img.invertable-image {
+  filter: invert(100%);
+  background-color:white;
+}
+</style>
+```
 
 ## Style Guide
 
