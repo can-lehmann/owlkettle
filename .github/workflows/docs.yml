@@ -6,11 +6,6 @@ on:
       - main
       - feature/nimibook-branch2
 
-permissions:
-  pages: write
-  id-token: write
-
-
 jobs:
   api-docs:
     runs-on: ${{ matrix.os }}
@@ -46,6 +41,11 @@ jobs:
             compiledBook
 
   deploy-docs:
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
     needs:
       - api-docs
     runs-on: ubuntu-22.04
