@@ -8,7 +8,6 @@ nbText: """
 .navy img.invertable-image,
 .ayu img.invertable-image {
   filter: invert(100%);
-  background-color:white;
 }
 </style>
 """
