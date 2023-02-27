@@ -39,30 +39,19 @@ jobs:
       - name: Build nimibook docs
         run: nimble --verbose genBook
 
-      - name: Archive API docs
-        uses: actions/upload-artifact@v3
-        with:
-          name: api-docs
-          path: |
-            compiledBook
+      - name: Copy files
+        run: |
+          mkdir _site
+          cp -r compiledBook/* _site
+      - name: Upload site files
+        uses: actions/upload-pages-artifact@v1 # This will automatically upload an artifact from the '/_site' directory
 
-  deploy-docs:
-    needs:
-      - api-docs
-    runs-on: ubuntu-22.04
+  deploy:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    needs: api-docs
     steps:
-      - name: Download all docs
-        uses: actions/download-artifact@v3
-
-      - name: Check files
-        run: |
-          find .
-
-      - name: Setup docs
-        run: |
-          ls api-docs/
-          mv api-docs/ docs/
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
