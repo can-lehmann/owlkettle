@@ -3,6 +3,7 @@ import nimib, nimibook
 nbInit(theme = useNimibook)
 nbText: """
 ## **Adders**
+Adders are used to add Widgets that get passed in from parent-widgets into the current widget.
 
 Remember the previous example with CustomLabel. Back then we were unable to add Widgets to CustomLabel like this:
 ```nim
