@@ -106,7 +106,9 @@ This can be done without the `gui` macro, but is not advised as you may forget t
 
 ### **Using direct assignment**
 Another way to pass multiple Widgets to another Widget is handing them over directly.
+
 This is somewhat discouraged, as it may side-step additional logic defined in the adder of the other Widget.
+However, in some circumstances it is the only way, e.g. when you need to pass on a structure of `seq[seq[Widget]]`.
 """
 
 nbCode:
