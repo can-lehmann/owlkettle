@@ -62,14 +62,14 @@ nbCode:
   import owlkettle
 
   ## The custom widget
-  viewable CustomBox:
+  viewable CustomBox2:
     myChildren: seq[Widget] # The child-widget field
 
     adder add: # Define the default adder `add`
       widget.hasMyChildren = true # Enables mutating `myChildren`
       widget.valMyChildren.add(child) # Adds the child-Widget to `myChildren`
 
-  method view(state: CustomBoxState): Widget =
+  method view(state: CustomBox2State): Widget =
     gui:
       Box(orient = OrientY):
         for child in state.myChildren:
@@ -79,10 +79,10 @@ nbCode:
     Widget gui Label(text = text)
 
   ## The App
-  viewable App:
+  viewable App2:
     discard
 
-  method view(state: AppState): Widget =
+  method view(state: App2State): Widget =
     let labels: seq[Widget] = @[
       "I was passed in from the outside".toLabel(),
       "Me too!".toLabel(),
@@ -91,12 +91,12 @@ nbCode:
 
     gui:
       Window:
-        CustomBox():
+        CustomBox2():
           for widget in labels:
             insert widget
 
   when not defined(owlkettleNimiDocs):
-    brew(gui(App()))
+    brew(gui(App2()))
 
 nbText: """
 
@@ -115,41 +115,42 @@ nbCode:
   import owlkettle
 
   ## The custom widget
-  viewable CustomBox:
+  viewable CustomBox3:
     myChildren: seq[Widget] # The child-widget field
 
     adder add: # Define the default adder `add`
       widget.hasMyChildren = true # Enables mutating `myChildren`
       widget.valMyChildren.add(child) # Adds the child-Widget to `myChildren`
 
-  method view(state: CustomBoxState): Widget =
+  method view(state: CustomBox3State): Widget =
     gui:
       Box(orient = OrientY):
         for child in state.myChildren:
           insert child # Inserts child-widget into this CustomBox-widget
 
-  proc toLabel(text: string): Widget =
+  proc toLabel2(text: string): Widget =
     Widget gui Label(text = text)
 
   ## The App
-  viewable App:
+  viewable App3:
     discard
 
-  method view(state: AppState): Widget =
+  method view(state: App3State): Widget =
     let labels: seq[Widget] = @[
-      "I was passed in from the outside".toLabel(),
-      "Me too!".toLabel(),
-      "Me three!".toLabel()
+      "I was passed in from the outside".toLabel2(),
+      "Me too!".toLabel2(),
+      "Me three!".toLabel2()
     ]
 
     gui:
       Window:
-        CustomBox():
+        CustomBox3():
           myChildren = labels
 
   when not defined(owlkettleNimiDocs):
-    brew(gui(App()))
-"""
+    brew(gui(App3()))
+
+nbText: """
 
 But what if we want to store child-widgets in a table-field on `CustomBox` ? We would need to pass the key to store the child-widget under to the adder...
 
