@@ -44,7 +44,7 @@ method view(app: AppState): Widget =
             Box(orient=OrientY, spacing=6, margin=6):
               Button:
                 icon = "user-trash-symbolic"
-                style = {ButtonDestructive}
+                style = [ButtonDestructive]
                 proc clicked() =
                   app.todos = app.todos.filterIt(not it.done)
       
@@ -59,7 +59,7 @@ method view(app: AppState): Widget =
               app.newItem = ""
           Button {.expand: false.}:
             icon = "list-add-symbolic"
-            style = {ButtonSuggested}
+            style = [ButtonSuggested]
             proc clicked() =
               app.todos.add(TodoItem(text: app.newItem))
               app.newItem = ""

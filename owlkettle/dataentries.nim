@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[strutils, math]
+import std/[strutils, math, sets]
 when defined(nimPreviewSlimSystem):
   import std/formatfloat
 import widgets, widgetdef, guidsl
@@ -84,9 +84,9 @@ method view*(entry: NumberEntryState): Widget =
       xAlign = entry.xAlign
       
       if entry.consistent:
-        style = {}
+        style = initHashSet[StyleClass]()
       else:
-        style = {EntryError}
+        style = [EntryError]
       
       proc changed(text: string) =
         entry.text = text

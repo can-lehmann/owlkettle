@@ -38,7 +38,7 @@ method view(app: AppState): Widget =
         Label(text = $app.counter)
         Button {.expand: false.}:
           text = "+"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           proc clicked() =
             app.counter += 1
 

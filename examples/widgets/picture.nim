@@ -49,7 +49,7 @@ method view(app: AppState): Widget =
         
         Button {.addLeft.}:
           text = "Open"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           
           proc clicked() =
             let (res, state) = app.open: gui:
@@ -59,12 +59,12 @@ method view(app: AppState): Widget =
                 DialogButton {.addButton.}:
                   text = "Cancel"
                   res = DialogCancel
-                  style = {ButtonSuggested}
+                  style = [ButtonSuggested]
                 
                 DialogButton {.addButton.}:
                   text = "Open"
                   res = DialogAccept
-                  style = {ButtonSuggested}
+                  style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
               let path = FileChooserDialogState(state).filename
@@ -101,12 +101,12 @@ method view(app: AppState): Widget =
                 DialogButton {.addButton.}:
                   text = "Cancel"
                   res = DialogCancel
-                  style = {ButtonSuggested}
+                  style = [ButtonSuggested]
                 
                 DialogButton {.addButton.}:
                   text = "Save"
                   res = DialogAccept
-                  style = {ButtonSuggested}
+                  style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
               try:
