@@ -22,7 +22,7 @@
 
 # Macros used to define new widgets
 
-import std/[macros, strutils, tables]
+import std/[macros, strutils, tables, hashes, sets]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, common
@@ -694,3 +694,15 @@ macro viewable*(name, body: untyped): untyped =
   result = widget.gen()
   when defined owlkettleDebug:
     echo result.repr
+
+type
+  StyleClass* = distinct string
+
+proc `$`*(x: StyleClass): string = x.string
+proc hash*(x: StyleClass): Hash {.borrow.}
+proc `==`*(x, y: StyleClass): bool {.borrow.}
+
+converter toStyleClass*(str: string): StyleClass = str.StyleClass
+converter toStyleClass*[T](strSet: T): HashSet[StyleClass] = 
+  for str in strSet:
+    result.incl str.StyleClass
