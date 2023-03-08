@@ -64,7 +64,7 @@ renderable BaseWidget:
       )
 
   hooks style:
-    property:
+    (build, update):
       updateStyle(state, widget)
 
   hooks tooltip:
