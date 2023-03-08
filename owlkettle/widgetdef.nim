@@ -701,11 +701,3 @@ type
 proc `$`*(x: StyleClass): string = x.string
 proc hash*(x: StyleClass): Hash {.borrow.}
 proc `==`*(x, y: StyleClass): bool {.borrow.}
-
-converter toStyleClass*(str: string): StyleClass = str.StyleClass
-converter toStyleClassSet*(str: string): HashSet[StyleClass] = 
-  result.incl str.StyleClass 
-  
-converter toStyleClassSet*[T](strSet: T): HashSet[StyleClass] =
-  for str in strSet:
-    result.incl str.StyleClass
