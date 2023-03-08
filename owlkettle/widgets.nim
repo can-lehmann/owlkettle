@@ -36,21 +36,11 @@ type Margin* = object
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()
+  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
-  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
+  style: HashSet[StyleClass] = initHashSet[StyleClass]()
   tooltip: string = "" ## The widget's tooltip is shown on hover
-  
-  hooks sensitive:
-    property:
-      gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
-  
-  hooks sizeRequest:
-    property:
-      gtk_widget_set_size_request(state.internalWidget,
-        cint(state.sizeRequest.x),
-        cint(state.sizeRequest.y)
-      )
 
   hooks internalMargin:
     (build, update):
@@ -60,7 +50,23 @@ renderable BaseWidget:
         gtk_widget_set_margin_bottom(state.internalWidget, cint(state.internalMargin.bottom))
         gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
         gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
+
+  hooks sensitive:
+    property:
+      gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
   
+  hooks sizeRequest:
+    property:
+      gtk_widget_set_size_request(
+        state.internalWidget,
+        cint(state.sizeRequest.x),
+        cint(state.sizeRequest.y)
+      )
+
+  hooks style:
+    property:
+      updateStyle(state, widget)
+
   hooks tooltip:
     property:
       if state.tooltip.len > 0:
