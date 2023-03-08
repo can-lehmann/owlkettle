@@ -148,10 +148,10 @@ proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
 const
-  BoxLinked = "linked".StyleClass
-  BoxCard = "card".StyleClass
-  BoxToolbar = "toolbar".StyleClass
-  BoxOsd = "osd".StyleClass
+  BoxLinked* = "linked".StyleClass
+  BoxCard* = "card".StyleClass
+  BoxToolbar* = "toolbar".StyleClass
+  BoxOsd* = "osd".StyleClass
 
 type BoxChild[T] = object
   widget: T
@@ -323,13 +323,13 @@ renderable Overlay of BaseWidget:
     ))
 
 const
-  LabelTitle1 = "title-1".StyleClass
-  LabelTitle2 = "title-2".StyleClass
-  LabelTitle3 = "title-3".StyleClass
-  LabelTitle4 = "title-4".StyleClass
-  LabelHeading = "heading".StyleClass
-  LabelBody = "body".StyleClass
-  LabelMonospace = "monospace".StyleClass
+  LabelTitle1* = "title-1".StyleClass
+  LabelTitle2* = "title-2".StyleClass
+  LabelTitle3* = "title-3".StyleClass
+  LabelTitle4* = "title-4".StyleClass
+  LabelHeading* = "heading".StyleClass
+  LabelBody* = "body".StyleClass
+  LabelMonospace* = "monospace".StyleClass
 
 type EllipsizeMode* = enum
   ## Determines whether to ellipsize text when text does not fit in a given space
@@ -674,11 +674,11 @@ renderable Picture of BaseWidget:
         )
 
 const
-  ButtonSuggested = "suggested-action".StyleClass
-  ButtonDestructive = "destructive-action".StyleClass
-  ButtonFlat = "flat".StyleClass
-  ButtonPill = "pill".StyleClass
-  ButtonCircular = "circular".StyleClass
+  ButtonSuggested* = "suggested-action".StyleClass
+  ButtonDestructive* = "destructive-action".StyleClass
+  ButtonFlat* = "flat".StyleClass
+  ButtonPill* = "pill".StyleClass
+  ButtonCircular* = "circular".StyleClass
 
 renderable Button of BaseWidget:
   child: Widget
@@ -885,9 +885,9 @@ renderable ScrolledWindow of BaseWidget:
     widget.valChild = child
 
 const
-  EntrySuccess = "success".StyleClass
-  EntryWarning = "warning".StyleClass
-  EntryError = "error".StyleClass
+  EntrySuccess* = "success".StyleClass
+  EntryWarning* = "warning".StyleClass
+  EntryError* = "error".StyleClass
 
 renderable Entry of BaseWidget:
   text: string
@@ -1959,7 +1959,7 @@ renderable ListBoxRow of BaseWidget:
             echo it
           Label(text = $it)
 
-const ListBoxNavigationSidebar = "navigation-sidebar".StyleClass
+const ListBoxNavigationSidebar* = "navigation-sidebar".StyleClass
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
