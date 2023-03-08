@@ -37,9 +37,9 @@ renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()
   internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
+  internalStyle: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
-  style: HashSet[StyleClass] = initHashSet[StyleClass]()
   tooltip: string = "" ## The widget's tooltip is shown on hover
 
   hooks internalMargin:
@@ -63,7 +63,7 @@ renderable BaseWidget:
         cint(state.sizeRequest.y)
       )
 
-  hooks style:
+  hooks internalStyle:
     (build, update):
       updateStyle(state, widget)
 
@@ -76,6 +76,9 @@ renderable BaseWidget:
   
   setter margin: int
   setter margin: Margin
+  setter style: StyleClass
+  setter style: varargs[StyleClass]
+  setter style: HashSet[StyleClass]
 
 proc `hasMargin=`*(widget: BaseWidget, has: bool) =
   widget.hasInternalMargin = has
@@ -85,6 +88,16 @@ proc `valMargin=`*(widget: BaseWidget, width: int) =
 
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
   widget.valInternalMargin = margin
+
+proc `hasStyle=`*(widget: BaseWidget, has: bool) =
+  widget.hasInternalStyle = has
+
+proc `valStyle=`*(widget: BaseWidget, cssClasses: HashSet[StyleClass]) =
+  widget.valInternalStyle = cssClasses
+
+proc `valStyle=`*(widget: BaseWidget, cssClasses: varargs[StyleClass]) =
+  widget.valInternalStyle = cssClasses.toHashSet()
+
 
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
@@ -2328,9 +2341,20 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  style: HashSet[StyleClass] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  internalStyle: HashSet[StyleClass] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
   setter res: DialogResponseKind
+  setter style: varargs[StyleClass]
+  setter style: HashSet[StyleClass]
+
+proc `hasStyle=`*(button: DialogButton, has: bool) =
+  button.hasInternalStyle = has
+
+proc `valStyle=`*(button: DialogButton, cssClasses: HashSet[StyleClass]) =
+  button.valInternalStyle = cssClasses
+
+proc `valStyle=`*(button: DialogButton, cssClasses: varargs[StyleClass]) =
+  button.valInternalStyle = cssClasses.toHashSet()
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
   button.hasResponse = value
@@ -2355,7 +2379,7 @@ renderable Dialog of Window:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valStyle:
+        for styleClass in button.valInternalStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
@@ -2377,7 +2401,7 @@ renderable BuiltinDialog:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valStyle:
+        for styleClass in button.valInternalStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
