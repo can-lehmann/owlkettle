@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feature/nimibook-branch2
+      - feature/#36-custom-css-class-support
 
 
 permissions:
