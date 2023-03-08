@@ -34,7 +34,7 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           text = "About"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           proc clicked() =
             discard app.open: gui:
               AboutDialog:

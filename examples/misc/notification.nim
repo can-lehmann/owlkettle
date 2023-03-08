@@ -55,7 +55,7 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           text = "Send"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           
           proc clicked() =
             sendNotification("my-notification",

@@ -34,7 +34,7 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           icon = "list-add-symbolic"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
         
         Button {.addLeft.}:
           icon = "user-trash-symbolic"

@@ -108,7 +108,7 @@ method view(app: AppState): Widget =
                 ListBoxRow {.addRow.}:
                   Button:
                     icon = "list-add-symbolic"
-                    style = {ButtonFlat}
+                    style = [ButtonFlat]
                     proc clicked() =
                       app.path.add((0.0, 0.0))
               
@@ -210,7 +210,7 @@ method view(app: AppState): Widget =
                 ListBoxRow {.addRow.}:
                   Button:
                     icon = "list-add-symbolic"
-                    style = {ButtonFlat}
+                    style = [ButtonFlat]
                     proc clicked() =
                       app.dash.add(10.0)
               

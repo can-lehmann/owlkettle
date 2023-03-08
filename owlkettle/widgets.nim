@@ -278,7 +278,7 @@ renderable Box of BaseWidget:
   example:
     HeaderBar {.addTitlebar.}:
       Box {.addLeft.}:
-        style = {BoxLinked}
+        style = [BoxLinked]
         
         for it in 0..<5:
           Button {.expand: false.}:
@@ -727,14 +727,14 @@ renderable Button of BaseWidget:
   example:
     Button:
       icon = "list-add-symbolic"
-      style = {ButtonSuggested}
+      style = [ButtonSuggested]
       proc clicked() =
         echo "clicked"
   
   example:
     Button:
       text = "Delete"
-      style = {ButtonDestructive}
+      style = [ButtonDestructive]
   
   example:
     Button:

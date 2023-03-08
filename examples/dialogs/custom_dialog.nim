@@ -57,7 +57,7 @@ method view(dialog: UserDialogState): Widget =
       
       DialogButton {.addButton.}:
         text = "Create"
-        style = {ButtonSuggested}
+        style = [ButtonSuggested]
         res = DialogAccept
       
       DialogButton {.addButton.}:
@@ -95,7 +95,7 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           icon = "list-add-symbolic"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           proc clicked() =
             let (res, state) = app.open(gui(UserDialog()))
             if res.kind == DialogAccept:
