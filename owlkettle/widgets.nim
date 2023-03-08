@@ -147,11 +147,11 @@ type Orient* = enum OrientX, OrientY
 proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
-type BoxStyle* = enum
-  BoxLinked = "linked"
-  BoxCard = "card"
-  BoxToolbar = "toolbar"
-  BoxOsd = "osd"
+const
+  BoxLinked = "linked".StyleClass
+  BoxCard = "card".StyleClass
+  BoxToolbar = "toolbar".StyleClass
+  BoxOsd = "osd".StyleClass
 
 type BoxChild[T] = object
   widget: T
@@ -167,8 +167,7 @@ renderable Box of BaseWidget:
   orient: Orient ## Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
   spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
-  style: set[BoxStyle]
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_box_new(
@@ -243,11 +242,7 @@ renderable Box of BaseWidget:
           state.children[^1].widget.unwrapInternalWidget()
         )
         discard state.children.pop()
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   adder add {.expand: true,
               hAlign: AlignFill,
               vAlign: AlignFill.}:
@@ -328,15 +323,14 @@ renderable Overlay of BaseWidget:
       vAlign: vAlign
     ))
 
-type LabelStyle* = enum
-  LabelTitle1 = "title-1"
-  LabelTitle2 = "title-2"
-  LabelTitle3 = "title-3"
-  LabelTitle4 = "title-4"
-  
-  LabelHeading = "heading"
-  LabelBody = "body"
-  LabelMonospace = "monospace"
+const
+  LabelTitle1 = "title-1".StyleClass
+  LabelTitle2 = "title-2".StyleClass
+  LabelTitle3 = "title-3".StyleClass
+  LabelTitle4 = "title-4".StyleClass
+  LabelHeading = "heading".StyleClass
+  LabelBody = "body".StyleClass
+  LabelMonospace = "monospace".StyleClass
 
 type EllipsizeMode* = enum
   ## Determines whether to ellipsize text when text does not fit in a given space
@@ -355,17 +349,11 @@ renderable Label of BaseWidget:
   ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
   wrap: bool = false ## Enables/Disable wrapping of text.
   useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
-  
-  style: set[LabelStyle] ## The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_label_new("")
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   hooks text:
     property:
       if state.useMarkup:
@@ -686,15 +674,14 @@ renderable Picture of BaseWidget:
           cbool(ord(state.contentFit != ContentFill))
         )
 
-type ButtonStyle* = enum
-  ButtonSuggested = "suggested-action",
-  ButtonDestructive = "destructive-action",
-  ButtonFlat = "flat",
-  ButtonPill = "pill",
-  ButtonCircular = "circular"
+const
+  ButtonSuggested = "suggested-action".StyleClass
+  ButtonDestructive = "destructive-action".StyleClass
+  ButtonFlat = "flat".StyleClass
+  ButtonPill = "pill".StyleClass
+  ButtonCircular = "circular".StyleClass
 
 renderable Button of BaseWidget:
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   child: Widget
   shortcut: string ## Keyboard shortcut
   
@@ -724,11 +711,7 @@ renderable Button of BaseWidget:
     update:
       if widget.hasShortcut:
         assert state.shortcut == widget.valShortcut # TODO
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_button_set_child)
@@ -902,10 +885,10 @@ renderable ScrolledWindow of BaseWidget:
     widget.hasChild = true
     widget.valChild = child
 
-type EntryStyle* = enum
-  EntrySuccess = "success",
-  EntryWarning = "warning",
-  EntryError = "error"
+const
+  EntrySuccess = "success".StyleClass
+  EntryWarning = "warning".StyleClass
+  EntryError = "error".StyleClass
 
 renderable Entry of BaseWidget:
   text: string
@@ -915,9 +898,7 @@ renderable Entry of BaseWidget:
   xAlign: float = 0.0
   visibility: bool = true
   invisibleChar: Rune = '*'.Rune
-  
-  style: set[EntryStyle]
-  
+
   proc changed(text: string) ## Called when the text in the Entry changed
   proc activate() ## Called when the user presses enter/return
 
@@ -936,10 +917,6 @@ renderable Entry of BaseWidget:
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
       state.internalWidget.disconnect(state.activate)
-
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
 
   hooks text:
     property:
@@ -1594,9 +1571,7 @@ renderable PopoverMenu of BasePopover:
 renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
-  
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_menu_button_new()
@@ -1608,11 +1583,7 @@ renderable MenuButton of BaseWidget:
   hooks popover:
     (build, update):
       state.updateChild(state.popover, widget.valPopover, gtk_menu_button_set_popover)
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   setter text: string
   setter icon: string ## Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   
@@ -1989,8 +1960,7 @@ renderable ListBoxRow of BaseWidget:
             echo it
           Label(text = $it)
 
-type ListBoxStyle* = enum
-  ListBoxNavigationSidebar = "navigation-sidebar"
+const ListBoxNavigationSidebar = "navigation-sidebar".StyleClass
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
@@ -1999,8 +1969,7 @@ renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
   selected: HashSet[int]
-  style: set[ListBoxStyle] = {}
-  
+
   proc select(rows: HashSet[int])
   
   hooks:
@@ -2055,11 +2024,7 @@ renderable ListBox of BaseWidget:
         for row in state.selected:
           if row >= state.rows.len:
             raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   adder addRow:
     widget.hasRows = true
     widget.valRows.add(child)
@@ -2364,8 +2329,8 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  
+  style: HashSet[StyleClass] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+
   setter res: DialogResponseKind
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
