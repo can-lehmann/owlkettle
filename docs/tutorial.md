@@ -1,7 +1,7 @@
 # Tutorial
 
 Let's build a simple Todo app using owlkettle.
-The source code for this example can be found [here](../examples/apps/todo.nim).
+The source code for this example can be found [here](https://github.com/can-lehmann/owlkettle/blob/main/examples/apps/todo.nim).
 Here is what it will look like when it is done.
 
 <img alt="Todo Application" src="assets/tutorial/todo_final.png" width="428px">
@@ -139,20 +139,20 @@ Clicking on the `MenuButton` opens the menu.
 
 <img alt="Todo Application" src="assets/tutorial/todo_5.png" width="428px">
 
-The source code for this example can be found [here](../examples/apps/todo.nim).
+The source code for this example can be found [here](https://github.com/can-lehmann/owlkettle/blob/main/examples/apps/todo.nim).
 
 ## Next Steps
 
 - Improve the Todo App
   - Add an option to hide completed items
   - Replace the "Delete" button with a `ModelButton` and create a simple menu structure.
-    Check out [the popover_menu example](/examples/widgets/popover_menu.nim) for how to create a simple menu structure.
+    Check out [the popover_menu example](https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/popover_menu.nim) for how to create a simple menu structure.
   - Use `owlkettle/adw` to convert the Todo app to a libadwaita application.
   - Save and load todos from a file
-- Check out the other [examples](/examples)
+- Check out the other [examples](https://github.com/can-lehmann/owlkettle/blob/main/examples)
 - Start working on your own projects! You might find the following links useful:
-  - Here is a list of [examples](/examples)
-  - [widgets.md](widgets.md) is a reference of all owlkettle widgets
-  - [widgets_adwaita.md](widgets_adwaita.md) is a reference of all libadwaita widgets supported by owlkettle
+  - Here is a list of [examples](https://github.com/can-lehmann/owlkettle/blob/main/examples)
+  - [widgets.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/widgets.md) is a reference of all owlkettle widgets
+  - [widgets_adwaita.md](https://github.com/can-lehmann/owlkettle/blob/main/docs/widgets_adwaita.md) is a reference of all libadwaita widgets supported by owlkettle
 
 

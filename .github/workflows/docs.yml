@@ -1,0 +1,57 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+      - feature/nimibook-branch2
+
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  api-docs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+          # - windows-latest
+          # - macOS-latest
+        nim:
+          - '1.6.10'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ matrix.nim }}
+
+      - run: nimble install -Y
+      - name: Setup dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y libgtk-4-dev libadwaita-1-dev
+
+      - name: Build nimibook docs
+        run: nimble --verbose genBook
+
+      - name: Copy files
+        run: |
+          mkdir _site
+          cp -r compiledBook/* _site
+      - name: Upload site files
+        uses: actions/upload-pages-artifact@v1 # This will automatically upload an artifact from the '/_site' directory
+
+  deploy:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    needs: api-docs
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

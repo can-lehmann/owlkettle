@@ -22,5 +22,29 @@ task examples, "Build examples":
       echo "INFO: OK"
       echo "================================================================================"
 
-task genDocs, "Generate owlkettle docs":
+task genDocs, "Generate owlkettle wigets.md file from widgets.nim":
   exec "make -C docs"
+
+task setupBook, "Compiles the nimibook CLI-binary used for generating the docs":
+  exec "nimble install -y nimib@#head nimibook@#head markdown@0.8.5"
+  exec "nim c -d:release --mm:refc nbook.nim"
+
+task genBook, "Generate the owlkettle nimibook book docs":
+  exec "nimble setupBook"
+  echo "BOOK-CLI-GENERATED"
+
+  exec "nimble genDocs"
+  echo "WIDGETS-DOCS-GENERATED"
+
+  exec "./nbook --mm:refc init"
+  echo "INITIALIZED NIMIBOOK"
+
+  try:
+    exec "./nbook build --mm:refc --define:owlkettleNimiDocs "
+    echo "BUILT NIMIBOOK"
+  except CatchableError:
+    discard
+
+  ## Needed as the nimibook will serve the copied images, while the raw md files
+  ## in the repository will serve the originals
+  exec "cp -r ./docs/assets ./compiledBook/docs"
