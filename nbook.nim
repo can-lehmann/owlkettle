@@ -34,5 +34,7 @@ var book = initBookWithToc:
       entry("Property Hook", "hooks/property_hook.nim")
       entry("Read Hook", "hooks/read_hook.nim")
 
+    entry("Setters", "internals/setters.nim")
+
   entry("Contributing", "CONTRIBUTING.md")
 nimibookCli(book)
