@@ -4,18 +4,24 @@ nbInit(theme = useNimibook)
 
 nbText: """
 ## **Setters**
-Setters are a convenience mechanism for widgets.
-Through them you can hide fields on your `WidgetState`.
-Parent-widgets will be able to assign to "pseudo-fields", whose assigned values get converted and then forwarded to the actual field on `WidgetState`.
+Setters are a convenience mechanism for creating widgets.
+During creation, setters act like any other field on the widget, in the sense that they can be assigned to. 
+When doing this assignment, the setter is executed and can decide how the assigned value should be handled.
 
-allow parent-widgets to assign to fields on `WidgetState` with different types of values that get converted to the field on `WidgetState`!
+One example is the `Button.icon` setter. 
+When assigning to it, the setter creates an `Icon` widget with the given name and adds it to the `Button`.
 
-Every setter consists of:
-- a `setter <PseudoFieldName>` declaration with the type that the setter receives, e.g. `setter margins: int` defines a setter that will receive an int from a parent-widget
-- a `has<PseudoFieldName>=` proc, forwarding booleans that would enable/disable the pseudo-field to the actual field on `WidgetState`
-- a `val<PseudoFieldName>=` proc, converting the value received by the pseudo-field as needed and assigning it to the actual field on `WidgetState`
+Another usecase is converting the type assigned to a field before storing it. 
+For example, the `BaseWidget.margin` setter has overloads for both the `Margin` object and `int`. 
+When you assign an `int` to the `margin` setter, it first converts it to a `Margin` object with the same margin on all sides. 
+When you assign a `Margin` object, it gets stored directly.
 
-Note: You only need 1 `has<PseudoFieldName>` proc, even if you define multiple setters.
+To create a setter you need:
+- a `setter <SetterName>` declaration with the type that the setter receives, e.g. `setter margins: int` defines a setter that will receive an int from a parent-widget
+- a `has<SetterName>=` proc, forwarding booleans that would enable/disable the "field" represented by the setter to the actual field on `WidgetState`
+- a `val<SetterName>=` proc, converting the value received by the setter as needed and assigning it to the actual field on `WidgetState`
+
+Note: You only need 1 `has<SetterName>` proc, even if you define multiple setters.
 
 Lets take a look at a code example:
 """
@@ -62,15 +68,11 @@ nbCode:
     brew(gui(App()))
 
 nbText: """
-This defines a `MyViewable` that has a pseudo-field called `margins`, which hides the "true" field `internalMargins`.
-When `margins` gets assigned to, it triggers the `valMargins=` procs, which will convert the received value into the type of `internalMargins` and assign it and assign it via `valInternalMargins`.
+This defines a `MyViewable` that has a setter called `margins`.
+When `margins` gets assigned to, it triggers the `valMargins=` procs.
+This will convert the received value into the type of `internalMargins` and assign to it via `valInternalMargins`.
 
-With this we can keep `internalMargins` hidden from the user.
-They can now assign an `array[3, int]` **and** an `int` to the "margins" field, the int just gets turned into a `array[3, int]`!
-This way you can be more concise in the value assignments, when the transformation is obvious.
-
-In fact, setting `margin` on most widgets works the same way as explained here! 
-You can either assign a `Margin` object, or an int which will get turned into a `Margin` object using the int as margin for every direction.
+Thus, via the setter the widget can now accept an `array[3, int]` **and** an `int` for the "internalMargins" field, the int just gets turned into a `array[3, int]`!
 """
 
 nbSave
