@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/nimibook-branch2
-
 
 permissions:
   contents: write

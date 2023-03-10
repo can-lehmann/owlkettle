@@ -54,6 +54,9 @@ You can find a reference of all widgets in [docs/widgets.md](docs/widgets.md).
 A tutorial for building a simple Todo application can be found [here](docs/tutorial.md).
 
 Additional examples can be found in the [examples](examples) folder.
+
+A reference of all supported libadwaita widgets can be found in [docs/widgets_adwaita.md](docs/widgets_adwaita.md).
+
 <!--
 If you want to cross compile checkout [docs/cross_compiling.md](docs/cross_compiling.md).
 
