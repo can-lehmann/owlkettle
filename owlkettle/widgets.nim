@@ -37,7 +37,7 @@ renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()
   internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
-  internalStyle: HashSet[StyleClass] = initHashSet[StyleClass]()
+  internalStyle {.internal.}: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   tooltip: string = "" ## The widget's tooltip is shown on hover
@@ -2341,7 +2341,7 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  internalStyle: HashSet[StyleClass] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  internalStyle {.internal.}: HashSet[StyleClass]
 
   setter res: DialogResponseKind
   setter style: varargs[StyleClass]
