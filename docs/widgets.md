@@ -12,13 +12,15 @@ by calling `<WidgetName>State.app.redraw()
 
 - `sensitive: bool = true` If the widget is interactive
 - `sizeRequest: tuple[x, y: int] = (-1, -1)` Requested widget size. A value of -1 means that the natural size of the widget will be used.
-- `style: HashSet[StyleClass] = initHashSet[StyleClass]()`
 - `tooltip: string = ""` The widget's tooltip is shown on hover
 
 ###### Setters
 
 - `margin: int`
 - `margin: Margin`
+- `style: StyleClass`
+- `style: varargs[StyleClass]`
+- `style: HashSet[StyleClass]`
 
 
 ## BaseWindow
@@ -961,11 +963,12 @@ renderable DialogButton
 
 - `text: string`
 - `response: DialogResponse`
-- `style: HashSet[StyleClass]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 ###### Setters
 
 - `res: DialogResponseKind`
+- `style: varargs[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+- `style: HashSet[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 
 ## Dialog
