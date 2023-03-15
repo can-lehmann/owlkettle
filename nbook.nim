@@ -5,14 +5,12 @@ import nimibook
 var book = initBookWithToc:
   entry("Welcome to Owlkettle!", "README.md")
   entry("Tutorial", "docs/tutorial.md")
-  entry("General Examples", "examples/README.md")
-
-  entry("Tooling", "docs/recommended_tools.md")
+  entry("Examples", "examples/README.md")
 
   section("Reference", "book/reference.nim"):
-    entry("General Widget Reference", "../docs/widgets.md")
-    entry("Adwaita Widget Reference", "../docs/widgets_adwaita.md")
-    entry("DataEntry Widget Reference", "../docs/widgets_dataentries.md")
+    entry("General Widgets", "../docs/widgets.md")
+    entry("Adwaita Widgets", "../docs/widgets_adwaita.md")
+    entry("DataEntry Widgets", "../docs/widgets_dataentries.md")
 
   #entry("Migrating", "docs/migrating_1_to_2.md")
   #entry("Cross Compiling", "docs/cross_compiling.md")
@@ -36,5 +34,11 @@ var book = initBookWithToc:
 
     entry("Setters", "internals/setters.nim")
 
+  entry("Tooling", "docs/recommended_tools.md")
   entry("Contributing", "CONTRIBUTING.md")
+  
+  section("Legal", "book/legal/legal.md"):
+    entry("License", "license.md")
+    entry("Imprint / Impressum", "imprint.md")
+
 nimibookCli(book)
