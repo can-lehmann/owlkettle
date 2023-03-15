@@ -18,7 +18,7 @@ var book = initBookWithToc:
   section("Internals", "book/internals.nim"):
     entry("Custom Widgets", "internals/custom_widgets.nim")
 
-    section("Adding Child Widgets", "internals/adders.nim"):
+    section("Adders", "internals/adders.nim"):
       entry("Single Adder", "adders/single_adder.nim")
       entry("Adders with Properties", "adders/adders_with_properties.nim")
       entry("Multiple Adders", "adders/multiple_adders.nim")

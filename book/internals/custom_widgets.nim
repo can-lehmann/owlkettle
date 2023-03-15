@@ -5,9 +5,10 @@ nbInit(theme = useNimibook)
 nbText: """
 ## **Custom Widgets**
 
-To make one, just declare the `Viewable` and the fields on its state, then write a `view` method that creates the `Widget`.
+To create a custom widget, just declare a new `viewable` and then write a `view` method for it.
+The `viewable` defines all fields of the widget and the `view` method specifies how to render the custom widget.
 
-Let's look at a `CustomLabel` widget with a `text`-field that renders the text and another piece of text besides it.
+Let's look at a `CustomLabel` widget with a `text`-field that renders the text with another piece of text besides it.
 
 """
 

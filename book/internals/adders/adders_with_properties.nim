@@ -6,7 +6,7 @@ nbText: """
 
 Let's make a custom widget that stores Widgets in a `Table[string, Widget]` and displays the widget next to the key it was stored with.
 
-First we need to modify our adder, telling it that there will be additional parameters.
+First we need to add the parameter for the key to our adder.
 
 ```nim
 ...
@@ -17,7 +17,7 @@ viewable CustomBox:
 ...
 ```
 
-Additional parameters passed to adders like that are called "properties".
+Additional parameters passed to adders are called "properties".
 Properties **must** have a default value, their type is inferred based on that value.
 If you do not want to provide a default value, you can use an `Option` type.
 
@@ -68,4 +68,5 @@ If we were to remove the "#" in front of the last Label, we would be facing a ru
 
 Note: When using optionals, due to the macros involved, you can only use the `some(<value>)`/`none(<typedesc>)` syntax.
 """
+
 nbSave
