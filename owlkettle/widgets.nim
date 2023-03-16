@@ -2348,6 +2348,7 @@ renderable DialogButton:
   setter res: DialogResponseKind
   setter style: varargs[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   setter style: HashSet[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  setter style: StyleClass  ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
   hooks internalStyle:
     (build, update):
@@ -2361,6 +2362,9 @@ proc `valStyle=`*(button: DialogButton, cssClasses: HashSet[StyleClass]) =
 
 proc `valStyle=`*(button: DialogButton, cssClasses: varargs[StyleClass]) =
   button.valInternalStyle = cssClasses.toHashSet()
+
+proc `valStyle=`*(button: DialogButton, cssClass: StyleClass) =
+  button.valInternalStyle = [cssClass].toHashSet()
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
   button.hasResponse = value
