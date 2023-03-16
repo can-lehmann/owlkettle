@@ -104,7 +104,7 @@ Window:
           app.new_item = new_item
       Button {.expand: false.}:
         icon = "list-add-symbolic"
-        style = {ButtonSuggested}
+        style = [ButtonSuggested]
         proc clicked() =
           app.todos.add(TodoItem(text: app.new_item))
           app.new_item = ""
@@ -128,7 +128,7 @@ Window:
         Box(orient=OrientY, spacing=6, margin=6):
           Button:
             icon = "user-trash-symbolic"
-            style = {ButtonDestructive}
+            style = [ButtonDestructive]
             proc clicked() =
               app.todos = app.todos.filter_it(not it.done)
   Box:
