@@ -132,12 +132,12 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
-    <td><a href="widgets/grid.nim">Grid</a></td>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/grid.nim">Grid</a></td>
     <td>No Image</td>
   </tr>
   <tr>
-    <td><a href="widgets/picture.nim">Picture</a></td>
-    <td><img alt="Picture" src="/docs/assets/examples/picture.png" width="870px"></td>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
+    <td><img alt="Picture" src="../docs/assets/examples/picture.png" width="870px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/popover_menu.nim">Popover Menu</a></td>
