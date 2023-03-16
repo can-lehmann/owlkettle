@@ -912,6 +912,17 @@ proc gtk_drop_down_set_selected*(dropDown: GtkWidget, selected: cuint)
 proc gtk_drop_down_get_selected*(dropDown: GtkWidget): cuint
 proc gtk_drop_down_set_show_arrow*(dropDown: GtkWidget, showArrow: cbool)
 proc gtk_drop_down_set_expression*(dropDown: GtkWidget, expression: GtkExpression)
+
+# Gtk.Grid
+proc gtk_grid_new*(): GtkWidget
+proc gtk_grid_attach*(grid, child: GtkWidget,
+                      x, y, w, h: cint)
+proc gtk_grid_remove*(grid, child: GtkWidget)
+proc gtk_grid_set_row_homogeneous*(grid: GtkWidget, homogeneous: cbool)
+proc gtk_grid_set_column_homogeneous*(grid: GtkWidget, homogeneous: cbool)
+proc gtk_grid_set_row_spacing*(grid: GtkWidget, spacing: cuint)
+proc gtk_grid_set_column_spacing*(grid: GtkWidget, spacing: cuint)
+
 {.pop.}
 
 {.push hint[Name]: off.}

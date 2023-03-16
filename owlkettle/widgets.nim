@@ -2243,6 +2243,180 @@ renderable DropDown of BaseWidget:
       proc select(itemIndex: int) =
         app.selectedItem = itemIndex
 
+type
+  GridRegion = object
+    x, y: int
+    width, height: int
+  
+  GridChild[T] = object
+    widget: T
+    region: GridRegion
+    hExpand: bool
+    vExpand: bool
+    hAlign: Align
+    vAlign: Align
+
+proc assignApp(child: GridChild[Widget], app: Viewable) =
+  child.widget.assignApp(app)
+
+proc attach(grid: GtkWidget, child: GridChild[WidgetState]) =
+  gtk_grid_attach(grid,
+    child.widget.unwrapInternalWidget(),
+    child.region.x.cint,
+    child.region.y.cint,
+    child.region.width.cint,
+    child.region.height.cint
+  )
+
+renderable Grid of BaseWidget:
+  children: seq[GridChild[Widget]]
+  rowSpacing: int
+  columnSpacing: int
+  rowHomogeneous: bool
+  columnHomogeneous: bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_grid_new()
+  
+  hooks rowSpacing:
+    property:
+      gtk_grid_set_row_spacing(state.internalWidget, state.rowSpacing.cuint)
+  
+  hooks columnSpacing:
+    property:
+      gtk_grid_set_column_spacing(state.internalWidget, state.columnSpacing.cuint)
+  
+  hooks rowHomogeneous:
+    property:
+      gtk_grid_set_row_homogeneous(state.internalWidget, cbool(ord(state.rowHomogeneous)))
+  
+  hooks columnHomogeneous:
+    property:
+      gtk_grid_set_column_homogeneous(state.internalWidget, cbool(ord(state.columnHomogeneous)))
+  
+  hooks children:
+    (build, update):
+      widget.valChildren.assignApp(state.app)
+      var it = 0
+      while it < widget.valChildren.len and it < state.children.len:
+        let
+          oldChild = state.children[it].widget
+          newChild = widget.valChildren[it].widget.update(oldChild)
+        
+        var readd = false
+        if newChild.isNil:
+          state.children[it].widget = newChild
+          readd = true
+        
+        if widget.valChildren[it].region != state.children[it].region:
+          state.children[it].region = widget.valChildren[it].region
+          readd = true
+        
+        if readd:
+          gtk_grid_remove(state.internalWidget, oldChild.unwrapInternalWidget())
+          state.internalWidget.attach(state.children[it])
+        
+        let childWidget = state.children[it].widget.unwrapInternalWidget()
+        
+        if readd or state.children[it].hExpand != widget.valChildren[it].hExpand:
+          state.children[it].hExpand = widget.valChildren[it].hExpand
+          gtk_widget_set_hexpand(childWidget, cbool(ord(state.children[it].hExpand)))
+        
+        if readd or state.children[it].vExpand != widget.valChildren[it].vExpand:
+          state.children[it].vExpand = widget.valChildren[it].vExpand
+          gtk_widget_set_vexpand(childWidget, cbool(ord(state.children[it].vExpand)))
+        
+        if readd or state.children[it].hAlign != widget.valChildren[it].hAlign:
+          state.children[it].hAlign = widget.valChildren[it].hAlign
+          gtk_widget_set_halign(childWidget, toGtk(state.children[it].hAlign))
+        
+        if readd or state.children[it].vAlign != widget.valChildren[it].vAlign:
+          state.children[it].vAlign = widget.valChildren[it].vAlign
+          gtk_widget_set_valign(childWidget, toGtk(state.children[it].vAlign))
+        
+        it += 1
+      
+      while it < widget.valChildren.len:
+        let
+          updater = widget.valChildren[it]
+          child = GridChild[WidgetState](
+            widget: updater.widget.build(),
+            region: updater.region,
+            hExpand: updater.hExpand,
+            vExpand: updater.vExpand,
+            hAlign: updater.hAlign,
+            vAlign: updater.vAlign
+          )
+        
+        state.internalWidget.attach(child)
+        
+        let childWidget = child.widget.unwrapInternalWidget()
+        gtk_widget_set_hexpand(childWidget, cbool(ord(child.hExpand)))
+        gtk_widget_set_vexpand(childWidget, cbool(ord(child.vExpand)))
+        gtk_widget_set_halign(childWidget, toGtk(child.hAlign))
+        gtk_widget_set_valign(childWidget, toGtk(child.vAlign))
+        
+        state.children.add(child)
+        
+        it += 1
+      
+      while it < state.children.len:
+        let child = state.children.pop()
+        gtk_grid_remove(state.internalWidget, child.widget.unwrapInternalWidget())
+        it += 1
+  
+  adder add {.x: 0, y: 0, width: 1, height: 1,
+              hExpand: false, vExpand: false,
+              hAlign: AlignFill, vAlign: AlignFill.}:
+    widget.hasChildren = true
+    widget.valChildren.add(GridChild[Widget](
+      widget: child,
+      region: GridRegion(
+        x: x,
+        y: y,
+        width: width,
+        height: height
+      ),
+      hExpand: hExpand,
+      vExpand: vExpand,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
+  
+  setter spacing: int
+  setter homogeneous: bool
+  
+  example:
+    Grid:
+      spacing = 6
+      margin = 12
+      
+      Button {.x: 1, y: 1, hExpand: true, vExpand: true.}:
+        text = "A"
+      
+      Button {.x: 2, y: 1.}:
+        text = "B"
+      
+      Button {.x: 1, y: 2, width: 2, hAlign: AlignCenter.}:
+        text = "C"
+
+proc `hasSpacing=`*(grid: Grid, has: bool) =
+  grid.hasColumnSpacing = has
+  grid.hasRowSpacing = has
+
+proc `valSpacing=`*(grid: Grid, spacing: int) =
+  grid.valRowSpacing = spacing
+  grid.valColumnSpacing = spacing
+
+proc `hasHomogeneous=`*(grid: Grid, has: bool) =
+  grid.hasColumnHomogeneous = has
+  grid.hasRowHomogeneous = has
+
+proc `valHomogeneous=`*(grid: Grid, homogeneous: bool) =
+  grid.valRowHomogeneous = homogeneous
+  grid.valColumnHomogeneous = homogeneous
+
 renderable ContextMenu:
   ## Adds a context menu to a widget.
   ## Context menus are shown when the user right clicks the widget.
@@ -2556,7 +2730,7 @@ export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWi
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, ContextMenu
+export Frame, DropDown, Grid, ContextMenu
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

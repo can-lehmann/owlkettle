@@ -918,6 +918,54 @@ DropDown:
 ```
 
 
+## Grid
+
+```nim
+renderable Grid of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `children: seq[GridChild[Widget]]`
+- `rowSpacing: int`
+- `columnSpacing: int`
+- `rowHomogeneous: bool`
+- `columnHomogeneous: bool`
+
+###### Setters
+
+- `spacing: int`
+- `homogeneous: bool`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+  - `x = 0`
+  - `y = 0`
+  - `width = 1`
+  - `height = 1`
+  - `hExpand = false`
+  - `vExpand = false`
+  - `hAlign = AlignFill`
+  - `vAlign = AlignFill`
+
+###### Example
+
+```nim
+Grid:
+  spacing = 6
+  margin = 12
+  Button {.x: 1, y: 1, hExpand: true, vExpand: true.}:
+    text = "A"
+  Button {.x: 2, y: 1.}:
+    text = "B"
+  Button {.x: 1, y: 2, width: 2, hAlign: AlignCenter.}:
+    text = "C"
+```
+
+
 ## ContextMenu
 
 ```nim
