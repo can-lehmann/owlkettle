@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures]
+import std/[unicode, sets, tables, options, asyncfutures, hashes]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils
@@ -30,8 +30,15 @@ import gtk, widgetdef, cairo, widgetutils
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
-type Margin* = object
-  top*, bottom*, left*, right*: int
+type 
+  Margin* = object
+    top*, bottom*, left*, right*: int
+
+  StyleClass* = distinct string
+
+proc `$`*(x: StyleClass): string = x.string
+proc hash*(x: StyleClass): Hash {.borrow.}
+proc `==`*(x, y: StyleClass): bool {.borrow.}
 
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
