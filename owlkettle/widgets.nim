@@ -51,6 +51,10 @@ renderable BaseWidget:
         gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
         gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
 
+  hooks internalStyle:
+    (build, update):
+      updateStyle(state, widget)
+
   hooks sensitive:
     property:
       gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
@@ -62,10 +66,6 @@ renderable BaseWidget:
         cint(state.sizeRequest.x),
         cint(state.sizeRequest.y)
       )
-
-  hooks internalStyle:
-    (build, update):
-      updateStyle(state, widget)
 
   hooks tooltip:
     property:
