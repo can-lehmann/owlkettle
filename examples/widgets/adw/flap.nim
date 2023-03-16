@@ -55,7 +55,7 @@ method view(app: AppState): Widget =
           ListBox:
             selectionMode = SelectionSingle
             selected = toHashSet([app.page])
-            style = {ListBoxNavigationSidebar}
+            style = [ListBoxNavigationSidebar]
             
             proc select(pages: HashSet[int]) =
               for page in pages:

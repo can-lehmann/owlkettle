@@ -18,6 +18,9 @@ by calling `<WidgetName>State.app.redraw()
 
 - `margin: int`
 - `margin: Margin`
+- `style: StyleClass`
+- `style: varargs[StyleClass]`
+- `style: HashSet[StyleClass]`
 
 
 ## BaseWindow
@@ -79,7 +82,6 @@ A Box arranges its child widgets along one dimension.
 - `orient: Orient` Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
 - `spacing: int` Spacing between the children of the Box
 - `children: seq[BoxChild[Widget]]`
-- `style: set[BoxStyle]`
 
 ###### Adders
 
@@ -117,7 +119,7 @@ Box:
 ```nim
 HeaderBar {.addTitlebar.}:
   Box {.addLeft.}:
-    style = {BoxLinked}
+    style = [BoxLinked]
     for it in 0 ..< 5:
       Button {.expand: false.}:
         text = "Button " & $it
@@ -167,7 +169,6 @@ if `useMarkup` is enabled.
 - `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
 - `wrap: bool = false` Enables/Disable wrapping of text.
 - `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup or not.
-- `style: set[LabelStyle]` The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
 
 ###### Example
 
@@ -239,7 +240,6 @@ renderable Button of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 - `child: Widget`
 - `shortcut: string` Keyboard shortcut
 
@@ -262,7 +262,7 @@ renderable Button of BaseWidget
 ```nim
 Button:
   icon = "list-add-symbolic"
-  style = {ButtonSuggested}
+  style = [ButtonSuggested]
   proc clicked() =
     echo "clicked"
 
@@ -271,7 +271,7 @@ Button:
 ```nim
 Button:
   text = "Delete"
-  style = {ButtonDestructive}
+  style = [ButtonDestructive]
 ```
 
 ```nim
@@ -367,7 +367,6 @@ renderable Entry of BaseWidget
 - `xAlign: float = 0.0`
 - `visibility: bool = true`
 - `invisibleChar: Rune = '*'.Rune`
-- `style: set[EntryStyle]`
 
 ###### Events
 
@@ -671,7 +670,6 @@ renderable MenuButton of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 - `popover: Widget`
-- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 ###### Setters
 
@@ -782,7 +780,6 @@ renderable ListBox of BaseWidget
 - `rows: seq[Widget]`
 - `selectionMode: SelectionMode`
 - `selected: HashSet[int]`
-- `style: set[ListBoxStyle] = {}`
 
 ###### Events
 
@@ -966,11 +963,13 @@ renderable DialogButton
 
 - `text: string`
 - `response: DialogResponse`
-- `style: set[ButtonStyle]` Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 ###### Setters
 
 - `res: DialogResponseKind`
+- `style: varargs[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+- `style: HashSet[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+- `style: StyleClass` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
 
 
 ## Dialog

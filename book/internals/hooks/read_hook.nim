@@ -43,7 +43,7 @@ nbCode:
         HeaderBar {.addTitlebar.}:
           Button {.addLeft.}:
             text = "Open"
-            style = {ButtonSuggested}
+            style = [ButtonSuggested]
             proc clicked() =
               let (res, state) = app.open: gui:
                 MyColorChooserDialog()

@@ -34,7 +34,7 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           text = "Open"
-          style = {ButtonSuggested}
+          style = [ButtonSuggested]
           proc clicked() =
             let (res, state) = app.open: gui:
               FileChooserDialog:
@@ -48,7 +48,7 @@ method view(app: AppState): Widget =
                 DialogButton {.addButton.}:
                   text = "Open"
                   res = DialogAccept
-                  style = {ButtonSuggested}
+                  style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
               app.path = FileChooserDialogState(state).filename

@@ -476,8 +476,7 @@ when defined(adwaita12) or defined(owlkettleDocs):
     suffixes: seq[AlignedChild[Widget]]
     
     text: string
-    style: set[EntryStyle]
-    
+        
     proc changed(text: string)
     
     hooks:
@@ -496,10 +495,6 @@ when defined(adwaita12) or defined(owlkettleDocs):
         state.connect(state.changed, "changed", changedCallback)
       disconnectEvents:
         state.internalWidget.disconnect(state.changed)
-    
-    hooks style:
-      (build, update):
-        updateStyle(state, widget)
     
     hooks suffixes:
       (build, update):
@@ -682,9 +677,7 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
 renderable SplitButton of BaseWidget:
   child: Widget
   popover: Widget
-  
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  
+    
   proc clicked()
   
   hooks:
@@ -702,10 +695,6 @@ renderable SplitButton of BaseWidget:
   hooks popover:
     (build, update):
       state.updateChild(state.popover, widget.valPopover, adw_split_button_set_popover)
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
   
   setter text: string
   setter icon: string ## Sets the icon of the SplitButton. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.

@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures]
+import std/[unicode, sets, tables, options, asyncfutures, hashes]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils
@@ -30,27 +30,24 @@ import gtk, widgetdef, cairo, widgetutils
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
-type Margin* = object
-  top*, bottom*, left*, right*: int
+type 
+  Margin* = object
+    top*, bottom*, left*, right*: int
+
+  StyleClass* = distinct string
+
+proc `$`*(x: StyleClass): string = x.string
+proc hash*(x: StyleClass): Hash {.borrow.}
+proc `==`*(x, y: StyleClass): bool {.borrow.}
 
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()
+  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
+  internalStyle {.internal.}: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
-  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
   tooltip: string = "" ## The widget's tooltip is shown on hover
-  
-  hooks sensitive:
-    property:
-      gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
-  
-  hooks sizeRequest:
-    property:
-      gtk_widget_set_size_request(state.internalWidget,
-        cint(state.sizeRequest.x),
-        cint(state.sizeRequest.y)
-      )
 
   hooks internalMargin:
     (build, update):
@@ -60,7 +57,23 @@ renderable BaseWidget:
         gtk_widget_set_margin_bottom(state.internalWidget, cint(state.internalMargin.bottom))
         gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
         gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
+
+  hooks internalStyle:
+    (build, update):
+      updateStyle(state, widget)
+
+  hooks sensitive:
+    property:
+      gtk_widget_set_sensitive(state.internalWidget, cbool(ord(state.sensitive)))
   
+  hooks sizeRequest:
+    property:
+      gtk_widget_set_size_request(
+        state.internalWidget,
+        cint(state.sizeRequest.x),
+        cint(state.sizeRequest.y)
+      )
+
   hooks tooltip:
     property:
       if state.tooltip.len > 0:
@@ -70,6 +83,9 @@ renderable BaseWidget:
   
   setter margin: int
   setter margin: Margin
+  setter style: StyleClass
+  setter style: varargs[StyleClass]
+  setter style: HashSet[StyleClass]
 
 proc `hasMargin=`*(widget: BaseWidget, has: bool) =
   widget.hasInternalMargin = has
@@ -79,6 +95,18 @@ proc `valMargin=`*(widget: BaseWidget, width: int) =
 
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
   widget.valInternalMargin = margin
+
+proc `hasStyle=`*(widget: BaseWidget, has: bool) =
+  widget.hasInternalStyle = has
+
+proc `valStyle=`*(widget: BaseWidget, cssClasses: HashSet[StyleClass]) =
+  widget.valInternalStyle = cssClasses
+
+proc `valStyle=`*(widget: BaseWidget, cssClasses: varargs[StyleClass]) =
+  widget.valInternalStyle = cssClasses.toHashSet()
+
+proc `valStyle=`*(widget: BaseWidget, cssClass: StyleClass) =
+  widget.valInternalStyle = [cssClass].toHashSet()
 
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
@@ -141,11 +169,11 @@ type Orient* = enum OrientX, OrientY
 proc toGtk(orient: Orient): GtkOrientation =
   result = [GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL][ord(orient)]
 
-type BoxStyle* = enum
-  BoxLinked = "linked"
-  BoxCard = "card"
-  BoxToolbar = "toolbar"
-  BoxOsd = "osd"
+const
+  BoxLinked* = "linked".StyleClass
+  BoxCard* = "card".StyleClass
+  BoxToolbar* = "toolbar".StyleClass
+  BoxOsd* = "osd".StyleClass
 
 type BoxChild[T] = object
   widget: T
@@ -161,8 +189,7 @@ renderable Box of BaseWidget:
   orient: Orient ## Orientation of the Box and its containing elements. May be one of OrientX (to orient horizontally) or OrientY (to orient vertically)
   spacing: int ## Spacing between the children of the Box
   children: seq[BoxChild[Widget]]
-  style: set[BoxStyle]
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_box_new(
@@ -237,11 +264,7 @@ renderable Box of BaseWidget:
           state.children[^1].widget.unwrapInternalWidget()
         )
         discard state.children.pop()
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   adder add {.expand: true,
               hAlign: AlignFill,
               vAlign: AlignFill.}:
@@ -277,7 +300,7 @@ renderable Box of BaseWidget:
   example:
     HeaderBar {.addTitlebar.}:
       Box {.addLeft.}:
-        style = {BoxLinked}
+        style = [BoxLinked]
         
         for it in 0..<5:
           Button {.expand: false.}:
@@ -321,15 +344,14 @@ renderable Overlay of BaseWidget:
       vAlign: vAlign
     ))
 
-type LabelStyle* = enum
-  LabelTitle1 = "title-1"
-  LabelTitle2 = "title-2"
-  LabelTitle3 = "title-3"
-  LabelTitle4 = "title-4"
-  
-  LabelHeading = "heading"
-  LabelBody = "body"
-  LabelMonospace = "monospace"
+const
+  LabelTitle1* = "title-1".StyleClass
+  LabelTitle2* = "title-2".StyleClass
+  LabelTitle3* = "title-3".StyleClass
+  LabelTitle4* = "title-4".StyleClass
+  LabelHeading* = "heading".StyleClass
+  LabelBody* = "body".StyleClass
+  LabelMonospace* = "monospace".StyleClass
 
 type EllipsizeMode* = enum
   ## Determines whether to ellipsize text when text does not fit in a given space
@@ -348,17 +370,11 @@ renderable Label of BaseWidget:
   ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
   wrap: bool = false ## Enables/Disable wrapping of text.
   useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
-  
-  style: set[LabelStyle] ## The style of the text used. May be one of `LabelHeading`, `LabelBody` or `LabelMonospace`.
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_label_new("")
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   hooks text:
     property:
       if state.useMarkup:
@@ -679,15 +695,14 @@ renderable Picture of BaseWidget:
           cbool(ord(state.contentFit != ContentFill))
         )
 
-type ButtonStyle* = enum
-  ButtonSuggested = "suggested-action",
-  ButtonDestructive = "destructive-action",
-  ButtonFlat = "flat",
-  ButtonPill = "pill",
-  ButtonCircular = "circular"
+const
+  ButtonSuggested* = "suggested-action".StyleClass
+  ButtonDestructive* = "destructive-action".StyleClass
+  ButtonFlat* = "flat".StyleClass
+  ButtonPill* = "pill".StyleClass
+  ButtonCircular* = "circular".StyleClass
 
 renderable Button of BaseWidget:
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   child: Widget
   shortcut: string ## Keyboard shortcut
   
@@ -717,11 +732,7 @@ renderable Button of BaseWidget:
     update:
       if widget.hasShortcut:
         assert state.shortcut == widget.valShortcut # TODO
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_button_set_child)
@@ -738,14 +749,14 @@ renderable Button of BaseWidget:
   example:
     Button:
       icon = "list-add-symbolic"
-      style = {ButtonSuggested}
+      style = [ButtonSuggested]
       proc clicked() =
         echo "clicked"
   
   example:
     Button:
       text = "Delete"
-      style = {ButtonDestructive}
+      style = [ButtonDestructive]
   
   example:
     Button:
@@ -895,10 +906,10 @@ renderable ScrolledWindow of BaseWidget:
     widget.hasChild = true
     widget.valChild = child
 
-type EntryStyle* = enum
-  EntrySuccess = "success",
-  EntryWarning = "warning",
-  EntryError = "error"
+const
+  EntrySuccess* = "success".StyleClass
+  EntryWarning* = "warning".StyleClass
+  EntryError* = "error".StyleClass
 
 renderable Entry of BaseWidget:
   text: string
@@ -908,9 +919,7 @@ renderable Entry of BaseWidget:
   xAlign: float = 0.0
   visibility: bool = true
   invisibleChar: Rune = '*'.Rune
-  
-  style: set[EntryStyle]
-  
+
   proc changed(text: string) ## Called when the text in the Entry changed
   proc activate() ## Called when the user presses enter/return
 
@@ -929,10 +938,6 @@ renderable Entry of BaseWidget:
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
       state.internalWidget.disconnect(state.activate)
-
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
 
   hooks text:
     property:
@@ -1587,9 +1592,7 @@ renderable PopoverMenu of BasePopover:
 renderable MenuButton of BaseWidget:
   child: Widget
   popover: Widget
-  
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_menu_button_new()
@@ -1601,11 +1604,7 @@ renderable MenuButton of BaseWidget:
   hooks popover:
     (build, update):
       state.updateChild(state.popover, widget.valPopover, gtk_menu_button_set_popover)
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   setter text: string
   setter icon: string ## Sets the icon of the MenuButton. Typically `open-menu` is used. See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   
@@ -1982,8 +1981,7 @@ renderable ListBoxRow of BaseWidget:
             echo it
           Label(text = $it)
 
-type ListBoxStyle* = enum
-  ListBoxNavigationSidebar = "navigation-sidebar"
+const ListBoxNavigationSidebar* = "navigation-sidebar".StyleClass
 
 type SelectionMode* = enum
   SelectionNone, SelectionSingle, SelectionBrowse, SelectionMultiple
@@ -1992,8 +1990,7 @@ renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
   selected: HashSet[int]
-  style: set[ListBoxStyle] = {}
-  
+
   proc select(rows: HashSet[int])
   
   hooks:
@@ -2048,11 +2045,7 @@ renderable ListBox of BaseWidget:
         for row in state.selected:
           if row >= state.rows.len:
             raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
-  
-  hooks style:
-    (build, update):
-      updateStyle(state, widget)
-  
+
   adder addRow:
     widget.hasRows = true
     widget.valRows.add(child)
@@ -2357,9 +2350,28 @@ proc toGtk(resp: DialogResponse): cint =
 renderable DialogButton:
   text: string
   response: DialogResponse
-  style: set[ButtonStyle] ## Applies special styling to the button. May be one of `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  
+  internalStyle {.internal.}: HashSet[StyleClass]
+
   setter res: DialogResponseKind
+  setter style: varargs[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  setter style: HashSet[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  setter style: StyleClass  ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+
+  hooks internalStyle:
+    (build, update):
+      updateStyle(state, widget)
+
+proc `hasStyle=`*(button: DialogButton, has: bool) =
+  button.hasInternalStyle = has
+
+proc `valStyle=`*(button: DialogButton, cssClasses: HashSet[StyleClass]) =
+  button.valInternalStyle = cssClasses
+
+proc `valStyle=`*(button: DialogButton, cssClasses: varargs[StyleClass]) =
+  button.valInternalStyle = cssClasses.toHashSet()
+
+proc `valStyle=`*(button: DialogButton, cssClass: StyleClass) =
+  button.valInternalStyle = [cssClass].toHashSet()
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
   button.hasResponse = value
@@ -2384,7 +2396,7 @@ renderable Dialog of Window:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valStyle:
+        for styleClass in button.valInternalStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
@@ -2406,7 +2418,7 @@ renderable BuiltinDialog:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valStyle:
+        for styleClass in button.valInternalStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton

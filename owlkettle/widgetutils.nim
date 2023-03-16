@@ -22,6 +22,7 @@
 
 # Utilities for wrapping widgets
 
+import std/[hashes, sets]
 import gtk, widgetdef
 
 proc redraw*[T](event: EventObj[T]) =
@@ -59,15 +60,15 @@ proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
     event.handler = 0
     event.widget = nil
 
-proc updateStyle*[State, Widget](state: State, widget: Widget) =
+proc updateStyle*[State, Widget](state: State, widget: Widget) {.inline.} =
   mixin classes
-  if widget.hasStyle:
+  if widget.hasInternalStyle:
     let ctx = gtk_widget_get_style_context(state.internalWidget)
-    for styleClass in state.style - widget.valStyle:
+    for styleClass in state.internalStyle - widget.valInternalStyle:
       gtk_style_context_remove_class(ctx, cstring($styleClass))
-    for styleClass in widget.valStyle - state.style:
+    for styleClass in widget.valInternalStyle - state.internalStyle:
       gtk_style_context_add_class(ctx, cstring($styleClass))
-    state.style = widget.valStyle
+    state.internalStyle = widget.valInternalStyle
 
 
 proc updateChild*(state: Renderable,
@@ -245,4 +246,3 @@ proc updateAlignedChildren*(state: Renderable,
   while it < children.len:
     let child = children.pop()
     removeChild(state.internalWidget, child.widget.unwrapInternalWidget())
-
