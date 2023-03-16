@@ -22,7 +22,7 @@
 
 # Macros used to define new widgets
 
-import std/[macros, strutils, tables, hashes, sets]
+import std/[macros, strutils, tables]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, common
