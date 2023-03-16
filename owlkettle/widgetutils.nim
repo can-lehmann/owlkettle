@@ -246,3 +246,9 @@ proc updateAlignedChildren*(state: Renderable,
     let child = children.pop()
     removeChild(state.internalWidget, child.widget.unwrapInternalWidget())
 
+type
+  StyleClass* = distinct string
+
+proc `$`*(x: StyleClass): string = x.string
+proc hash*(x: StyleClass): Hash {.borrow.}
+proc `==`*(x, y: StyleClass): bool {.borrow.}

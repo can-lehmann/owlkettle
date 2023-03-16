@@ -694,10 +694,3 @@ macro viewable*(name, body: untyped): untyped =
   result = widget.gen()
   when defined owlkettleDebug:
     echo result.repr
-
-type
-  StyleClass* = distinct string
-
-proc `$`*(x: StyleClass): string = x.string
-proc hash*(x: StyleClass): Hash {.borrow.}
-proc `==`*(x, y: StyleClass): bool {.borrow.}
