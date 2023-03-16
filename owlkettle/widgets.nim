@@ -98,6 +98,8 @@ proc `valStyle=`*(widget: BaseWidget, cssClasses: HashSet[StyleClass]) =
 proc `valStyle=`*(widget: BaseWidget, cssClasses: varargs[StyleClass]) =
   widget.valInternalStyle = cssClasses.toHashSet()
 
+proc `valStyle=`*(widget: BaseWidget, cssClass: StyleClass) =
+  widget.valInternalStyle = [cssClass].toHashSet()
 
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
