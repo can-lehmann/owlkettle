@@ -23,12 +23,19 @@
 import std/sequtils
 import owlkettle, owlkettle/[adw, dataentries]
 
-type GridItem = ref object
-  name: string
-  x, y: int
-  width, height: int
-  hExpand, vExpand: bool
-  hAlign, vAlign: Align
+type
+  GridItem = ref object
+    name: string
+    x, y: int
+    width, height: int
+    hExpand, vExpand: bool
+    hAlign, vAlign: Align
+  
+  GridProperties = ref object
+    rowSpacing: int
+    columnSpacing: int
+    rowHomogeneous: bool
+    columnHomogeneous: bool
 
 viewable GridItemEditor:
   item: GridItem
@@ -135,6 +142,59 @@ method view(editor: GridItemEditorState): Widget =
           proc select(index: int) =
             item.vAlign = Align(index)
 
+viewable GridPropertiesEditor:
+  props: GridProperties
+
+method view(editor: GridPropertiesEditorState): Widget =
+  let props = editor.props
+  result = gui:
+    Box:
+      orient = OrientY
+      spacing = 12
+      margin = 12
+      
+      PreferencesGroup {.expand: false.}:
+        title = "Spacing"
+        
+        ActionRow:
+          title = "Column"
+          
+          NumberEntry {.addSuffix.}:
+            value = float(props.columnSpacing)
+            xAlign = 1.0
+            maxWidth = 6
+            proc changed(value: float) =
+              props.columnSpacing = int(value)
+        
+        ActionRow:
+          title = "Row"
+          
+          NumberEntry {.addSuffix.}:
+            value = float(props.rowSpacing)
+            xAlign = 1.0
+            maxWidth = 6
+            proc changed(value: float) =
+              props.rowSpacing = int(value)
+      
+      PreferencesGroup {.expand: false.}:
+        title = "Homogeneous"
+        
+        ActionRow:
+          title = "Column"
+          
+          Switch {.addSuffix.}:
+            state = props.columnHomogeneous
+            proc changed(state: bool) =
+              props.columnHomogeneous = state
+        
+        ActionRow:
+          title = "Row"
+          
+          Switch {.addSuffix.}:
+            state = props.rowHomogeneous
+            proc changed(state: bool) =
+              props.rowHomogeneous = state
+
 viewable AddGridItemDialog:
   item: GridItem
 
@@ -160,6 +220,10 @@ method view(dialog: AddGridItemDialogState): Widget =
 viewable App:
   items: seq[GridItem]
   selected: int
+  props: GridProperties = GridProperties(
+    rowSpacing: 6,
+    columnSpacing: 6
+  )
 
 method view(app: AppState): Widget =
   result = gui:
@@ -193,11 +257,15 @@ method view(app: AppState): Widget =
                 if res.kind == DialogAccept:
                   let dialog = AddGridItemDialogState(state)
                   app.items.add(dialog.item)
+                  app.selected = app.items.len - 1
           
           
           Grid:
-            spacing = 6
             margin = 12
+            rowSpacing = app.props.rowSpacing
+            columnSpacing = app.props.columnSpacing
+            rowHomogeneous = app.props.rowHomogeneous
+            columnHomogeneous = app.props.columnHomogeneous
             
             for it, item in app.items:
               ToggleButton {.x: item.x,
@@ -211,8 +279,11 @@ method view(app: AppState): Widget =
                 text = item.name
                 state = it == app.selected
                 
-                proc clicked() =
-                  app.selected = it
+                proc changed(state: bool) =
+                  if state:
+                    app.selected = it
+                  else:
+                    app.selected = app.items.len
         
         Separator() {.expand: false.}
         
@@ -231,13 +302,14 @@ method view(app: AppState): Widget =
               proc clicked() =
                 if validSelection:
                   app.items.delete(app.selected)
+                  app.selected = app.items.len
           
-          if validSelection:
-            ScrolledWindow:
+          ScrolledWindow:
+            if validSelection:
               GridItemEditor:
                 item = app.items[app.selected]
-          else:
-            Label:
-              text = "No Item Selected"
+            else:
+              GridPropertiesEditor:
+                props = app.props
 
 adw.brew(gui(App()))
