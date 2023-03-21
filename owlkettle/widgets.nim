@@ -2305,7 +2305,7 @@ renderable Grid of BaseWidget:
           newChild = widget.valChildren[it].widget.update(oldChild)
         
         var readd = false
-        if newChild.isNil:
+        if not newChild.isNil:
           state.children[it].widget = newChild
           readd = true
         
