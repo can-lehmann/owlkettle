@@ -2314,8 +2314,11 @@ renderable Grid of BaseWidget:
           readd = true
         
         if readd:
-          gtk_grid_remove(state.internalWidget, oldChild.unwrapInternalWidget())
+          let widget = oldChild.unwrapInternalWidget()
+          g_object_ref(pointer(widget))
+          gtk_grid_remove(state.internalWidget, widget)
           state.internalWidget.attach(state.children[it])
+          g_object_unref(pointer(widget))
         
         let childWidget = state.children[it].widget.unwrapInternalWidget()
         

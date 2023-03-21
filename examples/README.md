@@ -133,7 +133,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/grid.nim">Grid</a></td>
-    <td>No Image</td>
+    <td><img alt="Grid" src="../docs/assets/examples/grid.png" width="998px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
