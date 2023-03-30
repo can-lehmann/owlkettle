@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures, hashes]
+import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils
@@ -2503,6 +2503,83 @@ renderable ContextMenu:
             ModelButton:
               text = "Menu Entry " & $it
 
+renderable Calendar of BaseWidget:
+  ## Displays a calendar
+
+  date: DateTime
+  showDayNames: bool = true
+  showHeading: bool = true
+  showWeekNumbers: bool = true
+  
+  proc daySelected(date: DateTime)
+  proc nextMonth(date: DateTime)
+  proc prevMonth(date: DateTime)
+  proc nextYear(date: DateTime)
+  proc prevYear(date: DateTime)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_calendar_new()
+    connectEvents:
+      proc selectedCallback(widget: GtkWidget, data: ptr EventObj[proc (state: DateTime)]) {.cdecl.} =
+        let
+          gtkDate = gtk_calendar_get_date(widget)
+          date = fromUnix(g_date_time_to_unix(gtkDate)).inZone(utc())
+        g_date_time_unref(gtkDate)
+        
+        CalendarState(data[].widget).date = date
+        data[].callback(date)
+        data[].redraw()
+      
+      state.connect(state.daySelected, "day-selected", selectedCallback)
+      state.connect(state.nextMonth, "next-month", selectedCallback)
+      state.connect(state.prevMonth, "prev-month", selectedCallback)
+      state.connect(state.prevYear, "prev-year", selectedCallback)
+      state.connect(state.prevYear, "prev-year", selectedCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.daySelected)
+      state.internalWidget.disconnect(state.nextMonth)
+      state.internalWidget.disconnect(state.prevMonth)
+      state.internalWidget.disconnect(state.nextYear)
+      state.internalWidget.disconnect(state.prevYear)
+  
+  hooks date:
+    property:
+      let
+        unix = state.date.toTime().toUnix()
+        dateTime = g_date_time_new_from_unix_local(unix)
+      gtk_calendar_select_day(state.internalWidget, dateTime)
+      g_date_time_unref(dateTime)
+  
+  hooks showDayNames:
+    property:
+      gtk_calendar_set_show_day_names(state.internalWidget, cbool(ord(state.showDayNames)))
+  
+  hooks showHeading:
+    property:
+      gtk_calendar_set_show_heading(state.internalWidget, cbool(ord(state.showHeading)))
+  
+  hooks showWeekNumbers:
+    property:
+      gtk_calendar_set_show_day_names(state.internalWidget, cbool(ord(state.showWeekNumbers)))
+  
+  example:
+    Calendar:
+      date = app.date
+      
+      proc select(date: DateTime) =
+        ## Shortcut for handling all calendar events (daySelected,
+        ## nextMonth, prevMonth, nextYear, prevYear)
+        app.date = date
+
+proc `select=`*(calendar: Calendar, event: Event[proc(date: DateTime)]) =
+  if not event.isNil:
+    calendar.daySelected = Event[proc(date: DateTime)](callback: event.callback)
+    calendar.nextMonth = Event[proc(date: DateTime)](callback: event.callback)
+    calendar.prevMonth = Event[proc(date: DateTime)](callback: event.callback)
+    calendar.nextYear = Event[proc(date: DateTime)](callback: event.callback)
+    calendar.prevYear = Event[proc(date: DateTime)](callback: event.callback)
+
 type
   DialogResponseKind* = enum
     DialogCustom, DialogAccept, DialogCancel
@@ -2733,7 +2810,7 @@ export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWi
 export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, Grid, ContextMenu
+export Frame, DropDown, Grid, ContextMenu, Calendar
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

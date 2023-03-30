@@ -1001,6 +1001,43 @@ ContextMenu:
 ```
 
 
+## Calendar
+
+```nim
+renderable Calendar of BaseWidget
+```
+
+Displays a calendar
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `date: DateTime`
+- `showDayNames: bool = true`
+- `showHeading: bool = true`
+- `showWeekNumbers: bool = true`
+
+###### Events
+
+- daySelected: `proc (date: DateTime)`
+- nextMonth: `proc (date: DateTime)`
+- prevMonth: `proc (date: DateTime)`
+- nextYear: `proc (date: DateTime)`
+- prevYear: `proc (date: DateTime)`
+
+###### Example
+
+```nim
+Calendar:
+  date = app.date
+  proc select(date: DateTime) =
+    ## Shortcut for handling all calendar events (daySelected,
+    ## nextMonth, prevMonth, nextYear, prevYear)
+    app.date = date
+
+```
+
+
 ## DialogButton
 
 ```nim

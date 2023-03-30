@@ -282,6 +282,8 @@ type
   
   GMainContext* = distinct pointer
   
+  GDateTime* = distinct pointer
+  
   GSourceFunc* = proc(data: pointer): cbool {.cdecl.}
   GDestroyNotify* = proc(data: pointer) {.cdecl.}
   
@@ -364,6 +366,13 @@ proc g_list_free*(list: GList)
 
 # GLib.MainContext
 proc g_main_context_iteration*(ctx: GMainContext, blocking: cbool): cbool
+
+# GLib.GDateTime
+proc g_date_time_new_from_unix_utc*(unix: int64): GDateTime
+proc g_date_time_new_from_unix_local*(unix: int64): GDateTime
+proc g_date_time_to_unix*(dateTime: GDateTime): int64
+proc g_date_time_to_utc*(dateTime: GDateTime): GDateTime
+proc g_date_time_unref*(dateTime: GDateTime)
 
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
@@ -923,6 +932,13 @@ proc gtk_grid_set_column_homogeneous*(grid: GtkWidget, homogeneous: cbool)
 proc gtk_grid_set_row_spacing*(grid: GtkWidget, spacing: cuint)
 proc gtk_grid_set_column_spacing*(grid: GtkWidget, spacing: cuint)
 
+# Gtk.Calendar
+proc gtk_calendar_new*(): GtkWidget
+proc gtk_calendar_set_show_day_names*(widget: GtkWidget, show: cbool)
+proc gtk_calendar_set_show_heading*(widget: GtkWidget, show: cbool)
+proc gtk_calendar_set_show_week_numbers*(widget: GtkWidget, show: cbool)
+proc gtk_calendar_select_day*(widget: GtkWidget, date: GDateTime)
+proc gtk_calendar_get_date*(widget: GtkWidget): GDateTime
 {.pop.}
 
 {.push hint[Name]: off.}
