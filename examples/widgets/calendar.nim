@@ -24,11 +24,13 @@ import std/[times]
 import owlkettle, owlkettle/adw
 
 viewable App:
-  date: DateTime = now()
+  date: DateTime = now() - 1.days
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
+      defaultSize = (500, 400)
+      
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = "Calendar Example"
@@ -58,4 +60,4 @@ method view(app: AppState): Widget =
           ## nextMonth, prevMonth, nextYear, prevYear)
           app.date = date
 
-adw.brew(gui(App()))
+adw.brew(gui(App()), stylesheets=["calendar.css"])

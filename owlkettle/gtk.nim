@@ -939,6 +939,8 @@ proc gtk_calendar_set_show_heading*(widget: GtkWidget, show: cbool)
 proc gtk_calendar_set_show_week_numbers*(widget: GtkWidget, show: cbool)
 proc gtk_calendar_select_day*(widget: GtkWidget, date: GDateTime)
 proc gtk_calendar_get_date*(widget: GtkWidget): GDateTime
+proc gtk_calendar_clear_marks*(widget: GtkWidget)
+proc gtk_calendar_mark_day*(widget: GtkWidget, day: cuint)
 {.pop.}
 
 {.push hint[Name]: off.}

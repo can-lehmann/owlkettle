@@ -2505,8 +2505,9 @@ renderable ContextMenu:
 
 renderable Calendar of BaseWidget:
   ## Displays a calendar
-
+  
   date: DateTime
+  markedDays: seq[int] = @[]
   showDayNames: bool = true
   showHeading: bool = true
   showWeekNumbers: bool = true
@@ -2534,7 +2535,7 @@ renderable Calendar of BaseWidget:
       state.connect(state.daySelected, "day-selected", selectedCallback)
       state.connect(state.nextMonth, "next-month", selectedCallback)
       state.connect(state.prevMonth, "prev-month", selectedCallback)
-      state.connect(state.prevYear, "prev-year", selectedCallback)
+      state.connect(state.nextYear, "next-year", selectedCallback)
       state.connect(state.prevYear, "prev-year", selectedCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.daySelected)
@@ -2550,6 +2551,12 @@ renderable Calendar of BaseWidget:
         dateTime = g_date_time_new_from_unix_local(unix)
       gtk_calendar_select_day(state.internalWidget, dateTime)
       g_date_time_unref(dateTime)
+  
+  hooks markedDays:
+    property:
+      gtk_calendar_clear_marks(state.internalWidget)
+      for day in state.markedDays:
+        gtk_calendar_mark_day(state.internalWidget, cuint(day))
   
   hooks showDayNames:
     property:

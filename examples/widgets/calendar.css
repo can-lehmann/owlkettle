@@ -1,0 +1,4 @@
+.day-number:not(.other-month):checked {
+  background: #99c1f1;
+  border-radius: 6px;
+}
