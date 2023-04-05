@@ -1013,6 +1013,7 @@ Displays a calendar
 
 - All fields from [BaseWidget](#BaseWidget)
 - `date: DateTime`
+- `markedDays: seq[int] = @[]`
 - `showDayNames: bool = true`
 - `showHeading: bool = true`
 - `showWeekNumbers: bool = true`

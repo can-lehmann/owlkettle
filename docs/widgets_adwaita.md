@@ -360,3 +360,21 @@ renderable SplitButton of BaseWidget
 - `add`
 
 
+## AboutWindow
+
+```nim
+renderable AboutWindow
+```
+
+###### Fields
+
+- `applicationName: string`
+- `developerName: string`
+- `version: string`
+- `supportUrl: string`
+- `issueUrl: string`
+- `website: string`
+- `copyright: string`
+- `license: string`
+
+

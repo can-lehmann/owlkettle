@@ -24,7 +24,7 @@ import std/[times]
 import owlkettle, owlkettle/adw
 
 viewable App:
-  date: DateTime = now() - 1.days
+  date: DateTime = now()
 
 method view(app: AppState): Widget =
   result = gui:
