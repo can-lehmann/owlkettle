@@ -145,16 +145,17 @@ proc adw_split_button_new(): GtkWidget
 proc adw_split_button_set_child(button, child: GtkWidget)
 proc adw_split_button_set_popover(button, child: GtkWidget)
 
-# Adw.AboutWindow
-proc adw_about_window_new(): GtkWidget
-proc adw_about_window_set_application_name(window: GtkWidget, value: cstring)
-proc adw_about_window_set_developer_name(window: GtkWidget, value: cstring)
-proc adw_about_window_set_version(window: GtkWidget, value: cstring)
-proc adw_about_window_set_support_url(window: GtkWidget, value: cstring)
-proc adw_about_window_set_issue_url(window: GtkWidget, value: cstring)
-proc adw_about_window_set_website(window: GtkWidget, value: cstring)
-proc adw_about_window_set_copyright(window: GtkWidget, value: cstring)
-proc adw_about_window_set_license(window: GtkWidget, value: cstring)
+when defined(adwaita12):
+  # Adw.AboutWindow
+  proc adw_about_window_new(): GtkWidget
+  proc adw_about_window_set_application_name(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_developer_name(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_version(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_support_url(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_issue_url(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_website(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_copyright(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_license(window: GtkWidget, value: cstring)
 {.pop.}
 
 renderable WindowSurface of BaseWindow:
@@ -734,53 +735,62 @@ proc `hasIcon=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild =
 proc `valIcon=`*(splitButton: SplitButton, name: string) =
   splitButton.valChild = Icon(hasName: true, valName: name)
 
-renderable AboutWindow:
-  applicationName: string
-  developerName: string
-  version: string
-  supportUrl: string
-  issueUrl: string
-  website: string
-  copyright: string
-  license: string
-  
-  hooks:
-    beforeBuild:
-      state.internalWidget = adw_about_window_new()
-  
-  hooks applicationName:
-    property:
-      adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
-  
-  hooks developerName:
-    property:
-      adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
-  
-  hooks version:
-    property:
-      adw_about_window_set_version(state.internalWidget, state.version.cstring)
-  
-  hooks supportUrl:
-    property:
-      adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
-  
-  hooks issueUrl:
-    property:
-      adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
-  
-  
-  hooks website:
-    property:
-      adw_about_window_set_website(state.internalWidget, state.website.cstring)
-  
-  hooks copyright:
-    property:
-      adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
-  
-  hooks license:
-    property:
-      adw_about_window_set_license(state.internalWidget, state.license.cstring)
-  
+when defined(adwaita12) or defined(owlkettleDocs):
+  renderable AboutWindow:
+    applicationName: string
+    developerName: string
+    version: string
+    supportUrl: string
+    issueUrl: string
+    website: string
+    copyright: string
+    license: string
+    
+    hooks:
+      beforeBuild:
+        when defined(adwaita12):
+          state.internalWidget = adw_about_window_new()
+    
+    hooks applicationName:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
+
+    hooks developerName:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
+
+    hooks version:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_version(state.internalWidget, state.version.cstring)
+
+    hooks supportUrl:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
+
+    hooks issueUrl:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
+
+    
+    hooks website:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_website(state.internalWidget, state.website.cstring)
+
+    hooks copyright:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
+
+    hooks license:
+      property:
+        when defined(adwaita12):
+          adw_about_window_set_license(state.internalWidget, state.license.cstring)
 
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, AboutWindow
 
