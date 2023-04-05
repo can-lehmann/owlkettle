@@ -791,8 +791,10 @@ when defined(adwaita12) or defined(owlkettleDocs):
       property:
         when defined(adwaita12):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
+  
+  export AboutWindow
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, AboutWindow
+export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
