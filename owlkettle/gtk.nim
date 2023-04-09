@@ -24,7 +24,8 @@
 
 import std/[os]
 
-{.passl: gorge("pkg-config --libs gtk4").}
+import std/strutils as strutils
+{.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
 type cbool* = cint
 

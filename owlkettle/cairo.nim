@@ -77,7 +77,8 @@ type
 
 proc `==`(a, b: CairoStatus): bool {.borrow.}
 
-{.passl: gorge("pkg-config --libs cairo").}
+import std/strutils as strutils
+{.passl: strutils.strip(gorge("pkg-config --libs cairo")) .}
 
 {.push importc, cdecl.}
 proc cairo_create(surface: CairoSurface): CairoContext
