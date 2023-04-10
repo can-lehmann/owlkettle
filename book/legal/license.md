@@ -47,3 +47,5 @@ Note that these licenses only apply to the indicated assets redistributed as par
   - [Highlight.js](https://github.com/highlightjs/highlight.js/blob/main/LICENSE) (BSD-3-Clause)
   - [book.js](https://github.com/rust-lang/mdBook/blob/master/LICENSE) (MPL-2.0)
 - [Themes](https://github.com/rust-lang/mdBook/blob/master/LICENSE) (MPL-2.0)
+  - [Ayu](https://github.com/dempfi/ayu/blob/master/LICENSE) (MIT)
+  - [Tomorrow Theme](https://github.com/chriskempson/tomorrow-theme/blob/master/LICENSE.md) (MIT)
