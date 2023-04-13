@@ -2589,7 +2589,9 @@ proc `select=`*(calendar: Calendar, event: Event[proc(date: DateTime)]) =
 
 type
   DialogResponseKind* = enum
-    DialogCustom, DialogAccept, DialogCancel
+    DialogCustom,
+    DialogReject, DialogAccept, DialogCancel,
+    DialogDeleteEvent, DialogOk, DialogClose
   
   DialogResponse* = object
     case kind*: DialogResponseKind:
@@ -2598,15 +2600,23 @@ type
 
 proc toDialogResponse*(id: cint): DialogResponse =
   case id:
+    of -2: result = DialogResponse(kind: DialogReject)
     of -3: result = DialogResponse(kind: DialogAccept)
+    of -4: result = DialogResponse(kind: DialogDeleteEvent)
+    of -5: result = DialogResponse(kind: DialogOk)
     of -6: result = DialogResponse(kind: DialogCancel)
+    of -7: result = DialogResponse(kind: DialogClose)
     else: result = DialogResponse(kind: DialogCustom, id: int(id))
 
-proc toGtk(resp: DialogResponse): cint =
+proc toGtk*(resp: DialogResponse): cint =
   case resp.kind:
     of DialogCustom: result = resp.id.cint
+    of DialogReject: result = -2
     of DialogAccept: result = -3
+    of DialogDeleteEvent: result = -4
+    of DialogOk: result = -5
     of DialogCancel: result = -6
+    of DialogClose: result = -7
 
 renderable DialogButton:
   text: string

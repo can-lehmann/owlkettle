@@ -20,6 +20,7 @@ examples/dialogs/file_dialog
 examples/dialogs/message_dialog
 examples/dialogs/about_dialog
 examples/dialogs/custom_dialog
+examples/dialogs/dialog_respond
 examples/misc/clipboard
 examples/misc/cairo_path
 examples/misc/css

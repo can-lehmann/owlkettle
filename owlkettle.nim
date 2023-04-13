@@ -166,6 +166,18 @@ proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: Wid
     state.read()
     result = (DialogResponse(), state)
 
+proc respond*(state: WidgetState, response: DialogResponse) =
+  let
+    widget = state.unwrapInternalWidget()
+    root = gtk_widget_get_root(widget)
+  gtk_dialog_response(root, response.toGtk())
+
+proc closeWindow*(state: WidgetState) =
+  let
+    widget = state.unwrapInternalWidget()
+    root = gtk_widget_get_root(widget)
+  gtk_window_close(root)
+
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,

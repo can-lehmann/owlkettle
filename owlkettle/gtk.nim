@@ -550,6 +550,7 @@ proc gtk_window_set_focus*(window, focus: GtkWidget)
 proc gtk_window_set_child*(window, child: GtkWidget)
 proc gtk_window_present*(window: GtkWidget)
 proc gtk_window_get_toplevels*(): GListModel
+proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
 
 # Gtk.Button
@@ -870,7 +871,7 @@ proc gtk_dialog_new_with_buttons*(title: cstring,
                                   parent: GtkWidget,
                                   flags: GtkDialogFlags,
                                   firstBtn: cstring): GtkWidget {.varargs.}
-proc gtk_dialog_run*(dialog: GtkWidget): cint
+proc gtk_dialog_response*(dialog: GtkWidget, response: cint)
 proc gtk_dialog_add_button*(dialog: GtkWidget, text: cstring, response: cint): GtkWidget
 proc gtk_dialog_get_header_bar*(dialog: GtkWidget): GtkWidget
 
