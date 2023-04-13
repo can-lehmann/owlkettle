@@ -62,6 +62,10 @@ The `dialogs` directory contains examples of how to use the different built-in d
     <td><img alt="Custom Dialog" src="../docs/assets/examples/custom_dialog.png" width="348px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/dialogs/dialog_respond.nim">Dialog Respond</a></td>
+    <td><img alt="Dialog Respond" src="../docs/assets/examples/dialog_respond.png" width="528px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/dialogs/file_dialog.nim">File Dialog</a></td>
     <td><img alt="File Dialog" src="../docs/assets/examples/file_dialog.png" width="988px"></td>
   </tr>

@@ -68,6 +68,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Dialog Respond Example"
+      defaultSize = (500, 350)
       
       Box:
         Button {.hAlign: AlignCenter, vAlign: AlignCenter.}:
