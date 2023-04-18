@@ -1996,6 +1996,13 @@ renderable ListBox of BaseWidget:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_list_box_new()
+      
+      proc handleUnrealize(widget: GtkWidget, data: ptr ListBoxState) {.cdecl.} =
+        let state = unwrapSharedCell(data)
+        state.internalWidget.disconnect(state.select)
+      
+      let data = allocSharedCell(state)
+      discard g_signal_connect(state.internalWidget, "unrealize", handleUnrealize, data)
     connectEvents:
       proc selectedRowsChanged(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) {.cdecl.} =
         let selected = gtk_list_box_get_selected_rows(widget)
