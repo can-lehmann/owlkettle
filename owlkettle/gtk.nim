@@ -281,6 +281,8 @@ type
   
   GError* = ptr GErrorObj
   
+  GQuark* = distinct uint32
+  
   GMainContext* = distinct pointer
   
   GDateTime* = distinct pointer
@@ -374,6 +376,9 @@ proc g_date_time_new_from_unix_local*(unix: int64): GDateTime
 proc g_date_time_to_unix*(dateTime: GDateTime): int64
 proc g_date_time_to_utc*(dateTime: GDateTime): GDateTime
 proc g_date_time_unref*(dateTime: GDateTime)
+
+# GLib.Quark
+proc g_quark_from_string*(value: cstring): GQuark
 
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
@@ -711,6 +716,7 @@ proc gtk_link_button_set_visited*(button: GtkWidget, visited: cbool)
 proc gtk_check_button_new*(): GtkWidget
 proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_check_button_get_active*(widget: GtkWidget): cbool
+proc gtk_check_button_set_group*(widget, group: GtkWidget)
 
 # Gtk.Popover
 proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget

@@ -1501,6 +1501,138 @@ renderable CheckButton of BaseWidget:
       proc changed(state: bool) =
         app.state = state
 
+renderable RadioGroup of BaseWidget:
+  ## A list of options selectable using radio buttons.
+  
+  spacing: int = 3 ## Spacing between the rows
+  rowSpacing: int = 6 ## Spacing between the radio button and 
+  orient: Orient = OrientY ## Orientation of the list
+  children: seq[Widget]
+  
+  selected: int ## Currently selected index, may be smaller or larger than the numberer of children to represent no option being selected
+  proc select(index: int)
+  
+  type
+    RadioGroupRowDataObj = object
+      ## Data used to handle the toggled signals of the row
+      state: RadioGroupState
+      index: int
+    
+    RadioGroupRowData = ref RadioGroupRowDataObj
+    
+    RadioGroupRow = object
+      box: GtkWidget
+      button: GtkWidget
+      data: RadioGroupRowData
+  
+  rows {.internal.}: seq[RadioGroupRow]
+  
+  hooks:
+    beforeBuild:
+      let orient = if widget.hasOrient: widget.valOrient else: OrientY
+      state.internalWidget = gtk_box_new(
+        toGtk(orient),
+        widget.valSpacing.cint
+      )
+  
+  hooks spacing:
+    property:
+      gtk_box_set_spacing(state.internalWidget, state.spacing.cint)
+  
+  hooks rowSpacing:
+    property:
+      for row in state.rows:
+        gtk_box_set_spacing(row.box, state.rowSpacing.cint)
+  
+  hooks children:
+    (build, update):
+      widget.valChildren.assignApp(state.app)
+      
+      var it = 0
+      while it < state.children.len and it < widget.valChildren.len:
+        let newChild = widget.valChildren[it].update(state.children[it])
+        if not newChild.isNil:
+          let childWidget = newChild.unwrapInternalWidget()
+          gtk_widget_set_hexpand(childWidget, cbool(ord(true)))
+          
+          let box = state.rows[it].box
+          gtk_box_remove(box, state.children[it].unwrapInternalWidget())
+          gtk_box_append(box, childWidget)
+          
+          state.children[it] = newChild
+        
+        it += 1
+      
+      while it < widget.valChildren.len:
+        let box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, state.rowSpacing.cint)
+        gtk_widget_set_hexpand(box, cbool(ord(true)))
+        gtk_widget_set_vexpand(box, cbool(ord(true)))
+        
+        
+        let radioButton = gtk_check_button_new()
+        if it > 0:
+          gtk_check_button_set_group(radioButton, state.rows[0].button)
+        if it == state.selected:
+          gtk_check_button_set_active(radioButton, cbool(ord(true)))
+        
+        let data = RadioGroupRowData(state: state, index: it)
+        
+        proc toggledCallback(widget: GtkWidget, data: ptr RadioGroupRowDataObj) =
+          if gtk_check_button_get_active(widget) != 0 and
+             data[].state.selected != data[].index:
+            data[].state.selected = data[].index
+            if not data[].state.select.isNil:
+              data[].state.select.callback(data[].index)
+              data[].state.select[].redraw()
+        
+        discard g_signal_connect(radioButton, "toggled", toggledCallback, data[].addr)
+        
+        gtk_box_append(box, radioButton)
+        
+        let
+          child = widget.valChildren[it].build()
+          childWidget = child.unwrapInternalWidget()
+        state.children.add(child)
+        gtk_widget_set_hexpand(childWidget, cbool(ord(true)))
+        gtk_box_append(box, childWidget)
+        
+        gtk_box_append(state.internalWidget, box)
+        
+        state.rows.add(RadioGroupRow(
+          box: box,
+          button: radioButton,
+          data: data
+        ))
+        
+        it += 1
+      
+      while it < state.children.len:
+        discard state.children.pop()
+        gtk_box_remove(state.internalWidget, state.rows.pop().box)
+  
+  hooks selected:
+    property:
+      if state.selected in 0..<state.rows.len:
+        gtk_check_button_set_active(state.rows[state.selected].button, cbool(ord(true)))
+      else:
+        for row in state.rows:
+          gtk_check_button_set_active(row.button, cbool(ord(false)))
+  
+  adder add:
+    widget.hasChildren = true
+    widget.valChildren.add(child)
+  
+  example:
+    RadioGroup:
+      selected = app.selected
+      
+      proc select(index: int) =
+        app.selected = index
+      
+      Label(text = "Option 0", xAlign = 0)
+      Label(text = "Option 1", xAlign = 0)
+      Label(text = "Option 2", xAlign = 0)
+
 type PopoverPosition* = enum
   PopoverLeft
   PopoverRight
@@ -2831,7 +2963,7 @@ renderable AboutDialog of BaseWidget:
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry
-export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton
+export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
 export Frame, DropDown, Grid, ContextMenu, Calendar

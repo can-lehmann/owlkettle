@@ -610,6 +610,46 @@ CheckButton:
 ```
 
 
+## RadioGroup
+
+```nim
+renderable RadioGroup of BaseWidget
+```
+
+A list of options selectable using radio buttons.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `spacing: int = 3` Spacing between the rows
+- `rowSpacing: int = 6` Spacing between the radio button and
+- `orient: Orient = OrientY` Orientation of the list
+- `children: seq[Widget]`
+- `selected: int` Currently selected index, may be smaller or larger than the numberer of children to represent no option being selected
+
+###### Events
+
+- select: `proc (index: int)`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+###### Example
+
+```nim
+RadioGroup:
+  selected = app.selected
+  proc select(index: int) =
+    app.selected = index
+
+  Label(text = "Option 0", xAlign = 0)
+  Label(text = "Option 1", xAlign = 0)
+  Label(text = "Option 2", xAlign = 0)
+```
+
+
 ## BasePopover
 
 ```nim
