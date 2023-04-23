@@ -44,8 +44,33 @@ Check out [the Nim Compiler User Guide](https://nim-lang.org/docs/nimc.html#cros
 
 ## Distributing
 
-Copy all the `.dll`s from `mingw`, place them next to your `.exe` and archive them using your favourite archiver.
-You now should be able to easily ship the archive.
+Follow this process:
+
+```shell
+# ldd takes the necessary dlls and grep looks for `/mingw`'s libs...
+$ ldd bin/myapp.exe | grep '\/mingw.*\.dll' -o | xargs -I{} cp "{}" ./bin
+
+# Then copy some files
+$ cp -r /mingw64/lib/gdk-pixbuf-2.0 ./bin/lib/gdk-pixbuf-2.0
+$ cp -r /mingw64/share/icons/* ./bin/share/icons/
+$ cp /mingw64/share/glib-2.0/schemas/* ./bin/share/glib-2.0/schemas/
+
+# And compile local schemas
+$ glib-compile-schemas.exe ./bin/share/glib-2.0/schemas/
+```
+
+Note that `*.dll`, `lib/**` and `share/**` are placed next to your `*.exe`.
+
+You now should be able to easily ship the archive, even on Windows.
+Also, you can create `tasks` to each step inside your `*.nimble` or `*.nims` file if you want.
+
+If you're using *Adwaita*, don't forget to declare this in your `config.nims` file:
+
+```nims
+--define:adwaita12
+```
+
+You can read a bit more about it [at this discussion (#57)](https://github.com/can-lehmann/owlkettle/discussions/57)
 
 ## Static linking
 
