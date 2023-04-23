@@ -83,9 +83,9 @@ renderable BaseWidget:
   
   setter margin: int
   setter margin: Margin
-  setter style: StyleClass
-  setter style: varargs[StyleClass]
-  setter style: HashSet[StyleClass]
+  setter style: StyleClass # Applies CSS classes to the widget. There are some pre-defined classes available. You can also use custom CSS classes using `StyleClass("my-class")`.
+  setter style: varargs[StyleClass] # Applies CSS classes to the widget.
+  setter style: HashSet[StyleClass] # Applies CSS classes to the widget.
 
 proc `hasMargin=`*(widget: BaseWidget, has: bool) =
   widget.hasInternalMargin = has
@@ -270,11 +270,9 @@ renderable Box of BaseWidget:
               vAlign: AlignFill.}:
     ## Adds a child to the Box.
     ## When expand is true, the child grows to fill up the remaining space in the Box.
-    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
     ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
     ## `AlignStart`, `AlignEnd` or `AlignCenter`.
-    ## 
-    ## Note: **Any** widgets contained in a Box-Widget get access to all properties of the adder (such as `expand`) , to control their behaviour inside of the Box!
     widget.valChildren.add(BoxChild[Widget](
       widget: child,
       expand: expand,
@@ -854,7 +852,7 @@ renderable HeaderBar of BaseWidget:
                    vAlign: AlignFill.}:
     ## Adds a custom title widget to the HeaderBar.
     ## When expand is true, it grows to fill up the remaining space in the headerbar.
-    ## The hAlign and vAlign properties allow you to set the horizontal and vertical 
+    ## The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
     ## alignment of the child within its allocated area. They may be one of `AlignFill`, 
     ## `AlignStart`, `AlignEnd` or `AlignCenter`.
     if widget.hasTitle:
@@ -1509,7 +1507,7 @@ renderable RadioGroup of BaseWidget:
   orient: Orient = OrientY ## Orientation of the list
   children: seq[Widget]
   
-  selected: int ## Currently selected index, may be smaller or larger than the numberer of children to represent no option being selected
+  selected: int ## Currently selected index, may be smaller or larger than the number of children to represent no option being selected
   proc select(index: int)
   
   type
@@ -1680,6 +1678,9 @@ renderable Popover of BasePopover:
     widget.valChild = child
 
 renderable PopoverMenu of BasePopover:
+  ## A popover with multiple pages.
+  ## It is usually used to create a menu with nested submenus.
+  
   pages: Table[string, Widget]
   
   hooks:
@@ -1716,6 +1717,8 @@ renderable PopoverMenu of BasePopover:
             state.pages[name] = page
   
   adder add {.name: "main".}:
+    ## Adds a page to the popover menu.
+    
     if name in widget.valPages:
       raise newException(ValueError, "Page \"" & name & "\" already exists")
     widget.hasPages = true
@@ -1816,6 +1819,8 @@ renderable ModelButton of BaseWidget:
       g_value_unset(value.addr)
 
 renderable Separator of BaseWidget:
+  ## A separator line.
+  
   orient: Orient
   
   hooks:
@@ -2035,7 +2040,9 @@ proc `lineOffset=`*(iter: TextIter, val: int) = gtk_text_iter_set_line_offset(it
 {.pop.}
 
 renderable TextView of BaseWidget:
-  buffer: TextBuffer
+  ## A text editor with support for formatted text.
+  
+  buffer: TextBuffer ## The buffer containing the displayed text.
   monospace: bool = false
   cursorVisible: bool = true
   editable: bool = true
@@ -2082,6 +2089,8 @@ renderable TextView of BaseWidget:
       gtk_text_view_set_buffer(state.internalWidget, state.buffer.gtk)
 
 renderable ListBoxRow of BaseWidget:
+  ## A row in a `ListBox`.
+  
   child: Widget
   
   proc activate()
@@ -2121,7 +2130,7 @@ type SelectionMode* = enum
 renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
-  selected: HashSet[int]
+  selected: HashSet[int] ## Indices of the currently selected items.
 
   proc select(rows: HashSet[int])
   
@@ -2186,6 +2195,7 @@ renderable ListBox of BaseWidget:
             raise newException(IndexDefect, "Unable to select row " & $row & ", since there are only " & $state.rows.len & " rows in the ListBox.")
 
   adder addRow:
+    ## Adds a row to the list. The added child widget must be a `ListBoxRow`.
     widget.hasRows = true
     widget.valRows.add(child)
   
@@ -2322,8 +2332,10 @@ renderable Frame of BaseWidget:
         text = "Content"
 
 renderable DropDown of BaseWidget:
+  ## A drop down that allows the user to select an item from a list of items.
+  
   items: seq[string]
-  selected: int
+  selected: int ## Index of the currently selected item.
   enableSearch: bool
   showArrow: bool = true
   
@@ -2408,9 +2420,11 @@ proc attach(grid: GtkWidget, child: GridChild[WidgetState]) =
   )
 
 renderable Grid of BaseWidget:
+  ## A grid layout.
+  
   children: seq[GridChild[Widget]]
-  rowSpacing: int
-  columnSpacing: int
+  rowSpacing: int ## Spacing between the rows of the grid.
+  columnSpacing: int ## Spacing between the columns of the grid.
   rowHomogeneous: bool
   columnHomogeneous: bool
   
@@ -2511,6 +2525,12 @@ renderable Grid of BaseWidget:
   adder add {.x: 0, y: 0, width: 1, height: 1,
               hExpand: false, vExpand: false,
               hAlign: AlignFill, vAlign: AlignFill.}:
+    ## Adds a child at the given location to the grid.
+    ## The location of the child within the grid can be set using the `x`, `y`, `width` and `height` properties.
+    ## The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
+    ## alignment of the child within its allocated area. They may be one of `AlignFill`,
+    ## `AlignStart`, `AlignEnd` or `AlignCenter`.
+    
     widget.hasChildren = true
     widget.valChildren.add(GridChild[Widget](
       widget: child,
@@ -2526,7 +2546,7 @@ renderable Grid of BaseWidget:
       vAlign: vAlign
     ))
   
-  setter spacing: int
+  setter spacing: int ## Sets the spacing between the rows and columns of the grid.
   setter homogeneous: bool
   
   example:
@@ -2758,15 +2778,18 @@ proc toGtk*(resp: DialogResponse): cint =
     of DialogClose: result = -7
 
 renderable DialogButton:
+  ## A button which closes the currently open dialog and sends a response to the caller.
+  ## This widget can only be used with the `addButton` adder of `Dialog` or `BuiltinDialog`.
+  
   text: string
   response: DialogResponse
   internalStyle {.internal.}: HashSet[StyleClass]
-
+  
   setter res: DialogResponseKind
-  setter style: varargs[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  setter style: HashSet[StyleClass] ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-  setter style: StyleClass  ## Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-
+  setter style: varargs[StyleClass] ## Applies CSS classes to the button. There are some pre-defined classes available: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. You can also use custom CSS classes using `StyleClass("my-class")`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+  setter style: HashSet[StyleClass] ## Applies CSS classes to the button.
+  setter style: StyleClass  ## Applies CSS classes to the button.
+  
   hooks internalStyle:
     (build, update):
       updateStyle(state, widget)
@@ -2790,6 +2813,8 @@ proc `valRes=`*(button: DialogButton, kind: DialogResponseKind) =
   button.valResponse = DialogResponse(kind: kind)
 
 renderable Dialog of Window:
+  ## A window which can contain `DialogButton` widgets in its header bar.
+
   buttons: seq[DialogButton]
   
   hooks:
@@ -2816,6 +2841,9 @@ proc addButton*(dialog: Dialog, button: DialogButton) =
   dialog.valButtons.add(button)
 
 renderable BuiltinDialog:
+  ## Base widget for builtin dialogs.
+  ## If you want to create a custom dialog, you should use `Window` or `Dialog` instead.
+  
   title: string
   buttons: seq[DialogButton]
   
@@ -2844,8 +2872,10 @@ type FileChooserAction* = enum
   FileChooserCreateFolder
 
 renderable FileChooserDialog of BuiltinDialog:
+  ## A dialog for opening/saving files or folders.
+  
   action: FileChooserAction
-  filename: string
+  filename: string ## The selected file path.
   
   hooks:
     beforeBuild:
@@ -2865,6 +2895,8 @@ renderable FileChooserDialog of BuiltinDialog:
         state.filename = $g_file_get_path(file)
 
 renderable ColorChooserDialog of BuiltinDialog:
+  ## A dialog for choosing a color.
+  
   color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)
   useAlpha: bool = false
   
@@ -2894,6 +2926,8 @@ renderable ColorChooserDialog of BuiltinDialog:
       gtk_color_chooser_set_use_alpha(state.internalWidget, cbool(ord(state.useAlpha)))
 
 renderable MessageDialog of BuiltinDialog:
+  ## A dialog for showing a message to the user.
+  
   message: string
   
   hooks:

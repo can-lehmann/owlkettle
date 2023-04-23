@@ -88,11 +88,9 @@ A Box arranges its child widgets along one dimension.
 - All adders from [BaseWidget](#BaseWidget)
 - `add` Adds a child to the Box.
 When expand is true, the child grows to fill up the remaining space in the Box.
-The hAlign and vAlign properties allow you to set the horizontal and vertical 
+The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
 alignment of the child within its allocated area. They may be one of `AlignFill`, 
 `AlignStart`, `AlignEnd` or `AlignCenter`.
-
-Note: **Any** widgets contained in a Box-Widget get access to all properties of the adder (such as `expand`) , to control their behaviour inside of the Box!
 
   - `expand = true`
   - `hAlign = AlignFill`
@@ -309,7 +307,7 @@ renderable HeaderBar of BaseWidget
 - All adders from [BaseWidget](#BaseWidget)
 - `addTitle` Adds a custom title widget to the HeaderBar.
 When expand is true, it grows to fill up the remaining space in the headerbar.
-The hAlign and vAlign properties allow you to set the horizontal and vertical 
+The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
 alignment of the child within its allocated area. They may be one of `AlignFill`, 
 `AlignStart`, `AlignEnd` or `AlignCenter`.
 
@@ -625,7 +623,7 @@ A list of options selectable using radio buttons.
 - `rowSpacing: int = 6` Spacing between the radio button and
 - `orient: Orient = OrientY` Orientation of the list
 - `children: seq[Widget]`
-- `selected: int` Currently selected index, may be smaller or larger than the numberer of children to represent no option being selected
+- `selected: int` Currently selected index, may be smaller or larger than the number of children to represent no option being selected
 
 ###### Events
 
@@ -687,6 +685,9 @@ renderable Popover of BasePopover
 renderable PopoverMenu of BasePopover
 ```
 
+A popover with multiple pages.
+It is usually used to create a menu with nested submenus.
+
 ###### Fields
 
 - All fields from [BasePopover](#BasePopover)
@@ -695,7 +696,8 @@ renderable PopoverMenu of BasePopover
 ###### Adders
 
 - All adders from [BasePopover](#BasePopover)
-- `add`
+- `add` Adds a page to the popover menu.
+
   - `name = "main"`
 
 
@@ -748,6 +750,8 @@ renderable ModelButton of BaseWidget
 renderable Separator of BaseWidget
 ```
 
+A separator line.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
@@ -760,10 +764,12 @@ renderable Separator of BaseWidget
 renderable TextView of BaseWidget
 ```
 
+A text editor with support for formatted text.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `buffer: TextBuffer`
+- `buffer: TextBuffer` The buffer containing the displayed text.
 - `monospace: bool = false`
 - `cursorVisible: bool = true`
 - `editable: bool = true`
@@ -780,6 +786,8 @@ renderable TextView of BaseWidget
 ```nim
 renderable ListBoxRow of BaseWidget
 ```
+
+A row in a `ListBox`.
 
 ###### Fields
 
@@ -819,7 +827,7 @@ renderable ListBox of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
 - `selectionMode: SelectionMode`
-- `selected: HashSet[int]`
+- `selected: HashSet[int]` Indices of the currently selected items.
 
 ###### Events
 
@@ -828,7 +836,8 @@ renderable ListBox of BaseWidget
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `addRow`
+- `addRow` Adds a row to the list. The added child widget must be a `ListBoxRow`.
+
 - `add`
 
 ###### Example
@@ -934,11 +943,13 @@ Frame:
 renderable DropDown of BaseWidget
 ```
 
+A drop down that allows the user to select an item from a list of items.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
 - `items: seq[string]`
-- `selected: int`
+- `selected: int` Index of the currently selected item.
 - `enableSearch: bool`
 - `showArrow: bool = true`
 
@@ -964,24 +975,31 @@ DropDown:
 renderable Grid of BaseWidget
 ```
 
+A grid layout.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
 - `children: seq[GridChild[Widget]]`
-- `rowSpacing: int`
-- `columnSpacing: int`
+- `rowSpacing: int` Spacing between the rows of the grid.
+- `columnSpacing: int` Spacing between the columns of the grid.
 - `rowHomogeneous: bool`
 - `columnHomogeneous: bool`
 
 ###### Setters
 
-- `spacing: int`
+- `spacing: int` Sets the spacing between the rows and columns of the grid.
 - `homogeneous: bool`
 
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add`
+- `add` Adds a child at the given location to the grid.
+The location of the child within the grid can be set using the `x`, `y`, `width` and `height` properties.
+The `hAlign` and `vAlign` properties allow you to set the horizontal and vertical 
+alignment of the child within its allocated area. They may be one of `AlignFill`,
+`AlignStart`, `AlignEnd` or `AlignCenter`.
+
   - `x = 0`
   - `y = 0`
   - `width = 1`
@@ -1085,6 +1103,9 @@ Calendar:
 renderable DialogButton
 ```
 
+A button which closes the currently open dialog and sends a response to the caller.
+This widget can only be used with the `addButton` adder of `Dialog` or `BuiltinDialog`.
+
 ###### Fields
 
 - `text: string`
@@ -1093,9 +1114,9 @@ renderable DialogButton
 ###### Setters
 
 - `res: DialogResponseKind`
-- `style: varargs[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-- `style: HashSet[StyleClass]` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
-- `style: StyleClass` Applies special styling to the button. There are some pre-defined CSS classes available. Those are stored in: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+- `style: varargs[StyleClass]` Applies CSS classes to the button. There are some pre-defined classes available: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. You can also use custom CSS classes using `StyleClass("my-class")`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
+- `style: HashSet[StyleClass]` Applies CSS classes to the button.
+- `style: StyleClass` Applies CSS classes to the button.
 
 
 ## Dialog
@@ -1103,6 +1124,8 @@ renderable DialogButton
 ```nim
 renderable Dialog of Window
 ```
+
+A window which can contain `DialogButton` widgets in its header bar.
 
 ###### Fields
 
@@ -1121,6 +1144,9 @@ renderable Dialog of Window
 renderable BuiltinDialog
 ```
 
+Base widget for builtin dialogs.
+If you want to create a custom dialog, you should use `Window` or `Dialog` instead.
+
 ###### Fields
 
 - `title: string`
@@ -1137,11 +1163,13 @@ renderable BuiltinDialog
 renderable FileChooserDialog of BuiltinDialog
 ```
 
+A dialog for opening/saving files or folders.
+
 ###### Fields
 
 - All fields from [BuiltinDialog](#BuiltinDialog)
 - `action: FileChooserAction`
-- `filename: string`
+- `filename: string` The selected file path.
 
 
 ## ColorChooserDialog
@@ -1149,6 +1177,8 @@ renderable FileChooserDialog of BuiltinDialog
 ```nim
 renderable ColorChooserDialog of BuiltinDialog
 ```
+
+A dialog for choosing a color.
 
 ###### Fields
 
@@ -1162,6 +1192,8 @@ renderable ColorChooserDialog of BuiltinDialog
 ```nim
 renderable MessageDialog of BuiltinDialog
 ```
+
+A dialog for showing a message to the user.
 
 ###### Fields
 
