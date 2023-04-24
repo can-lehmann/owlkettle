@@ -11,6 +11,7 @@ examples/widgets/drop_down
 examples/widgets/popover_menu
 examples/widgets/picture
 examples/widgets/grid
+examples/widgets/radio_group
 examples/widgets/adw/window_title
 examples/widgets/adw/preferences_group
 examples/widgets/adw/flap
