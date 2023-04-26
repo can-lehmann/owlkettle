@@ -144,10 +144,8 @@ renderable Window of BaseWindow:
   hooks fullscreened:
     property:
       if state.fullscreened:
-        echo "fullscreening"
         gtk_window_fullscreen(state.internalWidget)
       else:
-        echo "unfullscreening"
         gtk_window_unfullscreen(state.internalWidget)
   
   hooks titlebar:
