@@ -49,6 +49,7 @@ renderable Window of BaseWindow
 
 - All fields from [BaseWindow](#BaseWindow)
 - `title: string`
+- `fullscreened: bool` Whether or not the window is fullscreened; setting this property is equivalent to calling `gtk_window_fullscreen` and `gtk_window_unfullscreen` for values of `true` and `false`, respectively.
 - `titlebar: Widget` Custom widget set as the titlebar of the window
 - `child: Widget`
 
