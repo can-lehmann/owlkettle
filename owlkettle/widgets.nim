@@ -135,6 +135,9 @@ renderable Window of BaseWindow:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+    afterBuild:
+      if state.fullscreened:
+        gtk_window_fullscreen(state.internalWidget)
   
   hooks title:
     property:
