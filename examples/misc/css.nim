@@ -41,5 +41,16 @@ method view(app: AppState): Widget =
       
       Label:
         text = "Hello, world!"
+        # Use custom-label css class defined below
+        style = [StyleClass("custom-label")]
 
-brew(gui(App()), stylesheets=["style.css"])
+brew(gui(App()), stylesheets=[
+  # Load from disk
+  loadStylesheet("style.css"),
+  # Load from string
+  newStylesheet("""
+    .custom-label {
+      font-size: 32px;
+    }
+  """)
+])

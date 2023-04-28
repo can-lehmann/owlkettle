@@ -799,7 +799,7 @@ export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesR
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
-           stylesheets: openArray[string] = []) =
+           stylesheets: openArray[Stylesheet] = []) =
   adw_init()
   let styleManager = adw_style_manager_get_default()
   adw_style_manager_set_color_scheme(styleManager, colorScheme)

@@ -22,11 +22,32 @@
 
 import gtk, widgetdef
 
+type Stylesheet* = ref object
+  provider: GtkCssProvider
+  priority: int
+
+const DEFAULT_PRIORITY = 600
+
+proc newStylesheet*(css: string, priority: int = DEFAULT_PRIORITY): Stylesheet =
+  ## Creates a stylesheet from a CSS string
+  let provider = gtk_css_provider_new()
+  gtk_css_provider_load_from_data(provider, css.cstring, css.len.csize_t)
+  result = Stylesheet(provider: provider, priority: priority)
+
+proc loadStylesheet*(path: string, priority: int = DEFAULT_PRIORITY): Stylesheet =
+  ## Loads a CSS stylesheet from the given path
+  var error: GError
+  let provider = gtk_css_provider_new()
+  discard gtk_css_provider_load_from_path(provider, path.cstring, error.addr)
+  if not error.isNil:
+    raise newException(IOError, $error[].message)
+  result = Stylesheet(provider: provider, priority: priority)
+
 type AppConfig* = object
   widget*: Widget
   icons*: seq[string]
   darkTheme*: bool
-  stylesheets*: seq[string]
+  stylesheets*: seq[Stylesheet]
 
 proc setupApp*(config: AppConfig): WidgetState =
   if config.darkTheme:
@@ -42,12 +63,11 @@ proc setupApp*(config: AppConfig): WidgetState =
   result = config.widget.build()
   
   for stylesheet in config.stylesheets:
-    var error: GError
-    let provider = gtk_css_provider_new()
-    discard gtk_css_provider_load_from_path(provider, stylesheet.cstring, error.addr)
-    if not error.isNil:
-      raise newException(IOError, $error[].message)
-    gtk_style_context_add_provider_for_display(display, provider, 600)
+    gtk_style_context_add_provider_for_display(
+      display,
+      stylesheet.provider,
+      stylesheet.priority.cuint
+    )
 
 proc runMainloop*(state: WidgetState) =
   gtk_window_present(state.unwrapInternalWidget())

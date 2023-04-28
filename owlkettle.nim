@@ -24,6 +24,7 @@ import owlkettle/[gtk, widgetutils, widgetdef, widgets, guidsl, mainloop]
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
+export Stylesheet, newStylesheet, loadStylesheet
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let
@@ -181,7 +182,7 @@ proc closeWindow*(state: WidgetState) =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           stylesheets: openArray[string] = []) =
+           stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
   let state = setupApp(AppConfig(
     widget: widget,
@@ -194,7 +195,7 @@ proc brew*(widget: Widget,
 proc brew*(id: string, widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           stylesheets: openArray[string] = []) =
+           stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,

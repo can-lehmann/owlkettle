@@ -537,6 +537,7 @@ proc gtk_widget_measure*(widget: GtkWidget, orient: GtkOrientation, size: cint, 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
 proc gtk_css_provider_load_from_path*(cssProvider: GtkCssProvider, path: cstring, error: ptr GError): cbool
+proc gtk_css_provider_load_from_data*(cssProvider: GtkCssProvider, data: cstring, length: csize_t)
 
 # Gtk.StyleContext
 proc gtk_style_context_add_class*(ctx: GtkStyleContext, name: cstring)

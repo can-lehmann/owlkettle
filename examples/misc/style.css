@@ -28,10 +28,6 @@ window {
   border: none;
 }
 
-window > label {
-  font-size: 32px;
-}
-
 headerbar {
   background: #8ed67a;
   border: none;
