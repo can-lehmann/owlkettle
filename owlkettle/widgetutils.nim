@@ -22,7 +22,7 @@
 
 # Utilities for wrapping widgets
 
-import std/[hashes, sets]
+import std/[sets]
 import gtk, widgetdef
 
 proc redraw*[T](event: EventObj[T]) =

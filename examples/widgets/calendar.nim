@@ -60,4 +60,6 @@ method view(app: AppState): Widget =
           ## nextMonth, prevMonth, nextYear, prevYear)
           app.date = date
 
-adw.brew(gui(App()), stylesheets=["calendar.css"])
+adw.brew(gui(App()), stylesheets=[
+  loadStylesheet("calendar.css")
+])
