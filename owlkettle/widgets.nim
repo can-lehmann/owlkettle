@@ -128,16 +128,13 @@ renderable BaseWindow of BaseWidget:
 
 renderable Window of BaseWindow:
   title: string
-  fullscreened: bool ## Whether or not the window is fullscreened; setting this property is equivalent to calling `gtk_window_fullscreen` and `gtk_window_unfullscreen` for values of `true` and `false`, respectively. Either operation is asynchronous, which means you will need to connect to the `::notify` signal in order to know whether the operation was successful (it could fail if, for instance, a window manager refuses to respond to the signal).
+  fullscreened: bool
   titlebar: Widget ## Custom widget set as the titlebar of the window
   child: Widget
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-    afterBuild:
-      if state.fullscreened:
-        gtk_window_fullscreen(state.internalWidget)
   
   hooks title:
     property:
