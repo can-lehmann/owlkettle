@@ -49,6 +49,7 @@ renderable Window of BaseWindow
 
 - All fields from [BaseWindow](#BaseWindow)
 - `title: string`
+- `fullscreened: bool`
 - `titlebar: Widget` Custom widget set as the titlebar of the window
 - `child: Widget`
 

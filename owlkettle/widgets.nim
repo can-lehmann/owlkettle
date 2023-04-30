@@ -128,6 +128,7 @@ renderable BaseWindow of BaseWidget:
 
 renderable Window of BaseWindow:
   title: string
+  fullscreened: bool
   titlebar: Widget ## Custom widget set as the titlebar of the window
   child: Widget
   
@@ -139,6 +140,13 @@ renderable Window of BaseWindow:
     property:
       if state.titlebar.isNil:
         gtk_window_set_title(state.internalWidget, state.title.cstring)
+
+  hooks fullscreened:
+    property:
+      if state.fullscreened:
+        gtk_window_fullscreen(state.internalWidget)
+      else:
+        gtk_window_unfullscreen(state.internalWidget)
   
   hooks titlebar:
     (build, update):

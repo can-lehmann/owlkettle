@@ -555,6 +555,8 @@ proc gtk_window_set_modal*(window: GtkWidget, modal: cbool)
 proc gtk_window_set_focus*(window, focus: GtkWidget)
 proc gtk_window_set_child*(window, child: GtkWidget)
 proc gtk_window_present*(window: GtkWidget)
+proc gtk_window_fullscreen*(window: GtkWidget)
+proc gtk_window_unfullscreen*(window: GtkWidget)
 proc gtk_window_get_toplevels*(): GListModel
 proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
