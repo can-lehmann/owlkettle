@@ -1176,7 +1176,9 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
       )
       localPos
   
-  var stopEvent = false
+  var
+    stopEvent = false
+    requiresRedraw = false
   
   let kind = gdk_event_get_event_type(event)
   case kind:
@@ -1188,6 +1190,7 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
           y: float(pos.y),
           modifiers: modifiers
         ))
+        requiresRedraw = true
     of GDK_BUTTON_PRESS, GDK_BUTTON_RELEASE:
       let evt = ButtonEvent(
         time: time,
@@ -1199,9 +1202,11 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
       if kind == GDK_BUTTON_PRESS:
         if not data[].mousePressed.isNil:
           stopEvent = data[].mousePressed(evt)
+          requiresRedraw = true
       else:
         if not data[].mouseReleased.isNil:
           stopEvent = data[].mouseReleased(evt)
+          requiresRedraw = true
     of GDK_KEY_PRESS, GDK_KEY_RELEASE:
       let
         keyVal = gdk_key_event_get_keyval(event)
@@ -1214,9 +1219,11 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
       if kind == GDK_KEY_PRESS:
         if not data[].keyPressed.isNil:
           stopEvent = data[].keyPressed(evt)
+          requiresRedraw = true
       else:
         if not data[].keyReleased.isNil:
           stopEvent = data[].keyReleased(evt)
+          requiresRedraw = true
     of GDK_SCROLL:
       if not data[].scroll.isNil:
         var evt = ScrollEvent(
@@ -1232,11 +1239,13 @@ proc gdkEventCallback(controller: GtkEventController, event: GdkEvent, data: ptr
           evt.dx = float(dx)
           evt.dy = float(dy)
         stopEvent = data[].scroll(evt)
+        requiresRedraw = true
     else: discard
   
-  if data[].app.isNil:
-    raise newException(ValueError, "App is nil")
-  discard data[].app.redraw()
+  if requiresRedraw:
+    if data[].app.isNil:
+      raise newException(ValueError, "App is nil")
+    discard data[].app.redraw()
   result = cbool(ord(stopEvent))
 
 proc drawFunc(widget: GtkWidget,
