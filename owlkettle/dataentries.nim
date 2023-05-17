@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[strutils, math, sets]
+import std/[strutils, math, sets, tables]
 when defined(nimPreviewSlimSystem):
   import std/formatfloat
 import widgets, widgetdef, guidsl
@@ -46,6 +46,8 @@ proc isFloat(value: string): bool =
     result = it == value.len and digits > 0
 
 viewable NumberEntry:
+  ## A entry for entering floating point numbers.
+
   value: float
   current {.internal.}: float
   text {.internal.}: string
@@ -57,6 +59,10 @@ viewable NumberEntry:
   maxWidth: int = -1
   xAlign: float = 0.0
   
+  tooltip: string = ""
+  sizeRequest: tuple[x, y: int] = (-1, -1)
+  sensitive: bool = true
+  
   proc changed(value: float)
   
   hooks:
@@ -64,6 +70,12 @@ viewable NumberEntry:
       state.current = state.value
       state.text = $state.value
       state.consistent = true
+  
+  example:
+    NumberEntry:
+      value = app.value
+      proc changed(value: float) =
+        app.value = value
 
 method parse(entry: NumberEntryState, text: string): (bool, float) {.base.} =
   if isFloat(text):
@@ -82,6 +94,10 @@ method view*(entry: NumberEntryState): Widget =
       width = entry.width
       maxWidth = entry.maxWidth
       xAlign = entry.xAlign
+      
+      tooltip = entry.tooltip
+      sizeRequest = entry.sizeRequest
+      sensitive = entry.sensitive
       
       if entry.consistent:
         style = initHashSet[StyleClass]()
@@ -104,7 +120,17 @@ method view*(entry: NumberEntryState): Widget =
         entry.consistent = true
 
 viewable FormulaEntry of NumberEntry:
-  discard
+  ## A entry for entering floating point numbers.
+  ## The FormulaEntry can evaluate mathematical expressions like `1 + 2 * 3`.
+  
+  vars: Table[string, float] ## Variables that may be used in the expression
+  
+  example:
+    FormulaEntry:
+      value = app.value
+      vars = toTable({"pi": PI})
+      proc changed(value: float) =
+        app.value = value
 
 method parse(entry: FormulaEntryState, text: string): (bool, float64) =
   type
@@ -179,6 +205,11 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
       result = stream.eval(0)
       if not stream.take(TokenParClose):
         return (false, 0.0)
+    elif stream.take(TokenName):
+      let value = stream.tokens[stream.cur - 1].value
+      result.valid = value in entry.vars
+      if result.valid:
+        result.val = entry.vars[value]
     
     if not result.valid:
       return

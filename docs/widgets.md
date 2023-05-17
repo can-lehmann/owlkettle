@@ -33,6 +33,7 @@ renderable BaseWindow of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
+- `fullscreened: bool`
 
 ###### Events
 
@@ -49,7 +50,6 @@ renderable Window of BaseWindow
 
 - All fields from [BaseWindow](#BaseWindow)
 - `title: string`
-- `fullscreened: bool`
 - `titlebar: Widget` Custom widget set as the titlebar of the window
 - `child: Widget`
 
