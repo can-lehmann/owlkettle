@@ -617,6 +617,11 @@ proc gtk_header_bar_set_title_widget*(headerBar, child: GtkWidget)
 # Gtk.Adjustment
 proc gtk_adjustment_new*(value, lower, upper, stepIncrement, pageIncrement, pageSize: cdouble): GtkAdjustment
 proc gtk_adjustment_set_value*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_set_lower*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_set_upper*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_set_step_increment*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_set_page_increment*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_set_page_size*(adjustment: GtkAdjustment, value: cdouble)
 
 # Gtk.ScrolledWindow
 proc gtk_scrolled_window_new*(hAdjustment, vAdjustment: GtkAdjustment): GtkWidget
@@ -956,6 +961,15 @@ proc gtk_calendar_select_day*(widget: GtkWidget, date: GDateTime)
 proc gtk_calendar_get_date*(widget: GtkWidget): GDateTime
 proc gtk_calendar_clear_marks*(widget: GtkWidget)
 proc gtk_calendar_mark_day*(widget: GtkWidget, day: cuint)
+
+# Gtk.SpinButton
+proc gtk_spin_button_new*(adjustment: GtkAdjustment, climbRate: cdouble, digits: cuint): GtkWidget
+proc gtk_spin_button_get_adjustment*(widget: GtkWidget): GtkAdjustment
+proc gtk_spin_button_set_value*(widget: GtkWidget, value: cdouble)
+proc gtk_spin_button_get_value*(widget: GtkWidget): cdouble
+proc gtk_spin_button_set_digits*(widget: GtkWidget, digits: cuint)
+proc gtk_spin_button_set_wrap*(widget: GtkWidget, digits: cbool)
+proc gtk_spin_button_set_climb_rate*(widget: GtkWidget, digits: cdouble)
 {.pop.}
 
 {.push hint[Name]: off.}

@@ -998,6 +998,89 @@ renderable Entry of BaseWidget:
       visibility = false
       invisibleChar = '*'.Rune
 
+renderable SpinButton of BaseWidget:
+  ## Entry for entering numeric values
+  
+  value: float
+  digits: uint = 1 ## Number of digits
+  climbRate: float = 0.1
+  wrap: bool ## When the maximum (minimum) value is reached, the SpinButton will wrap around to the minimum (maximum) value.
+  min: float = 0.0 ## Lower bound
+  max: float = 100.0 ## Upper bound
+  stepIncrement: float = 0.1
+  pageIncrement: float = 1
+  pageSize: float = 0
+  
+  proc valueChanged(value: float)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_spin_button_new(
+        GtkAdjustment(nil),
+        cdouble(widget.valClimbRate),
+        cuint(widget.valDigits)
+      )
+    connectEvents:
+      proc valueChangedCallback(widget: GtkWidget, data: ptr EventObj[proc (value: float)]) {.cdecl.} =
+        let value = float(gtk_spin_button_get_value(widget))
+        SpinButtonState(data[].widget).value = value
+        data[].callback(value)
+        data[].redraw()
+      
+      state.connect(state.valueChanged, "value-changed", valueChangedCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.valueChanged)
+  
+  hooks value:
+    property:
+      gtk_spin_button_set_value(state.internalWidget, cdouble(state.value))
+    read:
+      state.value = float(gtk_spin_button_get_value(state.internalWidget))
+  
+  hooks digits:
+    property:
+      gtk_spin_button_set_digits(state.internalWidget, cuint(state.digits))
+  
+  hooks climbRate:
+    property:
+      gtk_spin_button_set_climb_rate(state.internalWidget, cdouble(state.climbRate))
+  
+  hooks wrap:
+    property:
+      gtk_spin_button_set_wrap(state.internalWidget, cbool(ord(state.wrap)))
+  
+  hooks min:
+    property:
+      let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
+      gtk_adjustment_set_lower(adjustment, cdouble(state.min))
+  
+  hooks max:
+    property:
+      let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
+      gtk_adjustment_set_upper(adjustment, cdouble(state.max))
+  
+  hooks stepIncrement:
+    property:
+      let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
+      gtk_adjustment_set_step_increment(adjustment, cdouble(state.stepIncrement))
+  
+  hooks pageIncrement:
+    property:
+      let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
+      gtk_adjustment_set_page_increment(adjustment, cdouble(state.pageIncrement))
+  
+  hooks pageSize:
+    property:
+      let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
+      gtk_adjustment_set_page_size(adjustment, cdouble(state.pageSize))
+  
+  example:
+    SpinButton:
+      value = app.value
+      
+      proc valueChanged(value: float) =
+        app.value = value
+
 type PanedChild[T] = object
   widget: T
   resize: bool
@@ -3042,7 +3125,7 @@ renderable AboutDialog of BaseWidget:
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry
-export Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
+export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
 export Frame, DropDown, Grid, ContextMenu, Calendar

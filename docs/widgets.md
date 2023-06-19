@@ -403,6 +403,42 @@ Entry:
 ```
 
 
+## SpinButton
+
+```nim
+renderable SpinButton of BaseWidget
+```
+
+Entry for entering numeric values
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `value: float`
+- `digits: uint = 1` Number of digits
+- `climbRate: float = 0.1`
+- `wrap: bool` When the maximum (minimum) value is reached, the SpinButton will wrap around to the minimum (maximum) value.
+- `min: float = 0.0` Lower bound
+- `max: float = 100.0` Upper bound
+- `stepIncrement: float = 0.1`
+- `pageIncrement: float = 1`
+- `pageSize: float = 0`
+
+###### Events
+
+- valueChanged: `proc (value: float)`
+
+###### Example
+
+```nim
+SpinButton:
+  value = app.value
+  proc valueChanged(value: float) =
+    app.value = value
+
+```
+
+
 ## Paned
 
 ```nim
