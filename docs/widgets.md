@@ -511,6 +511,18 @@ The `owlkettle/cairo` module provides bindings for cairo.
 
 - draw: `proc (ctx: CairoContext; size: (int, int)): bool` Called when the widget is rendered. Redraws the application if the callback returns true.
 
+###### Example
+
+```nim
+DrawingArea:
+  ## You need to import the owlkettle/cairo module in order to use CairoContext
+  proc draw(ctx: CairoContext; size: tuple[width, height: int]): bool =
+    ctx.rectangle(100, 100, 300, 200)
+    ctx.source = (0.0, 0.0, 0.0)
+    ctx.stroke()
+
+```
+
 
 ## GlArea
 
@@ -761,6 +773,16 @@ renderable MenuButton of BaseWidget
 - `addChild`
 - `add`
 
+###### Example
+
+```nim
+MenuButton {.addRight.}:
+  icon = "open-menu"
+  PopoverMenu:
+    Box:
+      Label(text = "My Menu")
+```
+
 
 ## ModelButton
 
@@ -779,6 +801,20 @@ renderable ModelButton of BaseWidget
 ###### Events
 
 - clicked: `proc ()`
+
+###### Example
+
+```nim
+PopoverMenu:
+  Box:
+    orient = OrientY
+    for it in 0 ..< 10:
+      ModelButton:
+        text = "Menu Entry " & $it
+        proc clicked() =
+          echo "Clicked " & $it
+
+```
 
 
 ## Separator
@@ -1174,6 +1210,21 @@ A window which can contain `DialogButton` widgets in its header bar.
 - All adders from [Window](#Window)
 - `addButton`
 
+###### Example
+
+```nim
+Dialog:
+  title = "My Dialog"
+  defaultSize = (300, 200)
+  DialogButton {.addButton.}:
+    text = "Ok"
+    res = DialogAccept
+  DialogButton {.addButton.}:
+    text = "Cancel"
+    res = DialogCancel
+  Label(text = "Hello, world!")
+```
+
 
 ## BuiltinDialog
 
@@ -1210,6 +1261,22 @@ A dialog for opening/saving files or folders.
 - `initialPath: string` Path of the initially shown folder
 - `filenames: seq[string]` The selected file paths
 
+###### Example
+
+```nim
+FileChooserDialog:
+  title = "Open a File"
+  action = FileChooserOpen
+  selectMultiple = true
+  DialogButton {.addButton.}:
+    text = "Cancel"
+    res = DialogCancel
+  DialogButton {.addButton.}:
+    text = "Open"
+    res = DialogAccept
+    style = [ButtonSuggested]
+```
+
 
 ## ColorChooserDialog
 
@@ -1225,6 +1292,14 @@ A dialog for choosing a color.
 - `color: tuple[r, g, b, a: float] = (0.0, 0.0, 0.0, 1.0)`
 - `useAlpha: bool = false`
 
+###### Example
+
+```nim
+ColorChooserDialog:
+  color = (1.0, 0.0, 0.0, 1.0)
+  useAlpha = true
+```
+
 
 ## MessageDialog
 
@@ -1238,6 +1313,16 @@ A dialog for showing a message to the user.
 
 - All fields from [BuiltinDialog](#BuiltinDialog)
 - `message: string`
+
+###### Example
+
+```nim
+MessageDialog:
+  message = "Hello, world!"
+  DialogButton {.addButton.}:
+    text = "Ok"
+    res = DialogAccept
+```
 
 
 ## AboutDialog

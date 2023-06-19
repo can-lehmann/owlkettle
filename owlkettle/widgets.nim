@@ -1390,6 +1390,14 @@ renderable DrawingArea of CustomWidget:
       gtk_drawing_area_set_draw_func(state.internalWidget, draw_func, state.draw[].addr, nil)
     update:
       gtk_widget_queue_draw(state.internalWidget)
+  
+  example:
+    DrawingArea:
+      ## You need to import the owlkettle/cairo module in order to use CairoContext
+      proc draw(ctx: CairoContext, size: tuple[width, height: int]): bool =
+        ctx.rectangle(100, 100, 300, 200)
+        ctx.source = (0.0, 0.0, 0.0)
+        ctx.stroke()
 
 proc setupEventCallback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, int)): bool]) =
   gtk_gl_area_make_current(widget)
@@ -1858,6 +1866,14 @@ renderable MenuButton of BaseWidget:
       widget.valPopover = child
     else:
       raise newException(ValueError, "Unable to add more than two children to MenuButton")
+  
+  example:
+    MenuButton {.addRight.}:
+      icon = "open-menu"
+      
+      PopoverMenu:
+        Box:
+          Label(text = "My Menu")
 
 proc `hasText=`*(menuButton: MenuButton, value: bool) = menuButton.hasChild = value
 proc `valText=`*(menuButton: MenuButton, value: string) =
@@ -1917,6 +1933,18 @@ renderable ModelButton of BaseWidget:
       var value = g_value_new(state.shortcut)
       g_object_set_property(state.internalWidget.pointer, "accel", value.addr)
       g_value_unset(value.addr)
+  
+  example:
+    PopoverMenu:
+      Box:
+        orient = OrientY
+        
+        for it in 0..<10:
+          ModelButton:
+            text = "Menu Entry " & $it
+            
+            proc clicked() =
+              echo "Clicked " & $it
 
 renderable Separator of BaseWidget:
   ## A separator line.
@@ -2935,6 +2963,21 @@ renderable Dialog of Window:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
+  
+  example:
+    Dialog:
+      title = "My Dialog"
+      defaultSize = (300, 200)
+      
+      DialogButton {.addButton.}:
+        text = "Ok"
+        res = DialogAccept
+      
+      DialogButton {.addButton.}:
+        text = "Cancel"
+        res = DialogCancel
+      
+      Label(text = "Hello, world!")
 
 proc addButton*(dialog: Dialog, button: DialogButton) =
   dialog.hasButtons = true
@@ -3014,6 +3057,21 @@ renderable FileChooserDialog of BuiltinDialog:
         state.filenames.add($g_file_get_path(GFile(file)))
         g_object_unref(file)
       g_object_unref(pointer(files))
+  
+  example:
+    FileChooserDialog:
+      title = "Open a File"
+      action = FileChooserOpen
+      selectMultiple = true
+      
+      DialogButton {.addButton.}:
+        text = "Cancel"
+        res = DialogCancel
+      
+      DialogButton {.addButton.}:
+        text = "Open"
+        res = DialogAccept
+        style = [ButtonSuggested]
 
 proc filename*(dialog: FileChooserDialogState): string {.deprecated: "Use filenames instead".} =
   case dialog.filenames.len:
@@ -3053,6 +3111,11 @@ renderable ColorChooserDialog of BuiltinDialog:
     property:
       gtk_color_chooser_set_use_alpha(state.internalWidget, cbool(ord(state.useAlpha)))
 
+  example:
+    ColorChooserDialog:
+      color = (1.0, 0.0, 0.0, 1.0)
+      useAlpha = true
+
 renderable MessageDialog of BuiltinDialog:
   ## A dialog for showing a message to the user.
   
@@ -3068,6 +3131,14 @@ renderable MessageDialog of BuiltinDialog:
         widget.valMessage.cstring,
         nil
       )
+  
+  example:
+    MessageDialog:
+      message = "Hello, world!"
+      
+      DialogButton {.addButton.}:
+        text = "Ok"
+        res = DialogAccept
 
 renderable AboutDialog of BaseWidget:
   programName: string
