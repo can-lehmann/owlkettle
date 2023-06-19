@@ -411,6 +411,7 @@ proc g_notification_set_priority*(notification: GNotification, priority: GNotifi
 
 # Gio.GListModel
 proc g_list_model_get_n_items*(list: GListModel): cuint
+proc g_list_model_get_item*(list: GListModel, index: cuint): pointer
 
 # Gdk
 proc gdk_keyval_to_unicode*(keyVal: cuint): uint32
@@ -886,6 +887,9 @@ proc gtk_dialog_get_header_bar*(dialog: GtkWidget): GtkWidget
 
 # Gtk.FileChooser
 proc gtk_file_chooser_get_file*(fileChooser: GtkWidget): GFile
+proc gtk_file_chooser_get_files*(fileChooser: GtkWidget): GListModel
+proc gtk_file_chooser_set_select_multiple*(fileChooser: GtkWidget, select: cbool)
+proc gtk_file_chooser_set_current_folder*(fileChooser: GtkWidget, folder: GFile, error: ptr GError): cbool
 
 # Gtk.FileChooserDialog
 proc gtk_file_chooser_dialog_new*(title: cstring,
@@ -1003,6 +1007,11 @@ template withCArgs(argc, argv, body: untyped) =
       argv = allocCStringArray(args)
     defer: argv.deallocCStringArray()
     body
+
+iterator items*(model: GListModel): pointer =
+  let count = g_list_model_get_n_items(model)
+  for it in 0..<count:
+    yield g_list_model_get_item(model, it)
 
 {.push hint[Name]: off}
 proc g_application_run*(app: GApplication): cint =

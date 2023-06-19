@@ -2892,7 +2892,9 @@ renderable FileChooserDialog of BuiltinDialog:
   ## A dialog for opening/saving files or folders.
   
   action: FileChooserAction
-  filename: string ## The selected file path.
+  selectMultiple: bool = false
+  initialPath: string ## Path of the initially shown folder
+  filenames: seq[string] ## The selected file paths
   
   hooks:
     beforeBuild:
@@ -2903,13 +2905,39 @@ renderable FileChooserDialog of BuiltinDialog:
         nil
       )
   
-  hooks filename:
+  hooks selectMultiple:
+    property:
+      gtk_file_chooser_set_select_multiple(state.internalWidget,
+        cbool(ord(state.selectMultiple))
+      )
+  
+  hooks initialPath:
+    build:
+      if widget.hasInitialPath:
+        state.initialPath = widget.valInitialPath
+      if state.initialPath.len > 0:
+        let
+          file = g_file_new_for_path(state.initialPath.cstring)
+          success = gtk_file_chooser_set_current_folder(state.internalWidget, file, nil)
+        if success == cbool(0):
+          raise newException(IOError, "Failed to set initialPath of FileChooserDialog")
+        g_object_unref(pointer(file))
+  
+  hooks filenames:
     read:
-      let file = gtk_file_chooser_get_file(state.internalWidget)
-      if file.isNil:
-        state.filename = ""
-      else:
-        state.filename = $g_file_get_path(file)
+      state.filenames = @[]
+      let files = gtk_file_chooser_get_files(state.internalWidget)
+      for file in files:
+        state.filenames.add($g_file_get_path(GFile(file)))
+        g_object_unref(file)
+      g_object_unref(pointer(files))
+
+proc filename*(dialog: FileChooserDialogState): string {.deprecated: "Use filenames instead".} =
+  case dialog.filenames.len:
+    of 0: result = ""
+    of 1: result = dialog.filenames[0]
+    else:
+      raise newException(ValueError, "Multiple files were selected")
 
 renderable ColorChooserDialog of BuiltinDialog:
   ## A dialog for choosing a color.

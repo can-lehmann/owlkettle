@@ -23,13 +23,13 @@
 import owlkettle
 
 viewable App:
-  path: string = ""
+  paths: seq[string]
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "File Dialog Example"
-      defaultSize = (300, 100)
+      defaultSize = (400, 300)
       
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
@@ -40,6 +40,7 @@ method view(app: AppState): Widget =
               FileChooserDialog:
                 title = "Open a File"
                 action = FileChooserOpen
+                selectMultiple = true
                 
                 DialogButton {.addButton.}:
                   text = "Cancel"
@@ -51,8 +52,14 @@ method view(app: AppState): Widget =
                   style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
-              app.path = FileChooserDialogState(state).filename
+              app.paths = FileChooserDialogState(state).filenames
       
-      Label(text = app.path)
+      ScrolledWindow:
+        ListBox:
+          for path in app.paths:
+            Label:
+              text = path
+              margin = 6
+              xAlign = 0
 
 brew(gui(App()))

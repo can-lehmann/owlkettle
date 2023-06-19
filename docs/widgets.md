@@ -1170,7 +1170,9 @@ A dialog for opening/saving files or folders.
 
 - All fields from [BuiltinDialog](#BuiltinDialog)
 - `action: FileChooserAction`
-- `filename: string` The selected file path.
+- `selectMultiple: bool = false`
+- `initialPath: string` Path of the initially shown folder
+- `filenames: seq[string]` The selected file paths
 
 
 ## ColorChooserDialog
