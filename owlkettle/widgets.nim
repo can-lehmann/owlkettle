@@ -42,7 +42,7 @@ proc `==`*(x, y: StyleClass): bool {.borrow.}
 
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
-  ## by calling `<WidgetName>State.app.redraw()
+  ## by calling `<WidgetName>State.app.redraw()`
   internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
   internalStyle {.internal.}: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
@@ -1001,7 +1001,6 @@ renderable Entry of BaseWidget:
 renderable SpinButton of BaseWidget:
   ## Entry for entering numeric values
   
-  value: float
   digits: uint = 1 ## Number of digits
   climbRate: float = 0.1
   wrap: bool ## When the maximum (minimum) value is reached, the SpinButton will wrap around to the minimum (maximum) value.
@@ -1010,6 +1009,7 @@ renderable SpinButton of BaseWidget:
   stepIncrement: float = 0.1
   pageIncrement: float = 1
   pageSize: float = 0
+  value: float
   
   proc valueChanged(value: float)
   
@@ -1030,12 +1030,6 @@ renderable SpinButton of BaseWidget:
       state.connect(state.valueChanged, "value-changed", valueChangedCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.valueChanged)
-  
-  hooks value:
-    property:
-      gtk_spin_button_set_value(state.internalWidget, cdouble(state.value))
-    read:
-      state.value = float(gtk_spin_button_get_value(state.internalWidget))
   
   hooks digits:
     property:
@@ -1073,6 +1067,12 @@ renderable SpinButton of BaseWidget:
     property:
       let adjustment = gtk_spin_button_get_adjustment(state.internalWidget)
       gtk_adjustment_set_page_size(adjustment, cdouble(state.pageSize))
+  
+  hooks value:
+    property:
+      gtk_spin_button_set_value(state.internalWidget, cdouble(state.value))
+    read:
+      state.value = float(gtk_spin_button_get_value(state.internalWidget))
   
   example:
     SpinButton:
@@ -2707,6 +2707,96 @@ proc `valHomogeneous=`*(grid: Grid, homogeneous: bool) =
   grid.valRowHomogeneous = homogeneous
   grid.valColumnHomogeneous = homogeneous
 
+type FixedChild[T] = object
+  widget: T
+  x, y: float
+
+proc assignApp(child: FixedChild[Widget], app: Viewable) =
+  child.widget.assignApp(app)
+
+renderable Fixed of BaseWidget:
+  ## A layout where children are placed at fixed positions.
+  
+  children: seq[FixedChild[Widget]]
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_fixed_new()
+  
+  hooks children:
+    (build, update):
+      widget.valChildren.assignApp(state.app)
+      
+      var
+        it = 0
+        forceReadd = false
+      while it < widget.valChildren.len and it < state.children.len:
+        let updater = widget.valChildren[it]
+        var fixedChild = state.children[it]
+        
+        let newChild = updater.widget.update(fixedChild.widget)
+        
+        if not newChild.isNil or forceReadd:
+          let oldChild = fixedChild.widget.unwrapInternalWidget()
+          g_object_ref(pointer(oldChild))
+          gtk_fixed_remove(state.internalWidget, oldChild)
+          if not newChild.isNil:
+            fixedChild.widget = newChild
+          gtk_fixed_put(
+            state.internalWidget,
+            fixedChild.widget.unwrapInternalWidget(),
+            cdouble(fixedChild.x),
+            cdouble(fixedChild.y)
+          )
+          g_object_unref(pointer(oldChild))
+          forceReadd = true
+        elif updater.x != fixedChild.x or updater.y != fixedChild.y:
+          fixedChild.x = updater.x
+          fixedChild.y = updater.y
+          gtk_fixed_move(
+            state.internalWidget,
+            fixedChild.widget.unwrapInternalWidget(),
+            cdouble(fixedChild.x),
+            cdouble(fixedChild.y)
+          )
+        
+        state.children[it] = fixedChild
+        it += 1
+      
+      while it < widget.valChildren.len:
+        let
+          updater = widget.valChildren[it]
+          fixedChild = FixedChild[WidgetState](
+            widget: updater.widget.build(),
+            x: updater.x,
+            y: updater.y
+          )
+        
+        gtk_fixed_put(
+          state.internalWidget,
+          fixedChild.widget.unwrapInternalWidget(),
+          cdouble(fixedChild.x),
+          cdouble(fixedChild.y)
+        )
+        
+        state.children.add(fixedChild)
+        it += 1
+      
+      while it < state.children.len:
+        let fixedChild = state.children.pop()
+        gtk_fixed_remove(state.internalWidget, fixedChild.widget.unwrapInternalWidget())
+  
+  adder add {.x: 0.0, y: 0.0.}:
+    ## Adds a child at the given position
+    widget.hasChildren = true
+    widget.valChildren.add(FixedChild[Widget](
+      widget: child, x: x, y: y
+    ))
+  
+  example:
+    Fixed:
+      Label(text = "Fixed Layout") {.x: 200, y: 100.}
+
 renderable ContextMenu:
   ## Adds a context menu to a widget.
   ## Context menus are shown when the user right clicks the widget.
@@ -3199,7 +3289,7 @@ export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWi
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, Grid, ContextMenu, Calendar
+export Frame, DropDown, Grid, Fixed, ContextMenu, Calendar
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

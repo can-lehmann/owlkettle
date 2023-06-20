@@ -970,6 +970,12 @@ proc gtk_spin_button_get_value*(widget: GtkWidget): cdouble
 proc gtk_spin_button_set_digits*(widget: GtkWidget, digits: cuint)
 proc gtk_spin_button_set_wrap*(widget: GtkWidget, digits: cbool)
 proc gtk_spin_button_set_climb_rate*(widget: GtkWidget, digits: cdouble)
+
+# Gtk.Fixed
+proc gtk_fixed_new*(): GtkWidget
+proc gtk_fixed_put*(widget, child: GtkWidget, x, y: cdouble)
+proc gtk_fixed_move*(widget, child: GtkWidget, x, y: cdouble)
+proc gtk_fixed_remove*(widget, child: GtkWidget)
 {.pop.}
 
 {.push hint[Name]: off.}

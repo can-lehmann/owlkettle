@@ -8,6 +8,7 @@ examples/widgets/context_menu
 examples/widgets/calendar
 examples/widgets/drawing_area
 examples/widgets/drop_down
+examples/widgets/fixed
 examples/widgets/popover_menu
 examples/widgets/picture
 examples/widgets/grid
