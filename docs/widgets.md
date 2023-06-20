@@ -6,7 +6,7 @@ renderable BaseWidget
 ```
 
 The base widget of all widgets. Supports redrawing the entire Application
-by calling `<WidgetName>State.app.redraw()
+by calling `<WidgetName>State.app.redraw()`
 
 ###### Fields
 
@@ -414,7 +414,6 @@ Entry for entering numeric values
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `value: float`
 - `digits: uint = 1` Number of digits
 - `climbRate: float = 0.1`
 - `wrap: bool` When the maximum (minimum) value is reached, the SpinButton will wrap around to the minimum (maximum) value.
@@ -423,6 +422,7 @@ Entry for entering numeric values
 - `stepIncrement: float = 0.1`
 - `pageIncrement: float = 1`
 - `pageSize: float = 0`
+- `value: float`
 
 ###### Events
 
@@ -1094,6 +1094,35 @@ Grid:
     text = "B"
   Button {.x: 1, y: 2, width: 2, hAlign: AlignCenter.}:
     text = "C"
+```
+
+
+## Fixed
+
+```nim
+renderable Fixed of BaseWidget
+```
+
+A layout where children are placed at fixed positions.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `children: seq[FixedChild[Widget]]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add` Adds a child at the given position
+
+  - `x = 0.0`
+  - `y = 0.0`
+
+###### Example
+
+```nim
+Fixed:
+  Label(text = "Fixed Layout") {.x: 200, y: 100.}
 ```
 
 
