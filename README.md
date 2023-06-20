@@ -45,7 +45,7 @@ You can install it by running `dnf install gtk4-devel libadwaita-devel` on Fedor
 See [the GTK installation guide](https://www.gtk.org/docs/installations/) for more instructions.
 
 ```bash
-$ nimble install owlkettle
+$ nimble install owlkettle@#head
 ```
 
 ## Documentation
