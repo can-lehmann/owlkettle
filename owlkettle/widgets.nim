@@ -3073,7 +3073,7 @@ proc addButton*(dialog: Dialog, button: DialogButton) =
   dialog.hasButtons = true
   dialog.valButtons.add(button)
 
-renderable BuiltinDialog:
+renderable BuiltinDialog of BaseWidget:
   ## Base widget for builtin dialogs.
   ## If you want to create a custom dialog, you should use `Window` or `Dialog` instead.
   
