@@ -111,6 +111,7 @@ proc `valStyle=`*(widget: BaseWidget, cssClass: StyleClass) =
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
   fullscreened: bool
+  iconName: string
   
   proc close() ## Called when the window is closed
   
@@ -133,6 +134,10 @@ renderable BaseWindow of BaseWidget:
         gtk_window_fullscreen(state.internalWidget)
       else:
         gtk_window_unfullscreen(state.internalWidget)
+  
+  hooks iconName:
+    property:
+      gtk_window_set_icon_name(state.internalWidget, state.iconName.cstring)
 
 renderable Window of BaseWindow:
   title: string

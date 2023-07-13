@@ -34,6 +34,7 @@ renderable BaseWindow of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
 - `fullscreened: bool`
+- `iconName: string`
 
 ###### Events
 
@@ -1258,7 +1259,7 @@ Dialog:
 ## BuiltinDialog
 
 ```nim
-renderable BuiltinDialog
+renderable BuiltinDialog of BaseWidget
 ```
 
 Base widget for builtin dialogs.
@@ -1266,11 +1267,13 @@ If you want to create a custom dialog, you should use `Window` or `Dialog` inste
 
 ###### Fields
 
+- All fields from [BaseWidget](#BaseWidget)
 - `title: string`
 - `buttons: seq[DialogButton]`
 
 ###### Adders
 
+- All adders from [BaseWidget](#BaseWidget)
 - `addButton`
 
 

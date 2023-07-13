@@ -561,6 +561,7 @@ proc gtk_window_unfullscreen*(window: GtkWidget)
 proc gtk_window_get_toplevels*(): GListModel
 proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
+proc gtk_window_set_icon_name*(window: GtkWidget, name: cstring)
 
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
