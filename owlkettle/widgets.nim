@@ -1527,7 +1527,7 @@ renderable Switch of BaseWidget:
   
   hooks state:
     property:
-      gtk_switch_set_state(state.internalWidget, cbool(ord(state.state)))
+      gtk_switch_set_active(state.internalWidget, cbool(ord(state.state)))
   
   example:
     Switch:

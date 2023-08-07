@@ -711,6 +711,7 @@ proc gtk_color_chooser_dialog_new*(title: cstring, parent: GtkWidget): GtkWidget
 # Gtk.Switch
 proc gtk_switch_new*(): GtkWidget
 proc gtk_switch_set_state*(widget: GtkWidget, state: cbool)
+proc gtk_switch_set_active*(widget: GtkWidget, state: cbool)
 
 # Gtk.ToggleButton
 proc gtk_toggle_button_new*(): GtkWidget
