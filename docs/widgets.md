@@ -404,6 +404,18 @@ Entry:
 ```
 
 
+## Spinner
+
+```nim
+renderable Spinner of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `spinning: bool`
+
+
 ## SpinButton
 
 ```nim

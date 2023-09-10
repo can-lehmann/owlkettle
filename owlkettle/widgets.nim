@@ -1003,6 +1003,17 @@ renderable Entry of BaseWidget:
       visibility = false
       invisibleChar = '*'.Rune
 
+renderable Spinner of BaseWidget:
+  spinning: bool
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_spinner_new()
+
+  hooks spinning:
+    property:
+      gtk_spinner_set_spinning(state.internalWidget, cbool(ord(state.spinning)))
+
 renderable SpinButton of BaseWidget:
   ## Entry for entering numeric values
   
@@ -3290,7 +3301,7 @@ renderable AboutDialog of BaseWidget:
       }
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
-export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry
+export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
