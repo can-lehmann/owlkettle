@@ -964,6 +964,10 @@ proc gtk_calendar_get_date*(widget: GtkWidget): GDateTime
 proc gtk_calendar_clear_marks*(widget: GtkWidget)
 proc gtk_calendar_mark_day*(widget: GtkWidget, day: cuint)
 
+# Gtk.Spinner
+proc gtk_spinner_new*(): GtkWidget
+proc gtk_spinner_set_spinning*(widget: GtkWidget, spinning: cbool)
+
 # Gtk.SpinButton
 proc gtk_spin_button_new*(adjustment: GtkAdjustment, climbRate: cdouble, digits: cuint): GtkWidget
 proc gtk_spin_button_get_adjustment*(widget: GtkWidget): GtkAdjustment
