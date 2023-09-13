@@ -41,6 +41,7 @@ jobs:
         run: |
           mkdir _site
           cp -r compiledBook/* _site
+          cd _site && ls -l
       - name: Upload site files
         uses: actions/upload-pages-artifact@v1 # This will automatically upload an artifact from the '/_site' directory
 
