@@ -20,7 +20,7 @@ jobs:
           # - windows-latest
           # - macOS-latest
         nim:
-          - '1.6.10'
+          - '2.0.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
