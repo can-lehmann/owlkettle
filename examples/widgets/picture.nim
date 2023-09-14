@@ -87,7 +87,7 @@ method view(app: AppState): Widget =
                   app.pixbuf = loadPixbuf(path)
                 except IoError as err:
                   echo err.msg
-                  app.pixbuf = nil
+                  # app.pixbuf = nil
         
         Button {.addLeft.}:
           text = "Save"

@@ -458,17 +458,45 @@ type
   Colorspace* = enum
     ColorspaceRgb
   
-  Pixbuf* = ref object
+  Pixbuf* = object
     gdk: GdkPixbuf
 
-proc finalizer(pixbuf: Pixbuf) =
+proc isNil*(pixbuf: Pixbuf): bool = pixbuf.gdk.isNil()
+proc `==`*(a, b: Pixbuf): bool = pointer(a.gdk) == pointer(b.gdk)
+
+proc `=destroy`(pixbuf: Pixbuf) =
+  if isNil(pixbuf.gdk):
+    echo "Destructor call on pixbuf with nil"
+    return
+  
+  echo "Destructor: Remove ref ", cast[int](pixbuf.gdk)
   g_object_unref(pointer(pixbuf.gdk))
 
+proc `=copy`*(dest: var Pixbuf, source: Pixbuf) =
+  let areSamePixbuf = pointer(source.gdk) == pointer(dest.gdk)
+  if areSamePixbuf:
+    echo "copy call on pixbuf with nil"
+    return
+  
+  echo "copy source --> dest: ", cast[int](source.gdk), " --> ", cast[int](dest.gdk)
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gdk):
+    echo "- Add ref ", cast[int](source.gdk)
+    g_object_ref(pointer(source.gdk))
+    
+  dest.gdk = source.gdk
+    
 proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   if gdk.isNil:
     raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
-  new(result, finalizer=finalizer)
+  result = Pixbuf()
   result.gdk = gdk
+  
+  # TODO: Remove
+  proc notify(data, oldObjectPtr: pointer) {.cdecl.} =
+    echo "delete pixbuf ", cast[int](oldObjectPtr)
+  g_object_weak_ref(pointer(gdk), notify, nil)
 
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
@@ -549,7 +577,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
   var error = GError(nil)
   let pixbuf = gdk_pixbuf_new_from_stream_finish(result, error.addr)
   if error.isNil:
-    future.complete(Pixbuf(gdk: pixbuf))
+    future.complete(newPixbuf(pixbuf))
   else:
     let message = $error[].message
     future.fail(newException(IoError, "Unable to load pixbuf: " & message))
@@ -1995,11 +2023,12 @@ type
   TextTag* = GtkTextTag
   TextSlice* = HSlice[TextIter, TextIter]
 
-proc finalizer(buffer: TextBuffer) =
+proc `=destroy`(buffer: TextBufferObj) =
+  echo "DESTRUCTOR TEXT"
   g_object_unref(pointer(buffer.gtk))
 
 proc newTextBuffer*(): TextBuffer =
-  new(result, finalizer=finalizer)
+  new(result)
   result.gtk = gtk_text_buffer_new(nil.GtkTextTagTable)
 
 {.push hint[Name]: off.}
