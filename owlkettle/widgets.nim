@@ -458,45 +458,40 @@ type
   Colorspace* = enum
     ColorspaceRgb
   
-  Pixbuf* = object
-    gdk: GdkPixbuf
-
-proc isNil*(pixbuf: Pixbuf): bool = pixbuf.gdk.isNil()
-proc `==`*(a, b: Pixbuf): bool = pointer(a.gdk) == pointer(b.gdk)
+  Pixbuf* = distinct GdkPixBuf
 
 proc `=destroy`(pixbuf: Pixbuf) =
-  if isNil(pixbuf.gdk):
-    echo "Destructor call on pixbuf with nil"
+  if cast[pointer](pixbuf) == nil:
     return
-  
-  echo "Destructor: Remove ref ", cast[int](pixbuf.gdk)
-  g_object_unref(pointer(pixbuf.gdk))
+  echo "Destroy me"
+  g_object_unref(cast[pointer](pixbuf))
 
 proc `=copy`*(dest: var Pixbuf, source: Pixbuf) =
-  let areSamePixbuf = pointer(source.gdk) == pointer(dest.gdk)
+  let areSamePixbuf = cast[pointer](source) == cast[pointer](dest)
   if areSamePixbuf:
-    echo "copy call on pixbuf with nil"
     return
   
-  echo "copy source --> dest: ", cast[int](source.gdk), " --> ", cast[int](dest.gdk)
   `=destroy`(dest)
   wasMoved(dest)
-  if not isNil(source.gdk):
-    echo "- Add ref ", cast[int](source.gdk)
-    g_object_ref(pointer(source.gdk))
-    
-  dest.gdk = source.gdk
-    
+  if cast[pointer](source) != nil:
+    g_object_ref(cast[pointer](source))
+  
+  let val = cast[pointer](source)
+  echo val.repr, " - ", dest.repr
+  cast[ptr pointer](dest.addr)[] = cast[pointer](source)
+
+proc isNil*(pixbuf: Pixbuf): bool = cast[pointer](pixbuf) == nil
+proc `==`*(a, b: Pixbuf): bool = cast[pointer](a) == cast[pointer](b)
+
 proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   if gdk.isNil:
     raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
-  result = Pixbuf()
-  result.gdk = gdk
-  
+  result = gdk.Pixbuf
+    
   # TODO: Remove
   proc notify(data, oldObjectPtr: pointer) {.cdecl.} =
     echo "delete pixbuf ", cast[int](oldObjectPtr)
-  g_object_weak_ref(pointer(gdk), notify, nil)
+  g_object_weak_ref(cast[pointer](gdk), notify, nil)
 
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
@@ -612,43 +607,43 @@ proc loadPixbufAsync*(path: string,
   )
 
 proc bitsPerSample*(pixbuf: Pixbuf): int =
-  result = int(gdk_pixbuf_get_bits_per_sample(pixbuf.gdk))
+  result = int(gdk_pixbuf_get_bits_per_sample(pixbuf.GdkPixBuf))
 
 proc width*(pixbuf: Pixbuf): int =
-  result = int(gdk_pixbuf_get_width(pixbuf.gdk))
+  result = int(gdk_pixbuf_get_width(pixbuf.GdkPixBuf))
 
 proc height*(pixbuf: Pixbuf): int =
-  result = int(gdk_pixbuf_get_height(pixbuf.gdk))
+  result = int(gdk_pixbuf_get_height(pixbuf.GdkPixBuf))
 
 proc channels*(pixbuf: Pixbuf): int =
-  result = int(gdk_pixbuf_get_n_channels(pixbuf.gdk))
+  result = int(gdk_pixbuf_get_n_channels(pixbuf.GdkPixBuf))
 
 proc hasAlpha*(pixbuf: Pixbuf): bool =
-  result = gdk_pixbuf_get_has_alpha(pixbuf.gdk) != 0
+  result = gdk_pixbuf_get_has_alpha(pixbuf.GdkPixBuf) != 0
 
 proc pixels*(pixbuf: Pixbuf): seq[byte] =
-  let size = gdk_pixbuf_get_byte_length(pixbuf.gdk)
+  let size = gdk_pixbuf_get_byte_length(pixbuf.GdkPixBuf)
   result = newSeq[byte](size)
   if size > 0:
-    let data = gdk_pixbuf_read_pixels(pixbuf.gdk)
+    let data = gdk_pixbuf_read_pixels(pixbuf.GdkPixBuf)
     copyMem(result[0].addr, data, size)
 
 proc flipVertical*(pixbuf: Pixbuf): Pixbuf =
-  result = newPixbuf(gdk_pixbuf_flip(pixbuf.gdk, 0))
+  result = newPixbuf(gdk_pixbuf_flip(pixbuf.GdkPixBuf, 0))
 
 proc flipHorizontal*(pixbuf: Pixbuf): Pixbuf =
-  result = newPixbuf(gdk_pixbuf_flip(pixbuf.gdk, 1))
+  result = newPixbuf(gdk_pixbuf_flip(pixbuf.GdkPixBuf, 1))
 
 proc crop*(pixbuf: Pixbuf, x, y, w, h: int): Pixbuf =
   let dest = gdk_pixbuf_new(
-    gdk_pixbuf_get_colorspace(pixbuf.gdk),
-    gdk_pixbuf_get_has_alpha(pixbuf.gdk),
-    gdk_pixbuf_get_bits_per_sample(pixbuf.gdk),
+    gdk_pixbuf_get_colorspace(pixbuf.GdkPixBuf),
+    gdk_pixbuf_get_has_alpha(pixbuf.GdkPixBuf),
+    gdk_pixbuf_get_bits_per_sample(pixbuf.GdkPixBuf),
     w.cint,
     h.cint
   )
   gdk_pixbuf_copy_area(
-    pixbuf.gdk, x.cint, y.cint, w.cint, h.cint,
+    pixbuf.GdkPixBuf, x.cint, y.cint, w.cint, h.cint,
     dest, 0, 0
   )
   result = newPixbuf(dest)
@@ -658,22 +653,22 @@ proc scale*(pixbuf: Pixbuf, w, h: int, bilinear: bool = false): Pixbuf =
   if bilinear:
     interp = GDK_INTERP_BILINEAR
   result = newPixbuf(gdk_pixbuf_scale_simple(
-    pixbuf.gdk, w.cint, h.cint, interp
+    pixbuf.GdkPixBuf, w.cint, h.cint, interp
   ))
 
 proc rotate90*(pixbuf: Pixbuf): Pixbuf =
   result = newPixbuf(gdk_pixbuf_rotate_simple(
-    pixbuf.gdk, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE
+    pixbuf.GdkPixBuf, GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE
   ))
 
 proc rotate180*(pixbuf: Pixbuf): Pixbuf =
   result = newPixbuf(gdk_pixbuf_rotate_simple(
-    pixbuf.gdk, GDK_PIXBUF_ROTATE_UPSIDEDOWN
+    pixbuf.GdkPixBuf, GDK_PIXBUF_ROTATE_UPSIDEDOWN
   ))
 
 proc rotate270*(pixbuf: Pixbuf): Pixbuf =
   result = newPixbuf(gdk_pixbuf_rotate_simple(
-    pixbuf.gdk, GDK_PIXBUF_ROTATE_CLOCKWISE
+    pixbuf.GdkPixBuf, GDK_PIXBUF_ROTATE_CLOCKWISE
   ))
 
 proc save*(pixbuf: Pixbuf,
@@ -695,7 +690,7 @@ proc save*(pixbuf: Pixbuf,
     deallocCStringArray(valuesArray)
   
   var error = GError(nil)
-  discard gdk_pixbuf_savev(pixbuf.gdk,
+  discard gdk_pixbuf_savev(pixbuf.GdkPixBuf,
     path.cstring,
     fileType.cstring,
     keysArray,
@@ -722,7 +717,7 @@ renderable Picture of BaseWidget:
   
   hooks pixbuf:
     property:
-      gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
+      gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.GdkPixBuf)
   
   hooks contentFit:
     property:
