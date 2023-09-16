@@ -30,10 +30,10 @@ type
   Stylesheet* = ref StylesheetObj
 
 crossVersionDestructor(stylesheet, StylesheetObj):
-    if isNil(stylesheet.provider):
-      return
-    
-    g_object_unref(pointer(stylesheet.provider))
+  if isNil(stylesheet.provider):
+    return
+  
+  g_object_unref(pointer(stylesheet.provider))
 
 proc `=copy`*(dest: var StylesheetObj, source: StylesheetObj) =
   let areSameObject = pointer(source.provider) == pointer(dest.provider)
