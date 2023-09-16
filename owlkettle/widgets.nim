@@ -25,8 +25,9 @@
 import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, cairo, widgetutils
-include ./customPragmas
+import gtk, widgetdef, cairo, widgetutils, common
+
+customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 

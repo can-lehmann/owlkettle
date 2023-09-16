@@ -23,9 +23,9 @@
 import std/[strutils, math, sets, tables]
 when defined(nimPreviewSlimSystem):
   import std/formatfloat
-import widgets, widgetdef, guidsl
+import widgets, widgetdef, guidsl, common
 
-include ./customPragmas
+customPragmas()
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Dataentries Widgets\n\n"

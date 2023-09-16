@@ -69,3 +69,9 @@ proc newBracketExpr*(node, index: NimNode): NimNode =
 
 proc newExport*(node: NimNode): NimNode =
   result = newTree(nnkPostfix, ident("*"), node)
+
+template customPragmas*() =
+  when NimMajor >= 2:
+    {.pragma: locker.}
+  else:
+    {.pragma: locker, locks: 0.}

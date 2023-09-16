@@ -23,8 +23,9 @@
 # Utilities for wrapping widgets
 
 import std/[sets]
-import gtk, widgetdef
-include ./customPragmas
+import gtk, widgetdef, common
+
+customPragmas()
 
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
