@@ -70,6 +70,13 @@ proc newBracketExpr*(node, index: NimNode): NimNode =
 proc newExport*(node: NimNode): NimNode =
   result = newTree(nnkPostfix, ident("*"), node)
 
+proc newExport*(node: NimNode, addExport: bool): NimNode =
+  if addExport:
+    result = newTree(nnkPostfix, ident("*"), node)
+  else:
+    result = node
+
+
 template customPragmas*() =
   ## Definess a custom pragma called "locker".
   ## This does nothing when compiled with a nim version 2.0 or higher,

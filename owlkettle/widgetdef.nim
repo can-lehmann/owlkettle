@@ -90,12 +90,15 @@ type
     HookConnectEvents, HookDisconnectEvents,
     HookRead
   
+  FieldModifier = enum
+    FieldPrivate = "private", FieldOnlyState = "onlyState"
+  
   Field = object
     name: string
     typ: NimNode
     default: NimNode
     hooks: array[HookKind, NimNode]
-    isInternal: bool
+    modifiers: set[FieldModifier]
     lineInfo: NimNode
     doc: string
   
@@ -128,6 +131,9 @@ type
     types: seq[NimNode]
     examples: seq[NimNode]
     doc: string
+
+proc isPrivate(field: Field): bool = FieldPrivate in field.modifiers
+proc isOnlyState(field: Field): bool = FieldOnlyState in field.modifiers
 
 proc has(field: Field): NimNode =
   result = ident("has" & capitalizeAscii(field.name))
@@ -206,6 +212,22 @@ proc extractDocComment(node: NimNode): string =
     newline = str.len - 1
   result = str[(pos + 2)..newline].strip()
 
+proc parseFieldModifiers(node: NimNode): set[FieldModifier] =
+  case node.kind:
+    of nnkPragma:
+      for child in node:
+        var foundModifier = false
+        for modifier in low(FieldModifier)..high(FieldModifier):
+          if child.eqIdent($modifier):
+            result.incl(modifier)
+            foundModifier = true
+            break
+        if not foundModifier:
+          error("Invalid field modifier " & node.repr, node)
+    else:
+      for child in node:
+        result = result + child.parseFieldModifiers()
+
 proc parseBody(body: NimNode, def: var WidgetDef) =
   assert def.fields.len == 0
   var fieldLookup = newTable[string, int]()
@@ -280,7 +302,7 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           let name = child[0].unwrapName()
           var field = Field(
             name: name.strVal,
-            isInternal: not child[0].findPragma("internal").isNil,
+            modifiers: child[0].parseFieldModifiers(),
             lineInfo: name,
             doc: child[1].extractDocComment()
           )
@@ -318,12 +340,13 @@ proc genIdentDefs(event: EventDef): NimNode =
 proc genWidget(def: WidgetDef): NimNode =
   result = newTree(nnkRecList)
   for field in def.fields:
-    result.add(newTree(nnkIdentDefs, [
-      field.has().newExport(), bindSym("bool"), newEmptyNode()
-    ]))
-    result.add(newTree(nnkIdentDefs, [
-      field.value().newExport(), field.typ, newEmptyNode()
-    ]))
+    if not field.isOnlyState:
+      result.add(newTree(nnkIdentDefs, [
+        field.has().newExport(not field.isPrivate), bindSym("bool"), newEmptyNode()
+      ]))
+      result.add(newTree(nnkIdentDefs, [
+        field.value().newExport(not field.isPrivate), field.typ, newEmptyNode()
+      ]))
   for event in def.events:
     result.add(event.genIdentDefs())
   result = newTree(nnkTypeDef, [
@@ -357,7 +380,9 @@ proc genState(def: WidgetDef): NimNode =
     if def.kind == WidgetRenderable:
       fieldType = substituteWidgets(fieldType)
     result.add(newTree(nnkIdentDefs, [
-      ident(field.name).newExport(), fieldType, newEmptyNode()
+      ident(field.name).newExport(not field.isPrivate),
+      fieldType,
+      newEmptyNode()
     ]))
   for event in def.events:
     result.add(event.genIdentDefs())
@@ -384,6 +409,8 @@ proc genBuildState(def: WidgetDef): NimNode =
     result.add(body)
   
   for field in def.fields:
+    if field.isOnlyState:
+      continue
     if not field.hooks[HookBuild].isNil:
       result.add(newBlockStmt(field.hooks[HookBuild].copyNimTree()))
     else:
@@ -466,6 +493,8 @@ proc genUpdateState(def: WidgetDef): NimNode =
   for hook in def.hooks[HookDisconnectEvents]:
     result.add(hook.copyNimTree())
   for field in def.fields:
+    if field.isOnlyState:
+      continue
     if not field.hooks[HookUpdate].isNil:
       result.add(newBlockStmt(field.hooks[HookUpdate]))
     else:
@@ -595,14 +624,26 @@ proc formatReference(widget: WidgetDef): string =
     if widget.base.len > 0:
       result &= "- All fields from [" & widget.base & "](#" & widget.base & ")\n"
     for field in widget.fields:
-      if not field.isInternal:
-        result &= "- `" & field.name & ": " & field.typ.repr
-        if not field.default.isNil:
-          result &= " = " & field.default.repr
-        result &= "`"
-        if field.doc.len > 0:
-          result &= " " & field.doc
-        result &= "\n"
+      if FieldPrivate in field.modifiers:
+        continue
+      result &= "- `" & field.name
+      if field.modifiers.len > 0:
+        result &= " {."
+        var isFirst = true
+        for modifier in field.modifiers:
+          if isFirst:
+            isFirst = false
+          else:
+            result &= ", "
+          result &= $modifier
+        result &= ".}"
+      result &= ": " & field.typ.repr
+      if not field.default.isNil:
+        result &= " = " & field.default.repr
+      result &= "`"
+      if field.doc.len > 0:
+        result &= " " & field.doc
+      result &= "\n"
     result &= "\n"
   if widget.setters.len > 0:
     result &= "###### Setters\n\n"

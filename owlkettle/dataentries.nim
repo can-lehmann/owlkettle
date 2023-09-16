@@ -51,9 +51,9 @@ viewable NumberEntry:
   ## A entry for entering floating point numbers.
 
   value: float
-  current {.internal.}: float
-  text {.internal.}: string
-  consistent {.internal.}: bool = true
+  current {.onlyState.}: float
+  text {.onlyState.}: string
+  consistent {.onlyState.}: bool = true
   eps: float = 1e-6
   
   placeholder: string

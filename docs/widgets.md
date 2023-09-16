@@ -495,7 +495,6 @@ renderable CustomWidget of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `focusable: bool`
-- `events: CustomWidgetEvents`
 
 ###### Events
 

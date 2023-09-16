@@ -44,22 +44,22 @@ proc `==`*(x, y: StyleClass): bool {.borrow.}
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()`
-  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
-  internalStyle {.internal.}: HashSet[StyleClass] = initHashSet[StyleClass]()
+  privateMargin {.private.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
+  privateStyle {.private.}: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   tooltip: string = "" ## The widget's tooltip is shown on hover
 
-  hooks internalMargin:
+  hooks privateMargin:
     (build, update):
-      if widget.hasInternalMargin:
-        state.internalMargin = widget.valInternalMargin
-        gtk_widget_set_margin_top(state.internalWidget, cint(state.internalMargin.top))
-        gtk_widget_set_margin_bottom(state.internalWidget, cint(state.internalMargin.bottom))
-        gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
-        gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
+      if widget.hasPrivateMargin:
+        state.privateMargin = widget.valPrivateMargin
+        gtk_widget_set_margin_top(state.internalWidget, cint(state.privateMargin.top))
+        gtk_widget_set_margin_bottom(state.internalWidget, cint(state.privateMargin.bottom))
+        gtk_widget_set_margin_start(state.internalWidget, cint(state.privateMargin.left))
+        gtk_widget_set_margin_end(state.internalWidget, cint(state.privateMargin.right))
 
-  hooks internalStyle:
+  hooks privateStyle:
     (build, update):
       updateStyle(state, widget)
 
@@ -89,25 +89,25 @@ renderable BaseWidget:
   setter style: HashSet[StyleClass] # Applies CSS classes to the widget.
 
 proc `hasMargin=`*(widget: BaseWidget, has: bool) =
-  widget.hasInternalMargin = has
+  widget.hasPrivateMargin = has
 
 proc `valMargin=`*(widget: BaseWidget, width: int) =
-  widget.valInternalMargin = Margin(top: width, bottom: width, left: width, right: width)
+  widget.valPrivateMargin = Margin(top: width, bottom: width, left: width, right: width)
 
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
-  widget.valInternalMargin = margin
+  widget.valPrivateMargin = margin
 
 proc `hasStyle=`*(widget: BaseWidget, has: bool) =
-  widget.hasInternalStyle = has
+  widget.hasPrivateStyle = has
 
 proc `valStyle=`*(widget: BaseWidget, cssClasses: HashSet[StyleClass]) =
-  widget.valInternalStyle = cssClasses
+  widget.valPrivateStyle = cssClasses
 
 proc `valStyle=`*(widget: BaseWidget, cssClasses: varargs[StyleClass]) =
-  widget.valInternalStyle = cssClasses.toHashSet()
+  widget.valPrivateStyle = cssClasses.toHashSet()
 
 proc `valStyle=`*(widget: BaseWidget, cssClass: StyleClass) =
-  widget.valInternalStyle = [cssClass].toHashSet()
+  widget.valPrivateStyle = [cssClass].toHashSet()
 
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
@@ -1389,7 +1389,7 @@ proc callbackOrNil[T](event: Event[T]): T =
 
 renderable CustomWidget of BaseWidget:
   focusable: bool
-  events: CustomWidgetEvents
+  events {.private, onlyState.}: CustomWidgetEvents
   
   proc mousePressed(event: ButtonEvent): bool
   proc mouseReleased(event: ButtonEvent): bool
@@ -1404,6 +1404,7 @@ renderable CustomWidget of BaseWidget:
       let controller = gtk_event_controller_legacy_new()
       discard g_signal_connect(controller, "event", gdkEventCallback, state.events[].addr)
       gtk_widget_add_controller(state.internalWidget, controller)
+      # TODO: Check memory safety
     connectEvents:
       state.events.app = state.app
       state.events.mousePressed = state.mousePressed.callbackOrNil
@@ -1671,7 +1672,7 @@ renderable RadioGroup of BaseWidget:
       button: GtkWidget
       data: RadioGroupRowData
   
-  rows {.internal.}: seq[RadioGroupRow]
+  rows {.private, onlyState.}: seq[RadioGroupRow]
   
   hooks:
     beforeBuild:
@@ -3117,28 +3118,28 @@ renderable DialogButton:
   
   text: string
   response: DialogResponse
-  internalStyle {.internal.}: HashSet[StyleClass]
+  privateStyle {.private.}: HashSet[StyleClass]
   
   setter res: DialogResponseKind
   setter style: varargs[StyleClass] ## Applies CSS classes to the button. There are some pre-defined classes available: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. You can also use custom CSS classes using `StyleClass("my-class")`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   setter style: HashSet[StyleClass] ## Applies CSS classes to the button.
   setter style: StyleClass  ## Applies CSS classes to the button.
   
-  hooks internalStyle:
+  hooks privateStyle:
     (build, update):
       updateStyle(state, widget)
 
 proc `hasStyle=`*(button: DialogButton, has: bool) =
-  button.hasInternalStyle = has
+  button.hasPrivateStyle = has
 
 proc `valStyle=`*(button: DialogButton, cssClasses: HashSet[StyleClass]) =
-  button.valInternalStyle = cssClasses
+  button.valPrivateStyle = cssClasses
 
 proc `valStyle=`*(button: DialogButton, cssClasses: varargs[StyleClass]) =
-  button.valInternalStyle = cssClasses.toHashSet()
+  button.valPrivateStyle = cssClasses.toHashSet()
 
 proc `valStyle=`*(button: DialogButton, cssClass: StyleClass) =
-  button.valInternalStyle = [cssClass].toHashSet()
+  button.valPrivateStyle = [cssClass].toHashSet()
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
   button.hasResponse = value
@@ -3165,7 +3166,7 @@ renderable Dialog of Window:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valInternalStyle:
+        for styleClass in button.valPrivateStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
@@ -3205,7 +3206,7 @@ renderable BuiltinDialog of BaseWidget:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valInternalStyle:
+        for styleClass in button.valPrivateStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton

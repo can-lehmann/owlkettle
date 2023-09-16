@@ -64,13 +64,13 @@ proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
 
 proc updateStyle*[State, Widget](state: State, widget: Widget) {.inline.} =
   mixin classes
-  if widget.hasInternalStyle:
+  if widget.hasPrivateStyle:
     let ctx = gtk_widget_get_style_context(state.internalWidget)
-    for styleClass in state.internalStyle - widget.valInternalStyle:
+    for styleClass in state.privateStyle - widget.valPrivateStyle:
       gtk_style_context_remove_class(ctx, cstring($styleClass))
-    for styleClass in widget.valInternalStyle - state.internalStyle:
+    for styleClass in widget.valPrivateStyle - state.privateStyle:
       gtk_style_context_add_class(ctx, cstring($styleClass))
-    state.internalStyle = widget.valInternalStyle
+    state.privateStyle = widget.valPrivateStyle
 
 
 proc updateChild*(state: Renderable,

@@ -12,6 +12,9 @@ A entry for entering floating point numbers.
 ###### Fields
 
 - `value: float`
+- `current {.onlyState.}: float`
+- `text {.onlyState.}: string`
+- `consistent {.onlyState.}: bool = true`
 - `eps: float = 0.000001`
 - `placeholder: string`
 - `width: int = -1`
