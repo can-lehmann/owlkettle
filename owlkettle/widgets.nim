@@ -458,31 +458,31 @@ type
   Colorspace* = enum
     ColorspaceRgb
   
-  Pixbuf* = object
+  # Wrapper for the GdkPixbuf pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `PixBuf = distinct GdkPixbuf` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
+  PixbufObj* = object
     gdk: GdkPixbuf
+    
+  Pixbuf* = ref PixbufObj
 
-proc isNil*(pixbuf: Pixbuf): bool = pixbuf.gdk.isNil()
-proc `==`*(a, b: Pixbuf): bool = pointer(a.gdk) == pointer(b.gdk)
-
-proc `=destroy`(pixbuf: Pixbuf) =
+proc `=destroy`(pixbuf: PixbufObj) =
   if isNil(pixbuf.gdk):
-    echo "Destructor call on pixbuf with nil"
     return
   
-  echo "Destructor: Remove ref ", cast[int](pixbuf.gdk)
   g_object_unref(pointer(pixbuf.gdk))
 
-proc `=copy`*(dest: var Pixbuf, source: Pixbuf) =
+proc `=copy`*(dest: var PixbufObj, source: PixbufObj) =
   let areSamePixbuf = pointer(source.gdk) == pointer(dest.gdk)
   if areSamePixbuf:
-    echo "copy call on pixbuf with nil"
     return
   
-  echo "copy source --> dest: ", cast[int](source.gdk), " --> ", cast[int](dest.gdk)
   `=destroy`(dest)
   wasMoved(dest)
   if not isNil(source.gdk):
-    echo "- Add ref ", cast[int](source.gdk)
     g_object_ref(pointer(source.gdk))
     
   dest.gdk = source.gdk
@@ -493,11 +493,6 @@ proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   result = Pixbuf()
   result.gdk = gdk
   
-  # TODO: Remove
-  proc notify(data, oldObjectPtr: pointer) {.cdecl.} =
-    echo "delete pixbuf ", cast[int](oldObjectPtr)
-  g_object_weak_ref(pointer(gdk), notify, nil)
-
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
                 hasAlpha: bool = false,
@@ -2014,6 +2009,12 @@ type
     underline*: Option[UnderlineKind]
     style*: Option[CairoFontSlant]
   
+  # Wrapper for the GtkTextBuffer pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `TextBuffer = distinct GtkTextBuffer` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
   TextBufferObj = object
     gtk: GtkTextBuffer
   
@@ -2024,7 +2025,6 @@ type
   TextSlice* = HSlice[TextIter, TextIter]
 
 proc `=destroy`(buffer: TextBufferObj) =
-  echo "DESTRUCTOR TEXT"
   g_object_unref(pointer(buffer.gtk))
 
 proc newTextBuffer*(): TextBuffer =
