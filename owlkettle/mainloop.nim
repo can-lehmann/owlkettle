@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import gtk, widgetdef
+import gtk, widgetdef, common
 
 type 
   StylesheetObj = object
@@ -29,18 +29,12 @@ type
 
   Stylesheet* = ref StylesheetObj
 
-when(NimMajor >= 2):
-  proc `=destroy`(stylesheet: StylesheetObj) =
+crossVersionDestructor(stylesheet, StylesheetObj):
     if isNil(stylesheet.provider):
       return
     
     g_object_unref(pointer(stylesheet.provider))
-else:
-  proc `=destroy`(stylesheet: var StylesheetObj) =
-    if isNil(stylesheet.provider):
-      return
-    
-    g_object_unref(pointer(stylesheet.provider))
+
 proc `=copy`*(dest: var StylesheetObj, source: StylesheetObj) =
   let areSameObject = pointer(source.provider) == pointer(dest.provider)
   if areSameObject:

@@ -80,3 +80,12 @@ template customPragmas*() =
     {.pragma: locker.}
   else:
     {.pragma: locker, locks: 0.}
+    
+template crossVersionDestructor*(name: untyped, typ: typedesc, body: untyped) =
+  ## Defines a =destroy to work for both nim 2 and nim 1.6.X
+  when NimMajor >= 2:
+    proc `=destroy`(name: typ) =
+      body
+  else:
+    proc `=destroy`(name: var typ) =
+      body
