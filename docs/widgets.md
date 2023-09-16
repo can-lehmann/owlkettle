@@ -1174,6 +1174,40 @@ ContextMenu:
 ```
 
 
+## LevelBar
+
+```nim
+renderable LevelBar of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `value: float = 0.0`
+- `min: float = 0.0`
+- `max: float = 1.0`
+- `inverted: bool = false`
+- `mode: LevelBarMode = LevelBarContinuous`
+- `orient: Orient = OrientX`
+
+###### Example
+
+```nim
+LevelBar:
+  value = 0.2
+  min = 0
+  max = 1
+```
+
+```nim
+LevelBar:
+  value = 2
+  max = 10
+  orient = OrientY
+  mode = LevelBarDiscrete
+```
+
+
 ## Calendar
 
 ```nim

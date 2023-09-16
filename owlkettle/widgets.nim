@@ -2940,6 +2940,62 @@ renderable ContextMenu:
             ModelButton:
               text = "Menu Entry " & $it
 
+type LevelBarMode* = enum
+  LevelBarContinuous
+  LevelBarDiscrete
+
+proc toGtk(mode: LevelBarMode): GtkLevelBarMode =
+  result = GtkLevelBarMode(ord(mode))
+
+renderable LevelBar of BaseWidget:
+  value: float = 0.0
+  min: float = 0.0
+  max: float = 1.0
+  inverted: bool = false
+  mode: LevelBarMode = LevelBarContinuous
+  orient: Orient = OrientX
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_level_bar_new()
+  
+  hooks value:
+    property:
+      gtk_level_bar_set_value(state.internalWidget, cdouble(state.value))
+  
+  hooks min:
+    property:
+      gtk_level_bar_set_min_value(state.internalWidget, cdouble(state.min))
+  
+  hooks max:
+    property:
+      gtk_level_bar_set_max_value(state.internalWidget, cdouble(state.max))
+  
+  hooks inverted:
+    property:
+      gtk_level_bar_set_inverted(state.internalWidget, cbool(ord(state.inverted)))
+  
+  hooks mode:
+    property:
+      gtk_level_bar_set_mode(state.internalWidget, toGtk(state.mode))
+  
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, toGtk(state.orient))
+  
+  example:
+    LevelBar:
+      value = 0.2
+      min = 0
+      max = 1
+  
+  example:
+    LevelBar:
+      value = 2
+      max = 10
+      orient = OrientY
+      mode = LevelBarDiscrete
+
 renderable Calendar of BaseWidget:
   ## Displays a calendar
   
@@ -3349,7 +3405,7 @@ export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWi
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, Grid, Fixed, ContextMenu, Calendar
+export Frame, DropDown, Grid, Fixed, ContextMenu, LevelBar, Calendar
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

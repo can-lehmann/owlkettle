@@ -119,6 +119,10 @@ type
     GTK_CONTENT_FIT_COVER
     GTK_CONTENT_FIT_SCALE_DOWN
   
+  GtkLevelBarMode* = enum
+    GTK_LEVEL_BAR_MODE_CONTINUOUS
+    GTK_LEVEL_BAR_MODE_DISCRETE
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -587,6 +591,9 @@ proc gtk_box_remove*(box, widget: GtkWidget)
 proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
 
+# Gtk.Orientable
+proc gtk_orientable_set_orientation*(widget: GtkWidget, orient: GtkOrientation)
+
 # Gtk.Overlay
 proc gtk_overlay_new*(): GtkWidget
 proc gtk_overlay_set_child*(overlay, child: GtkWidget)
@@ -983,6 +990,14 @@ proc gtk_fixed_new*(): GtkWidget
 proc gtk_fixed_put*(widget, child: GtkWidget, x, y: cdouble)
 proc gtk_fixed_move*(widget, child: GtkWidget, x, y: cdouble)
 proc gtk_fixed_remove*(widget, child: GtkWidget)
+
+# Gtk.LevelBar
+proc gtk_level_bar_new*(): GtkWidget
+proc gtk_level_bar_set_inverted*(widget: GtkWidget, value: cbool)
+proc gtk_level_bar_set_mode*(widget: GtkWidget, mode: GtkLevelBarMode)
+proc gtk_level_bar_set_value*(widget: GtkWidget, value: cdouble)
+proc gtk_level_bar_set_min_value*(widget: GtkWidget, value: cdouble)
+proc gtk_level_bar_set_max_value*(widget: GtkWidget, value: cdouble)
 {.pop.}
 
 {.push hint[Name]: off.}
