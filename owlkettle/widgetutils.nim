@@ -23,7 +23,9 @@
 # Utilities for wrapping widgets
 
 import std/[sets]
-import gtk, widgetdef
+import gtk, widgetdef, common
+
+customPragmas()
 
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
@@ -74,7 +76,7 @@ proc updateStyle*[State, Widget](state: State, widget: Widget) {.inline.} =
 proc updateChild*(state: Renderable,
                   child: var WidgetState,
                   updater: Widget,
-                  replaceChild: proc(widget, oldChild, newChild: GtkWidget) {.locks: 0.}) =
+                  replaceChild: proc(widget, oldChild, newChild: GtkWidget) {.locker.}) =
   if updater.isNil:
     if not child.isNil:
       replaceChild(state.internalWidget, unwrapInternalWidget(child), nil.GtkWidget)
@@ -92,8 +94,8 @@ proc updateChild*(state: Renderable,
 proc updateChild*(state: Renderable,
                   child: var WidgetState,
                   updater: Widget,
-                  addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
-                  removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                  addChild: proc(widget, child: GtkWidget) {.cdecl, locker.},
+                  removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   proc replace(widget, oldChild, newChild: GtkWidget) =
     if not oldChild.isNil:
       removeChild(widget, oldChild)
@@ -105,7 +107,7 @@ proc updateChild*(state: Renderable,
 proc updateChild*(state: Renderable,
                   child: var WidgetState,
                   updater: Widget,
-                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   proc replace(widget, oldChild, newChild: GtkWidget) =
     setChild(widget, newChild)
   
@@ -114,8 +116,8 @@ proc updateChild*(state: Renderable,
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
                      updates: seq[Widget],
-                     addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
-                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                     addChild: proc(widget, child: GtkWidget) {.cdecl, locker.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   updates.assignApp(state.app)
   
   var
@@ -151,9 +153,9 @@ proc updateChildren*(state: Renderable,
 proc updateChildren*(state: Renderable,
                      children: var seq[WidgetState],
                      updates: seq[Widget],
-                     addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
-                     insertChild: proc(widget, child: GtkWidget, index: cint) {.cdecl, locks: 0.},
-                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                     addChild: proc(widget, child: GtkWidget) {.cdecl, locker.},
+                     insertChild: proc(widget, child: GtkWidget, index: cint) {.cdecl, locker.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   updates.assignApp(state.app)
   
   var it = 0
@@ -196,8 +198,8 @@ proc toGtk*(align: Align): GtkAlign = GtkAlign(ord(align))
 proc updateAlignedChildren*(state: Renderable,
                             children: var seq[AlignedChild[WidgetState]],
                             updates: seq[AlignedChild[Widget]],
-                            addChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.},
-                            removeChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                            addChild: proc(widget, child: GtkWidget) {.cdecl, locker.},
+                            removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   updates.assignApp(state.app)
   var
     it = 0

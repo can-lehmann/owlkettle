@@ -23,7 +23,9 @@
 import std/[strutils, math, sets, tables]
 when defined(nimPreviewSlimSystem):
   import std/formatfloat
-import widgets, widgetdef, guidsl
+import widgets, widgetdef, guidsl, common
+
+customPragmas()
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Dataentries Widgets\n\n"
@@ -145,19 +147,19 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
       tokens: seq[Token]
       cur: int
   
-  proc add(stream: var TokenStream, token: Token) {.locks: 0.} =
+  proc add(stream: var TokenStream, token: Token) {.locker.} =
     stream.tokens.add(token)
   
-  proc next(stream: TokenStream, kind: TokenKind): bool {.locks: 0.} =
+  proc next(stream: TokenStream, kind: TokenKind): bool {.locker.} =
     result = stream.cur < stream.tokens.len and
              stream.tokens[stream.cur].kind == kind
   
-  proc take(stream: var TokenStream, kind: TokenKind): bool {.locks: 0.} =
+  proc take(stream: var TokenStream, kind: TokenKind): bool {.locker.} =
     result = stream.next(kind)
     if result:
       stream.cur += 1
   
-  proc tokenize(text: string): TokenStream {.locks: 0.} =
+  proc tokenize(text: string): TokenStream {.locker.} =
     const
       WHITESPACE = {' ', '\n', '\r', '\t'}
       OP = {'+', '-', '*', '/', '^', '%'}
@@ -191,7 +193,7 @@ method parse(entry: FormulaEntryState, text: string): (bool, float64) =
             kind = TokenNumber
           result.add(Token(kind: kind, value: name))
   
-  proc eval(stream: var TokenStream, level: int): tuple[valid: bool, val: float64] {.locks: 0.} =
+  proc eval(stream: var TokenStream, level: int): tuple[valid: bool, val: float64] {.locker.} =
     var prefix = 1.0
     if stream.take(TokenPrefixOp) and stream.tokens[stream.cur - 1].value == "-":
       prefix = -1.0

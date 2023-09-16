@@ -20,11 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import gtk, widgetdef
+import gtk, widgetdef, common
 
-type Stylesheet* = ref object
-  provider: GtkCssProvider
-  priority: int
+type 
+  StylesheetObj = object
+    provider: GtkCssProvider
+    priority: int
+
+  Stylesheet* = ref StylesheetObj
+
+crossVersionDestructor(stylesheet, StylesheetObj):
+  if isNil(stylesheet.provider):
+    return
+  
+  g_object_unref(pointer(stylesheet.provider))
+
+proc `=copy`*(dest: var StylesheetObj, source: StylesheetObj) =
+  let areSameObject = pointer(source.provider) == pointer(dest.provider)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.provider):
+    g_object_ref(pointer(source.provider))
+    
+  dest.provider = source.provider
 
 const DEFAULT_PRIORITY = 600
 

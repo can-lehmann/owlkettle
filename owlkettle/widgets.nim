@@ -25,8 +25,9 @@
 import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, cairo, widgetutils
+import gtk, widgetdef, cairo, widgetutils, common
 
+customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
@@ -458,18 +459,41 @@ type
   Colorspace* = enum
     ColorspaceRgb
   
-  Pixbuf* = ref object
+  # Wrapper for the GdkPixbuf pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `PixBuf = distinct GdkPixbuf` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
+  PixbufObj* = object
     gdk: GdkPixbuf
+    
+  Pixbuf* = ref PixbufObj
 
-proc finalizer(pixbuf: Pixbuf) =
+crossVersionDestructor(pixbuf, PixbufObj):
+  if isNil(pixbuf.gdk):
+    return
+  
   g_object_unref(pointer(pixbuf.gdk))
 
+proc `=copy`*(dest: var PixbufObj, source: PixbufObj) =
+  let areSameObject = pointer(source.gdk) == pointer(dest.gdk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gdk):
+    g_object_ref(pointer(source.gdk))
+    
+  dest.gdk = source.gdk
+    
 proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   if gdk.isNil:
     raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
-  new(result, finalizer=finalizer)
-  result.gdk = gdk
 
+  result = Pixbuf(gdk: gdk)
+  
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
                 hasAlpha: bool = false,
@@ -549,7 +573,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
   var error = GError(nil)
   let pixbuf = gdk_pixbuf_new_from_stream_finish(result, error.addr)
   if error.isNil:
-    future.complete(Pixbuf(gdk: pixbuf))
+    future.complete(newPixbuf(pixbuf))
   else:
     let message = $error[].message
     future.fail(newException(IoError, "Unable to load pixbuf: " & message))
@@ -793,7 +817,7 @@ proc `valIcon=`*(button: Button, name: string) =
 proc updateChild*(state: Renderable,
                   child: var BoxChild[WidgetState],
                   updater: BoxChild[Widget],
-                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   if updater.widget.isNil:
     if not child.widget.isNil:
       child.widget = nil
@@ -1105,9 +1129,9 @@ type PanedChild[T] = object
 proc buildPanedChild(child: PanedChild[Widget],
                      app: Viewable,
                      internalWidget: GtkWidget,
-                     setChild: proc(paned, child: GtkWidget) {.cdecl, locks: 0.},
-                     setResize: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.},
-                     setShrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.}): PanedChild[WidgetState] =
+                     setChild: proc(paned, child: GtkWidget) {.cdecl, locker.},
+                     setResize: proc(paned: GtkWidget, val: cbool) {.cdecl, locker.},
+                     setShrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locker.}): PanedChild[WidgetState] =
   child.widget.assignApp(app)
   result = PanedChild[WidgetState](
     widget: child.widget.build(),
@@ -1986,6 +2010,12 @@ type
     underline*: Option[UnderlineKind]
     style*: Option[CairoFontSlant]
   
+  # Wrapper for the GtkTextBuffer pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `TextBuffer = distinct GtkTextBuffer` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
   TextBufferObj = object
     gtk: GtkTextBuffer
   
@@ -1995,13 +2025,27 @@ type
   TextTag* = GtkTextTag
   TextSlice* = HSlice[TextIter, TextIter]
 
-proc finalizer(buffer: TextBuffer) =
+crossVersionDestructor(buffer, TextBufferObj):
+  if isNil(buffer.gtk):
+    return
+  
   g_object_unref(pointer(buffer.gtk))
 
-proc newTextBuffer*(): TextBuffer =
-  new(result, finalizer=finalizer)
-  result.gtk = gtk_text_buffer_new(nil.GtkTextTagTable)
+proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
 
+proc newTextBuffer*(): TextBuffer =
+  result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
+  
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
@@ -2839,7 +2883,7 @@ renderable ContextMenu:
   
   hooks menu:
     (build, update):
-      proc replace(box, oldMenu, newMenu: GtkWidget) {.locks: 0.} =
+      proc replace(box, oldMenu, newMenu: GtkWidget) {.locker.} =
         if not oldMenu.isNil:
           gtk_widget_remove_controller(box, state.controller)
           state.controller = GtkEventController(nil)
