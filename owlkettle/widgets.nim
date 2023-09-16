@@ -491,8 +491,8 @@ proc `=copy`*(dest: var PixbufObj, source: PixbufObj) =
 proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   if gdk.isNil:
     raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
-  result = Pixbuf()
-  result.gdk = gdk
+
+  result = Pixbuf(gdk: gdk)
   
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
@@ -2029,9 +2029,8 @@ crossVersionDestructor(buffer, TextBufferObj):
   g_object_unref(pointer(buffer.gtk))
   
 proc newTextBuffer*(): TextBuffer =
-  new(result)
-  result.gtk = gtk_text_buffer_new(nil.GtkTextTagTable)
-
+  result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
+  
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
