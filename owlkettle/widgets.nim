@@ -469,15 +469,22 @@ type
     
   Pixbuf* = ref PixbufObj
 
-proc `=destroy`(pixbuf: PixbufObj) =
-  if isNil(pixbuf.gdk):
-    return
-  
-  g_object_unref(pointer(pixbuf.gdk))
+when(NimMajor >= 2):
+  proc `=destroy`(pixbuf: PixbufObj) =
+    if isNil(pixbuf.gdk):
+      return
+    
+    g_object_unref(pointer(pixbuf.gdk))
+else:
+  proc `=destroy`(pixbuf: var PixbufObj) =
+    if isNil(pixbuf.gdk):
+      return
+    
+    g_object_unref(pointer(pixbuf.gdk))
 
 proc `=copy`*(dest: var PixbufObj, source: PixbufObj) =
-  let areSamePixbuf = pointer(source.gdk) == pointer(dest.gdk)
-  if areSamePixbuf:
+  let areSameObject = pointer(source.gdk) == pointer(dest.gdk)
+  if areSameObject:
     return
   
   `=destroy`(dest)
@@ -2024,8 +2031,12 @@ type
   TextTag* = GtkTextTag
   TextSlice* = HSlice[TextIter, TextIter]
 
-proc `=destroy`(buffer: TextBufferObj) =
-  g_object_unref(pointer(buffer.gtk))
+when(NimMajor >= 2):
+  proc `=destroy`(buffer: TextBufferObj) =
+    g_object_unref(pointer(buffer.gtk))
+else:
+  proc `=destroy`(buffer: var TextBufferObj) =
+    g_object_unref(pointer(buffer.gtk))
 
 proc newTextBuffer*(): TextBuffer =
   new(result)
