@@ -22,9 +22,36 @@
 
 import gtk, widgetdef
 
-type Stylesheet* = ref object
-  provider: GtkCssProvider
-  priority: int
+type 
+  StylesheetObj = object
+    provider: GtkCssProvider
+    priority: int
+
+  Stylesheet* = ref StylesheetObj
+
+when(NimMajor >= 2):
+  proc `=destroy`(stylesheet: StylesheetObj) =
+    if isNil(stylesheet.provider):
+      return
+    
+    g_object_unref(pointer(stylesheet.provider))
+else:
+  proc `=destroy`(stylesheet: var StylesheetObj) =
+    if isNil(stylesheet.provider):
+      return
+    
+    g_object_unref(pointer(stylesheet.provider))
+proc `=copy`*(dest: var StylesheetObj, source: StylesheetObj) =
+  let areSameObject = pointer(source.provider) == pointer(dest.provider)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.provider):
+    g_object_ref(pointer(source.provider))
+    
+  dest.provider = source.provider
 
 const DEFAULT_PRIORITY = 600
 
