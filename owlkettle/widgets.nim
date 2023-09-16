@@ -2026,8 +2026,23 @@ type
   TextSlice* = HSlice[TextIter, TextIter]
 
 crossVersionDestructor(buffer, TextBufferObj):
-  g_object_unref(pointer(buffer.gtk))
+  if isNil(buffer.gtk):
+    return
   
+  g_object_unref(pointer(buffer.gtk))
+
+proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
+
 proc newTextBuffer*(): TextBuffer =
   result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
   
