@@ -365,7 +365,7 @@ proc g_value_unset*(value: ptr GValue)
 proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_timeout_add_full*(priority: cint, interval: cuint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_strdup*(str: cstring): pointer
-
+proc g_free*(str: pointer)
 # GLib.Source
 proc g_source_remove*(id: cuint): cbool
 
