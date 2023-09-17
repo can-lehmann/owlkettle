@@ -371,21 +371,19 @@ proc g_free*(str: pointer)
 
 type OwnedGtkString* = distinct cstring
 
-  # Forward declarations are needed as otherwise the line `cStr.cstring.isNil` 
-  # in the =destroy hook causes nim to use cstring's hooks implicitly, which 
-  # we do not want to ensure memory safe use of OwnedGtkString
+# Forward declarations are needed as otherwise the line `cStr.cstring.isNil` 
+# in the =destroy hook causes nim to use cstring's hooks implicitly, which 
+# we do not want to ensure memory safe use of OwnedGtkString
 proc `=copy`*(dest: var OwnedGtkString, source: OwnedGtkString)
 proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString)
 
 crossVersionDestructor(cstr, OwnedGtkString):
-  echo "Destroy owned gtk string"
   if cStr.cstring.isNil():
     return
   
   g_free(pointer(cStr))
 
 proc `=copy`*(dest: var OwnedGtkString, source: OwnedGtkString) =
-  echo "Copy owned string"
   let areSameObject = pointer(source) == pointer(dest)
   if areSameObject:
     return
@@ -395,7 +393,6 @@ proc `=copy`*(dest: var OwnedGtkString, source: OwnedGtkString) =
   cstring(dest) = cast[cstring](g_strdup(cstring(source)))
 
 proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString) =
-  echo "Sink owned string"
   `=destroy`(dest)
   wasMoved(dest)
   cstring(dest) = cstring(source)
