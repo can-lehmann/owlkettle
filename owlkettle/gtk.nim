@@ -23,6 +23,7 @@
 # Bindings for GTK 4
 
 import std/[os]
+import ./common
 
 import std/strutils as strutils
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
@@ -365,7 +366,40 @@ proc g_value_unset*(value: ptr GValue)
 proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_timeout_add_full*(priority: cint, interval: cuint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_strdup*(str: cstring): pointer
+proc g_free*(str: pointer)
+{.pop.}
 
+type OwnedGtkString* = distinct cstring
+
+# Forward declarations are needed as otherwise the line `cStr.cstring.isNil` 
+# in the =destroy hook causes nim to use cstring's hooks implicitly, which 
+# we do not want to ensure memory safe use of OwnedGtkString
+proc `=copy`*(dest: var OwnedGtkString, source: OwnedGtkString)
+proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString)
+
+crossVersionDestructor(cstr, OwnedGtkString):
+  if cStr.cstring.isNil():
+    return
+  
+  g_free(pointer(cStr))
+
+proc `=copy`*(dest: var OwnedGtkString, source: OwnedGtkString) =
+  let areSameObject = pointer(source) == pointer(dest)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  cstring(dest) = cast[cstring](g_strdup(cstring(source)))
+
+proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  cstring(dest) = cstring(source)
+  
+proc `$`*(cStr: OwnedGtkString): string = $(cStr.cstring)
+
+{.push importc, cdecl.}
 # GLib.Source
 proc g_source_remove*(id: cuint): cbool
 
@@ -401,8 +435,8 @@ proc g_application_run*(app: GApplication, argc: cint, argv: cstringArray): cint
 # Gio.File
 proc g_file_new_for_path*(path: cstring): GFile
 proc g_file_read*(file: GFile, cancelable: pointer, error: ptr GError): GInputStream
-proc g_file_get_path*(file: GFile): cstring
-proc g_file_get_uri*(file: GFile): cstring
+proc g_file_get_path*(file: GFile): OwnedGtkString
+proc g_file_get_uri*(file: GFile): OwnedGtkString
 
 # Gio.InputStream
 proc g_input_stream_close*(stream: GInputStream, cancelable: pointer, error: ptr GError): cbool
@@ -783,7 +817,7 @@ proc gtk_text_buffer_delete*(buffer: GtkTextBuffer, a, b: ptr GtkTextIter)
 proc gtk_text_buffer_set_text*(buffer: GtkTextBuffer, text: cstring, len: cint)
 proc gtk_text_buffer_get_text*(buffer: GtkTextBuffer,
                                a, b: ptr GtkTextIter,
-                               includeHiddenChars: cbool): cstring
+                               includeHiddenChars: cbool): OwnedGtkString
 proc gtk_text_buffer_begin_user_action*(buffer: GtkTextBuffer)
 proc gtk_text_buffer_end_user_action*(buffer: GtkTextBuffer)
 proc gtk_text_buffer_get_start_iter*(buffer: GtkTextBuffer, iter: ptr GtkTextIter)
