@@ -18,7 +18,7 @@ task examples, "Build examples":
   withDir "examples":
     for file in findExamples("."):
       echo "INFO: Compile " & file
-      exec "nim c --hints:off --verbosity:0 " & file
+      exec "nim c --hints:off --path:.. --verbosity:0 " & file
       echo "INFO: OK"
       echo "================================================================================"
 

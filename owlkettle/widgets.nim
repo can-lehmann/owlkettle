@@ -25,8 +25,9 @@
 import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, cairo, widgetutils
+import gtk, widgetdef, cairo, widgetutils, common
 
+customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
@@ -43,22 +44,22 @@ proc `==`*(x, y: StyleClass): bool {.borrow.}
 renderable BaseWidget:
   ## The base widget of all widgets. Supports redrawing the entire Application
   ## by calling `<WidgetName>State.app.redraw()`
-  internalMargin {.internal.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
-  internalStyle {.internal.}: HashSet[StyleClass] = initHashSet[StyleClass]()
+  privateMargin {.private.}: Margin = Margin() ## Allows setting top, bottom, left and right margin of a widget. Margin has those names as fields to set integer values to.
+  privateStyle {.private.}: HashSet[StyleClass] = initHashSet[StyleClass]()
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   tooltip: string = "" ## The widget's tooltip is shown on hover
 
-  hooks internalMargin:
+  hooks privateMargin:
     (build, update):
-      if widget.hasInternalMargin:
-        state.internalMargin = widget.valInternalMargin
-        gtk_widget_set_margin_top(state.internalWidget, cint(state.internalMargin.top))
-        gtk_widget_set_margin_bottom(state.internalWidget, cint(state.internalMargin.bottom))
-        gtk_widget_set_margin_start(state.internalWidget, cint(state.internalMargin.left))
-        gtk_widget_set_margin_end(state.internalWidget, cint(state.internalMargin.right))
+      if widget.hasPrivateMargin:
+        state.privateMargin = widget.valPrivateMargin
+        gtk_widget_set_margin_top(state.internalWidget, cint(state.privateMargin.top))
+        gtk_widget_set_margin_bottom(state.internalWidget, cint(state.privateMargin.bottom))
+        gtk_widget_set_margin_start(state.internalWidget, cint(state.privateMargin.left))
+        gtk_widget_set_margin_end(state.internalWidget, cint(state.privateMargin.right))
 
-  hooks internalStyle:
+  hooks privateStyle:
     (build, update):
       updateStyle(state, widget)
 
@@ -88,25 +89,25 @@ renderable BaseWidget:
   setter style: HashSet[StyleClass] # Applies CSS classes to the widget.
 
 proc `hasMargin=`*(widget: BaseWidget, has: bool) =
-  widget.hasInternalMargin = has
+  widget.hasPrivateMargin = has
 
 proc `valMargin=`*(widget: BaseWidget, width: int) =
-  widget.valInternalMargin = Margin(top: width, bottom: width, left: width, right: width)
+  widget.valPrivateMargin = Margin(top: width, bottom: width, left: width, right: width)
 
 proc `valMargin=`*(widget: BaseWidget, margin: Margin) =
-  widget.valInternalMargin = margin
+  widget.valPrivateMargin = margin
 
 proc `hasStyle=`*(widget: BaseWidget, has: bool) =
-  widget.hasInternalStyle = has
+  widget.hasPrivateStyle = has
 
 proc `valStyle=`*(widget: BaseWidget, cssClasses: HashSet[StyleClass]) =
-  widget.valInternalStyle = cssClasses
+  widget.valPrivateStyle = cssClasses
 
 proc `valStyle=`*(widget: BaseWidget, cssClasses: varargs[StyleClass]) =
-  widget.valInternalStyle = cssClasses.toHashSet()
+  widget.valPrivateStyle = cssClasses.toHashSet()
 
 proc `valStyle=`*(widget: BaseWidget, cssClass: StyleClass) =
-  widget.valInternalStyle = [cssClass].toHashSet()
+  widget.valPrivateStyle = [cssClass].toHashSet()
 
 renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
@@ -458,18 +459,41 @@ type
   Colorspace* = enum
     ColorspaceRgb
   
-  Pixbuf* = ref object
+  # Wrapper for the GdkPixbuf pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `PixBuf = distinct GdkPixbuf` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
+  PixbufObj* = object
     gdk: GdkPixbuf
+    
+  Pixbuf* = ref PixbufObj
 
-proc finalizer(pixbuf: Pixbuf) =
+crossVersionDestructor(pixbuf, PixbufObj):
+  if isNil(pixbuf.gdk):
+    return
+  
   g_object_unref(pointer(pixbuf.gdk))
 
+proc `=copy`*(dest: var PixbufObj, source: PixbufObj) =
+  let areSameObject = pointer(source.gdk) == pointer(dest.gdk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gdk):
+    g_object_ref(pointer(source.gdk))
+    
+  dest.gdk = source.gdk
+    
 proc newPixbuf(gdk: GdkPixbuf): Pixbuf =
   if gdk.isNil:
     raise newException(ValueError, "Unable to create Pixbuf from GdkPixbuf(nil)")
-  new(result, finalizer=finalizer)
-  result.gdk = gdk
 
+  result = Pixbuf(gdk: gdk)
+  
 proc newPixbuf*(width, height: int,
                 bitsPerSample: int = 8,
                 hasAlpha: bool = false,
@@ -549,7 +573,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
   var error = GError(nil)
   let pixbuf = gdk_pixbuf_new_from_stream_finish(result, error.addr)
   if error.isNil:
-    future.complete(Pixbuf(gdk: pixbuf))
+    future.complete(newPixbuf(pixbuf))
   else:
     let message = $error[].message
     future.fail(newException(IoError, "Unable to load pixbuf: " & message))
@@ -793,7 +817,7 @@ proc `valIcon=`*(button: Button, name: string) =
 proc updateChild*(state: Renderable,
                   child: var BoxChild[WidgetState],
                   updater: BoxChild[Widget],
-                  setChild: proc(widget, child: GtkWidget) {.cdecl, locks: 0.}) =
+                  setChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   if updater.widget.isNil:
     if not child.widget.isNil:
       child.widget = nil
@@ -1105,9 +1129,9 @@ type PanedChild[T] = object
 proc buildPanedChild(child: PanedChild[Widget],
                      app: Viewable,
                      internalWidget: GtkWidget,
-                     setChild: proc(paned, child: GtkWidget) {.cdecl, locks: 0.},
-                     setResize: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.},
-                     setShrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locks: 0.}): PanedChild[WidgetState] =
+                     setChild: proc(paned, child: GtkWidget) {.cdecl, locker.},
+                     setResize: proc(paned: GtkWidget, val: cbool) {.cdecl, locker.},
+                     setShrink: proc(paned: GtkWidget, val: cbool) {.cdecl, locker.}): PanedChild[WidgetState] =
   child.widget.assignApp(app)
   result = PanedChild[WidgetState](
     widget: child.widget.build(),
@@ -1365,7 +1389,7 @@ proc callbackOrNil[T](event: Event[T]): T =
 
 renderable CustomWidget of BaseWidget:
   focusable: bool
-  events: CustomWidgetEvents
+  events {.private, onlyState.}: CustomWidgetEvents
   
   proc mousePressed(event: ButtonEvent): bool
   proc mouseReleased(event: ButtonEvent): bool
@@ -1380,6 +1404,7 @@ renderable CustomWidget of BaseWidget:
       let controller = gtk_event_controller_legacy_new()
       discard g_signal_connect(controller, "event", gdkEventCallback, state.events[].addr)
       gtk_widget_add_controller(state.internalWidget, controller)
+      # TODO: Check memory safety
     connectEvents:
       state.events.app = state.app
       state.events.mousePressed = state.mousePressed.callbackOrNil
@@ -1647,7 +1672,7 @@ renderable RadioGroup of BaseWidget:
       button: GtkWidget
       data: RadioGroupRowData
   
-  rows {.internal.}: seq[RadioGroupRow]
+  rows {.private, onlyState.}: seq[RadioGroupRow]
   
   hooks:
     beforeBuild:
@@ -1986,6 +2011,12 @@ type
     underline*: Option[UnderlineKind]
     style*: Option[CairoFontSlant]
   
+  # Wrapper for the GtkTextBuffer pointer to work with destructors of nim's ARC/ORC
+  # Todo: As of 16.09.2023 it is mildly buggy to try and to `TextBuffer = distinct GtkTextBuffer` and
+  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
+  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
+  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
+  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
   TextBufferObj = object
     gtk: GtkTextBuffer
   
@@ -1995,13 +2026,27 @@ type
   TextTag* = GtkTextTag
   TextSlice* = HSlice[TextIter, TextIter]
 
-proc finalizer(buffer: TextBuffer) =
+crossVersionDestructor(buffer, TextBufferObj):
+  if isNil(buffer.gtk):
+    return
+  
   g_object_unref(pointer(buffer.gtk))
 
-proc newTextBuffer*(): TextBuffer =
-  new(result, finalizer=finalizer)
-  result.gtk = gtk_text_buffer_new(nil.GtkTextTagTable)
+proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
 
+proc newTextBuffer*(): TextBuffer =
+  result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
+  
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
@@ -2839,7 +2884,7 @@ renderable ContextMenu:
   
   hooks menu:
     (build, update):
-      proc replace(box, oldMenu, newMenu: GtkWidget) {.locks: 0.} =
+      proc replace(box, oldMenu, newMenu: GtkWidget) {.locker.} =
         if not oldMenu.isNil:
           gtk_widget_remove_controller(box, state.controller)
           state.controller = GtkEventController(nil)
@@ -2895,6 +2940,62 @@ renderable ContextMenu:
           for it in 0..<3:
             ModelButton:
               text = "Menu Entry " & $it
+
+type LevelBarMode* = enum
+  LevelBarContinuous
+  LevelBarDiscrete
+
+proc toGtk(mode: LevelBarMode): GtkLevelBarMode =
+  result = GtkLevelBarMode(ord(mode))
+
+renderable LevelBar of BaseWidget:
+  value: float = 0.0
+  min: float = 0.0
+  max: float = 1.0
+  inverted: bool = false
+  mode: LevelBarMode = LevelBarContinuous
+  orient: Orient = OrientX
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_level_bar_new()
+  
+  hooks value:
+    property:
+      gtk_level_bar_set_value(state.internalWidget, cdouble(state.value))
+  
+  hooks min:
+    property:
+      gtk_level_bar_set_min_value(state.internalWidget, cdouble(state.min))
+  
+  hooks max:
+    property:
+      gtk_level_bar_set_max_value(state.internalWidget, cdouble(state.max))
+  
+  hooks inverted:
+    property:
+      gtk_level_bar_set_inverted(state.internalWidget, cbool(ord(state.inverted)))
+  
+  hooks mode:
+    property:
+      gtk_level_bar_set_mode(state.internalWidget, toGtk(state.mode))
+  
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, toGtk(state.orient))
+  
+  example:
+    LevelBar:
+      value = 0.2
+      min = 0
+      max = 1
+  
+  example:
+    LevelBar:
+      value = 2
+      max = 10
+      orient = OrientY
+      mode = LevelBarDiscrete
 
 renderable Calendar of BaseWidget:
   ## Displays a calendar
@@ -3017,28 +3118,28 @@ renderable DialogButton:
   
   text: string
   response: DialogResponse
-  internalStyle {.internal.}: HashSet[StyleClass]
+  privateStyle {.private.}: HashSet[StyleClass]
   
   setter res: DialogResponseKind
   setter style: varargs[StyleClass] ## Applies CSS classes to the button. There are some pre-defined classes available: `ButtonSuggested`, `ButtonDestructive`, `ButtonFlat`, `ButtonPill` or `ButtonCircular`. You can also use custom CSS classes using `StyleClass("my-class")`. Consult the [GTK4 documentation](https://developer.gnome.org/hig/patterns/controls/buttons.html?highlight=button#button-styles) for guidance on what to use.
   setter style: HashSet[StyleClass] ## Applies CSS classes to the button.
   setter style: StyleClass  ## Applies CSS classes to the button.
   
-  hooks internalStyle:
+  hooks privateStyle:
     (build, update):
       updateStyle(state, widget)
 
 proc `hasStyle=`*(button: DialogButton, has: bool) =
-  button.hasInternalStyle = has
+  button.hasPrivateStyle = has
 
 proc `valStyle=`*(button: DialogButton, cssClasses: HashSet[StyleClass]) =
-  button.valInternalStyle = cssClasses
+  button.valPrivateStyle = cssClasses
 
 proc `valStyle=`*(button: DialogButton, cssClasses: varargs[StyleClass]) =
-  button.valInternalStyle = cssClasses.toHashSet()
+  button.valPrivateStyle = cssClasses.toHashSet()
 
 proc `valStyle=`*(button: DialogButton, cssClass: StyleClass) =
-  button.valInternalStyle = [cssClass].toHashSet()
+  button.valPrivateStyle = [cssClass].toHashSet()
 
 proc `hasRes=`*(button: DialogButton, value: bool) =
   button.hasResponse = value
@@ -3065,7 +3166,7 @@ renderable Dialog of Window:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valInternalStyle:
+        for styleClass in button.valPrivateStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
@@ -3105,7 +3206,7 @@ renderable BuiltinDialog of BaseWidget:
             button.valResponse.toGtk
           )
           ctx = gtk_widget_get_style_context(buttonWidget)
-        for styleClass in button.valInternalStyle:
+        for styleClass in button.valPrivateStyle:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
@@ -3305,7 +3406,7 @@ export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWi
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, Grid, Fixed, ContextMenu, Calendar
+export Frame, DropDown, Grid, Fixed, ContextMenu, LevelBar, Calendar
 export Dialog, DialogState, DialogButton
 export BuiltinDialog, BuiltinDialogState
 export FileChooserDialog, FileChooserDialogState

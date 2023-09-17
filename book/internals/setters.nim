@@ -4,9 +4,10 @@ nbInit(theme = useNimibook)
 
 nbText: """
 ## **Setters**
+
 Setters are a convenience mechanism for creating widgets.
 During creation, setters act like any other field on the widget, in the sense that they can be assigned to. 
-When doing this assignment, the setter is executed and can decide how the assigned value should be handled.
+When a setter is assigned to, it is executed and can decide how the assigned value should be handled.
 
 One example is the `Button.icon` setter. 
 When assigning to it, the setter creates an `Icon` widget with the given name and adds it to the `Button`.
@@ -28,30 +29,28 @@ Lets take a look at a code example:
 
 nbCode:
   ## The custom widget
-  import owlkettle 
+  import owlkettle, sequtils
   
-  viewable MyViewable:
-    internalMargins: array[3, int]
+  viewable LabelList:
+    labelTexts {.private.}: seq[string]
+    
+    setter texts: openArray[string] 
+    setter texts: openArray[int]
 
-    setter margins: int
-    setter margins: array[3, int] 
+  proc `hasTexts=`*(widget: LabelList, has: bool) =
+    widget.hasLabelTexts = has
 
-  proc `hasMargins=`*(widget: MyViewable, has: bool) =
-    widget.hasInternalMargins = has
+  proc `valTexts=`*(widget: LabelList, texts: openArray[string]) =
+    widget.valLabelTexts = @texts
 
-  proc `valMargins=`*(widget: MyViewable, margin: int) =
-    widget.valInternalMargins = [margin, margin, margin]
+  proc `valTexts=`*(widget: LabelList, slice: openArray[int]) =
+    widget.valLabelTexts = mapIt(slice, $it)
 
-  proc `valMargins=`*(widget: MyViewable, margins: array[3, int]) =
-    widget.valInternalMargins = margins
-
-  method view(state: MyViewableState): Widget =
-    gui:
-      Box():
-        Box(orient = OrientY) {.vAlign: AlignStart.}:
-          Label(text = "Text1", margin = Margin(bottom: state.internalMargins[0]))
-          Label(text = "Text2", margin = Margin(bottom: state.internalMargins[0]))
-          Label(text = "Text3", margin = Margin(bottom: state.internalMargins[0]))
+  method view(state: LabelListState): Widget =
+    result = gui:
+      Box(orient = OrientY):
+        for text in state.labelTexts:
+          Label(text = text)
 
   ## The App
   viewable App:
@@ -61,18 +60,18 @@ nbCode:
     result = gui:
       Window:
         Box(orient = OrientX):
-          MyViewable(margins = [0, 60, 60])
-          MyViewable(margins = 40)
+          LabelList(texts = ["Hello", "World"])
+          LabelList(texts = [1, 2, 3])
 
   when not defined(owlkettleNimiDocs):
     brew(gui(App()))
 
 nbText: """
-This defines a `MyViewable` that has a setter called `margins`.
-When `margins` gets assigned to, it triggers the `valMargins=` procs.
-This will convert the received value into the type of `internalMargins` and assign to it via `valInternalMargins`.
+This defines a `LabelList` that has a setter called `texts`.
+When `texts` gets assigned to, it triggers the `valTexts=` procs.
+This will convert the received value into the type of `labelTexts` and assign to it via `valLabelTexts`.
 
-Thus, via the setter the widget can now accept an `array[3, int]` **and** an `int` for the "internalMargins" field, the int just gets turned into a `array[3, int]`!
+Thus, via the setter the widget can now accept an `openArray[string]` **and** an `openArray[int]` for the "texts" field!
 """
 
 nbSave
