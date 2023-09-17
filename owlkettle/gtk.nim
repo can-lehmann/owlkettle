@@ -398,7 +398,7 @@ proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString) =
   echo "Sink owned string"
   `=destroy`(dest)
   wasMoved(dest)
-  pointer(dest) = pointer(source)
+  cstring(dest) = cstring(source)
   
 proc `$`*(cStr: OwnedGtkString): string = $(cStr.cstring)
 
