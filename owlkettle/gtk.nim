@@ -638,6 +638,20 @@ proc gtk_scrolled_window_get_hadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_set_child*(window, child: GtkWidget)
 
+# Gtk.Range
+proc gtk_range_get_value*(rangeWidget: GtkWidget): cfloat
+proc gtk_range_set_increments*(rangeWidget: GtkWidget; step, page: cfloat)
+proc gtk_range_set_range*(rangeWidget: GtkWidget; min, max: cfloat)
+proc gtk_range_set_restrict_to_fill_level*(rangeWidget: GtkWidget, restrict_to_fill_level: cbool)
+proc gtk_range_set_show_fill_level*(rangeWidget: GtkWidget, show_fill_level: cbool)
+
+# Gtk.Scale
+proc gtk_scale_new*(widget: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
+proc gtk_scale_add_mark*(widget: GtkWidget, value: cfloat, position: GtkPositionType, markup: cstring)
+proc gtk_scale_set_draw_value*(widget: GtkWidget, draw_value: cbool)
+proc gtk_scale_set_has_origin*(widget: GtkWidget, has_origin: cbool)
+proc gtk_widget_is_sensitive*(widget: GtkWidget): cbool
+
 # Gtk.IconTheme
 proc gtk_icon_theme_new*(): GtkIconTheme
 proc gtk_icon_theme_get_for_display*(display: GdkDisplay): GtkIconTheme

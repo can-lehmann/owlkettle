@@ -3401,6 +3401,63 @@ renderable AboutDialog of BaseWidget:
         "Art": @["Max Mustermann"]
       }
 
+type ScaleMarkPosition* = enum
+  ScaleMarkLeft,
+  ScaleMarkRight,
+  ScaleMarkTop,
+  ScaleMarkBottom
+
+proc toGtk(pos: ScaleMarkPosition): GtkPositionType =
+  result = GtkPositionType(ord(pos))
+
+type Mark* = tuple
+  label: Option[string]
+  value: float64
+  position: ScaleMarkPosition
+
+renderable Scale of BaseWidget:
+  ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
+  marks: seq[Mark] = @[]
+  precision: int = 2
+  showCurrentValue: bool = true
+  currentValue: float64 = 0.0
+  orient: Orient = OrientX
+  
+  proc valueChanged(newValue: float64) # Emitted when the range value changes.
+
+  hooks:
+    beforeBuild:
+      let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
+      state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
+      state.internalWidget.gtk_scale_set_draw_value(true.cbool)
+      state.internalWidget.gtk_range_set_range(0.cfloat, 100.cfloat)
+
+    connectEvents:
+      proc valueChangedEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(newValue: float)]
+      ) {.cdecl.} =
+        echo "Value changed callback"
+        let scaleValue: float64 = gtk_range_get_value(widget).float64
+        ScaleState(data[].widget).currentValue = scaleValue
+        data[].callback(scaleValue)
+        data[].redraw()
+      
+      state.connect(state.valueChanged, "value-changed", valueChangedEventCallback)
+      
+    disconnectEvents:
+      state.internalWidget.disconnect(state.valueChanged)
+  
+  hooks marks:
+    (build, update):
+      echo "Marks hook ", state.marks
+      echo $(state.internalWidget.gtk_widget_is_sensitive()).bool
+
+      for mark in state.marks:
+        let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
+        gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
+
+
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3414,3 +3471,4 @@ export ColorChooserDialog, ColorChooserDialogState
 export MessageDialog, MessageDialogState
 export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
+export Scale
