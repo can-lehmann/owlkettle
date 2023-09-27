@@ -3442,7 +3442,7 @@ renderable Scale of BaseWidget:
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
         let scaleValue: float64 = gtk_range_get_value(widget).float64
-        echo "Value changed callback - ", scaleValue
+        echo "Value changed callback. New value: ", scaleValue, " | old Value: ", ScaleState(data[].widget).currentValue
         echo ScaleState(data[].widget).currentValue
         ScaleState(data[].widget).currentValue = scaleValue
         data[].callback(scaleValue)
