@@ -3417,7 +3417,9 @@ type Mark* = tuple
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
-  marks: seq[Mark] = @[]
+  marks: seq[Mark]
+  min: float64
+  max: float64
   precision: int = 2
   showCurrentValue: bool = true
   currentValue: float64 = 0.0
@@ -3428,17 +3430,20 @@ renderable Scale of BaseWidget:
   hooks:
     beforeBuild:
       let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
+      let min: float64 = if widget.hasMin: widget.valMin else: 0
+      let max: float64 = if widget.hasMax: widget.valMax else: 1
       state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
       state.internalWidget.gtk_scale_set_draw_value(true.cbool)
-      state.internalWidget.gtk_range_set_range(0.cfloat, 100.cfloat)
+      state.internalWidget.gtk_range_set_range(min.cfloat, max.cfloat)
 
     connectEvents:
       proc valueChangedEventCallback(
         widget: GtkWidget, 
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
-        echo "Value changed callback"
         let scaleValue: float64 = gtk_range_get_value(widget).float64
+        echo "Value changed callback - ", scaleValue
+        echo ScaleState(data[].widget).currentValue
         ScaleState(data[].widget).currentValue = scaleValue
         data[].callback(scaleValue)
         data[].redraw()
@@ -3450,10 +3455,10 @@ renderable Scale of BaseWidget:
   
   hooks marks:
     (build, update):
-      echo "Marks hook ", state.marks
-      echo $(state.internalWidget.gtk_widget_is_sensitive()).bool
-
-      for mark in state.marks:
+      if not widget.hasMarks:
+        return
+      
+      for mark in widget.valMarks:
         let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
 

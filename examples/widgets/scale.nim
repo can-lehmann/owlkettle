@@ -33,7 +33,7 @@ method view(app: AppState): Widget =
       defaultSize = (600, 400)
       Box(orient = OrientX, spacing = 6, margin = 12):
         Scale:
-          currentValue = 50
+          currentValue = 0.5
           marks = @[
             (some "left", 0.25, ScaleMarkLeft),
             (some "right", 0.5, ScaleMarkRight),
