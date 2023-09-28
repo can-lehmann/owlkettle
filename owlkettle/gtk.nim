@@ -642,18 +642,18 @@ proc gtk_scrolled_window_set_child*(window, child: GtkWidget)
 proc gtk_range_get_value*(widget: GtkWidget): cdouble
 proc gtk_range_set_increments*(widget: GtkWidget; step, page: cdouble)
 proc gtk_range_set_range*(widget: GtkWidget; min, max: cdouble)
-proc gtk_range_set_restrict_to_fill_level*(widget: GtkWidget, restrict_to_fill_level: cbool)
-proc gtk_range_set_show_fill_level*(widget: GtkWidget, show_fill_level: cbool)
 proc gtk_range_set_value*(widget: GtkWidget, value: cdouble)
 proc gtk_range_set_inverted*(widget: GtkWidget, setting: cbool)
 proc gtk_range_get_inverted*(widget: GtkWidget): cbool
+proc gtk_range_set_slider_size_fixed*(widget: GtkWidget, size_fixed: cbool)
 
 # Gtk.Scale
 proc gtk_scale_new*(widget: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
 proc gtk_scale_add_mark*(widget: GtkWidget, value: cdouble, position: GtkPositionType, markup: cstring)
 proc gtk_scale_set_draw_value*(widget: GtkWidget, draw_value: cbool)
 proc gtk_scale_set_has_origin*(widget: GtkWidget, has_origin: cbool)
-proc gtk_widget_is_sensitive*(widget: GtkWidget): cbool
+proc gtk_scale_set_value_pos*(widget: GtkWidget, pos: GtkPositionType)
+proc gtk_scale_set_digits*(widget: GtkWidget, digits: cint)
 
 # Gtk.IconTheme
 proc gtk_icon_theme_new*(): GtkIconTheme

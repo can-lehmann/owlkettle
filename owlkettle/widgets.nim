@@ -3419,13 +3419,15 @@ renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
   marks: seq[Mark] = @[]
   min: float64 = 0
-  max: float64 = 1
+  max: float64 = 100
   inverted: bool = false
   showCurrentValue: bool = true
-  stepSize: float64 = 0.1
-  pageSize: float64 = 0.2
+  stepSize: float64 = 5
+  pageSize: float64 = 10
   value: float64 = 0
   orient: Orient = OrientX
+  showFillLevel: bool = true
+  precision: int64 = 1
   
   proc valueChanged(newValue: float64) # Emitted when the range value changes.
 
@@ -3437,7 +3439,7 @@ renderable Scale of BaseWidget:
       state.internalWidget.gtk_scale_set_draw_value(true.cbool)
       
       let min: float64 = if widget.hasMin: widget.valMin else: 0
-      let max: float64 = if widget.hasMax: widget.valMax else: 1
+      let max: float64 = if widget.hasMax: widget.valMax else: 100
       state.internalWidget.gtk_range_set_range(min.cfloat, max.cfloat)
       
       let value: float64 = if widget.hasValue: widget.valValue else: 0
@@ -3446,11 +3448,13 @@ renderable Scale of BaseWidget:
       let inverted = if widget.hasInverted: widget.valInverted else: false
       state.internalWidget.gtk_range_set_inverted(inverted.cbool)
       
-      
-      let stepSize = if widget.hasStepSize: widget.valStepSize else: 0.1
+      let stepSize = if widget.hasStepSize: widget.valStepSize else: 5
       let pageSize = if widget.hasPageSize: widget.valPageSize else: stepSize * 2
       state.internalWidget.gtk_range_set_increments(stepSize.cdouble, pageSize.cdouble)
-      
+      state.internalWidget.gtk_scale_set_has_origin(widget.valShowFillLevel.cbool)
+      let precision: int64 = if widget.hasPrecision: widget.valPrecision else: 0
+      state.internalWidget.gtk_scale_set_digits(precision.cint)
+    
     connectEvents:
       proc valueChangedEventCallback(
         widget: GtkWidget, 
