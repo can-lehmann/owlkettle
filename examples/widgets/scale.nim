@@ -37,12 +37,12 @@ method view(app: AppState): Widget =
           value = app.value
           inverted = app.invertScale
           showFillLevel = true
-          # marks = @[
-          #   (some "left", 0.25, ScaleMarkLeft),
-          #   (some "right", 0.5, ScaleMarkRight),
-          #   (some "top", 0.75, ScaleMarkTop),
-          #   (some "bottom", 1.00, ScaleMarkBottom),
-          # ]
+          marks = @[
+            (some "left", 25, ScaleMarkLeft),
+            (some "right", 50, ScaleMarkRight),
+            (some "top", 75, ScaleMarkTop),
+            (some "bottom", 100, ScaleMarkBottom),
+          ]
           proc valueChanged(newValue: float64) =
             echo "New value from Scale is ", $newValue
         

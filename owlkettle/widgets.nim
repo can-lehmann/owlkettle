@@ -3471,7 +3471,9 @@ renderable Scale of BaseWidget:
       state.internalWidget.disconnect(state.valueChanged)
   hooks marks:
     (build, update):
-      if not widget.hasMarks or widget.valMarks.len == 0:
+      state.internalWidget.gtk_scale_clear_marks()
+      let hasScaleMarks = widget.hasMarks and widget.valMarks.len > 0
+      if hasScaleMarks:
         for mark in widget.valMarks:
           let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
           gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)

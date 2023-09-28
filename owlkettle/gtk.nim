@@ -650,6 +650,7 @@ proc gtk_range_set_slider_size_fixed*(widget: GtkWidget, size_fixed: cbool)
 # Gtk.Scale
 proc gtk_scale_new*(widget: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
 proc gtk_scale_add_mark*(widget: GtkWidget, value: cdouble, position: GtkPositionType, markup: cstring)
+proc gtk_scale_clear_marks*(widget: GtkWidget)
 proc gtk_scale_set_draw_value*(widget: GtkWidget, draw_value: cbool)
 proc gtk_scale_set_has_origin*(widget: GtkWidget, has_origin: cbool)
 proc gtk_scale_set_value_pos*(widget: GtkWidget, pos: GtkPositionType)
