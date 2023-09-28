@@ -3446,8 +3446,9 @@ renderable Scale of BaseWidget:
       let inverted = if widget.hasInverted: widget.valInverted else: false
       state.internalWidget.gtk_range_set_inverted(inverted.cbool)
       
+      
       let stepSize = if widget.hasStepSize: widget.valStepSize else: 0.1
-      let pageSize = if widget.hasPageSize: widget.valPageSize else: 0.2
+      let pageSize = if widget.hasPageSize: widget.valPageSize else: stepSize * 2
       state.internalWidget.gtk_range_set_increments(stepSize.cdouble, pageSize.cdouble)
       
     connectEvents:
