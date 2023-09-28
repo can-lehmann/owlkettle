@@ -644,6 +644,7 @@ proc gtk_range_set_increments*(rangeWidget: GtkWidget; step, page: cdouble)
 proc gtk_range_set_range*(rangeWidget: GtkWidget; min, max: cdouble)
 proc gtk_range_set_restrict_to_fill_level*(rangeWidget: GtkWidget, restrict_to_fill_level: cbool)
 proc gtk_range_set_show_fill_level*(rangeWidget: GtkWidget, show_fill_level: cbool)
+proc gtk_range_set_value*(widget: GtkWidget, value: cdouble)
 
 # Gtk.Scale
 proc gtk_scale_new*(widget: GtkOrientation, adjustment: GtkAdjustment): GtkWidget

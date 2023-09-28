@@ -3430,11 +3430,16 @@ renderable Scale of BaseWidget:
   hooks:
     beforeBuild:
       let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
-      let min: float64 = if widget.hasMin: widget.valMin else: 0
-      let max: float64 = if widget.hasMax: widget.valMax else: 1
       state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
       state.internalWidget.gtk_scale_set_draw_value(true.cbool)
+      
+      let min: float64 = if widget.hasMin: widget.valMin else: 0
+      let max: float64 = if widget.hasMax: widget.valMax else: 1
       state.internalWidget.gtk_range_set_range(min.cfloat, max.cfloat)
+      
+      let currentValue: float64 = widget.valCurrentValue
+      echo "CurrentValue: ", currentvalue
+      state.internalWidget.gtk_range_set_value(currentValue.cdouble)
 
     connectEvents:
       proc valueChangedEventCallback(
@@ -3461,6 +3466,15 @@ renderable Scale of BaseWidget:
       for mark in widget.valMarks:
         let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
+
+  hooks currentValue:
+    build:
+      gtk_range_set_value(state.internalWidget, widget.valCurrentValue)
+      echo "Build: ", widget.valCurrentValue, " - ", state.currentValue
+    update:
+      gtk_range_set_value(state.internalWidget, state.currentValue) # This seemed more correct as state.currentValue keeps being the one thing that 
+      widget.valCurrentValue = state.currentValue # Necessary as otherwise widget.valCurrentValue remains at 0.5, meaning out of sync with the value in state
+      echo "Update: ", widget.valCurrentValue, " - ", state.currentValue
 
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
