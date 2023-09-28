@@ -3420,9 +3420,9 @@ renderable Scale of BaseWidget:
   marks: seq[Mark]
   min: float64
   max: float64
-  precision: int = 2
+  inverted: bool
   showCurrentValue: bool = true
-  currentValue: float64 = 0.0
+  value: float64 = 0.0
   orient: Orient = OrientX
   
   proc valueChanged(newValue: float64) # Emitted when the range value changes.
@@ -3437,19 +3437,18 @@ renderable Scale of BaseWidget:
       let max: float64 = if widget.hasMax: widget.valMax else: 1
       state.internalWidget.gtk_range_set_range(min.cfloat, max.cfloat)
       
-      let currentValue: float64 = widget.valCurrentValue
-      echo "CurrentValue: ", currentvalue
-      state.internalWidget.gtk_range_set_value(currentValue.cdouble)
+      let value: float64 = if widget.hasValue: widget.valValue else: 0
+      state.internalWidget.gtk_range_set_value(value.cdouble)
 
+      let inverted = if widget.hasInverted: widget.valInverted else: false
+      state.internalWidget.gtk_range_set_inverted(inverted.cbool)
+      
     connectEvents:
       proc valueChangedEventCallback(
         widget: GtkWidget, 
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
         let scaleValue: float64 = gtk_range_get_value(widget).float64
-        echo "Value changed callback. New value: ", scaleValue, " | old Value: ", ScaleState(data[].widget).currentValue
-        echo ScaleState(data[].widget).currentValue
-        ScaleState(data[].widget).currentValue = scaleValue
         data[].callback(scaleValue)
         data[].redraw()
       
@@ -3466,15 +3465,14 @@ renderable Scale of BaseWidget:
       for mark in widget.valMarks:
         let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
-
-  hooks currentValue:
-    build:
-      gtk_range_set_value(state.internalWidget, widget.valCurrentValue)
-      echo "Build: ", widget.valCurrentValue, " - ", state.currentValue
+  hooks value:
     update:
-      gtk_range_set_value(state.internalWidget, state.currentValue) # This seemed more correct as state.currentValue keeps being the one thing that 
-      widget.valCurrentValue = state.currentValue # Necessary as otherwise widget.valCurrentValue remains at 0.5, meaning out of sync with the value in state
-      echo "Update: ", widget.valCurrentValue, " - ", state.currentValue
+      gtk_range_set_value(state.internalWidget, widget.valValue)
+  
+  hooks inverted:
+    update:
+      let inverted = if widget.hasInverted: widget.valInverted else: false
+      state.internalWidget.gtk_range_set_inverted(inverted.cbool)
 
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState

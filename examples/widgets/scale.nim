@@ -24,7 +24,8 @@ import owlkettle
 import std/options
 
 viewable App:
-  discard
+  value: float64 = 1.0
+  invertScale: bool = false
 
 method view(app: AppState): Widget =
   result = gui:
@@ -33,7 +34,8 @@ method view(app: AppState): Widget =
       defaultSize = (600, 400)
       Box(orient = OrientX, spacing = 6, margin = 12):
         Scale:
-          currentValue = 0.5
+          value = app.value
+          inverted = app.invertScale
           marks = @[
             (some "left", 0.25, ScaleMarkLeft),
             (some "right", 0.5, ScaleMarkRight),
@@ -42,5 +44,9 @@ method view(app: AppState): Widget =
           ]
           proc valueChanged(newValue: float64) =
             echo "New value is ", $newValue
-            
+        
+        Button:
+          proc clicked() =
+            app.value = app.value - 0.1
+            app.invertScale = not app.invertScale
 brew(gui(App()))
