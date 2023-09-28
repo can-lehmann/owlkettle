@@ -3451,6 +3451,12 @@ renderable Scale of BaseWidget:
     disconnectEvents:
       state.internalWidget.disconnect(state.valueChanged)
   
+  hooks value:
+    property:
+      state.internalWidget.gtk_range_set_value(state.value.cdouble)
+    read:
+      state.value = state.internalWidget.gtk_range_get_value().float64
+  
   hooks marks:
     (build, update):
       state.internalWidget.gtk_scale_clear_marks()
@@ -3488,13 +3494,6 @@ renderable Scale of BaseWidget:
   hooks max:
     property:
       state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
-
-  hooks value:
-    build:
-      state.internalWidget.gtk_range_set_value(widget.valValue.cdouble)
-    
-    read:
-      state.value = state.internalWidget.gtk_range_get_value().float64
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
