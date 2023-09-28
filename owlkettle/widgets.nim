@@ -3456,6 +3456,7 @@ renderable Scale of BaseWidget:
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
         let scaleValue: float64 = gtk_range_get_value(widget).float64
+        ScaleState(data[].widget).value = scaleValue
         data[].callback(scaleValue)
         data[].redraw()
       
@@ -3472,7 +3473,7 @@ renderable Scale of BaseWidget:
   
   hooks value:
     build:
-      echo "Updated value to ", widget.valValue
+      echo "Updated value to ", widget.valValue, "\n"
       gtk_range_set_value(state.internalWidget, widget.valValue)
   
   hooks inverted:
