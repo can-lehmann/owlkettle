@@ -44,6 +44,7 @@ method view(app: AppState): Widget =
             (some "bottom", 100, ScaleMarkBottom),
           ]
           proc valueChanged(newValue: float64) =
+            app.value = newValue
             echo "New value from Scale is ", $newValue
         
         Button:
