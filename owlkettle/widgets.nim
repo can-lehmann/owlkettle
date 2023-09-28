@@ -3421,7 +3421,7 @@ renderable Scale of BaseWidget:
   min: float64 = 0
   max: float64 = 100
   inverted: bool = false
-  showCurrentValue: bool = true
+  showValue: bool = true
   stepSize: float64 = 5
   pageSize: float64 = 10
   value: float64 = 0
@@ -3433,28 +3433,9 @@ renderable Scale of BaseWidget:
 
   hooks:
     beforeBuild:
-      echo "Before Build Hook"
       let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
       state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
-      state.internalWidget.gtk_scale_set_draw_value(true.cbool)
-      
-      let min: float64 = if widget.hasMin: widget.valMin else: 0
-      let max: float64 = if widget.hasMax: widget.valMax else: 100
-      state.internalWidget.gtk_range_set_range(min.cfloat, max.cfloat)
-      
-      let value: float64 = if widget.hasValue: widget.valValue else: 0
-      state.internalWidget.gtk_range_set_value(value.cdouble)
 
-      let inverted = if widget.hasInverted: widget.valInverted else: false
-      state.internalWidget.gtk_range_set_inverted(inverted.cbool)
-      
-      let stepSize = if widget.hasStepSize: widget.valStepSize else: 5
-      let pageSize = if widget.hasPageSize: widget.valPageSize else: stepSize * 2
-      state.internalWidget.gtk_range_set_increments(stepSize.cdouble, pageSize.cdouble)
-      state.internalWidget.gtk_scale_set_has_origin(widget.valShowFillLevel.cbool)
-      let precision: int64 = if widget.hasPrecision: widget.valPrecision else: 0
-      state.internalWidget.gtk_scale_set_digits(precision.cint)
-    
     connectEvents:
       proc valueChangedEventCallback(
         widget: GtkWidget, 
@@ -3469,6 +3450,7 @@ renderable Scale of BaseWidget:
       
     disconnectEvents:
       state.internalWidget.disconnect(state.valueChanged)
+  
   hooks marks:
     (build, update):
       state.internalWidget.gtk_scale_clear_marks()
@@ -3478,17 +3460,41 @@ renderable Scale of BaseWidget:
           let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
           gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
   
+  hooks stepSize:
+    property:
+      let pageSize = state.stepSize * 2
+      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, pageSize.cdouble)
+      
+  hooks showFillLevel:
+    property:
+      state.internalWidget.gtk_scale_set_has_origin(state.showFillLevel.cbool)
+  
+  hooks precision:
+    property:
+      state.internalWidget.gtk_scale_set_digits(state.precision.cint)
+
+  hooks inverted:
+    property:
+      state.internalWidget.gtk_range_set_inverted(state.inverted.cbool)
+  
+  hooks showValue:
+    property:
+      state.internalWidget.gtk_scale_set_draw_value(state.showValue.cbool)
+  
+  hooks min:
+    property:
+      state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
+  
+  hooks max:
+    property:
+      state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
+
   hooks value:
     build:
-      echo "Updated value to ", widget.valValue, "\n"
-      gtk_range_set_value(state.internalWidget, widget.valValue)
-  
-  hooks inverted:
-    (build, update):
-      let inverted = if widget.hasInverted: widget.valInverted else: false
-      state.internalWidget.gtk_range_set_inverted(inverted.cbool)
-      echo "Updated inverted to:", inverted
-
+      state.internalWidget.gtk_range_set_value(widget.valValue.cdouble)
+    
+    read:
+      state.value = state.internalWidget.gtk_range_get_value().float64
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
