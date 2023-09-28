@@ -36,17 +36,20 @@ method view(app: AppState): Widget =
         Scale:
           value = app.value
           inverted = app.invertScale
-          marks = @[
-            (some "left", 0.25, ScaleMarkLeft),
-            (some "right", 0.5, ScaleMarkRight),
-            (some "top", 0.75, ScaleMarkTop),
-            (some "bottom", 1.00, ScaleMarkBottom),
-          ]
+          # marks = @[
+          #   (some "left", 0.25, ScaleMarkLeft),
+          #   (some "right", 0.5, ScaleMarkRight),
+          #   (some "top", 0.75, ScaleMarkTop),
+          #   (some "bottom", 1.00, ScaleMarkBottom),
+          # ]
           proc valueChanged(newValue: float64) =
-            echo "New value is ", $newValue
+            echo "New value from Scale is ", $newValue
         
         Button:
           proc clicked() =
             app.value = app.value - 0.1
             app.invertScale = not app.invertScale
+            
+            echo "\nclicked button. New Values: ", app.value, " - ", app.invertScale
+
 brew(gui(App()))

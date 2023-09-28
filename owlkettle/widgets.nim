@@ -3417,18 +3417,21 @@ type Mark* = tuple
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
-  marks: seq[Mark]
-  min: float64
-  max: float64
-  inverted: bool
+  marks: seq[Mark] = @[]
+  min: float64 = 0
+  max: float64 = 1
+  inverted: bool = false
   showCurrentValue: bool = true
-  value: float64 = 0.0
+  stepSize: float64 = 0.1
+  pageSize: float64 = 0.2
+  value: float64 = 0
   orient: Orient = OrientX
   
   proc valueChanged(newValue: float64) # Emitted when the range value changes.
 
   hooks:
     beforeBuild:
+      echo "Before Build Hook"
       let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
       state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
       state.internalWidget.gtk_scale_set_draw_value(true.cbool)
@@ -3443,6 +3446,10 @@ renderable Scale of BaseWidget:
       let inverted = if widget.hasInverted: widget.valInverted else: false
       state.internalWidget.gtk_range_set_inverted(inverted.cbool)
       
+      let stepSize = if widget.hasStepSize: widget.valStepSize else: 0.1
+      let pageSize = if widget.hasPageSize: widget.valPageSize else: 0.2
+      state.internalWidget.gtk_range_set_increments(stepSize.cdouble, pageSize.cdouble)
+      
     connectEvents:
       proc valueChangedEventCallback(
         widget: GtkWidget, 
@@ -3456,23 +3463,23 @@ renderable Scale of BaseWidget:
       
     disconnectEvents:
       state.internalWidget.disconnect(state.valueChanged)
-  
   hooks marks:
     (build, update):
-      if not widget.hasMarks:
-        return
-      
-      for mark in widget.valMarks:
-        let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
-        gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
+      if not widget.hasMarks or widget.valMarks.len == 0:
+        for mark in widget.valMarks:
+          let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
+          gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
+  
   hooks value:
-    update:
+    build:
+      echo "Updated value to ", widget.valValue
       gtk_range_set_value(state.internalWidget, widget.valValue)
   
   hooks inverted:
-    update:
+    (build, update):
       let inverted = if widget.hasInverted: widget.valInverted else: false
       state.internalWidget.gtk_range_set_inverted(inverted.cbool)
+      echo "Updated inverted to:", inverted
 
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState

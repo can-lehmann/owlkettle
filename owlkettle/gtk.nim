@@ -646,6 +646,7 @@ proc gtk_range_set_restrict_to_fill_level*(widget: GtkWidget, restrict_to_fill_l
 proc gtk_range_set_show_fill_level*(widget: GtkWidget, show_fill_level: cbool)
 proc gtk_range_set_value*(widget: GtkWidget, value: cdouble)
 proc gtk_range_set_inverted*(widget: GtkWidget, setting: cbool)
+proc gtk_range_get_inverted*(widget: GtkWidget): cbool
 
 # Gtk.Scale
 proc gtk_scale_new*(widget: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
