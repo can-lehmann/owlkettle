@@ -3498,8 +3498,11 @@ renderable Scale of BaseWidget:
 
   hooks valuePosition:
     property:
-      echo "Update value position ", state.valuePosition
       state.internalWidget.gtk_scale_set_value_pos(state.valuePosition.toGtk())
+
+  hooks orient:
+    property:
+      state.internalWidget.gtk_orientable_set_orientation(state.orient.toGtk())
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner

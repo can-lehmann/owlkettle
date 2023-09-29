@@ -27,6 +27,7 @@ viewable App:
   value: float64 = 100.0
   invertScale: bool = false
   pos: ScalePosition = ScaleLeft
+  orient: Orient = OrientX
 
 method view(app: AppState): Widget =
   result = gui:
@@ -39,6 +40,7 @@ method view(app: AppState): Widget =
           inverted = app.invertScale
           showFillLevel = true
           precision = 0
+          orient = app.orient
           marks = @[
             (some "left", 25, app.pos),
             (some "right", 50, ScaleRight),
@@ -53,6 +55,10 @@ method view(app: AppState): Widget =
         
         Button:
           proc clicked() =
+            app.orient = case app.orient
+              of OrientX: OrientY
+              of OrientY: OrientX
+              
             # app.invertScale = not app.invertScale
             app.pos = case app.pos:
               of ScaleTop: ScaleRight
