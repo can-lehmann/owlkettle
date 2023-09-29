@@ -3450,19 +3450,19 @@ renderable Scale of BaseWidget:
       state.connect(state.valueChanged, "value-changed", valueChangedEventCallback)
       
     disconnectEvents:
-      state.internalWidget.disconnect(state.valueChanged)
+      disconnect(state.internalWidget, state.valueChanged)
 
   hooks min:
     property:
-      state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
+      gtk_range_set_range(state.internalWidget, state.min.cfloat, state.max.cfloat)
   
   hooks max:
     property:
-      state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
+      gtk_range_set_range(state.internalWidget, state.min.cfloat, state.max.cfloat)
 
   hooks marks:
     property:
-      state.internalWidget.gtk_scale_clear_marks()
+      gtk_scale_clear_marks(state.internalWidget)
       for mark in widget.valMarks:
         let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
@@ -3470,43 +3470,43 @@ renderable Scale of BaseWidget:
   hooks value:
     build:
       let value = if widget.hasValue: widget.valValue else: state.value
-      state.internalWidget.gtk_range_set_value(value.cdouble)
+      gtk_range_set_value(state.internalWidget, value.cdouble)
     property:
-      state.internalWidget.gtk_range_set_value(state.value.cdouble)
+      gtk_range_set_value(state.internalWidget, state.value.cdouble)
     read:
-      state.value = state.internalWidget.gtk_range_get_value().float64
+      state.value = gtk_range_get_value(state.internalWidget).float64
   
   hooks inverted:
     property:
-      state.internalWidget.gtk_range_set_inverted(state.inverted.cbool)
+      gtk_range_set_inverted(state.internalWidget, state.inverted.cbool)
   
   hooks showValue:
     property:
-      state.internalWidget.gtk_scale_set_draw_value(state.showValue.cbool)
+      gtk_scale_set_draw_value(state.internalWidget, state.showValue.cbool)
 
   hooks stepSize:
     property:
-      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, state.pageSize.cdouble)
+      gtk_range_set_increments(state.internalWidget, state.stepSize.cdouble, state.pageSize.cdouble)
   
   hooks pageSize:
     property:
-      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, state.pageSize.cdouble)
+      gtk_range_set_increments(state.internalWidget, state.stepSize.cdouble, state.pageSize.cdouble)
   
   hooks orient:
     property:
-      state.internalWidget.gtk_orientable_set_orientation(state.orient.toGtk())
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
   hooks showFillLevel:
     property:
-      state.internalWidget.gtk_scale_set_has_origin(state.showFillLevel.cbool)
+      gtk_scale_set_has_origin(state.internalWidget, state.showFillLevel.cbool)
   
   hooks precision:
     property:
-      state.internalWidget.gtk_scale_set_digits(state.precision.cint)
+      gtk_scale_set_digits(state.internalWidget, state.precision.cint)
 
   hooks valuePosition:
     property:
-      state.internalWidget.gtk_scale_set_value_pos(state.valuePosition.toGtk())
+      gtk_scale_set_value_pos(state.internalWidget, state.valuePosition.toGtk())
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
