@@ -39,8 +39,8 @@ method view(app: AppState): Widget =
               of OrientX: OrientY
               of OrientY: OrientX
               
-      title = "Scale"
-      defaultSize = (600, 400)
+      title = "Scale Example"
+      defaultSize = (600, 100)
       Box(orient = OrientX, spacing = 6, margin = 12):
         Scale:
           value = app.value
@@ -48,10 +48,8 @@ method view(app: AppState): Widget =
           precision = 0
           orient = app.orient
           marks = @[
-            (some("left"), 25.0, ScaleLeft),
-            (some("right"), 50.0, ScaleRight),
-            (some("top"), 75.0, ScaleTop),
-            (some("bottom"), 100.0, ScaleBottom),
+            (some("top position"), 25.0, ScaleTop),
+            (some("bottom position"), 75.0, ScaleBottom),
           ]
           
           proc valueChanged(newValue: float64) =
