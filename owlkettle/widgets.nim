@@ -3417,14 +3417,14 @@ type Mark* = tuple
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
-  marks: seq[Mark] = @[]
+  value: float64 = 0
   min: float64 = 0
   max: float64 = 100
+  marks: seq[Mark] = @[]
   inverted: bool = false
   showValue: bool = true
   stepSize: float64 = 5
   pageSize: float64 = 10
-  value: float64 = 0
   orient: Orient = OrientX
   showFillLevel: bool = true
   precision: int64 = 1
@@ -3458,35 +3458,6 @@ renderable Scale of BaseWidget:
     read:
       state.value = state.internalWidget.gtk_range_get_value().float64
   
-  hooks marks:
-    property:
-      if widget.hasMarks:
-        state.internalWidget.gtk_scale_clear_marks()
-        for mark in widget.valMarks:
-          let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
-          gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
-  
-  hooks stepSize:
-    property:
-      let pageSize = state.stepSize * 2
-      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, pageSize.cdouble)
-      
-  hooks showFillLevel:
-    property:
-      state.internalWidget.gtk_scale_set_has_origin(state.showFillLevel.cbool)
-  
-  hooks precision:
-    property:
-      state.internalWidget.gtk_scale_set_digits(state.precision.cint)
-
-  hooks inverted:
-    property:
-      state.internalWidget.gtk_range_set_inverted(state.inverted.cbool)
-  
-  hooks showValue:
-    property:
-      state.internalWidget.gtk_scale_set_draw_value(state.showValue.cbool)
-  
   hooks min:
     property:
       state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
@@ -3495,13 +3466,44 @@ renderable Scale of BaseWidget:
     property:
       state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
 
-  hooks valuePosition:
+  hooks marks:
     property:
-      state.internalWidget.gtk_scale_set_value_pos(state.valuePosition.toGtk())
+      state.internalWidget.gtk_scale_clear_marks()
+      for mark in widget.valMarks:
+        let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
+        gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
 
+  hooks inverted:
+    property:
+      state.internalWidget.gtk_range_set_inverted(state.inverted.cbool)
+  
+  hooks showValue:
+    property:
+      state.internalWidget.gtk_scale_set_draw_value(state.showValue.cbool)
+
+  hooks stepSize:
+    property:
+      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, state.pageSize.cdouble)
+  
+  hooks pageSize:
+    property:
+      state.internalWidget.gtk_range_set_increments(state.stepSize.cdouble, state.pageSize.cdouble)
+  
   hooks orient:
     property:
       state.internalWidget.gtk_orientable_set_orientation(state.orient.toGtk())
+
+  hooks showFillLevel:
+    property:
+      state.internalWidget.gtk_scale_set_has_origin(state.showFillLevel.cbool)
+  
+  hooks precision:
+    property:
+      state.internalWidget.gtk_scale_set_digits(state.precision.cint)
+
+  hooks valuePosition:
+    property:
+      state.internalWidget.gtk_scale_set_value_pos(state.valuePosition.toGtk())
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
