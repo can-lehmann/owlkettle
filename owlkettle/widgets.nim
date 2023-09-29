@@ -3410,17 +3410,17 @@ type ScalePosition* = enum
 proc toGtk(pos: ScalePosition): GtkPositionType =
   result = GtkPositionType(ord(pos))
 
-type Mark* = tuple
+type ScaleMark* = tuple
   label: Option[string]
   value: float64
   position: ScalePosition
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
-  value: float64 = 0
   min: float64 = 0
   max: float64 = 100
-  marks: seq[Mark] = @[]
+  value: float64 = 0
+  marks: seq[ScaleMark] = @[]
   inverted: bool = false
   showValue: bool = true
   stepSize: float64 = 5
@@ -3451,13 +3451,7 @@ renderable Scale of BaseWidget:
       
     disconnectEvents:
       state.internalWidget.disconnect(state.valueChanged)
-  
-  hooks value:
-    property:
-      state.internalWidget.gtk_range_set_value(state.value.cdouble)
-    read:
-      state.value = state.internalWidget.gtk_range_get_value().float64
-  
+
   hooks min:
     property:
       state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
@@ -3473,6 +3467,15 @@ renderable Scale of BaseWidget:
         let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
 
+  hooks value:
+    build:
+      let value = if widget.hasValue: widget.valValue else: state.value
+      state.internalWidget.gtk_range_set_value(value.cdouble)
+    property:
+      state.internalWidget.gtk_range_set_value(state.value.cdouble)
+    read:
+      state.value = state.internalWidget.gtk_range_get_value().float64
+  
   hooks inverted:
     property:
       state.internalWidget.gtk_range_set_inverted(state.inverted.cbool)
