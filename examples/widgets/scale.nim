@@ -30,6 +30,12 @@ viewable App:
   orient: Orient = OrientX
 
 method view(app: AppState): Widget =
+  let marks: seq[Mark] = @[
+    (some("left"), 25.0, app.pos),
+    (some("right"), 50.0, ScaleRight),
+    (some("top"), 75.0, ScaleTop),
+    (some("bottom"), 100.0, ScaleBottom),
+  ]
   result = gui:
     Window:
       title = "Scale"
@@ -41,12 +47,7 @@ method view(app: AppState): Widget =
           showFillLevel = true
           precision = 0
           orient = app.orient
-          marks = @[
-            (some "left", 25, app.pos),
-            (some "right", 50, ScaleRight),
-            (some "top", 75, ScaleTop),
-            (some "bottom", 100, ScaleBottom),
-          ]
+          marks = marks
           valuePosition = app.pos
           
           proc valueChanged(newValue: float64) =
