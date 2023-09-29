@@ -25,47 +25,37 @@ import std/options
 
 viewable App:
   value: float64 = 100.0
-  invertScale: bool = false
-  pos: ScalePosition = ScaleLeft
   orient: Orient = OrientX
 
 method view(app: AppState): Widget =
-  let marks: seq[Mark] = @[
-    (some("left"), 25.0, app.pos),
-    (some("right"), 50.0, ScaleRight),
-    (some("top"), 75.0, ScaleTop),
-    (some("bottom"), 100.0, ScaleBottom),
-  ]
   result = gui:
     Window:
-      title = "Scale"
-      defaultSize = (600, 400)
-      Box(orient = OrientX, spacing = 6, margin = 12):
-        Scale:
-          value = app.value
-          inverted = app.invertScale
-          showFillLevel = true
-          precision = 0
-          orient = app.orient
-          marks = marks
-          valuePosition = app.pos
-          
-          proc valueChanged(newValue: float64) =
-            app.value = newValue
-            echo "New value from Scale is ", $newValue
-        
-        Button:
+      HeaderBar {.addTitlebar.}:  
+        Button {.addRight.}:
+          text = "Flip it"
+          icon = "object-flip-horizontal-symbolic"
           proc clicked() =
             app.orient = case app.orient
               of OrientX: OrientY
               of OrientY: OrientX
               
-            # app.invertScale = not app.invertScale
-            app.pos = case app.pos:
-              of ScaleTop: ScaleRight
-              of ScaleRight: ScaleBottom
-              of ScaleBottom: ScaleLeft
-              of ScaleLeft: ScaleTop
-            echo "\nclicked button. New Values: ", app.value, " - ", app.invertScale
-
+      title = "Scale"
+      defaultSize = (600, 400)
+      Box(orient = OrientX, spacing = 6, margin = 12):
+        Scale:
+          value = app.value
+          showFillLevel = true
+          precision = 0
+          orient = app.orient
+          marks = @[
+            (some("left"), 25.0, ScaleLeft),
+            (some("right"), 50.0, ScaleRight),
+            (some("top"), 75.0, ScaleTop),
+            (some("bottom"), 100.0, ScaleBottom),
+          ]
+          
+          proc valueChanged(newValue: float64) =
+            app.value = newValue
+            echo "New value from Scale is ", $newValue
+        
 brew(gui(App()))
