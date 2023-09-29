@@ -3508,6 +3508,18 @@ renderable Scale of BaseWidget:
     property:
       gtk_scale_set_value_pos(state.internalWidget, state.valuePosition.toGtk())
 
+  example:
+    Scale:
+      showFillLevel = false
+      min = 0
+      max = 1
+      marks = @[some("Just a mark"), ScaleLeft, 0.5]
+      inverted = true
+      showValue = false
+      
+      proc valueChanged(newValue: float) =
+        echo "New value is ", newValue
+
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
