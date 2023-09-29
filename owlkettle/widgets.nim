@@ -3401,19 +3401,19 @@ renderable AboutDialog of BaseWidget:
         "Art": @["Max Mustermann"]
       }
 
-type ScaleMarkPosition* = enum
-  ScaleMarkLeft,
-  ScaleMarkRight,
-  ScaleMarkTop,
-  ScaleMarkBottom
+type ScalePosition* = enum
+  ScaleLeft,
+  ScaleRight,
+  ScaleTop,
+  ScaleBottom
 
-proc toGtk(pos: ScaleMarkPosition): GtkPositionType =
+proc toGtk(pos: ScalePosition): GtkPositionType =
   result = GtkPositionType(ord(pos))
 
 type Mark* = tuple
   label: Option[string]
   value: float64
-  position: ScaleMarkPosition
+  position: ScalePosition
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
@@ -3428,6 +3428,7 @@ renderable Scale of BaseWidget:
   orient: Orient = OrientX
   showFillLevel: bool = true
   precision: int64 = 1
+  valuePosition: ScalePosition
   
   proc valueChanged(newValue: float64) # Emitted when the range value changes.
 
@@ -3494,6 +3495,11 @@ renderable Scale of BaseWidget:
   hooks max:
     property:
       state.internalWidget.gtk_range_set_range(state.min.cfloat, state.max.cfloat)
+
+  hooks valuePosition:
+    property:
+      echo "Update value position ", state.valuePosition
+      state.internalWidget.gtk_scale_set_value_pos(state.valuePosition.toGtk())
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner

@@ -26,6 +26,7 @@ import std/options
 viewable App:
   value: float64 = 100.0
   invertScale: bool = false
+  pos: ScalePosition = ScaleLeft
 
 method view(app: AppState): Widget =
   result = gui:
@@ -37,20 +38,27 @@ method view(app: AppState): Widget =
           value = app.value
           inverted = app.invertScale
           showFillLevel = true
+          precision = 0
           marks = @[
-            (some "left", 25, ScaleMarkLeft),
-            (some "right", 50, ScaleMarkRight),
-            (some "top", 75, ScaleMarkTop),
-            (some "bottom", 100, ScaleMarkBottom),
+            (some "left", 25, app.pos),
+            (some "right", 50, ScaleRight),
+            (some "top", 75, ScaleTop),
+            (some "bottom", 100, ScaleBottom),
           ]
+          valuePosition = app.pos
+          
           proc valueChanged(newValue: float64) =
             app.value = newValue
             echo "New value from Scale is ", $newValue
         
         Button:
           proc clicked() =
-            app.invertScale = not app.invertScale
-            
+            # app.invertScale = not app.invertScale
+            app.pos = case app.pos:
+              of ScaleTop: ScaleRight
+              of ScaleRight: ScaleBottom
+              of ScaleBottom: ScaleLeft
+              of ScaleLeft: ScaleTop
             echo "\nclicked button. New Values: ", app.value, " - ", app.invertScale
 
 brew(gui(App()))
