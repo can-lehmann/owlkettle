@@ -169,7 +169,7 @@ The `widgets` directory contains examples for how to use different widgets.
         Scale
       </a>
     </td>
-    <td><img alt="Text View" src="../docs/assets/examples/scale.png" width="757px"></td>
+    <td><img alt="Scale Widget Example" src="../docs/assets/examples/scale.png" width="757px"></td>
   </tr>
 </table>
 
