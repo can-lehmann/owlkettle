@@ -3412,25 +3412,25 @@ proc toGtk(pos: ScalePosition): GtkPositionType =
 
 type ScaleMark* = tuple
   label: Option[string]
-  value: float64
+  value: float
   position: ScalePosition
 
 renderable Scale of BaseWidget:
   ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
-  min: float64 = 0 ## Determines the lower end of the range displayed by the scale
-  max: float64 = 100 ## Determines the upper end of the range displayed by the scale
-  value: float64 = 0 ## The value the Scale widget displays. Remember to update it via your `valueChanged` proc to reflect the new value on the Scale widget.
+  min: float = 0 ## Determines the lower end of the range displayed by the scale
+  max: float = 100 ## Determines the upper end of the range displayed by the scale
+  value: float = 0 ## The value the Scale widget displays. Remember to update it via your `valueChanged` proc to reflect the new value on the Scale widget.
   marks: seq[ScaleMark] = @[] ## Adds Marks to the Scale at points where `ScaleMark.value` would be placed. If `ScaleMark.label` is provided, it will be rendered next to the mark. `ScaleMark.position` determines the mark's position (and its label) relative to the scale. Note that ScaleLeft and ScaleRight are only sensible when the Scale is vertically oriented (`orient` = `OrientY`), while ScaleTop and ScaleBottom are only sensible when it is horizontally oriented (`orient` = `OrientX`)
   inverted: bool = false ## Determines whether the min and max value of the Scale are ordered (low value) left => right (high value) in the case of `inverted = false` or (high value) left <= right (low value) in the case of `inverted = true`.
   showValue: bool = true ## Determines whether to display the numeric value as a label on the widget (`showValue = true`) or not (`showValue = false`)
-  stepSize: float64 = 5 ## Determines the value increment/decrement when the widget is in focus and the user presses arrow keys.
-  pageSize: float64 = 10 ## Determines the value increment/decrement when the widget is in focus and the user presses page keys. Typically larger than stepSize.
+  stepSize: float = 5 ## Determines the value increment/decrement when the widget is in focus and the user presses arrow keys.
+  pageSize: float = 10 ## Determines the value increment/decrement when the widget is in focus and the user presses page keys. Typically larger than stepSize.
   orient: Orient = OrientX ## The orientation of the widget. Orients the widget either horizontally (`orient = OrientX`) or vertically (`orient = OrientY`)
   showFillLevel: bool = true ## Determines whether to color the Scale from the "origin" to the place where the slider on the Scale sits. The Scale is filled left => right/top => bottom if `inverted = false` and left <= right/top <= bottom if `inverted = true`
   precision: int64 = 1 ## Specifies the number of decimal places to display for the value. `precision = 1` enables values like 1.2, while `precision = 2` enables values like 1.23 and so on.
   valuePosition: ScalePosition ## Specifies where the label of the Scale widget's value should be placed. This setting has no effect if `showValue = false`.
   
-  proc valueChanged(newValue: float64) ## Emitted when the range value changes from an interaction triggered by the user.
+  proc valueChanged(newValue: float) ## Emitted when the range value changes from an interaction triggered by the user.
 
   hooks:
     beforeBuild:
@@ -3442,7 +3442,7 @@ renderable Scale of BaseWidget:
         widget: GtkWidget, 
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
-        let scaleValue: float64 = gtk_range_get_value(widget).float64
+        let scaleValue: float = gtk_range_get_value(widget).float
         ScaleState(data[].widget).value = scaleValue
         data[].callback(scaleValue)
         data[].redraw()
@@ -3471,7 +3471,7 @@ renderable Scale of BaseWidget:
     property:
       gtk_range_set_value(state.internalWidget, state.value.cdouble)
     read:
-      state.value = gtk_range_get_value(state.internalWidget).float64
+      state.value = gtk_range_get_value(state.internalWidget).float
   
   hooks inverted:
     property:
