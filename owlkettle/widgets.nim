@@ -3468,9 +3468,6 @@ renderable Scale of BaseWidget:
         gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
 
   hooks value:
-    build:
-      let value = if widget.hasValue: widget.valValue else: state.value
-      gtk_range_set_value(state.internalWidget, value.cdouble)
     property:
       gtk_range_set_value(state.internalWidget, state.value.cdouble)
     read:
