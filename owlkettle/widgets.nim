@@ -3401,6 +3401,122 @@ renderable AboutDialog of BaseWidget:
         "Art": @["Max Mustermann"]
       }
 
+type ScalePosition* = enum
+  ScaleLeft,
+  ScaleRight,
+  ScaleTop,
+  ScaleBottom
+
+proc toGtk(pos: ScalePosition): GtkPositionType =
+  result = GtkPositionType(ord(pos))
+
+type ScaleMark* = tuple
+  label: Option[string]
+  value: float
+  position: ScalePosition
+
+renderable Scale of BaseWidget:
+  ## Wrapper for GTK Scale Widget: https://docs.gtk.org/gtk4/class.Scale.html
+  min: float = 0 ## Determines the lower end of the range displayed by the scale
+  max: float = 100 ## Determines the upper end of the range displayed by the scale
+  value: float = 0 ## The value the Scale widget displays. Remember to update it via your `valueChanged` proc to reflect the new value on the Scale widget.
+  marks: seq[ScaleMark] = @[] ## Adds Marks to the Scale at points where `ScaleMark.value` would be placed. If `ScaleMark.label` is provided, it will be rendered next to the mark. `ScaleMark.position` determines the mark's position (and its label) relative to the scale. Note that ScaleLeft and ScaleRight are only sensible when the Scale is vertically oriented (`orient` = `OrientY`), while ScaleTop and ScaleBottom are only sensible when it is horizontally oriented (`orient` = `OrientX`)
+  inverted: bool = false ## Determines whether the min and max value of the Scale are ordered (low value) left => right (high value) in the case of `inverted = false` or (high value) left <= right (low value) in the case of `inverted = true`.
+  showValue: bool = true ## Determines whether to display the numeric value as a label on the widget (`showValue = true`) or not (`showValue = false`)
+  stepSize: float = 5 ## Determines the value increment/decrement when the widget is in focus and the user presses arrow keys.
+  pageSize: float = 10 ## Determines the value increment/decrement when the widget is in focus and the user presses page keys. Typically larger than stepSize.
+  orient: Orient = OrientX ## The orientation of the widget. Orients the widget either horizontally (`orient = OrientX`) or vertically (`orient = OrientY`)
+  showFillLevel: bool = true ## Determines whether to color the Scale from the "origin" to the place where the slider on the Scale sits. The Scale is filled left => right/top => bottom if `inverted = false` and left <= right/top <= bottom if `inverted = true`
+  precision: int64 = 1 ## Specifies the number of decimal places to display for the value. `precision = 1` enables values like 1.2, while `precision = 2` enables values like 1.23 and so on.
+  valuePosition: ScalePosition ## Specifies where the label of the Scale widget's value should be placed. This setting has no effect if `showValue = false`.
+  
+  proc valueChanged(newValue: float) ## Emitted when the range value changes from an interaction triggered by the user.
+
+  hooks:
+    beforeBuild:
+      let orient: Orient = if widget.hasOrient: widget.valOrient else: OrientX
+      state.internalWidget = gtk_scale_new(orient.toGtk(), nil.GtkAdjustment)
+
+    connectEvents:
+      proc valueChangedEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(newValue: float)]
+      ) {.cdecl.} =
+        let scaleValue: float = gtk_range_get_value(widget).float
+        ScaleState(data[].widget).value = scaleValue
+        data[].callback(scaleValue)
+        data[].redraw()
+      
+      state.connect(state.valueChanged, "value-changed", valueChangedEventCallback)
+      
+    disconnectEvents:
+      disconnect(state.internalWidget, state.valueChanged)
+
+  hooks min:
+    property:
+      gtk_range_set_range(state.internalWidget, state.min.cfloat, state.max.cfloat)
+  
+  hooks max:
+    property:
+      gtk_range_set_range(state.internalWidget, state.min.cfloat, state.max.cfloat)
+
+  hooks marks:
+    property:
+      gtk_scale_clear_marks(state.internalWidget)
+      for mark in widget.valMarks:
+        let label: string = if mark.label.isSome(): mark.label.get() else: $mark.value
+        gtk_scale_add_mark(state.internalWidget, mark.value , mark.position.toGtk(), label.cstring)
+
+  hooks value:
+    property:
+      gtk_range_set_value(state.internalWidget, state.value.cdouble)
+    read:
+      state.value = gtk_range_get_value(state.internalWidget).float
+  
+  hooks inverted:
+    property:
+      gtk_range_set_inverted(state.internalWidget, state.inverted.cbool)
+  
+  hooks showValue:
+    property:
+      gtk_scale_set_draw_value(state.internalWidget, state.showValue.cbool)
+
+  hooks stepSize:
+    property:
+      gtk_range_set_increments(state.internalWidget, state.stepSize.cdouble, state.pageSize.cdouble)
+  
+  hooks pageSize:
+    property:
+      gtk_range_set_increments(state.internalWidget, state.stepSize.cdouble, state.pageSize.cdouble)
+  
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+
+  hooks showFillLevel:
+    property:
+      gtk_scale_set_has_origin(state.internalWidget, state.showFillLevel.cbool)
+  
+  hooks precision:
+    property:
+      gtk_scale_set_digits(state.internalWidget, state.precision.cint)
+
+  hooks valuePosition:
+    property:
+      gtk_scale_set_value_pos(state.internalWidget, state.valuePosition.toGtk())
+
+  example:
+    Scale:
+      showFillLevel = false
+      min = 0
+      max = 1
+      marks = @[some("Just a mark"), ScaleLeft, 0.5]
+      inverted = true
+      showValue = false
+      
+      proc valueChanged(newValue: float) =
+        echo "New value is ", newValue
+
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3414,3 +3530,4 @@ export ColorChooserDialog, ColorChooserDialogState
 export MessageDialog, MessageDialogState
 export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
+export Scale

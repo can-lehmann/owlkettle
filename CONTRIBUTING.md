@@ -9,6 +9,8 @@ Since it is automatically generated from the `owlkettle/widgets.nim` module, run
 
 ```bash
 make -C docs
+# Alternatively
+nimble genDocs
 ```
 
 **Note:** Please do never change the `docs/widgets.md` file manually.
