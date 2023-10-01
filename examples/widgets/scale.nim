@@ -64,6 +64,7 @@ method view(app: AppState): Widget =
           orient = app.orient
           showFillLevel = app.showFillLevel
           precision = app.precision
+          valuePosition = app.valuePosition
           
           proc valueChanged(newValue: float64) =
             app.value = newValue

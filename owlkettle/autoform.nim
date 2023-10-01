@@ -69,4 +69,5 @@ proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
           suffixes = @[field.field]
 
 proc toAutoForm*[T](app: T): Widget =
-  return toAutoForm[T](app, @[])
+  const ignoreFields: seq[string] = @[]
+  return toAutoForm[T](app, ignoreFields = ignoreFields)
