@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import owlkettle
-import owlkettle/[dataentries, adw]
+import owlkettle/[adw, widgetUtils, autoform]
 import std/[json, options]
 
 proc `%`(t: ScaleMark): JsonNode =
@@ -45,6 +45,8 @@ viewable App:
   valuePosition: ScalePosition
   
 method view(app: AppState): Widget =
+  let form: Widget = app.toAutoForm()
+
   result = gui:
     Window:              
       title = "Scale Example"
@@ -69,67 +71,6 @@ method view(app: AppState): Widget =
         
         Box(orient = OrientY, spacing = 6, margin = 12):
           Label(text = "Widget Fields")
-          ActionRow:
-            title = "min"
-            NumberEntry {.addSuffix.}:
-              value = app.min
-              proc changed(value: float) =
-                app.min = value
-                
-          ActionRow:
-            title = "max"
-            NumberEntry {.addSuffix.}:
-              value = app.max
-              proc changed(value: float) =
-                app.max = value
-          
-          ActionRow:
-            title = "value"
-            NumberEntry {.addSuffix.}:
-              value = app.value
-              proc changed(value: float) =
-                app.value = value
-                  
-          ActionRow:
-            title = "inverted"
-            Switch {.addSuffix.}:
-              state = app.inverted
-              proc changed(state: bool) =
-                app.inverted = state
-          
-          ActionRow:
-            title = "showValue"
-            Switch {.addSuffix.}:
-              state = app.showValue
-              proc changed(state: bool) =
-                app.showValue = state
-          
-          ActionRow:
-            title = "stepSize"
-            NumberEntry {.addSuffix.}:
-              value = app.stepSize
-              proc changed(value: float) =
-                app.stepSize = value 
-          
-          ActionRow:
-            title = "pageSize"
-            NumberEntry {.addSuffix.}:
-              value = app.pageSize
-              proc changed(value: float) =
-                app.pageSize = value
-          
-          ActionRow:
-            title = "showFillLevel"
-            Switch {.addSuffix.}:
-              state = app.showFillLevel
-              proc changed(state: bool) =
-                app.showFillLevel = state
-          
-          ActionRow:
-            title = "precision"
-            NumberEntry {.addSuffix.}:
-              value = app.precision.float
-              proc changed(value: float) =
-                app.precision = value.int
+          insert form
 
 owlkettle.brew(gui(App()))
