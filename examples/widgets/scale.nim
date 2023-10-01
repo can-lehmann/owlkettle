@@ -21,39 +21,115 @@
 # SOFTWARE.
 
 import owlkettle
-import std/options
+import owlkettle/[dataentries, adw]
+import std/[json, options]
+
+proc `%`(t: ScaleMark): JsonNode =
+  result = newJObject()
+  result.add("label", %t.label)
+  result.add("value", %t.value)
+  result.add("position", %t.position)
 
 viewable App:
-  value: float64 = 100.0
-  orient: Orient = OrientX
-
+  min: float = 0
+  max: float = 100            
+  value: float = 50          
+  marks: seq[ScaleMark] = @[] 
+  inverted: bool = false      
+  showValue: bool = true      
+  stepSize: float = 5         
+  pageSize: float = 10        
+  orient: Orient = OrientX    
+  showFillLevel: bool = true  
+  precision: int64 = 1        
+  valuePosition: ScalePosition
+  
 method view(app: AppState): Widget =
   result = gui:
-    Window:
-      HeaderBar {.addTitlebar.}:  
-        Button {.addRight.}:
-          text = "Flip it"
-          icon = "object-flip-horizontal-symbolic"
-          proc clicked() =
-            app.orient = case app.orient
-              of OrientX: OrientY
-              of OrientY: OrientX
-              
+    Window:              
       title = "Scale Example"
       defaultSize = (600, 100)
-      Box(orient = OrientX, spacing = 6, margin = 12):
+      Box(orient = OrientY, spacing = 6, margin = 12):
         Scale:
+          min = app.min
+          max = app.max
           value = app.value
-          showFillLevel = true
-          precision = 0
+          marks = app.marks
+          inverted = app.inverted
+          showValue = app.showValue
+          stepSize = app.stepSize
+          pageSize = app.pageSize
           orient = app.orient
-          marks = @[
-            (some("top position"), 25.0, ScaleTop),
-            (some("bottom position"), 75.0, ScaleBottom),
-          ]
+          showFillLevel = app.showFillLevel
+          precision = app.precision
           
           proc valueChanged(newValue: float64) =
             app.value = newValue
             echo "New value from Scale is ", $newValue
         
-brew(gui(App()))
+        Box(orient = OrientY, spacing = 6, margin = 12):
+          Label(text = "Widget Fields")
+          ActionRow:
+            title = "min"
+            NumberEntry {.addSuffix.}:
+              value = app.min
+              proc changed(value: float) =
+                app.min = value
+                
+          ActionRow:
+            title = "max"
+            NumberEntry {.addSuffix.}:
+              value = app.max
+              proc changed(value: float) =
+                app.max = value
+          
+          ActionRow:
+            title = "value"
+            NumberEntry {.addSuffix.}:
+              value = app.value
+              proc changed(value: float) =
+                app.value = value
+                  
+          ActionRow:
+            title = "inverted"
+            Switch {.addSuffix.}:
+              state = app.inverted
+              proc changed(state: bool) =
+                app.inverted = state
+          
+          ActionRow:
+            title = "showValue"
+            Switch {.addSuffix.}:
+              state = app.showValue
+              proc changed(state: bool) =
+                app.showValue = state
+          
+          ActionRow:
+            title = "stepSize"
+            NumberEntry {.addSuffix.}:
+              value = app.stepSize
+              proc changed(value: float) =
+                app.stepSize = value 
+          
+          ActionRow:
+            title = "pageSize"
+            NumberEntry {.addSuffix.}:
+              value = app.pageSize
+              proc changed(value: float) =
+                app.pageSize = value
+          
+          ActionRow:
+            title = "showFillLevel"
+            Switch {.addSuffix.}:
+              state = app.showFillLevel
+              proc changed(state: bool) =
+                app.showFillLevel = state
+          
+          ActionRow:
+            title = "precision"
+            NumberEntry {.addSuffix.}:
+              value = app.precision.float
+              proc changed(value: float) =
+                app.precision = value.int
+
+owlkettle.brew(gui(App()))
