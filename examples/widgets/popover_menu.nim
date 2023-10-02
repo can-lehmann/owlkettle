@@ -41,7 +41,7 @@ method view(app: AppState): Widget =
           PopoverMenu:
             sensitive = app.sensitive
             sizeRequest = app.sizeRequest
-            tooltip = app.tooltip
+            offset = app.offset
             position = app.position
             
             Box {.name: "main".}:
