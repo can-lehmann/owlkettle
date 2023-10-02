@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import owlkettle
-import owlkettle/autoform
+import owlkettle/[adw, autoform]
 
 viewable App:
   sensitive: bool = true
@@ -31,55 +31,57 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    Window:
-      title = "Popover Menu Demo"
-      defaultSize = (300, 200)
+    WindowSurface:
+      defaultSize = (800, 600)
       
-      HeaderBar {.addTitlebar.}:
-        MenuButton {.addRight.}:
-          icon = "open-menu"
-          PopoverMenu:
-            sensitive = app.sensitive
-            sizeRequest = app.sizeRequest
-            offset = app.offset
-            position = app.position
-            
-            Box {.name: "main".}:
-              orient = OrientY
-              margin = 4
-              spacing = 3
-              
-              ModelButton:
-                text = "Submenu"
-                menuName = "submenu"
-                proc clicked() =
-                  echo "Open Submenu"
-              
-              Separator()
-              
-              ModelButton:
-                text = "About"
-                proc clicked() =
-                  echo "About Clicked"
-              
-              ModelButton:
-                text = "Close"
-                proc clicked() =
-                  echo "Close Clicked"
-            
-            Box {.name: "submenu".}:
-              orient = OrientY
-              margin = 4
-              spacing = 3
-              
-              for it in 0..<3:
-                ModelButton:
-                  text = "Entry " & $it
-                  proc clicked() =
-                    echo "Entry " & $it
-      
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Label(text = "Widget Fields")
-        insert app.toAutoForm()
+      Box(orient = OrientX):
+        insert app.toAutoForm(ignoreFields = @["pixbuf", "loading"])
+        
+        Separator() {.expand: false.}
+        
+        Box(orient = OrientY):      
+          HeaderBar {.expand: false.}:
+            MenuButton {.addRight.}:
+              icon = "open-menu"
+              PopoverMenu:
+                sensitive = app.sensitive
+                sizeRequest = app.sizeRequest
+                offset = app.offset
+                position = app.position
+                
+                Box {.name: "main".}:
+                  orient = OrientY
+                  margin = 4
+                  spacing = 3
+                  
+                  ModelButton:
+                    text = "Submenu"
+                    menuName = "submenu"
+                    proc clicked() =
+                      echo "Open Submenu"
+                  
+                  Separator()
+                  
+                  ModelButton:
+                    text = "About"
+                    proc clicked() =
+                      echo "About Clicked"
+                  
+                  ModelButton:
+                    text = "Close"
+                    proc clicked() =
+                      echo "Close Clicked"
+                
+                Box {.name: "submenu".}:
+                  orient = OrientY
+                  margin = 4
+                  spacing = 3
+                  
+                  for it in 0..<3:
+                    ModelButton:
+                      text = "Entry " & $it
+                      proc clicked() =
+                        echo "Entry " & $it
 
-brew(gui(App()))
+
+adw.brew(gui(App()))

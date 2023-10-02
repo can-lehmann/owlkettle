@@ -32,6 +32,7 @@ viewable App:
   sensitive: bool = true
   sizeRequest: tuple[x, y: int] = (-1, -1) 
   tooltip: string = "" 
+
 method view(app: AppState): Widget =
   result = gui:
     WindowSurface:
