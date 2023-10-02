@@ -10,6 +10,11 @@ import ./widgets
 macro getField*(someType: untyped, fieldName: static string): untyped =
   nnkDotExpr.newTree(someType, ident(fieldName))
 
+proc `%`*(t: tuple): JsonNode =
+  result = newJObject()
+  for field, value in t.fieldPairs:
+    result.add(field, %value)
+
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[SomeFloat]): Widget =
   return gui:
     NumberEntry(value = state.getField(fieldName)):
