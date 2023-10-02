@@ -64,18 +64,18 @@ nbCode:
 
 nbText: """
 ### *Wrap GTK functions*
-Now we can look over the GTK docs we found earlier and look for the GTK-procs we need.
+Now we can look over the GTK docs we found earlier and look for the GTK functions needed.
 
 Add them to GTK.nim to the section for their class, marked by comments of `# GTK.<ClassName>`.
-If no such section a GTK-proc exists, add a new one. 
+If no such section for a GTK widget exists, add a new one. 
 You will need to wrap, at minimum, the constructor for the new widget.
 
 Keep the following things in mind:
-  - If a proc parameter in the docs inherits from `GTKWidget`, then use `GTKWidget` for the type
+  - If a function parameter in the docs inherits from `GtkWidget`, then use `GtkWidget` for the type
   - Use the nim equivalent for any C-type in the docs: `cbool` for `bool`, `cfloat` for `float`, `cdouble` for `double` etc.
-  - If the docs of a proc mention that the caller needs to free the memory of the return value, then use a managed type for the return-type such as `OwnedGtkString` for cstrings (see e.g. `g_file_get_path`)
+  - If the docs of a function mention that the caller needs to free the memory of the return value, then use a managed type for the return-type such as `OwnedGtkString` for cstrings (see e.g. `g_file_get_path`)
 
-For examples of constructor procs, look for procs with the `_new` suffix in [GTK.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
+For examples of constructor functions, look for procs with the `_new` suffix in [GTK.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
 
 ### *Add Initialization to the Widget*
 Next we need to tell owlkettle create the GTK widget during the construction of the owlkettle widget.
@@ -151,11 +151,11 @@ If there's procs to add or set a property of the widget, try to add that feature
 At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
 
 Follow and repeat the following steps to add a feature:
-- Wrap the GTK procs as explained in earlier sections
-- Add a field to your widget for every parameter required by the wrapped GTK procs.
+- Wrap the GTK functions as explained in earlier sections
+- Add a field to your widget for every parameter required by the wrapped GTK functions.
   If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
-- Add a `property` hook for every field on your widget that you have a wrapped GTK proc for.
-  The hook should do nothing but call the wrapped GTK proc with values from the implicitly available `state` variable.
+- Add a `property` hook for every field on your widget that you have a wrapped GTK function for.
+  The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
 - Run your example application to test whether the added feature does or does not work.
 
 ### *Add and update documentation*
