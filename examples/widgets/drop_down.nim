@@ -25,7 +25,6 @@ import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Drop Down Example"
 
-
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[string]]): Widget =
   return gui:
     ExpanderRow:
