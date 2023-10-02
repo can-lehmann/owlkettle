@@ -21,15 +21,21 @@
 # SOFTWARE.
 
 import std/[times]
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[adw, autoform]
 
 viewable App:
   date: DateTime = now()
+  markedDays: seq[int] = @[]
+  showDayNames: bool = true
+  showHeading: bool = true
+  showWeekNumbers: bool = true
 
 method view(app: AppState): Widget =
+  let form: Widget = app.toAutoForm()
+
   result = gui:
     Window:
-      defaultSize = (500, 400)
+      defaultSize = (600, 400)
       
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
@@ -52,13 +58,22 @@ method view(app: AppState): Widget =
           proc clicked() =
             app.date += 1.days
       
-      Calendar:
-        date = app.date
-        
-        proc select(date: DateTime) =
-          ## Shortcut for handling all calendar events (daySelected,
-          ## nextMonth, prevMonth, nextYear, prevYear)
-          app.date = date
+      Box(orient = OrientY, spacing = 6, margin = 12):
+        Calendar:
+          date = app.date
+          markedDays = app.markedDays
+          showDayNames = app.showDayNames
+          showHeading = app.showHeading
+          showWeekNumbers = app.showWeekNumbers
+          
+          proc select(date: DateTime) =
+            ## Shortcut for handling all calendar events (daySelected,
+            ## nextMonth, prevMonth, nextYear, prevYear)
+            app.date = date
+      
+        Box(orient = OrientY) {.expand: false.}:
+          Label(text = "Widget Fields")
+          insert form
 
 adw.brew(gui(App()), stylesheets=[
   loadStylesheet("calendar.css")
