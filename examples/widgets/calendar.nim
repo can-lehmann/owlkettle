@@ -21,7 +21,30 @@
 # SOFTWARE.
 
 import std/[times]
-import owlkettle, owlkettle/[adw, autoform]
+import owlkettle, owlkettle/[adw, dataentries, autoform]
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[int]]): Widget =
+  return gui:
+    ExpanderRow:
+      title = fieldName
+      
+      for index, day in state.markedDays:
+        ActionRow {.addRow.}:
+          title = fieldName & $index
+          
+          NumberEntry {.addSuffix.}:
+            value = day.float
+            xAlign = 1.0
+            maxWidth = 8
+            proc changed(value: float) =
+              state.markedDays[index] = value.int
+      
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.markedDays.add(0)
 
 viewable App:
   date: DateTime = now()
@@ -31,49 +54,50 @@ viewable App:
   showWeekNumbers: bool = true
 
 method view(app: AppState): Widget =
-  let form: Widget = app.toAutoForm()
-
   result = gui:
-    Window:
-      defaultSize = (600, 400)
+    WindowSurface:
+      defaultSize = (1400, 600)
       
-      HeaderBar {.addTitlebar.}:
-        WindowTitle {.addTitle.}:
-          title = "Calendar Example"
-          subtitle = $app.date.inZone(local())
+      Box(orient = OrientX):
+        insert app.toAutoForm()
         
-        Button {.addLeft.}:
-          icon = "go-previous"
-          style = [ButtonFlat]
-          tooltip = "Previous Day"
-          
-          proc clicked() =
-            app.date -= 1.days
+        Separator() {.expand: false.}
         
-        Button {.addLeft.}:
-          icon = "go-next"
-          style = [ButtonFlat]
-          tooltip = "Next Day"
-          
-          proc clicked() =
-            app.date += 1.days
+        Box(orient = OrientY):
+          HeaderBar {.expand: false.}:
+            WindowTitle {.addTitle.}:
+              title = "Calendar Example"
+              subtitle = $app.date.inZone(local())
+        
+            Button {.addLeft.}:
+              icon = "go-previous"
+              style = [ButtonFlat]
+              tooltip = "Previous Day"
+              
+              proc clicked() =
+                app.date -= 1.days
+            
+            Button {.addLeft.}:
+              icon = "go-next"
+              style = [ButtonFlat]
+              tooltip = "Next Day"
+              
+              proc clicked() =
+                app.date += 1.days
       
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Calendar:
-          date = app.date
-          markedDays = app.markedDays
-          showDayNames = app.showDayNames
-          showHeading = app.showHeading
-          showWeekNumbers = app.showWeekNumbers
-          
-          proc select(date: DateTime) =
-            ## Shortcut for handling all calendar events (daySelected,
-            ## nextMonth, prevMonth, nextYear, prevYear)
-            app.date = date
-      
-        Box(orient = OrientY) {.expand: false.}:
-          Label(text = "Widget Fields")
-          insert form
+          Box(orient = OrientY, spacing = 6, margin = 12):
+            Calendar:
+              date = app.date
+              markedDays = app.markedDays
+              showDayNames = app.showDayNames
+              showHeading = app.showHeading
+              showWeekNumbers = app.showWeekNumbers
+              
+              proc select(date: DateTime) =
+                ## Shortcut for handling all calendar events (daySelected,
+                ## nextMonth, prevMonth, nextYear, prevYear)
+                app.date = date
+
 
 adw.brew(gui(App()), stylesheets=[
   loadStylesheet("calendar.css")
