@@ -2,22 +2,22 @@ import nimib, nimibook
 
 nbInit(theme = useNimibook)
 nbText: """
-## *Wrapping gtk widgets*
-This is a small guide on how you can wrap and contribute widgets from gtk to Owlkettle!
+## *Wrapping GTK widgets*
+This is a small guide on how you can wrap and contribute widgets from GTK to Owlkettle!
 
 ### *Best Practices*
-When wrapping gtk widgets, keep in mind the best practices and coding conventions of Owlkettle as defined by [CONTRIBUTING.md](https://can-lehmann.github.io/owlkettle/CONTRIBUTING.md).
-As a piece of general advice, prefer to stick as close to the original gtk widget as possible.
+When wrapping GTK widgets, keep in mind the best practices and coding conventions of Owlkettle as defined by [CONTRIBUTING.md](https://can-lehmann.github.io/owlkettle/CONTRIBUTING.md).
+As a piece of general advice, prefer to stick as close to the original GTK widget as possible.
 
-### *Find the gtk widget docs*
-First find the docs belonging to the gtk widget so you know what it can do and what you need to wrap.
-Generally searches on the [General gtk docs](https://docs.gtk.org/gtk4/) or a web search with `gtk widget docs <widgetname>` should do it.
+### *Find the GTK widget docs*
+First find the docs belonging to the GTK widget so you know what it can do and what you need to wrap.
+Generally searches on the [General GTK docs](https://docs.gtk.org/gtk4/) or a web search with `GTK widget docs <widgetname>` should do it.
 
 ### *Setup*
 Next let us create the type for the Widget and an example application for it.
 
 Go to `owlkettle/widgets.nim` and add your type as `renderable <GtkWidgetName> of BaseWidget: discard`.
-If your Widget shows in the gtkDocs that it inherits from another Widget that was already wrapped (e.g. `Window`) it is strongly encouraged to inherit in nim from that instead.
+If your Widget shows in the GTKDocs that it inherits from another Widget that was already wrapped (e.g. `Window`) it is strongly encouraged to inherit in nim from that instead.
 Then add an explicit export statement at the bottom of the file.
 
 With the type available, we need an example application so we can see the widget in action.
@@ -54,7 +54,7 @@ nbCode:
   method view(app: AppState): Widget =
     result = gui:
       Window:
-        title = "<GtkWidgetName> Example"
+        title = "<GTKWidgetName> Example"
         defaultSize = (400, 200)
         Box(orient = OrientX, spacing = 6, margin = 12):
           Label(text = "REPLACE THIS LABEL WIDGET WITH YOUR NEW WIDGET")
@@ -63,22 +63,22 @@ nbCode:
     brew(gui(App()))
 
 nbText: """
-### *Wrap gtk functions*
-Now we can look over the gtk docs we found earlier and look for the gtk-procs we need.
+### *Wrap GTK functions*
+Now we can look over the GTK docs we found earlier and look for the GTK-procs we need.
 
-Add them to gtk.nim to the section for their class, marked by comments of `# Gtk.<ClassName>`.
-If no such section a gtk-proc exists, add a new one. 
+Add them to GTK.nim to the section for their class, marked by comments of `# GTK.<ClassName>`.
+If no such section a GTK-proc exists, add a new one. 
 You will need to wrap, at minimum, the constructor for the new widget.
 
 Keep the following things in mind:
-  - If a proc parameter in the docs inherits from `GtkWidget`, then use `GtkWidget` for the type
+  - If a proc parameter in the docs inherits from `GTKWidget`, then use `GTKWidget` for the type
   - Use the nim equivalent for any C-type in the docs: `cbool` for `bool`, `cfloat` for `float`, `cdouble` for `double` etc.
   - If the docs of a proc mention that the caller needs to free the memory of the return value, then use a managed type for the return-type such as `OwnedGtkString` for cstrings (see e.g. `g_file_get_path`)
 
-For examples of constructor procs, look for procs with the `_new` suffix in [gtk.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
+For examples of constructor procs, look for procs with the `_new` suffix in [GTK.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
 
 ### *Add Initialization to the Widget*
-Next we need to tell owlkettle create the gtk widget during the construction of the owlkettle widget.
+Next we need to tell owlkettle create the GTK widget during the construction of the owlkettle widget.
 This is done as part of owlkettle's `beforebuild` hook.
 
 Add a `beforeBuild` hook to the widget type in `widgets.nim`.
@@ -88,7 +88,7 @@ If the constructor requires parameters, add fields with their values to your Wid
 For examples, search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
 ### *Add Signal Event Listeners*
-Now we can enable the owlkettle widget to react to gtk signals!
+Now we can enable the owlkettle widget to react to GTK signals!
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define what shall get executed when a signal gets fired. 
@@ -96,25 +96,25 @@ What shall get executed are signal-handler procs, which are user-defined callbac
 
 To enable defining a signal-handler, simply define the signature of said signal-handler procs.
 These procs should never have a return-type.
-Also try to name the signal-handler proc like the gtk signal, for easier searchability in the gtk docs.
+Also try to name the signal-handler proc like the GTK signal, for easier searchability in the GTK docs.
 
 For examples of signatures for signal-handler procs, go to [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) and look for proc signatures in between widget fields and hook definitions.
 
 ##### 2) Add a `connectEvents` hook to the widget type in `widgets.nim`
-When the owlkettle widget gets created, it needs to register its signal-handler procs with the gtk widget.
-Only then can gtk trigger their execution whenever it fires a signal corresponding to those handler procs.
+When the owlkettle widget gets created, it needs to register its signal-handler procs with the GTK widget.
+Only then can GTK trigger their execution whenever it fires a signal corresponding to those handler procs.
 
 For this, add the `connectEvents` hook and in it, call the provided `connect` proc: `state.connect(state.<procName>, "<signalName>", <eventCallback>)`
 Where:
   - `<procName>` is the name of the signal-handler proc
-  - `<signalName>` is the name of the gtk signal
+  - `<signalName>` is the name of the GTK signal
   - `<eventCallback>` is a proc that connects the signal-handler to the signal and updates the internal state if necessary. 
 
 If a signal does not require the state of the widget to be updated (e.g. `clicked`), you can use the default `eventCallback` proc for <eventCallback>.
 If a signal does require the state of the widget to be updated (e.g. `select`), you will need to define your own <eventCallback> proc.
 
 A custom eventCallback proc will always need to:
-  - Read back any state changes from gtk
+  - Read back any state changes from GTK
   - Call the signal-handler proc (and pass any arguments it might have)
   - Call redraw to update the UI after the event was handled
 
@@ -135,27 +135,27 @@ Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base d
 
 Use your example to manually test your widget as you add features to it in the later section.
 
-Remember to add full blown signal-handler procs with bodies to the example in order to also see when signals get fired by gtk.
+Remember to add full blown signal-handler procs with bodies to the example in order to also see when signals get fired by GTK.
 
 For a short example of that, look at owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
 
 
 ### *Add features to the Widget*
-Beyond just creating the widget and providing event-listeners, gtk may provide options to further customize a widget.
+Beyond just creating the widget and providing event-listeners, GTK may provide options to further customize a widget.
 
 E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
 
-Take a look at the procs of your widget (and the procs of its parent classes) in the gtk docs, specifically anything that isn't a getter.
+Take a look at the procs of your widget (and the procs of its parent classes) in the GTK docs, specifically anything that isn't a getter.
 If there's procs to add or set a property of the widget, try to add that feature to your wrapped widget.
 
 At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
 
 Follow and repeat the following steps to add a feature:
-- Wrap the gtk procs as explained in earlier sections
-- Add a field to your widget for every parameter required by the wrapped gtk procs.
+- Wrap the GTK procs as explained in earlier sections
+- Add a field to your widget for every parameter required by the wrapped GTK procs.
   If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
-- Add a `property` hook for every field on your widget that you have a wrapped gtk proc for.
-  The hook should do nothing but call the wrapped gtk proc with values from the implicitly available `state` variable.
+- Add a `property` hook for every field on your widget that you have a wrapped GTK proc for.
+  The hook should do nothing but call the wrapped GTK proc with values from the implicitly available `state` variable.
 - Run your example application to test whether the added feature does or does not work.
 
 ### *Add and update documentation*
