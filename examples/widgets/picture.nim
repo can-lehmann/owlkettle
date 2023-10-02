@@ -21,13 +21,17 @@
 # SOFTWARE.
 
 import std/[asyncfutures]
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Image Example"
 
 viewable App:
   loading: bool
   pixbuf: Pixbuf
+  contentFit: ContentFit = ContentContain
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
 
 method view(app: AppState): Widget =
   result = gui:
@@ -157,14 +161,22 @@ method view(app: AppState): Widget =
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate90()
         
-      
-      if app.pixbuf.isNil:
-        if app.loading:
-          Label(text = "Loading...")
+      Box(orient = OrientY):
+        if app.pixbuf.isNil:
+          if app.loading:
+            Label(text = "Loading...")
+          else:
+            Label(text = "No image")
         else:
-          Label(text = "No image")
-      else:
-        Picture:
-          pixbuf = app.pixbuf
+          Picture:
+            pixbuf = app.pixbuf
+            contentFit = app.contentFit
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+      
+        Box(orient = OrientY):
+          Label: text = "Widget Fields"
+          insert app.toAutoForm(ignoreFields = @["pixbuf", "loading"])
 
 owlkettle.brew(gui(App()))
