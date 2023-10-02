@@ -87,8 +87,40 @@ If the constructor requires parameters, add fields with their values to your Wid
 
 For examples, see the [beforeBuild docs](https://can-lehmann.github.io/owlkettle/book/internals/hooks/before_build_hook.html) or search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
+### *See your example in action!*
+Once you're at this step you should be able to compile your example and see your widget in action!
+Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base dir of your Owlkettle repository clone.
+
+Use your example to manually test your widget as you add features to it in the later section.
+
+Remember to add signal-handler procs with bodies to the example, once you have added signal event listeners.
+That way you can see your application react more to various inputs.
+
+For a short example, look at Owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
+
+
+### *Add fields to the Widget*
+Beyond just creating the widget and providing event-listeners, GTK may provide options to further customize a widget.
+
+E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
+
+Take a look at the procs of your widget (and the procs of its parent classes) in the GTK docs, specifically anything that isn't a getter.
+If there's procs to add or set a property of the widget, try to add that feature to your wrapped widget.
+
+At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
+
+Follow and repeat the following steps to add a feature:
+- Wrap the GTK functions as explained in earlier sections
+- Add a field to your widget for every parameter required by the wrapped GTK functions.
+  If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
+- Add a `property` hook for every field on your widget that you have a wrapped GTK function for.
+  The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
+- Run your example application to test whether the added feature does or does not work.
+
+
 ### *Add Signal Event Listeners*
 Now we can enable the Owlkettle widget to react to GTK signals!
+Note that this section is irrelevant for a given Widget if the Widget or its parent do not provide any Signals.
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define what shall get executed when a signal gets fired. 
@@ -128,35 +160,6 @@ For examples that use custom eventCallbacks, enable regex search in your IDE and
 When the Owlkettle widget gets destroyed, it also needs to fully disconnect its signal-handler procs in order to avoid memory leaks.
 
 For this, add the `disconnectEvents` hook and in it, call the provided `disconnect` proc: `state.internalWidget.disconnect(state.<procName>)`
-
-### *See your example in action!*
-Once you're at this step you should be able to compile your example and see your widget in action!
-Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base dir of your Owlkettle repository clone.
-
-Use your example to manually test your widget as you add features to it in the later section.
-
-Remember to add full blown signal-handler procs with bodies to the example in order to also see when signals get fired by GTK.
-
-For a short example of that, look at Owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
-
-
-### *Add features to the Widget*
-Beyond just creating the widget and providing event-listeners, GTK may provide options to further customize a widget.
-
-E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
-
-Take a look at the procs of your widget (and the procs of its parent classes) in the GTK docs, specifically anything that isn't a getter.
-If there's procs to add or set a property of the widget, try to add that feature to your wrapped widget.
-
-At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
-
-Follow and repeat the following steps to add a feature:
-- Wrap the GTK functions as explained in earlier sections
-- Add a field to your widget for every parameter required by the wrapped GTK functions.
-  If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
-- Add a `property` hook for every field on your widget that you have a wrapped GTK function for.
-  The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
-- Run your example application to test whether the added feature does or does not work.
 
 ### *Add and update documentation*
 Once you are satisfied with your widget, it's time to add a bit more documentation.
