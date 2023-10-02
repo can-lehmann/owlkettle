@@ -20,10 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/sequtils
+import std/[sequtils, enumerate]
 import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Drop Down Example"
+
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[string]]): Widget =
+  return gui:
+    ExpanderRow:
+      title = fieldName
+      
+      for index, val in enumerate(state.items.items):
+        ActionRow {.addRow.}:
+          title = fieldName & $index
+          
+          Entry {.addSuffix.}:
+            text = state.items[index]
+            proc changed(value: string) =
+              state.items[index] = value
+      
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.items.add("")
 
 viewable App:
   selected: int = 0
@@ -36,20 +58,19 @@ viewable App:
   
 method view(app: AppState): Widget =
   result = gui:
-    Window:
-      title = APP_NAME
-      defaultSize = (400, 200)
+    WindowSurface:
+      defaultSize = (800, 600)
       
-      HeaderBar {.addTitlebar.}:
-        WindowTitle {.addTitle.}:
-          title = APP_NAME
-          subtitle = "Selected: " & $app.selected
-      
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Box(spacing = 6) {.expand: false.}:
-          Label:
-            text = "Drop Down"
-            xAlign = 0
+      Box(orient = OrientX):
+        insert app.toAutoForm()
+        
+        Separator() {.expand: false.}
+        
+        Box(orient = OrientY):
+          HeaderBar {.expand: false.}:
+            WindowTitle {.addTitle.}:
+              title = "Dropdown Example"
+              subtitle = "Selected: " & $app.selected & " '" & app.items[app.selected] & "'"
           
           DropDown {.expand: false.}:
             items = app.items
@@ -62,9 +83,5 @@ method view(app: AppState): Widget =
           
             proc select(item: int) =
               app.selected = item
-        
-        Box(orient = OrientY):
-          Label: text = "Widget Fields"
-          insert app.toAutoForm()
 
-owlkettle.brew(gui(App()))
+adw.brew(gui(App()))
