@@ -3520,18 +3520,36 @@ renderable Scale of BaseWidget:
         app.value = newValue
 
 renderable Expander of BaseWidget:
-  label: string
-  labelWidget: Widget
-  expanded: bool = false
-  child: Widget
+  ## Wrapper for GTK Expander Widget: https://docs.gtk.org/gtk4/class.Expander.html
+  label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+  labelWidget: Widget ## Sets the clickable header of the Expander. Overwrites `label` if provided.
+  expanded: bool = false ## Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
+  child: Widget ## Determines the body of the Expander.
   resizeToplevel: bool = false
   useMarkup: bool = false
   useUnderline: bool = false
+  
+  proc activate(activated: bool)
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_expander_new(widget.valLabel.cstring)
   
+    connectEvents:
+      proc activateEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(activated: bool)]
+      ) {.cdecl.} =
+        let expanded: bool = gtk_expander_get_expanded(widget).bool
+        ExpanderState(data[].widget).expanded = expanded
+        data[].callback(expanded)
+        data[].redraw()
+
+      state.connect(state.activate, "activate", activateEventCallback)
+
+    disconnectEvents:
+      disconnect(state.internalWidget, state.activate)
+      
   hooks label:
     property:
       gtk_expander_set_label(state.internalWidget, state.label.cstring)

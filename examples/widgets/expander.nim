@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[adw, autoform]
 
 viewable App:
   label: string = "Some Label"
@@ -50,6 +50,10 @@ method view(app: AppState): Widget =
           sizeRequest = app.sizeRequest
           tooltip = app.tooltip
           
+          proc activate(activated: bool) =
+            echo "Expander 1 activated!: ", activated
+            app.expanded = activated
+          
           Label(text = "I am some child widget")
         
         Label(text = "Expander with Widget Label")
@@ -59,7 +63,15 @@ method view(app: AppState): Widget =
           useMarkup = app.useMarkup
           useUnderline = app.useUnderline
           
+          proc activate(activated: bool) =
+            echo "Expander 2 activated!: ", activated
+            app.expanded = activated
+          
           Label(text = "The Widget Label for Expander") {.addLabel.}
           Label(text = "I am some child widget")
 
+        Box(orient = OrientY, spacing = 6, margin = 12):
+          Label(text = "WidgetFields")
+          insert app.toAutoForm()
+          
 adw.brew(gui(App()))

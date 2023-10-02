@@ -1060,6 +1060,7 @@ proc gtk_expander_set_label_widget*(widget: GtkWidget, label_widget: GtkWidget)
 proc gtk_expander_set_resize_toplevel*(widget: GtkWidget, resize_toplevel: cbool)
 proc gtk_expander_set_use_markup*(widget: GtkWidget, use_markup: cbool)
 proc gtk_expander_set_use_underline*(widget: GtkWidget, use_underline: cbool)
+proc gtk_expander_get_expanded*(widget: GtkWidget): cbool
 
 {.pop.}
 
