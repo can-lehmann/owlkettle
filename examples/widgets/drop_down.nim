@@ -21,19 +21,21 @@
 # SOFTWARE.
 
 import std/sequtils
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Drop Down Example"
 
 viewable App:
   selected: int = 0
   items: seq[string] = mapIt(0..<100, "Option " & $it)
+  enableSearch: bool = false
+  showArrow: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = APP_NAME
-      defaultSize = (350, 200)
+      defaultSize = (400, 200)
       
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
@@ -49,19 +51,13 @@ method view(app: AppState): Widget =
           DropDown {.expand: false.}:
             items = app.items
             selected = app.selected
+            enableSearch = app.enableSearch
+            showArrow = app.showArrow
             proc select(item: int) =
               app.selected = item
         
-        Box(spacing = 6) {.expand: false.}:
-          Label:
-            text = "Searchable Drop Down"
-            xAlign = 0
-          
-          DropDown {.expand: false.}:
-            items = app.items
-            selected = app.selected
-            enableSearch = true
-            proc select(item: int) =
-              app.selected = item
+        Box(orient = OrientY):
+          Label: text = "Widget Fields"
+          insert app.toAutoForm()
 
 owlkettle.brew(gui(App()))
