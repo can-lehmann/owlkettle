@@ -183,16 +183,14 @@ Note that the Screenshot should be:
   - Against a white background
   - Taken at 200% resolution (settable in e.g. Gnome under Gnome Settings -> Displays)
   
-Lastly, add an entry for your new widget to the widgets table of `examples/README.md` like so (Remember to replace the `<Widgetname>`, `<WidgetExample>` and `<WidgetExampleImage>` placeholders):
+Lastly, add an entry for your new widget to the widgets table of `examples/README.md` like so (Remember to replace the `<Widgetname>`, `<WidgetExample>`, `<WidgetExampleImage>` and `<50% Screenshot width>` placeholders):
 ```html
-    <tr>
-    <td>
-      <a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/<WidgetExample>.nim">
-        <WidgetName>
-      </a>
-    </td>
-    <td><img alt="<WidgetName>" src="../docs/assets/examples/<WidgetExampleImage>.png" width="757px"></td>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/<WidgetExample>.nim"><WidgetName></a></td>
+    <td><img alt="<WidgetName>" src="../docs/assets/examples/<WidgetExampleImage>.png" width="<50% Screenshot width>px"></td>
+  </tr>
 ```
+Note that the table **is sorted alphabetically**.
 
 With all of that out of the way, you can now open up a pull request to the Owlkettle main repo!
 """
