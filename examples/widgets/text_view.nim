@@ -22,9 +22,18 @@
 
 import std/options
 import owlkettle
+import owlkettle/autoform
 
 viewable App:
   buffer: TextBuffer
+  monospace: bool = false
+  cursorVisible: bool = true
+  editable: bool = true
+  acceptsTab: bool = true
+  indent: int = 0
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
 
 method view(app: AppState): Widget =
   result = gui:
@@ -82,10 +91,21 @@ method view(app: AppState): Widget =
                 break
       
       ScrolledWindow:
-        TextView:
-          buffer = app.buffer
-          proc changed() = discard
+        Box(orient = OrientY):
+          TextView:
+            buffer = app.buffer
+            monospace = app.monospace
+            cursorVisible = app.cursorVisible
+            editable = app.editable
+            acceptsTab = app.acceptsTab
+            indent = app.indent
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+            proc changed() = discard
 
+          insert app.toAutoForm(ignoreFields = @["buffer"])
+          
 let buffer = newTextBuffer()
 discard buffer.registerTag("marker", TagStyle(
   background: some("#ffff00"),
