@@ -71,9 +71,8 @@ viewable App:
   showFillLevel: bool = true
   precision: int64 = 1
   valuePosition: ScalePosition
-method view(app: AppState): Widget =
-  let form: Widget = app.toAutoForm()
 
+method view(app: AppState): Widget =
   result = gui:
     WindowSurface:
       defaultSize = (800, 600)
