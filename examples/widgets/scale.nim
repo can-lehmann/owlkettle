@@ -71,6 +71,9 @@ viewable App:
   showFillLevel: bool = true
   precision: int64 = 1
   valuePosition: ScalePosition
+  sensitive: bool = true
+  tooltip: string = ""
+  sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
   result = gui:
@@ -101,6 +104,9 @@ method view(app: AppState): Widget =
             showFillLevel = app.showFillLevel
             precision = app.precision
             valuePosition = app.valuePosition
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
             
             proc valueChanged(newValue: float64) =
               app.value = newValue
