@@ -1,4 +1,4 @@
-import std/[options, json, macros, strutils, sequtils]
+import std/[options, json, times, macros, strutils, sequtils]
 import ./dataentries
 import ./adw
 import ./widgetutils
@@ -21,7 +21,6 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[SomeIntege
     NumberEntry(value = state.getField(fieldName).float):
       proc changed(value: float) =
         state.getField(fieldName) = value.int
-        
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): Widget =
   return gui:
@@ -31,9 +30,10 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): 
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Widget =
     return gui:
-      Switch(state = state.getField(fieldName)):
-        proc changed(newVal: bool) =
-          state.getField(fieldName) = newVal
+      Box():
+        Switch(state = state.getField(fieldName)) {.vAlign: AlignCenter, expand: false.}:
+          proc changed(newVal: bool) =
+            state.getField(fieldName) = newVal
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[object | ref object | tuple | seq]): Widget =
     return gui:
@@ -51,6 +51,13 @@ proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T
       selected = state.getField(fieldName).int
       proc select(enumIndex: int) =
         state.getField(fieldName) = enumIndex.T
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =
+  return gui:
+    Calendar:
+      date = state.getField(fieldName)
+      proc daySelected(date: DateTime) =
+        state.getField(fieldName) = date
   
 proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
   var fieldWidgets: seq[tuple[name: string, field: AlignedChild[Widget]]] = @[]
@@ -71,3 +78,5 @@ proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
 proc toAutoForm*[T](app: T): Widget =
   const ignoreFields: seq[string] = @[]
   return toAutoForm[T](app, ignoreFields = ignoreFields)
+
+export AlignedChild
