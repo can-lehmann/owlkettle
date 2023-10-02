@@ -42,8 +42,6 @@ method view(app: AppState): Widget =
             sensitive = app.sensitive
             sizeRequest = app.sizeRequest
             tooltip = app.tooltip
-            hasArrow = app.hasArrow
-            offset = app.offset
             position = app.position
             
             Box {.name: "main".}:
