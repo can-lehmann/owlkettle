@@ -115,7 +115,7 @@ Follow and repeat the following steps to add a feature:
   If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
 - Add a `property` hook for every field on your widget that you have a wrapped GTK function for.
   The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
-- Run your example application to test whether the added feature does or does not work.
+- Run your example application to check whether the added field works.
 
 
 ### *Add Signal Event Listeners*
