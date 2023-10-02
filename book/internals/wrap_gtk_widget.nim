@@ -82,7 +82,7 @@ Next we need to tell owlkettle create the gtk widget during the construction of 
 This is done as part of owlkettle's `beforebuild` hook.
 
 Add a `beforeBuild` hook to the widget type in `widgets.nim`.
-All it needs to do is call the constructor for your widget and assign the created GtkWidget to `state.internalWidget`.
+All it needs to do is call the constructor for your widget and assign the created `GtkWidget` to `state.internalWidget`.
 If the constructor requires parameters, add fields with their values to your Widget and access the values from the implicitly available `widget` variable and its `val/has<Fieldname>` fields. 
 
 For examples, search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
