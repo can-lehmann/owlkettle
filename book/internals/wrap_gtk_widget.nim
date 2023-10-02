@@ -78,8 +78,8 @@ Keep the following things in mind:
 For examples of constructor functions, look for procs with the `_new` suffix in [GTK.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
 
 ### *Add Initialization to the Widget*
-Next we need to tell owlkettle create the GTK widget during the construction of the owlkettle widget.
-This is done as part of owlkettle's `beforebuild` hook.
+Next we need to tell Owlkettle create the GTK widget during the construction of the Owlkettle widget.
+This is done as part of Owlkettle's `beforeBuild` hook.
 
 Add a `beforeBuild` hook to the widget type in `widgets.nim`.
 All it needs to do is call the constructor for your widget and assign the created `GtkWidget` to `state.internalWidget`.
@@ -88,7 +88,7 @@ If the constructor requires parameters, add fields with their values to your Wid
 For examples, search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
 ### *Add Signal Event Listeners*
-Now we can enable the owlkettle widget to react to GTK signals!
+Now we can enable the Owlkettle widget to react to GTK signals!
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define what shall get executed when a signal gets fired. 
@@ -101,7 +101,7 @@ Also try to name the signal-handler proc like the GTK signal, for easier searcha
 For examples of signatures for signal-handler procs, go to [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) and look for proc signatures in between widget fields and hook definitions.
 
 ##### 2) Add a `connectEvents` hook to the widget type in `widgets.nim`
-When the owlkettle widget gets created, it needs to register its signal-handler procs with the GTK widget.
+When the Owlkettle widget gets created, it needs to register its signal-handler procs with the GTK widget.
 Only then can GTK trigger their execution whenever it fires a signal corresponding to those handler procs.
 
 For this, add the `connectEvents` hook and in it, call the provided `connect` proc: `state.connect(state.<procName>, "<signalName>", <eventCallback>)`
@@ -125,19 +125,19 @@ For examples that use the default eventCallback, search for `, eventCallback` in
 For examples that use custom eventCallbacks, enable regex search in your IDE and search for `connectEvents:\n.*?proc` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
 ##### 3) Add a disconnectEvents hook to the widget type in `widgets.nim`
-When the owlkettle widget gets destroyed, it also needs to fully disconnect its signal-handler procs in order to avoid memory leaks.
+When the Owlkettle widget gets destroyed, it also needs to fully disconnect its signal-handler procs in order to avoid memory leaks.
 
 For this, add the `disconnectEvents` hook and in it, call the provided `disconnect` proc: `state.internalWidget.disconnect(state.<procName>)`
 
 ### *See your example in action!*
 Once you're at this step you should be able to compile your example and see your widget in action!
-Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base dir of your owlkettle repository clone.
+Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base dir of your Owlkettle repository clone.
 
 Use your example to manually test your widget as you add features to it in the later section.
 
 Remember to add full blown signal-handler procs with bodies to the example in order to also see when signals get fired by GTK.
 
-For a short example of that, look at owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
+For a short example of that, look at Owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
 
 
 ### *Add features to the Widget*
@@ -164,7 +164,7 @@ Once you are satisfied with your widget, it's time to add a bit more documentati
 ##### 1) Add documentation and examples
 Add doc comments to properties and event callbacks to explain what they do.
 
-Further you can add examples using owlkettle's `example` macro to demonstrate usage of the widget.
+Further you can add examples using Owlkettle's `example` macro to demonstrate usage of the widget.
 These will get automatically added to widget.ms in the next step
 
 For examples that use the `example` macro, search for `, example:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
@@ -186,7 +186,7 @@ Lastly, add an entry for your new widget to the widgets table of `examples/READM
     <td><img alt="<WidgetName>" src="../docs/assets/examples/<WidgetExampleImage>.png" width="757px"></td>
 ```
 
-With all of that out of the way, you can now open up a pull request to the owlkettle main repo!
+With all of that out of the way, you can now open up a pull request to the Owlkettle main repo!
 """
 
 nbSave
