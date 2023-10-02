@@ -20,58 +20,96 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle
-import owlkettle/[adw, widgetUtils, autoform]
-import std/[json, options]
+import std/[options, sequtils, json]
+import owlkettle, owlkettle/[dataentries, widgetUtils, autoform, adw]
+
+# proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[ScaleMark]]): Widget =
+#   return gui:
+#     ExpanderRow:
+#       title = fieldName
+      
+#       for index, mark in state.marks:
+#         ActionRow {.addRow.}:
+#           title = fieldName & $index
+          
+#           NumberEntry {.addSuffix.}:
+#             value = mark.value
+#             xAlign = 1.0
+#             maxWidth = 8
+#             proc changed(value: float) =
+#               state.marks[index].value = value
+          
+#           DropDown {.addSuffix.}:
+#             items = ScalePosition.items.toSeq().mapIt($it)
+#             selected = mark.position.int
+#             proc select(enumIndex: int) =
+#               state.marks[index].position = enumIndex.ScalePosition
+              
+#           Button {.addSuffix.}:
+#             icon = "user-trash-symbolic"
+#             proc clicked() =
+#               state.marks.delete(index)
+      
+#       ListBoxRow {.addRow.}:
+#         Button:
+#           icon = "list-add-symbolic"
+#           style = [ButtonFlat]
+#           proc clicked() =
+#             state.marks.add(ScaleMark())
+
 
 viewable App:
   min: float = 0
-  max: float = 100            
-  value: float = 50          
-  marks: seq[ScaleMark] = @[] 
-  inverted: bool = false      
-  showValue: bool = true      
-  stepSize: float = 5         
-  pageSize: float = 10        
-  orient: Orient = OrientX    
-  showFillLevel: bool = true  
-  precision: int64 = 1        
+  max: float = 100
+  value: float = 50
+  marks: seq[ScaleMark] = @[]
+  inverted: bool = false
+  showValue: bool = true
+  stepSize: float = 5
+  pageSize: float = 10
+  orient: Orient = OrientX
+  showFillLevel: bool = true
+  precision: int64 = 1
   valuePosition: ScalePosition
   sensitive: bool = true
-  sizeRequest: tuple[x, y: int] = (-1, -1) 
-  tooltip: string = "" 
+  tooltip: string = ""
+  sizeRequest: tuple[x, y: int] = (-1, -1)
 
-  
 method view(app: AppState): Widget =
   result = gui:
-    Window:              
-      title = "Scale Example"
-      defaultSize = (600, 100)
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Scale:
-          min = app.min
-          max = app.max
-          value = app.value
-          marks = app.marks
-          inverted = app.inverted
-          showValue = app.showValue
-          stepSize = app.stepSize
-          pageSize = app.pageSize
-          orient = app.orient
-          showFillLevel = app.showFillLevel
-          precision = app.precision
-          valuePosition = app.valuePosition
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-          
-          
-          proc valueChanged(newValue: float64) =
-            app.value = newValue
-            echo "New value from Scale is ", $newValue
+    WindowSurface:
+      defaultSize = (800, 600)
+      
+      Box(orient = OrientX):
+        insert app.toAutoForm()
         
-        Box(orient = OrientY, spacing = 6, margin = 12):
-          Label(text = "Widget Fields")
-          insert app.toAutoForm()
+        Separator() {.expand: false.}
+        
+        Box(orient = OrientY):
+          HeaderBar {.expand: false.}:
+            WindowTitle {.addTitle.}:
+              title = "Scale Example"
+              subtitle = "Value: " & $app.value
+          
+          Scale:
+            min = app.min
+            max = app.max
+            value = app.value
+            marks = app.marks
+            inverted = app.inverted
+            showValue = app.showValue
+            stepSize = app.stepSize
+            pageSize = app.pageSize
+            orient = app.orient
+            showFillLevel = app.showFillLevel
+            precision = app.precision
+            valuePosition = app.valuePosition
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+            
+            proc valueChanged(newValue: float64) =
+              app.value = newValue
+              echo "New value from Scale is ", $newValue
 
-owlkettle.brew(gui(App()))
+adw.brew(gui(App()))
