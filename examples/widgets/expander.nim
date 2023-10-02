@@ -28,7 +28,10 @@ viewable App:
   resizeToplevel: bool = false
   useMarkup: bool = false
   useUnderline: bool = false
-
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+  
 method view(app: AppState): Widget =
   result = gui:
     Window:
@@ -43,6 +46,9 @@ method view(app: AppState): Widget =
           resizeTopLevel = app.resizeTopLevel
           useMarkup = app.useMarkup
           useUnderline = app.useUnderline
+          sensitive = app.sensitive
+          sizeRequest = app.sizeRequest
+          tooltip = app.tooltip
           
           Label(text = "I am some child widget")
         
