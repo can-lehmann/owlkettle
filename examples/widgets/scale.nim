@@ -24,12 +24,6 @@ import owlkettle
 import owlkettle/[adw, widgetUtils, autoform]
 import std/[json, options]
 
-proc `%`(t: ScaleMark): JsonNode =
-  result = newJObject()
-  result.add("label", %t.label)
-  result.add("value", %t.value)
-  result.add("position", %t.position)
-
 viewable App:
   min: float = 0
   max: float = 100            
@@ -43,6 +37,10 @@ viewable App:
   showFillLevel: bool = true  
   precision: int64 = 1        
   valuePosition: ScalePosition
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+
   
 method view(app: AppState): Widget =
   let form: Widget = app.toAutoForm()
@@ -65,6 +63,10 @@ method view(app: AppState): Widget =
           showFillLevel = app.showFillLevel
           precision = app.precision
           valuePosition = app.valuePosition
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          
           
           proc valueChanged(newValue: float64) =
             app.value = newValue
