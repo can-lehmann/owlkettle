@@ -343,7 +343,7 @@ renderable Overlay of BaseWidget:
   
   adder add:
     if widget.hasChild:
-      raise newException(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the addOverlay adder.")
+      raise newException(ValueError, "Unable to add multiple children to an Overlay. You can add overlays using the addOverlay adder.")
     widget.hasChild = true
     widget.valChild = child
   
@@ -3519,6 +3519,61 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+renderable Expander of BaseWidget:
+  label: string
+  labelWidget: Widget
+  expanded: bool = false
+  child: Widget
+  resizeToplevel: bool = false
+  useMarkup: bool = false
+  useUnderline: bool = false
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_expander_new(widget.valLabel.cstring)
+  
+  hooks label:
+    property:
+      gtk_expander_set_label(state.internalWidget, state.label.cstring)
+
+  hooks expanded:
+    property:
+      gtk_expander_set_expanded(state.internalWidget, state.expanded.cbool)
+
+  hooks resizeToplevel:
+    property:
+      gtk_expander_set_resize_toplevel(state.internalWidget, state.resizeToplevel.cbool)
+
+  hooks useMarkup:
+    property:
+      gtk_expander_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+
+  hooks useUnderline:
+    property:
+      gtk_expander_set_use_underline(state.internalWidget, state.useUnderline.cbool)
+
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_expander_set_child)
+  
+  hooks labelWidget:
+    (build, update):
+      state.updateChild(state.labelWidget, widget.valLabelWidget, gtk_expander_set_label_widget)
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to the body of an Expander.")
+    
+    widget.hasChild = true
+    widget.valChild = child
+
+  adder addLabel:
+    if widget.hasLabelWidget:
+      raise newException(ValueError, "Unable to add multiple Labels as the header of an Expander")
+    
+    widget.hasLabelWidget = true
+    widget.valLabelWidget = child
+    
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3533,3 +3588,4 @@ export MessageDialog, MessageDialogState
 export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
+export Expander
