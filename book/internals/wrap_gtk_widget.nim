@@ -192,7 +192,7 @@ Lastly, add an entry for your new widget to the widgets table of `examples/READM
 ```
 Note that the table **is sorted alphabetically**.
 
-With all of that out of the way, you can now open up a pull request to the Owlkettle main repo!
+Finally, you can submit your widget to Owlkettle by opening a pull request!
 """
 
 nbSave
