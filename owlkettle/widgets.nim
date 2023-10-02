@@ -3529,7 +3529,7 @@ renderable Expander of BaseWidget:
   useMarkup: bool = false
   useUnderline: bool = false
   
-  proc activate(activated: bool)
+  proc activate(activated: bool) ## Triggered whenever Expander is expanded or collapsed
   
   hooks:
     beforeBuild:
