@@ -30,7 +30,10 @@ viewable App:
   items: seq[string] = mapIt(0..<100, "Option " & $it)
   enableSearch: bool = false
   showArrow: bool = true
-
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+  
 method view(app: AppState): Widget =
   result = gui:
     Window:
@@ -53,6 +56,10 @@ method view(app: AppState): Widget =
             selected = app.selected
             enableSearch = app.enableSearch
             showArrow = app.showArrow
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+          
             proc select(item: int) =
               app.selected = item
         
