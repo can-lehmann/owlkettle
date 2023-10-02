@@ -168,7 +168,7 @@ Once you are satisfied with your widget, it's time to add a bit more documentati
 Add doc comments to properties and event callbacks to explain what they do.
 
 Further you can add examples using Owlkettle's `example` macro to demonstrate usage of the widget.
-These will get automatically added to widget.ms in the next step
+These will get automatically added to `widget.md`.
 
 For examples that use the `example` macro, use the existing widgets in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) as a guide.
 
