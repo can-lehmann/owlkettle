@@ -43,8 +43,6 @@ viewable App:
 
   
 method view(app: AppState): Widget =
-  let form: Widget = app.toAutoForm()
-
   result = gui:
     Window:              
       title = "Scale Example"
@@ -74,6 +72,6 @@ method view(app: AppState): Widget =
         
         Box(orient = OrientY, spacing = 6, margin = 12):
           Label(text = "Widget Fields")
-          insert form
+          insert app.toAutoForm()
 
 owlkettle.brew(gui(App()))
