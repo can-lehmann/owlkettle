@@ -21,9 +21,13 @@
 # SOFTWARE.
 
 import owlkettle
+import owlkettle/autoform
 
 viewable App:
-  discard
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  offset: tuple[x, y: int] = (0, 0)
+  position: PopoverPosition = PopoverBottom
 
 method view(app: AppState): Widget =
   result = gui:
@@ -35,6 +39,13 @@ method view(app: AppState): Widget =
         MenuButton {.addRight.}:
           icon = "open-menu"
           PopoverMenu:
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            tooltip = app.tooltip
+            hasArrow = app.hasArrow
+            offset = app.offset
+            position = app.position
+            
             Box {.name: "main".}:
               orient = OrientY
               margin = 4
@@ -68,5 +79,9 @@ method view(app: AppState): Widget =
                   text = "Entry " & $it
                   proc clicked() =
                     echo "Entry " & $it
+      
+      Box(orient = OrientY, spacing = 6, margin = 12):
+        Label(text = "Widget Fields")
+        insert app.toAutoForm()
 
 brew(gui(App()))
