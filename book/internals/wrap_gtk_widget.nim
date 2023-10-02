@@ -174,7 +174,12 @@ For examples that use the `example` macro, use the existing widgets in [widgets.
 Once that is done, run `nimble genDocs` to add your new widgets, doc comments, and examples to widgets.md, the main documentation file for widgets. 
 Once finished, commit the updated widgets.md.
 
-Next take a screenshot of your example application against a white background and put it in `docs/assets/examples`.
+Next take a screenshot of your example application and add it to `docs/assets/examples`.
+Note that the Screenshot should be:
+  - Of the application in light theme
+  - Against a white background
+  - Taken at 200% resolution (settable in e.g. Gnome under Gnome Settings -> Displays)
+  
 Lastly, add an entry for your new widget to the widgets table of `examples/README.md` like so (Remember to replace the `<Widgetname>`, `<WidgetExample>` and `<WidgetExampleImage>` placeholders):
 ```html
     <tr>
