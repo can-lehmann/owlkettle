@@ -20,16 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[adw, autoform]
 
 viewable App:
-  options: seq[string] = @["Option 0", "Option 1"]
+  options: seq[string] = @["Option 0", "Option 1", "Option 2"]
   selected: int = 1
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+  spacing: int = 3 
+  rowSpacing: int = 6 
+  orient: Orient = OrientY 
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (400, 300)
+      defaultSize = (500, 800)
       
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
@@ -80,6 +86,12 @@ method view(app: AppState): Widget =
           
           RadioGroup {.expand: false.}:
             selected = app.selected
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            tooltip = app.tooltip
+            spacing = app.spacing
+            rowSpacing = app.rowSpacing
+            orient = app.orient
             
             proc select(index: int) =
               app.selected = index
@@ -88,5 +100,9 @@ method view(app: AppState): Widget =
               Label:
                 text = option
                 xAlign = 0
+                
+          Box(orient = OrientY, spacing = 6, margin = 12):
+            Label(text = "Widget Fields")
+            insert app.toAutoForm()
 
 adw.brew(gui(App()))
