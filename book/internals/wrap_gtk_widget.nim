@@ -85,7 +85,7 @@ Add a `beforeBuild` hook to the widget type in `widgets.nim`.
 All it needs to do is call the constructor for your widget and assign the created `GtkWidget` to `state.internalWidget`.
 If the constructor requires parameters, add fields with their values to your Widget and access the values from the implicitly available `widget` variable and its `val/has<Fieldname>` fields. 
 
-For examples, search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
+For examples, see the [beforeBuild docs](https://can-lehmann.github.io/owlkettle/book/internals/hooks/before_build_hook.html) or search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
 ### *Add Signal Event Listeners*
 Now we can enable the Owlkettle widget to react to GTK signals!
