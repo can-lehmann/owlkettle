@@ -52,6 +52,10 @@ viewable App:
   showDayNames: bool = true
   showHeading: bool = true
   showWeekNumbers: bool = true
+  sensitive: bool = true
+  tooltip: string = ""
+  sizeRequest: tuple[x, y: int] = (-1, -1)
+
 
 method view(app: AppState): Widget =
   result = gui:
@@ -92,6 +96,9 @@ method view(app: AppState): Widget =
               showDayNames = app.showDayNames
               showHeading = app.showHeading
               showWeekNumbers = app.showWeekNumbers
+              sensitive = app.sensitive
+              tooltip = app.tooltip
+              sizeRequest = app.sizeRequest
               
               proc select(date: DateTime) =
                 ## Shortcut for handling all calendar events (daySelected,
