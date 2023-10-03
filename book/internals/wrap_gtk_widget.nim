@@ -104,8 +104,9 @@ Beyond just creating the widget and providing event-listeners, GTK may provide o
 
 E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
 
-Take a look at the procs of your widget (and the procs of its parent classes) in the GTK docs, specifically anything that isn't a getter.
+Take a look at the functions of your widget (and the functions of its parent classes) in the GTK docs, specifically anything that isn't a getter.
 If there's procs to add or set a property of the widget, try to add that feature to your wrapped widget.
+If the proc requires a parameter of type `GtkWidget` or an array/list of `GtkWidget`, add a field of type `Widget`/`seq[Widget]` to your wrapped widget instead of `GtkWidget`. 
 
 At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
 
@@ -113,8 +114,10 @@ Follow and repeat the following steps to add a feature:
 - Wrap the GTK functions as explained in earlier sections
 - Add a field to your widget for every parameter required by the wrapped GTK functions.
   If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
-- Add a `property` hook for every field on your widget that you have a wrapped GTK function for.
+- Add a `property` hook for every field on your widget that is *not* of type `Widget` and that you have a wrapped GTK function for.
   The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
+- Add a `(build, update)` hook for every field on your widget that *is* of type `Widget`.
+  The hook should do nothing but call `state.updateChild` or `state.updateChildren` with the wrapped GTK functions for adding/removing a `GtkWidget`.
 - Run your example application to check whether the added field works.
 
 
