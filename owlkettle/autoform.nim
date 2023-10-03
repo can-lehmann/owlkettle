@@ -48,30 +48,30 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): 
           state.getField(fieldName) = text
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Widget =
-    return gui:
-      ActionRow:
-        title = fieldName
-        Box() {.addSuffix.}:
-          Switch() {.vAlign: AlignCenter, expand: false.}:
-            state = state.getField(fieldName)
-            proc changed(newVal: bool) =
-              state.getField(fieldName) = newVal
+  return gui:
+    ActionRow:
+      title = fieldName
+      Box() {.addSuffix.}:
+        Switch() {.vAlign: AlignCenter, expand: false.}:
+          state = state.getField(fieldName)
+          proc changed(newVal: bool) =
+            state.getField(fieldName) = newVal
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[object | ref object | tuple | seq]): Widget =
-    return gui:
-      ActionRow:
-        title = fieldName
-        Entry(text = $ %*state.getField(fieldName)) {.addSuffix.}:
-          proc changed(text: string) =
-            try:
-              state.getField(fieldName) = text.parseJson().to(typ)
-            except Exception: discard
+  return gui:
+    ActionRow:
+      title = fieldName
+      Entry(text = $ %*state.getField(fieldName)) {.addSuffix.}:
+        proc changed(text: string) =
+          try:
+            state.getField(fieldName) = text.parseJson().to(typ)
+          except Exception: discard
 
 proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
   let options: seq[string] = T.items.toSeq().mapIt($it)
   return gui:
     ComboRow:
-      title = "orient"
+      title = fieldName
       items = options
       selected = ord(state.getField(fieldName))
       proc select(enumIndex: int) =
