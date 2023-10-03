@@ -168,11 +168,8 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="757px"></td>
   </tr>
   <tr>
-    <td>
-      <a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/expander.nim">Expander
-      </a>
-    </td>
-    <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="757px"></td>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/expander.nim">Expander</a></td>
+    <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="830px"></td>
   </tr>
 </table>
 
