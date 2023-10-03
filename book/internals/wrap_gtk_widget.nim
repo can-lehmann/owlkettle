@@ -120,7 +120,7 @@ Follow and repeat the following steps to add a field:
 
 ### *Add Signal Event Listeners*
 Now we can enable the Owlkettle widget to react to GTK signals!
-Note that this section is irrelevant for a given widget if the widget or its parent do not provide any Signals.
+Note that this section is irrelevant if the widget or its parent do not provide any signals.
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define the signal-handlers that will be executed when a signal gets fired. 
