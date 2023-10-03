@@ -160,9 +160,9 @@ For examples that use the default eventCallback, search for `, eventCallback` in
 For examples that use custom eventCallbacks, enable regex search in your IDE and search for `connectEvents:\n.*?proc` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
 ##### 3) Add a disconnectEvents hook to the widget type in `widgets.nim`
-When the Owlkettle widget gets destroyed, it also needs to fully disconnect its signal-handler procs in order to avoid memory leaks.
-
-For this, add the `disconnectEvents` hook and in it, call the provided `disconnect` proc: `state.internalWidget.disconnect(state.<procName>)`
+Finally you need to create a `disconnectEvents` hook. 
+It should call the `disconnect` procedure for each event callback of the widget like this:
+`state.internalWidget.disconnect(state.<eventName>)`.
 
 ### *Add and update documentation*
 Once you are satisfied with your widget, it's time to add a bit more documentation.
