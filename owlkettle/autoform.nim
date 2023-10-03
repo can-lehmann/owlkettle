@@ -86,6 +86,25 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime])
         proc daySelected(date: DateTime) =
           state.getField(fieldName) = date
 
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
+  ## toFormField proc specifically for the tuple type of sizeRequest
+  return gui:
+    ActionRow:
+      title = fieldName
+      NumberEntry() {.addSuffix.}:
+        value = state.getField(fieldName)[0].float
+        xAlign = 1.0
+        maxWidth = 8
+        proc changed(value: float) =
+          state.getField(fieldName)[0] = value.int
+        
+      NumberEntry() {.addSuffix.}:
+        value = state.getField(fieldName)[1].float
+        xAlign = 1.0
+        maxWidth = 8
+        proc changed(value: float) =
+          state.getField(fieldName)[1] = value.int
+
 ## Seq Rows
 proc toSeqField(state: auto, seqFieldName: static string, index: int, fieldName: static string, typ: typedesc[SomeFloat]): Widget =
   return gui:
