@@ -164,7 +164,7 @@ It should call the `disconnect` procedure for each event callback of the widget 
 Once you are satisfied with your widget, it's time to add a bit more documentation.
 
 ##### 1) Add documentation and examples
-Add doc comments to properties and event callbacks to explain what they do.
+Add doc comments to fields and event callbacks to explain what they do.
 
 Further you can add examples using Owlkettle's `example` macro to demonstrate usage of the widget.
 These will get automatically added to `widget.md`.
