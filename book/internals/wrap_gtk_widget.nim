@@ -112,11 +112,9 @@ If the proc requires a parameter of type `GtkWidget` or an array/list of `GtkWid
 At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
 
 Follow and repeat the following steps to add a field:
-- Wrap the GTK functions as explained in earlier sections
-- Add a field to your widget for every parameter required by the wrapped GTK functions.
-  If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
-- Add a `property` hook for every field on your widget that is *not* of type `Widget` and that you have a wrapped GTK function for.
-  The hook should do nothing but call the wrapped GTK function with values from the implicitly available `state` variable.
+- Create bindings for the GTK setters of the property
+- Add a field for the property
+- Add a `property` hook for the field that calls the GTK setter function.
 - Add a `(build, update)` hook for every field on your widget that *is* of type `Widget`.
   The hook should do nothing but call `state.updateChild` or `state.updateChildren` with the wrapped GTK functions for adding/removing a `GtkWidget`.
 - Run your example application to check whether the added field works.
