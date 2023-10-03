@@ -193,6 +193,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Preferences Group" src="../docs/assets/examples/preferences_group.png" width="721px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/status_page.nim">Status Page</a></td>
+    <td><img alt="Preferences Group" src="../docs/assets/examples/status_page.png" width="922px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/window_title.nim">Window Title</a></td>
     <td><img alt="Window Title" src="../docs/assets/examples/window_title.png" width="288px"></td>
   </tr>
