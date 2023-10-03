@@ -110,7 +110,7 @@ If the proc requires a parameter of type `GtkWidget` or an array/list of `GtkWid
 
 At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
 
-Follow and repeat the following steps to add a feature:
+Follow and repeat the following steps to add a field:
 - Wrap the GTK functions as explained in earlier sections
 - Add a field to your widget for every parameter required by the wrapped GTK functions.
   If a field already exists because you use it during initialization with the constructor, then you don't need to add a new field.
