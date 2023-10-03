@@ -122,7 +122,7 @@ proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
 proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
 proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
 
-when AdwVersion > (1, 2):
+when AdwVersion >= (1, 2):
   # Adw.EntryRow
   proc adw_entry_row_new(): GtkWidget
   proc adw_entry_row_add_suffix(row, child: GtkWidget)
@@ -149,7 +149,7 @@ proc adw_split_button_new(): GtkWidget
 proc adw_split_button_set_child(button, child: GtkWidget)
 proc adw_split_button_set_popover(button, child: GtkWidget)
 
-when AdwVersion > (1, 2):
+when AdwVersion >= (1, 2):
   # Adw.AboutWindow
   proc adw_about_window_new(): GtkWidget
   proc adw_about_window_set_application_name(window: GtkWidget, value: cstring)
@@ -486,7 +486,7 @@ renderable ComboRow of ActionRow:
       proc select(item: int) =
         app.selected = item
 
-when AdwVersion > (1, 2) or defined(owlkettleDocs):
+when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable EntryRow of PreferencesRow:
     subtitle: string
     suffixes: seq[AlignedChild[Widget]]
@@ -497,7 +497,7 @@ when AdwVersion > (1, 2) or defined(owlkettleDocs):
     
     hooks:
       beforeBuild:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           state.internalWidget = adw_entry_row_new()
         else:
           raise newException(ValueError, "Compile for Adwaita version 1.2 or higher with -d:adwMinor=2 to enable the EntryRow widget.")
@@ -514,7 +514,7 @@ when AdwVersion > (1, 2) or defined(owlkettleDocs):
     
     hooks suffixes:
       (build, update):
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
             adw_entry_row_add_suffix,
             adw_entry_row_remove
@@ -739,7 +739,7 @@ proc `hasIcon=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild =
 proc `valIcon=`*(splitButton: SplitButton, name: string) =
   splitButton.valChild = Icon(hasName: true, valName: name)
 
-when AdwVersion > (1, 2) or defined(owlkettleDocs):
+when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable AboutWindow:
     applicationName: string
     developerName: string
@@ -752,48 +752,48 @@ when AdwVersion > (1, 2) or defined(owlkettleDocs):
     
     hooks:
       beforeBuild:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           state.internalWidget = adw_about_window_new()
     
     hooks applicationName:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
 
     hooks developerName:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
 
     hooks version:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_version(state.internalWidget, state.version.cstring)
 
     hooks supportUrl:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
 
     hooks issueUrl:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
 
     
     hooks website:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_website(state.internalWidget, state.website.cstring)
 
     hooks copyright:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
 
     hooks license:
       property:
-        when AdwVersion > (1, 2):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
   
   export AboutWindow
