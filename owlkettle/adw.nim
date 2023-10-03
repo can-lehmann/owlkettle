@@ -744,7 +744,7 @@ proc `valIcon=`*(splitButton: SplitButton, name: string) =
   splitButton.valChild = Icon(hasName: true, valName: name)
 
 renderable StatusPage of BaseWidget:
-  iconName: string ## The icon to render in the center of the StatusPage. Setting this overrides paintable. See the [tooling](http://127.0.0.1:5500/compiledBook/docs/recommended_tools.html) section for how to figure out what icon names are available.
+  iconName: string ## The icon to render in the center of the StatusPage. Setting this overrides paintable. See the [tooling](https://can-lehmann.github.io/owlkettle/docs/recommended_tools.html) section for how to figure out what icon names are available.
   paintable: Widget ## The widget that implements GdkPaintable to render (e.g. IconPaintable, WidgetPaintable) in the center of the StatusPage. Setting this overrides iconName.
   title: string
   description: string
