@@ -100,7 +100,8 @@ For a short example, look at Owlkettle's [counter-example](https://github.com/ca
 
 
 ### *Add fields to the Widget*
-Beyond just creating the widget and providing event-listeners, GTK may provide options to further customize a widget.
+The next step is adding fields to your widget.
+Owlkettle fields usually map to the GTK widget's properties.
 
 E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
 
