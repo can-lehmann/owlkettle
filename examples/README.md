@@ -153,7 +153,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/popover_menu.nim">Popover Menu</a></td>
-    <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="328px"></td>
+    <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="891px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>
