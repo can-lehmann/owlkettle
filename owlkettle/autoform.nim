@@ -77,14 +77,42 @@ proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T
       proc select(enumIndex: int) =
         state.getField(fieldName) = enumIndex.T
 
+viewable DateDialog:
+  date: DateTime = now()
+  title: string = "Select DateTime"
+
+method view (state: DateDialogState): Widget =
+  result = gui:
+    Dialog:
+      title = state.title
+      defaultSize = (520, 0)
+      
+      DialogButton {.addButton.}:
+        text = "Select"
+        style = [ButtonSuggested]
+        res = DialogAccept
+        
+      DialogButton {.addButton.}:
+        text = "Cancel"
+        res = DialogCancel
+        
+      Box(orient = OrientY):
+        Calendar:
+          date = state.date
+          proc daySelected(date: DateTime) =
+            state.date = date
+
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =
   return gui:
     ActionRow:
-      title = fieldName
-      Calendar {.addSuffix.}:
-        date = state.getField(fieldName)
-        proc select(date: DateTime) =
-          state.getField(fieldName) = date
+      title = fieldName & ": " & $state.getField(fieldName).inZone(local())
+      Button {.addSuffix.}:
+        icon = "x-office-calendar-symbolic"
+        text = "Select"
+        proc clicked() =
+          let (res, dialogState) = state.open(gui(DateDialog()))
+          if res.kind == DialogAccept:
+            state.getField(fieldName) = DateDialogState(dialogState).date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
   ## toFormField proc specifically for the tuple type of sizeRequest
