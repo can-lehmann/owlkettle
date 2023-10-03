@@ -17,6 +17,8 @@ For an overview over which icons are available, you can install the [Icon Librar
 
 For using custom icons and icon-sets, you may want to look into [Symbolic Preview](https://flathub.org/apps/details/org.gnome.design.SymbolicPreview).
 
+Freedesktop.org also provides a [specification for standard icon-names](https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names) that Gnome uses.
+
 ## Colors
 
 When using custom stylesheet with owlkettle and changing colors, you may want to choose colors that integrate well with the color-palette used by the GNOME Desktop Environment.

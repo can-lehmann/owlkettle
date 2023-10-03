@@ -26,20 +26,27 @@ viewable App:
   description: string = "Some Description"
   iconName: string = "weather-clear-symbolic"
   title: string = "Some Title"
-
 method view(app: AppState): Widget =
   result = gui:
-    Window:
-      title = "Status Page Example"
-      Box(spacing = 6, margin = 12):
+    WindowSurface:
+      defaultSize = (800, 600)
+      
+      Box(orient = OrientX):
         insert app.toAutoForm()
         
-        StatusPage():
-          description = app.description
-          iconName = app.iconName
-          title = app.title
-          
-          Label(text = "I am a child of a status page")
+        Separator() {.expand: false.}
         
+        Box(orient = OrientY):
+          HeaderBar {.expand: false.}:
+            WindowTitle {.addTitle.}:
+              title = "Status Page Example"
+        
+          StatusPage():
+            description = app.description
+            iconName = app.iconName
+            title = app.title
+            
+            Label(text = "I am a child of a status page")
+          
 
 adw.brew(gui(App()))
