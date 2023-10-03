@@ -125,7 +125,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/calendar.nim">Calendar</a></td>
-    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="745px"></td>
+    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="743px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/context_menu.nim">Context Menu</a></td>
