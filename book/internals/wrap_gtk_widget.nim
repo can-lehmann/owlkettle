@@ -123,12 +123,16 @@ Now we can enable the Owlkettle widget to react to GTK signals!
 Note that this section is irrelevant for a given widget if the widget or its parent do not provide any Signals.
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
-First we need to define what shall get executed when a signal gets fired. 
-What shall get executed are signal-handler procs, which are user-defined callback functions.
+First we need to define the signal-handlers that will be executed when a signal gets fired. 
+They act as intermediary between GTK and Owlkettle, translating the GTK signal into an Owlkettle event.
+After the event was handled, the signal-handler triggers a rerender.
 
-To enable defining a signal-handler, simply define the signature of said signal-handler procs.
-These procs should never have a return-type.
-Also try to name the signal-handler proc like the GTK signal, for easier searchability in the GTK docs.
+To define a signal-handler, look up the signature of the handler for the given signal in the GTK documentation.
+A custom signal-handler needs to:
+- Read back any state changes from GTK
+- Call the event callback (and pass any arguments it might have)
+- Call redraw to update the user interface after the event was handled
+Use existing signal-handlers as a guide.
 
 For examples of signatures for signal-handler procs, go to [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) and look for proc signatures in between widget fields and hook definitions.
 
@@ -144,11 +148,6 @@ Where:
 
 If a signal does not require the state of the widget to be updated (e.g. `clicked`), you can use the default `eventCallback` proc for <eventCallback>.
 If a signal does require the state of the widget to be updated (e.g. `select`), you will need to define your own <eventCallback> proc.
-
-A custom eventCallback proc will always need to:
-  - Read back any state changes from GTK
-  - Call the signal-handler proc (and pass any arguments it might have)
-  - Call redraw to update the UI after the event was handled
 
 For general examples of `connectEvents` hooks, search for `connectEvents:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
