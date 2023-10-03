@@ -23,39 +23,39 @@
 import std/[options, sequtils, json]
 import owlkettle, owlkettle/[dataentries, widgetUtils, autoform, adw]
 
-# proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[ScaleMark]]): Widget =
-#   return gui:
-#     ExpanderRow:
-#       title = fieldName
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[ScaleMark]]): Widget =
+  return gui:
+    ExpanderRow:
+      title = fieldName
       
-#       for index, mark in state.marks:
-#         ActionRow {.addRow.}:
-#           title = fieldName & $index
+      for index, mark in state.marks:
+        ActionRow {.addRow.}:
+          title = fieldName & $index
           
-#           NumberEntry {.addSuffix.}:
-#             value = mark.value
-#             xAlign = 1.0
-#             maxWidth = 8
-#             proc changed(value: float) =
-#               state.marks[index].value = value
+          NumberEntry {.addSuffix.}:
+            value = mark.value
+            xAlign = 1.0
+            maxWidth = 8
+            proc changed(value: float) =
+              state.marks[index].value = value
           
-#           DropDown {.addSuffix.}:
-#             items = ScalePosition.items.toSeq().mapIt($it)
-#             selected = mark.position.int
-#             proc select(enumIndex: int) =
-#               state.marks[index].position = enumIndex.ScalePosition
+          DropDown {.addSuffix.}:
+            items = ScalePosition.items.toSeq().mapIt($it)
+            selected = mark.position.int
+            proc select(enumIndex: int) =
+              state.marks[index].position = enumIndex.ScalePosition
               
-#           Button {.addSuffix.}:
-#             icon = "user-trash-symbolic"
-#             proc clicked() =
-#               state.marks.delete(index)
+          Button {.addSuffix.}:
+            icon = "user-trash-symbolic"
+            proc clicked() =
+              state.marks.delete(index)
       
-#       ListBoxRow {.addRow.}:
-#         Button:
-#           icon = "list-add-symbolic"
-#           style = [ButtonFlat]
-#           proc clicked() =
-#             state.marks.add(ScaleMark())
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.marks.add(ScaleMark())
 
 
 viewable App:
