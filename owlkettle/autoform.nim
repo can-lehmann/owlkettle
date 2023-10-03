@@ -131,5 +131,3 @@ proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
 proc toAutoForm*[T](app: T): Widget =
   const ignoreFields: seq[string] = @[]
   return toAutoForm[T](app, ignoreFields = ignoreFields)
-
-export AlignedChild
