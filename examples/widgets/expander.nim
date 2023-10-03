@@ -32,46 +32,59 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1) 
   tooltip: string = "" 
   
-method view(app: AppState): Widget =
-  result = gui:
-    Window:
-      title = "Expander Example"
-      defaultSize = (600, 400)
-      
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Label(text = "Expander with String Label")
-        Expander():
-          label = app.label
-          expanded = app.expanded
-          resizeTopLevel = app.resizeTopLevel
-          useMarkup = app.useMarkup
-          useUnderline = app.useUnderline
-          sensitive = app.sensitive
-          sizeRequest = app.sizeRequest
-          tooltip = app.tooltip
-          
-          proc activate(activated: bool) =
-            echo "Expander 1 activated!: ", activated
-            app.expanded = activated
-          
-          Label(text = "I am some child widget")
-        
-        Label(text = "Expander with Widget Label")
-        Expander():
-          expanded = app.expanded
-          resizeTopLevel = app.resizeTopLevel
-          useMarkup = app.useMarkup
-          useUnderline = app.useUnderline
-          
-          proc activate(activated: bool) =
-            echo "Expander 2 activated!: ", activated
-            app.expanded = activated
-          
-          Label(text = "The Widget Label for Expander") {.addLabel.}
-          Label(text = "I am some child widget")
 
-        Box(orient = OrientY, spacing = 6, margin = 12):
-          Label(text = "WidgetFields")
-          insert app.toAutoForm()
-          
+method view(app: AppState): Widget =
+  echo "Everything expanded? ", app.expanded
+  result = gui:
+    WindowSurface:
+      defaultSize = (800, 600)
+      
+      Box(orient = OrientX):
+        insert app.toAutoForm()
+        
+        Separator() {.expand: false.}
+        
+        Box(orient = OrientY):
+          HeaderBar {.expand: false.}:
+            WindowTitle {.addTitle.}:
+              title = "Expander Example"
+            
+          Box(orient = OrientY, spacing = 6, margin = 12):
+            Label():
+              useMarkup = true
+              text = """<span size="x-large" weight="bold"> Expander with String Label </span>"""
+            
+            Expander():
+              label = app.label
+              expanded = app.expanded
+              resizeTopLevel = app.resizeTopLevel
+              useMarkup = app.useMarkup
+              useUnderline = app.useUnderline
+              sensitive = app.sensitive
+              sizeRequest = app.sizeRequest
+              tooltip = app.tooltip
+              
+              proc activate(activated: bool) =
+                echo "Expander 1 activated! current: ", app.expanded, " new: ", activated
+                app.expanded = activated
+              
+              Label(text = "I am some child widget")
+            
+            Label():
+              useMarkup = true
+              text = """<span size="x-large" weight="bold"> Expander with String Label </span>"""
+              
+            Expander():
+              expanded = app.expanded
+              resizeTopLevel = app.resizeTopLevel
+              useMarkup = app.useMarkup
+              useUnderline = app.useUnderline
+              
+              proc activate(activated: bool) =
+                echo "Expander 2 activated!: ", activated
+                app.expanded = activated
+              
+              Label(text = "The Widget Label for Expander") {.addLabel.}
+              Label(text = "I am some child widget")
+      
 adw.brew(gui(App()))
