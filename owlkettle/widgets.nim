@@ -3540,7 +3540,7 @@ renderable Expander of BaseWidget:
         widget: GtkWidget, 
         data: ptr EventObj[proc(activated: bool)]
       ) {.cdecl.} =
-        let expanded: bool = gtk_expander_get_expanded(widget).bool
+        let expanded: bool = not gtk_expander_get_expanded(widget).bool # Necessary as widget hasn't updated itself yet, thus this returns the old value
         ExpanderState(data[].widget).expanded = expanded
         data[].callback(expanded)
         data[].redraw()
