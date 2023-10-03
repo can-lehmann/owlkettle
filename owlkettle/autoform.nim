@@ -20,7 +20,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[SomeFloat]
   return gui:
     ActionRow:
       title = fieldName
-      NumberEntry() {.addSuffix.}:
+      FormulaEntry() {.addSuffix.}:
         value = state.getField(fieldName)
         xAlign = 1.0
         maxWidth = 8
