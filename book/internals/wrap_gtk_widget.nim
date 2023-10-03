@@ -93,8 +93,6 @@ Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base d
 
 Use your example to manually test your widget as you add features to it in the later section.
 
-Remember to add signal-handler procs with bodies to the example, once you have added signal event listeners.
-That way you can see your application react more to various inputs.
 
 For a short example, look at Owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
 
