@@ -83,7 +83,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime])
       title = fieldName
       Calendar {.addSuffix.}:
         date = state.getField(fieldName)
-        proc daySelected(date: DateTime) =
+        proc select(date: DateTime) =
           state.getField(fieldName) = date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
