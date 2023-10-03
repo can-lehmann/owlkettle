@@ -31,6 +31,8 @@ customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
+const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+
 type 
   Margin* = object
     top*, bottom*, left*, right*: int
@@ -710,7 +712,7 @@ type ContentFit* = enum
 
 renderable Picture of BaseWidget:
   pixbuf: Pixbuf
-  contentFit: ContentFit = ContentContain ## Requires GTK 4.8 to fully work, compile with `-d:gtk48` to enable
+  contentFit: ContentFit = ContentContain ## Requires GTK 4.8 or higher to fully work, compile with `-d:gtkminor=8` to enable
   
   hooks:
     beforeBuild:
@@ -722,7 +724,7 @@ renderable Picture of BaseWidget:
   
   hooks contentFit:
     property:
-      when defined(gtk48):
+      when GtkMinor >= 8:
         gtk_picture_set_content_fit(state.internalWidget, GtkContentFit(ord(state.contentFit)))
       else:
         gtk_picture_set_keep_aspect_ratio(
