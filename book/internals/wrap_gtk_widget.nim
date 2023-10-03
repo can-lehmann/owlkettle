@@ -11,13 +11,13 @@ As a piece of general advice, prefer to stick as close to the original GTK widge
 
 ### *Find the GTK widget docs*
 First find the docs belonging to the GTK widget so you know what it can do and what you need to wrap.
-Generally searches on the [General GTK docs](https://docs.gtk.org/gtk4/) or a web search with `GTK widget docs <widgetname>` should do it.
+Generally searches on the [GTK documentation](https://docs.gtk.org/gtk4/) or a web search with `GTK widget docs <widgetname>` should do it.
 
 ### *Setup*
-Next let us create the type for the Widget and an example application for it.
+Next let us create the type for the widget and an example application for it.
 
 Go to `owlkettle/widgets.nim` and add your type as `renderable <GtkWidgetName> of BaseWidget: discard`.
-If your Widget shows in the GTKDocs that it inherits from another Widget that was already wrapped (e.g. `Window`) it is strongly encouraged to inherit in nim from that instead.
+If the GTK Documentation says that your widget inherits from another widget that is already wrapped (e.g. `Window`), then please inherit from that widget instead.
 Then add an explicit export statement at the bottom of the file.
 
 With the type available, we need an example application so we can see the widget in action.
@@ -66,7 +66,7 @@ nbText: """
 ### *Wrap GTK functions*
 Now we can look over the GTK docs we found earlier and look for the GTK functions needed.
 
-Add them to GTK.nim to the section for their class, marked by comments of `# GTK.<ClassName>`.
+Add them to gtk.nim to the section for their class, marked by comments of `# GTK.<ClassName>`.
 If no such section for a GTK widget exists, add a new one. 
 You will need to wrap, at minimum, the constructor for the new widget.
 
@@ -83,7 +83,7 @@ This is done as part of Owlkettle's `beforeBuild` hook.
 
 Add a `beforeBuild` hook to the widget type in `widgets.nim`.
 All it needs to do is call the constructor for your widget and assign the created `GtkWidget` to `state.internalWidget`.
-If the constructor requires parameters, add fields with their values to your Widget and access the values from the implicitly available `widget` variable and its `val/has<Fieldname>` fields. 
+If the constructor requires parameters, add fields with their values to your widget and access the values from the implicitly available `widget` variable and its `val/has<Fieldname>` fields. 
 
 For examples, see the [beforeBuild docs](https://can-lehmann.github.io/owlkettle/book/internals/hooks/before_build_hook.html) or search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
@@ -123,7 +123,7 @@ Follow and repeat the following steps to add a feature:
 
 ### *Add Signal Event Listeners*
 Now we can enable the Owlkettle widget to react to GTK signals!
-Note that this section is irrelevant for a given Widget if the Widget or its parent do not provide any Signals.
+Note that this section is irrelevant for a given widget if the widget or its parent do not provide any Signals.
 
 ##### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define what shall get executed when a signal gets fired. 
@@ -183,7 +183,7 @@ Once finished, commit the updated widgets.md.
 Next take a screenshot of your example application and add it to `docs/assets/examples`.
 Note that the Screenshot should be:
   - Of the application in light theme
-  - Against a white background
+  - Against a transparent background (in e.g. Gnome: Screenshot of only the window itself)
   - Taken at 200% resolution (settable in e.g. Gnome under Gnome Settings -> Displays)
   
 Lastly, add an entry for your new widget to the widgets table of `examples/README.md` like so (Remember to replace the `<Widgetname>`, `<WidgetExample>`, `<WidgetExampleImage>` and `<50% Screenshot width>` placeholders):
