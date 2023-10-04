@@ -9,34 +9,16 @@ import ./widgets
 macro getField*(someType: untyped, fieldName: static string): untyped =
   nnkDotExpr.newTree(someType, ident(fieldName))
 
-proc `%`*(t: tuple): JsonNode =
-  result = newJObject()
-  for field, value in t.fieldPairs:
-    result.add(field, %value)
-
-## General Fields
-
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[SomeFloat]): Widget =
+proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
   return gui:
     ActionRow:
       title = fieldName
       FormulaEntry() {.addSuffix.}:
-        value = state.getField(fieldName)
-        xAlign = 1.0
-        maxWidth = 8
-        proc changed(value: float) =
-          state.getField(fieldName) = value
-
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[SomeInteger]): Widget =
-  return gui:
-    ActionRow:
-      title = fieldName
-      NumberEntry() {.addSuffix.}:
         value = state.getField(fieldName).float
         xAlign = 1.0
         maxWidth = 8
         proc changed(value: float) =
-          state.getField(fieldName) = value.int
+          state.getField(fieldName) = value.T
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): Widget =
   return gui:
