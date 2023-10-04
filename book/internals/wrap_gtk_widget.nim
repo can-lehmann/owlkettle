@@ -111,8 +111,6 @@ Follow and repeat the following steps to add a field:
 - Create bindings for the GTK setters of the property
 - Add a field for the property
 - Add a `property` hook for the field that calls the GTK setter function.
-- Add a `(build, update)` hook for every field on your widget that *is* of type `Widget`.
-  The hook should do nothing but call `state.updateChild` or `state.updateChildren` with the wrapped GTK functions for adding/removing a `GtkWidget`.
 - Run your example application to check whether the added field works.
 
 
