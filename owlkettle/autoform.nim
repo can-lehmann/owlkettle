@@ -1,4 +1,4 @@
-import std/[options, json, times, macros, strutils, sequtils]
+import std/[options, times, macros, strformat, strutils, sequtils, typetraits]
 import ./dataentries
 import ./adw
 import ./widgetutils
@@ -39,15 +39,23 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Wi
           proc changed(newVal: bool) =
             state.getField(fieldName) = newVal
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[object | ref object | tuple | seq]): Widget =
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Widget =
   return gui:
     ActionRow:
       title = fieldName
-      Entry(text = $ %*state.getField(fieldName)) {.addSuffix.}:
-        proc changed(text: string) =
-          try:
-            state.getField(fieldName) = text.parseJson().to(typ)
-          except Exception: discard
+      Label():
+        text = fmt"Override `toFormField` for '{$typ.type}'"
+        tooltip = fmt"""
+          The type '{$typ.type}' must implement a `toFormField` proc.
+          `toFormField(
+            state: auto, 
+            fieldName: static string, 
+            typ: typedesc[{$typ.type}]
+          ): Widget`
+          
+          This will override this dummy Widget.
+          See other widget example applications for examples.
+        """
 
 proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
   let options: seq[string] = T.items.toSeq().mapIt($it)
