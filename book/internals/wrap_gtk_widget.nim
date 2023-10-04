@@ -138,14 +138,14 @@ For examples of signatures for signal-handler procs, go to [widgets.nim](https:/
 
 ##### 2) Add a `connectEvents` hook to the widget type in `widgets.nim`
 When the Owlkettle widget gets created, it needs to register its signal-handler procs with the GTK widget.
-Only then can GTK trigger their execution whenever it fires a signal corresponding to those handler procs.
+Only then can GTK trigger their execution when a signal occurs and have Owlkettle fire an Owlkettle event in response.
 
-For this, add the `connectEvents` hook and in it, call the provided `connect` proc: `state.connect(state.<procName>, "<signalName>", <eventCallback>)`
+For this, add the `connectEvents` hook and in it, call the provided `connect` proc: `state.connect(state.<eventName>, "<signalName>", <eventCallback>)`
 Where:
-  - `<procName>` is the name of the signal-handler proc
+  - `<eventName>` is the name of the Owlkettle event
   - `<signalName>` is the name of the GTK signal
-  - `<eventCallback>` is a proc that connects the signal-handler to the signal and updates the internal state if necessary. 
-
+  - `<eventCallback>` is the signal-handler
+  
 If a signal does not require the state of the widget to be updated (e.g. `clicked`), you can use the default `eventCallback` proc for <eventCallback>.
 If a signal does require the state of the widget to be updated (e.g. `select`), you will need to define your own <eventCallback> proc.
 
