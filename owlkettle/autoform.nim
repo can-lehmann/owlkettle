@@ -123,7 +123,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y:
         proc changed(value: float) =
           state.getField(fieldName)[1] = value.int
   
-proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
+proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
   var fieldWidgets: seq[Widget] = @[]
   for name, value in app[].fieldPairs:
     when name notin ["app", "viewed"] and name notin ignoreFields:
@@ -131,21 +131,20 @@ proc toAutoForm*[T](app: T, ignoreFields: static seq[string]): Widget =
       fieldWidgets.add(fieldWidget)
       
   result = gui:
-    Box(orient = OrientY):
-      sizeRequest = (300, -1)
-      
-      HeaderBar {.expand: false.}:
-        showTitleButtons = false
-      
-      ScrolledWindow:
-        PreferencesGroup:
-          title = "Fields"
-          margin = 12
-          
-          for field in fieldWidgets:
-            insert field
+    MenuButton:
+      icon = "open-menu"
+      Popover():
+        Box(orient = OrientY):
+          sizeRequest = (400, 700)
+          ScrolledWindow:
+            PreferencesGroup:
+              title = "Fields"
+              margin = 12
+              
+              for field in fieldWidgets:
+                insert field
 
 
-proc toAutoForm*[T](app: T): Widget =
+proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700)): Widget =
   const ignoreFields: seq[string] = @[]
-  return toAutoForm[T](app, ignoreFields = ignoreFields)
+  return toAutoFormMenu[T](app, ignoreFields = ignoreFields)
