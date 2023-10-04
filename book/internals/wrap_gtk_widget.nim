@@ -103,11 +103,9 @@ Owlkettle fields usually map to the GTK widget's properties.
 
 E.g. you may be able to show or hide values, change their positioning, enable or disable them etc. by updating certain fields at runtime after the widget was constructed.
 
-Take a look at the functions of your widget (and the functions of its parent classes) in the GTK docs, specifically anything that isn't a getter.
-If there's procs to add or set a property of the widget, try to add that feature to your wrapped widget.
-If the proc requires a parameter of type `GtkWidget` or an array/list of `GtkWidget`, add a field of type `Widget`/`seq[Widget]` to your wrapped widget instead of `GtkWidget`. 
-
-At minimum, try to wrap all features exposed by your widget directly and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`)
+Take a look at the properties of the GTK widget.
+At minimum, try to wrap all properties exposed by your widget and possibly its direct parent (e.g. for `Gtk.Scale` everything from there as well as its parent `Gtk.Range`).
+If the GTK Widget can contain child widgets, [create the appropriate adders](https://can-lehmann.github.io/owlkettle/book/internals/adders.html).
 
 Follow and repeat the following steps to add a field:
 - Create bindings for the GTK setters of the property
