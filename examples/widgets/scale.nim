@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[options, sequtils, json]
-import owlkettle, owlkettle/[dataentries, widgetUtils, autoform, adw]
+import std/[sequtils]
+import owlkettle, owlkettle/[dataentries, autoform, adw]
 
 viewable App:
   min: float = 0

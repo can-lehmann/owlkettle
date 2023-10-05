@@ -21,8 +21,6 @@
 # SOFTWARE.
 
 import owlkettle, owlkettle/[adw, autoform]
-import std/enumerate
-
 
 viewable App:
   options: seq[string] = @["Option 0", "Option 1", "Option 2"]

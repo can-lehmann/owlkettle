@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils, enumerate]
+import std/[sequtils]
 import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Drop Down Example"
