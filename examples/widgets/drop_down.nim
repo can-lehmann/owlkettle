@@ -25,27 +25,6 @@ import owlkettle, owlkettle/[autoform, adw]
 
 const APP_NAME = "Drop Down Example"
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[string]]): Widget =
-  return gui:
-    ExpanderRow:
-      title = fieldName
-      
-      for index, val in enumerate(state.items.items):
-        ActionRow {.addRow.}:
-          title = fieldName & $index
-          
-          Entry {.addSuffix.}:
-            text = state.items[index]
-            proc changed(value: string) =
-              state.items[index] = value
-      
-      ListBoxRow {.addRow.}:
-        Button:
-          icon = "list-add-symbolic"
-          style = [ButtonFlat]
-          proc clicked() =
-            state.items.add("")
-
 viewable App:
   selected: int = 0
   items: seq[string] = mapIt(0..<100, "Option " & $it)
@@ -57,30 +36,27 @@ viewable App:
   
 method view(app: AppState): Widget =
   result = gui:
-    WindowSurface:
-      defaultSize = (800, 600)
+    Window:
+      defaultSize = (400, 500)
       
-      Box(orient = OrientX):
-        insert app.toAutoForm()
-        
-        Separator() {.expand: false.}
-        
-        Box(orient = OrientY):
-          HeaderBar {.expand: false.}:
-            WindowTitle {.addTitle.}:
-              title = "Dropdown Example"
-              subtitle = "Selected: " & $app.selected & " '" & app.items[app.selected] & "'"
+      Box(orient = OrientY):
+        HeaderBar {.expand: false.}:
+          WindowTitle {.addTitle.}:
+            title = "Dropdown Example"
+            subtitle = "Selected: " & $app.selected & " '" & app.items[app.selected] & "'"
           
-          DropDown {.expand: false.}:
-            items = app.items
-            selected = app.selected
-            enableSearch = app.enableSearch
-            showArrow = app.showArrow
-            sensitive = app.sensitive
-            tooltip = app.tooltip
-            sizeRequest = app.sizeRequest
-          
-            proc select(item: int) =
-              app.selected = item
+          insert(app.toAutoFormMenu(sizeRequest = (500, 470))) {.addRight.}
+
+        DropDown {.expand: false.}:
+          items = app.items
+          selected = app.selected
+          enableSearch = app.enableSearch
+          showArrow = app.showArrow
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+        
+          proc select(item: int) =
+            app.selected = item
 
 adw.brew(gui(App()))

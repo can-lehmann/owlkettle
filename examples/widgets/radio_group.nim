@@ -23,26 +23,6 @@
 import owlkettle, owlkettle/[adw, autoform]
 import std/enumerate
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[string]]): Widget =
-  return gui:
-    ExpanderRow:
-      title = fieldName
-      
-      for index, val in enumerate(state.options.items):
-        ActionRow {.addRow.}:
-          title = fieldName & $index
-          
-          Entry {.addSuffix.}:
-            text = state.options[index]
-            proc changed(value: string) =
-              state.options[index] = value
-      
-      ListBoxRow {.addRow.}:
-        Button:
-          icon = "list-add-symbolic"
-          style = [ButtonFlat]
-          proc clicked() =
-            state.options.add("")
 
 viewable App:
   options: seq[string] = @["Option 0", "Option 1", "Option 2"]
@@ -59,41 +39,37 @@ method view(app: AppState): Widget =
     WindowSurface:
       defaultSize = (800, 600)
       
-      Box(orient = OrientX):
-        insert app.toAutoForm(ignoreFields = @["pixbuf", "loading"])
-        
-        Separator() {.expand: false.}
-        
-        Box(orient = OrientY):
-          HeaderBar {.expand: false.}:
-            WindowTitle {.addTitle.}:
-              title = "Radio Group Example"
-              if app.selected in 0..<app.options.len:
-                subtitle = app.options[app.selected]
-              else:
-                subtitle = "Invalid Item"
-                  
-          ScrolledWindow:
-            Box:
-              orient = OrientY
-              margin = 12
-              
-              RadioGroup {.expand: false.}:
-                selected = app.selected
-                sensitive = app.sensitive
-                sizeRequest = app.sizeRequest
-                tooltip = app.tooltip
-                spacing = app.spacing
-                rowSpacing = app.rowSpacing
-                orient = app.orient
-                
-                proc select(index: int) =
-                  app.selected = index
-                
-                for option in app.options:
-                  Label:
-                    text = option
-                    xAlign = 0
+      Box(orient = OrientY):
+        HeaderBar {.expand: false.}:
+          WindowTitle {.addTitle.}:
+            title = "Radio Group Example"
+            if app.selected in 0..<app.options.len:
+              subtitle = app.options[app.selected]
+            else:
+              subtitle = "Invalid Item"
+            
+          insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (500, 520))) {.addRight.}
+
+        Box:
+          orient = OrientY
+          margin = 12
+          
+          RadioGroup {.expand: false.}:
+            selected = app.selected
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            tooltip = app.tooltip
+            spacing = app.spacing
+            rowSpacing = app.rowSpacing
+            orient = app.orient
+            
+            proc select(index: int) =
+              app.selected = index
+            
+            for option in app.options:
+              Label:
+                text = option
+                xAlign = 0
 
 
 adw.brew(gui(App()))
