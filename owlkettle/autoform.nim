@@ -33,7 +33,7 @@ macro getField*(someType: untyped, fieldName: static string): untyped =
 
 # Default `toFormField` implementations
 proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
-  ## Provides a form field in a row for all number times in SomeNumber
+  ## Provides a form field for all number times in SomeNumber
   return gui:
     ActionRow:
       title = fieldName
@@ -45,7 +45,7 @@ proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: type
           state.getField(fieldName) = value.T
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): Widget =
-  ## Provides a form field in a row for string
+  ## Provides a form field for string
   return gui:
     ActionRow:
       title = fieldName
@@ -55,7 +55,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): 
           state.getField(fieldName) = text
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Widget =
-  ## Provides a form field in a row for bool
+  ## Provides a form field for bool
   return gui:
     ActionRow:
       title = fieldName
@@ -66,7 +66,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Wi
             state.getField(fieldName) = newVal
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Widget =
-  ## Provides a dummy field in a row as a fallback for any type without a `toFormField`.
+  ## Provides a dummy field as a fallback for any type without a `toFormField`.
   return gui:
     ActionRow:
       title = fieldName
@@ -88,7 +88,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Wi
         """
 
 proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
-  ## Provides a form field in a row for enums
+  ## Provides a form field for enums
   let options: seq[string] = T.items.toSeq().mapIt($it)
   return gui:
     ComboRow:
@@ -124,7 +124,7 @@ method view (state: DateDialogState): Widget =
             state.date = date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =
-  ## Provides a form field in a row for DateTime
+  ## Provides a form field for DateTime
   return gui:
     ActionRow:
       title = fieldName & ": " & $state.getField(fieldName).inZone(local())
@@ -137,7 +137,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime])
             state.getField(fieldName) = DateDialogState(dialogState).date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
-  ## Provides a form field in a row for the tuple type of sizeRequest
+  ## Provides a form field for the tuple type of sizeRequest
   return gui:
     ActionRow:
       title = fieldName
@@ -158,7 +158,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y:
 
 ## Default `toListFormField` implementations
 proc toListFormField[T: SomeNumber](state: auto, fieldName: static string, index: int, typ: typedesc[T]): Widget =
-  ## Provides a single-row form of any number type for displaying an entry in a list
+  ## Provides a form to display a single entry of any number in a list of number entries.
   return gui:
     ActionRow:
       title = fieldName & $index
@@ -171,7 +171,7 @@ proc toListFormField[T: SomeNumber](state: auto, fieldName: static string, index
           state.getField(fieldName)[index] = value.T
 
 proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[string]): Widget =
-  ## Provides a single-row form of string for displaying an entry in a list
+  ## Provides a form to display a single entry of type `string` in a list of `string` entries.
   return gui:
     ActionRow:
       title = fieldName
@@ -181,7 +181,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
           state.getField(fieldName)[index] = text
 
 proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[bool]): Widget =
-  ## Provides a single-row form of booleans for displaying an entry in a list
+  ## Provides a form to display a single entry of type `bool` in a list of `bool` entries.
   return gui:
     ActionRow:
       title = fieldName
@@ -192,7 +192,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
             state.getField(fieldName)[index] = newVal
 
 proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[DateTime]): Widget =
-  ## Provides a single-row form of DateTime for displaying an entry in a list
+  ## Provides a form to display a single entry of type `DateTime` in a list of `DateTime` entries.
   return gui:
     ActionRow:
       title = fieldName & ": " & $state.getField(fieldName)[index].inZone(local())
@@ -205,7 +205,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
             state.getField(fieldName)[index] = DateDialogState(dialogState).date
 
 proc toListFormField[T: enum](state: auto, fieldName: static string, index: int, typ: typedesc[T]): Widget =
-  ## Provides a single-row form of an enum for displaying an entry in a list
+  ## Provides a form to display a single entry of an enum in a list of enum entries.
   let options: seq[string] = T.items.toSeq().mapIt($it)
   return gui:
     ComboRow:
@@ -240,7 +240,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
         """
 
 proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[ScaleMark]): Widget =
-  ## Provides a single-row form of ScaleMark for displaying an entry in a list
+  ## Provides a form to display a single entry of type `ScaleMark` in a list of `ScaleMark` entries.
   let mark: ScaleMark = state.getField(fieldName)[index]
   return gui:
     ActionRow:
@@ -265,7 +265,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
           state.getField(fieldName).delete(index)
 
 proc toFormField[T](state: auto, fieldName: static string, typ: typedesc[seq[T]]): Widget =
-  ## Provides a form field in a row for all seq type.
+  ## Provides a form field for any field on `state` with a seq type.
   ## Displays a dummy widget if there is no `toListFormField` implementation for type T.
   return gui:
     ExpanderRow:
@@ -282,11 +282,11 @@ proc toFormField[T](state: auto, fieldName: static string, typ: typedesc[seq[T]]
             state.getField(fieldName).add(default(T))
 
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
-  ## Provides a form with a form field every field in a given `app` instance. 
+  ## Provides a form for every field in a given `app` instance.
   ## The form is provided as a Popover that can be activated via a Menu-Button
   ## `ignoreFields` defines a list of field names to ignore for the form generation.
   ## `sizeRequest` defines the requested size for the popover. 
-  ## Displays a dummy widget if there is no `toFormField` implementation for type T.
+  ## Displays a dummy widget if there is no `toFormField` implementation for a field with a custom type.
   var fieldWidgets: seq[Widget] = @[]
   for name, value in app[].fieldPairs:
     when name notin ["app", "viewed"] and name notin ignoreFields:
