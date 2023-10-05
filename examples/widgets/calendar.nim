@@ -35,7 +35,7 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    WindowSurface:
+    Window:
       defaultSize = (500, 500)
       
       Box(orient = OrientY):
