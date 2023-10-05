@@ -1,4 +1,4 @@
-import std/[options, times, macros, strformat, strutils, sequtils, typetraits]
+import std/[options, times, macros, strformat, strutils, sequtils, typetraits, enumerate]
 import ./dataentries
 import ./adw
 import ./widgetutils
@@ -10,6 +10,7 @@ macro getField*(someType: untyped, fieldName: static string): untyped =
   nnkDotExpr.newTree(someType, ident(fieldName))
 
 proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
+  ## Provides a form field in a row for all number times in SomeNumber
   return gui:
     ActionRow:
       title = fieldName
@@ -21,6 +22,7 @@ proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: type
           state.getField(fieldName) = value.T
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): Widget =
+  ## Provides a form field in a row for string
   return gui:
     ActionRow:
       title = fieldName
@@ -30,6 +32,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): 
           state.getField(fieldName) = text
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Widget =
+  ## Provides a form field in a row for bool
   return gui:
     ActionRow:
       title = fieldName
@@ -40,6 +43,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Wi
             state.getField(fieldName) = newVal
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Widget =
+  ## Provides a dummy field in a row as a fallback for any type without a `toFormField`.
   return gui:
     ActionRow:
       title = fieldName
@@ -58,6 +62,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Wi
         """
 
 proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
+  ## Provides a form field in a row for enums
   let options: seq[string] = T.items.toSeq().mapIt($it)
   return gui:
     ComboRow:
@@ -93,6 +98,7 @@ method view (state: DateDialogState): Widget =
             state.date = date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =
+  ## Provides a form field in a row for DateTime
   return gui:
     ActionRow:
       title = fieldName & ": " & $state.getField(fieldName).inZone(local())
@@ -104,8 +110,10 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime])
           if res.kind == DialogAccept:
             state.getField(fieldName) = DateDialogState(dialogState).date
 
+## Custom DataType toFormFields
+
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
-  ## toFormField proc specifically for the tuple type of sizeRequest
+  ## Provides a form field in a row for the tuple type of sizeRequest
   return gui:
     ActionRow:
       title = fieldName
@@ -122,7 +130,88 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y:
         maxWidth = 8
         proc changed(value: float) =
           state.getField(fieldName)[1] = value.int
-  
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[ScaleMark]]): Widget =
+  ## Provides a form field in a row for ScaleMark
+  return gui:
+    ExpanderRow:
+      title = fieldName
+      
+      for index, mark in state.getField(fieldName):
+        ActionRow {.addRow.}:
+          title = fieldName & $index
+          
+          NumberEntry {.addSuffix.}:
+            value = mark.value
+            xAlign = 1.0
+            maxWidth = 8
+            proc changed(value: float) =
+              state.getField(fieldName)[index].value = value
+          
+          DropDown {.addSuffix.}:
+            items = ScalePosition.items.toSeq().mapIt($it)
+            selected = mark.position.int
+            proc select(enumIndex: int) =
+              state.getField(fieldName)[index].position = enumIndex.ScalePosition
+              
+          Button {.addSuffix.}:
+            icon = "user-trash-symbolic"
+            proc clicked() =
+              state.getField(fieldName).delete(index)
+      
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.getField(fieldName).add(ScaleMark())
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[int]]): Widget =
+  ## Provides a form field in a row for seq[int]
+  return gui:
+    ExpanderRow:
+      title = fieldName
+      
+      for index, day in state.getField(fieldName):
+        ActionRow {.addRow.}:
+          title = fieldName & $index
+          
+          NumberEntry {.addSuffix.}:
+            value = day.float
+            xAlign = 1.0
+            maxWidth = 8
+            proc changed(value: float) =
+              state.getField(fieldName)[index] = value.int
+      
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.getField(fieldName).add(0)
+
+proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[string]]): Widget =
+  ## Provides a form field in a row for seq[string]
+  return gui:
+    ExpanderRow:
+      title = fieldName
+      
+      for index, val in enumerate(state.getField(fieldName).items):
+        ActionRow {.addRow.}:
+          title = fieldName & $index
+          
+          Entry {.addSuffix.}:
+            text = state.getField(fieldName)[index]
+            proc changed(value: string) =
+              state.getField(fieldName)[index] = value
+      
+      ListBoxRow {.addRow.}:
+        Button:
+          icon = "list-add-symbolic"
+          style = [ButtonFlat]
+          proc clicked() =
+            state.getField(fieldName).add("")
+
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
   var fieldWidgets: seq[Widget] = @[]
   for name, value in app[].fieldPairs:
@@ -132,10 +221,10 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
       
   result = gui:
     MenuButton:
-      icon = "open-menu"
+      icon = "document-properties"
       Popover():
         Box(orient = OrientY):
-          sizeRequest = (400, 700)
+          sizeRequest = sizeRequest
           ScrolledWindow:
             PreferencesGroup:
               title = "Fields"
@@ -144,7 +233,7 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
               for field in fieldWidgets:
                 insert field
 
-
+            
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700)): Widget =
   const ignoreFields: seq[string] = @[]
-  return toAutoFormMenu[T](app, ignoreFields = ignoreFields)
+  return toAutoFormMenu[T](app, ignoreFields = ignoreFields, sizeRequest = sizeRequest)
