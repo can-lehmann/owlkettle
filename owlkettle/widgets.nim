@@ -3525,6 +3525,29 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+renderable Video of BaseWidget:
+  fileName: string
+  autoplay: bool = false
+  loop: bool = false
+  mediaStream: GtkMediaStream
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_video_new()
+    
+  hooks fileName:
+    property:
+      gtk_video_set_filename(state.internalWidget, state.fileName.cstring)
+  
+  hooks autoplay:
+    property:
+      gtk_video_set_autoplay(state.internalWidget, state.autoplay.cbool)
+
+  hooks loop:
+    property:
+      gtk_video_set_loop(state.internalWidget, state.loop.cbool)
+    
+export Video
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
