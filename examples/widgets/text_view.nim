@@ -39,59 +39,58 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       defaultSize = (800, 600)
-      
+      HeaderBar {.addTitlebar.}:
+        Button {.addLeft.}:
+          text = "Set Text"
+          proc clicked() =
+            app.buffer.text = "Hello, world!\n"
+        
+        Button {.addLeft.}:
+          text = "Get Text"
+          proc clicked() =
+            if app.buffer.hasSelection:
+              echo app.buffer.text(app.buffer.selection)
+            else:
+              echo app.buffer.text
+        
+        Button {.addLeft.}:
+          text = "Insert"
+          proc clicked() =
+            app.buffer.insert(app.buffer.selection.a, "Hello, world!")
+        
+        Button {.addLeft.}:
+          text = "Delete"
+          proc clicked() =
+            app.buffer.delete(app.buffer.selection)
+        
+        insert(app.toAutoFormMenu(ignoreFields = @["buffer"], sizeRequest = (300, 520))) {.addRight.}
+        
+        Button {.addRight.}:
+          text = "Unmark"
+          proc clicked() =
+            app.buffer.removeTag("marker", app.buffer.selection)
+        
+        Button {.addRight.}:
+          text = "Mark"
+          proc clicked() =
+            app.buffer.applyTag("marker", app.buffer.selection)
+        
+        Button {.addRight.}:
+          text = "Next Tag"
+          proc clicked() =
+            let tag = app.buffer.lookupTag("marker")
+            var iter = app.buffer.selection.a
+            while true:
+              if not iter.forwardToTagToggle(tag):
+                break
+              if iter.startsTag(tag):
+                var stop = iter
+                discard stop.forwardToTagToggle(tag)
+                app.buffer.select(stop, iter)
+                iter = stop
+                break
+  
       Box(orient = OrientY):
-        HeaderBar {.expand: false.}:
-          Button {.addLeft.}:
-            text = "Set Text"
-            proc clicked() =
-              app.buffer.text = "Hello, world!\n"
-          
-          Button {.addLeft.}:
-            text = "Get Text"
-            proc clicked() =
-              if app.buffer.hasSelection:
-                echo app.buffer.text(app.buffer.selection)
-              else:
-                echo app.buffer.text
-          
-          Button {.addLeft.}:
-            text = "Insert"
-            proc clicked() =
-              app.buffer.insert(app.buffer.selection.a, "Hello, world!")
-          
-          Button {.addLeft.}:
-            text = "Delete"
-            proc clicked() =
-              app.buffer.delete(app.buffer.selection)
-          
-          insert(app.toAutoFormMenu(ignoreFields = @["buffer"], sizeRequest = (300, 520))) {.addRight.}
-          
-          Button {.addRight.}:
-            text = "Unmark"
-            proc clicked() =
-              app.buffer.removeTag("marker", app.buffer.selection)
-          
-          Button {.addRight.}:
-            text = "Mark"
-            proc clicked() =
-              app.buffer.applyTag("marker", app.buffer.selection)
-          
-          Button {.addRight.}:
-            text = "Next Tag"
-            proc clicked() =
-              let tag = app.buffer.lookupTag("marker")
-              var iter = app.buffer.selection.a
-              while true:
-                if not iter.forwardToTagToggle(tag):
-                  break
-                if iter.startsTag(tag):
-                  var stop = iter
-                  discard stop.forwardToTagToggle(tag)
-                  app.buffer.select(stop, iter)
-                  iter = stop
-                  break
-    
         ScrolledWindow:
           Box(orient = OrientY):
             TextView:

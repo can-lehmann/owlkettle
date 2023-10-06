@@ -38,45 +38,43 @@ method view(app: AppState): Widget =
     Window:
       defaultSize = (500, 500)
       
-      Box(orient = OrientY):
-        
-        HeaderBar {.expand: false.}:
-          WindowTitle {.addTitle.}:
-            title = "Calendar Example"
-            subtitle = $app.date.inZone(local())
-            
-          insert(app.toAutoFormMenu(sizeRequest=(550, 520))) {.addRight.}
-      
-          Button {.addLeft.}:
-            icon = "go-previous"
-            style = [ButtonFlat]
-            tooltip = "Previous Day"
-            
-            proc clicked() =
-              app.date -= 1.days
+      HeaderBar {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Calendar Example"
+          subtitle = $app.date.inZone(local())
           
-          Button {.addLeft.}:
-            icon = "go-next"
-            style = [ButtonFlat]
-            tooltip = "Next Day"
-            
-            proc clicked() =
-              app.date += 1.days
+        insert(app.toAutoFormMenu(sizeRequest=(450, 520))) {.addRight.}
     
-        Calendar:
-          date = app.date
-          markedDays = app.markedDays
-          showDayNames = app.showDayNames
-          showHeading = app.showHeading
-          showWeekNumbers = app.showWeekNumbers
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
+        Button {.addLeft.}:
+          icon = "go-previous"
+          style = [ButtonFlat]
+          tooltip = "Previous Day"
           
-          proc select(date: DateTime) =
-            ## Shortcut for handling all calendar events (daySelected,
-            ## nextMonth, prevMonth, nextYear, prevYear)
-            app.date = date
+          proc clicked() =
+            app.date -= 1.days
+        
+        Button {.addLeft.}:
+          icon = "go-next"
+          style = [ButtonFlat]
+          tooltip = "Next Day"
+          
+          proc clicked() =
+            app.date += 1.days
+  
+      Calendar:
+        date = app.date
+        markedDays = app.markedDays
+        showDayNames = app.showDayNames
+        showHeading = app.showHeading
+        showWeekNumbers = app.showWeekNumbers
+        sensitive = app.sensitive
+        tooltip = app.tooltip
+        sizeRequest = app.sizeRequest
+        
+        proc select(date: DateTime) =
+          ## Shortcut for handling all calendar events (daySelected,
+          ## nextMonth, prevMonth, nextYear, prevYear)
+          app.date = date
 
 
 adw.brew(gui(App()), stylesheets=[

@@ -38,15 +38,14 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       defaultSize = (400, 500)
+      HeaderBar {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Dropdown Example"
+          subtitle = "Selected: " & $app.selected & " '" & app.items[app.selected] & "'"
+        
+        insert(app.toAutoFormMenu(sizeRequest = (500, 470))) {.addRight.}
       
       Box(orient = OrientY):
-        HeaderBar {.expand: false.}:
-          WindowTitle {.addTitle.}:
-            title = "Dropdown Example"
-            subtitle = "Selected: " & $app.selected & " '" & app.items[app.selected] & "'"
-          
-          insert(app.toAutoFormMenu(sizeRequest = (500, 470))) {.addRight.}
-
         DropDown {.expand: false.}:
           items = app.items
           selected = app.selected

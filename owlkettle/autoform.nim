@@ -127,7 +127,8 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime])
   ## Provides a form field for DateTime
   return gui:
     ActionRow:
-      title = fieldName & ": " & $state.getField(fieldName).inZone(local())
+      title = fieldName
+      subtitle =  $state.getField(fieldName).inZone(local())
       Button {.addSuffix.}:
         icon = "x-office-calendar-symbolic"
         text = "Select"
@@ -195,7 +196,8 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
   ## Provides a form to display a single entry of type `DateTime` in a list of `DateTime` entries.
   return gui:
     ActionRow:
-      title = fieldName & ": " & $state.getField(fieldName)[index].inZone(local())
+      title = fieldName
+      subtitle =  $state.getField(fieldName)[index].inZone(local())
       Button {.addSuffix.}:
         icon = "x-office-calendar-symbolic"
         text = "Select"
@@ -306,7 +308,6 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
               
               for field in fieldWidgets:
                 insert field
-
             
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700)): Widget =
   const ignoreFields: seq[string] = @[]

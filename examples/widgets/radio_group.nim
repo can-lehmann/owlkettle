@@ -36,38 +36,36 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       defaultSize = (800, 600)
-      
-      Box(orient = OrientY):
-        HeaderBar {.expand: false.}:
-          WindowTitle {.addTitle.}:
-            title = "Radio Group Example"
-            if app.selected in 0..<app.options.len:
-              subtitle = app.options[app.selected]
-            else:
-              subtitle = "Invalid Item"
-            
-          insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (500, 520))) {.addRight.}
-
-        Box:
-          orient = OrientY
-          margin = 12
+      HeaderBar {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Radio Group Example"
+          if app.selected in 0..<app.options.len:
+            subtitle = app.options[app.selected]
+          else:
+            subtitle = "Invalid Item"
           
-          RadioGroup {.expand: false.}:
-            selected = app.selected
-            sensitive = app.sensitive
-            sizeRequest = app.sizeRequest
-            tooltip = app.tooltip
-            spacing = app.spacing
-            rowSpacing = app.rowSpacing
-            orient = app.orient
-            
-            proc select(index: int) =
-              app.selected = index
-            
-            for option in app.options:
-              Label:
-                text = option
-                xAlign = 0
+        insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (500, 520))) {.addRight.}
+
+      Box:
+        orient = OrientY
+        margin = 12
+        
+        RadioGroup {.expand: false.}:
+          selected = app.selected
+          sensitive = app.sensitive
+          sizeRequest = app.sizeRequest
+          tooltip = app.tooltip
+          spacing = app.spacing
+          rowSpacing = app.rowSpacing
+          orient = app.orient
+          
+          proc select(index: int) =
+            app.selected = index
+          
+          for option in app.options:
+            Label:
+              text = option
+              xAlign = 0
 
 
 adw.brew(gui(App()))

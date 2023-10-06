@@ -34,51 +34,50 @@ method view(app: AppState): Widget =
     Window:
       defaultSize = (800, 600)
 
-      Box(orient = OrientY):      
-        HeaderBar {.expand: false.}:
-          insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (400, 300))) {.addRight.}
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (400, 300))) {.addRight.}
 
-          MenuButton {.addRight.}:
-            icon = "open-menu"
-            PopoverMenu:
-              sensitive = app.sensitive
-              sizeRequest = app.sizeRequest
-              offset = app.offset
-              position = app.position
+        MenuButton {.addRight.}:
+          icon = "open-menu"
+          PopoverMenu:
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            offset = app.offset
+            position = app.position
+            
+            Box {.name: "main".}:
+              orient = OrientY
+              margin = 4
+              spacing = 3
               
-              Box {.name: "main".}:
-                orient = OrientY
-                margin = 4
-                spacing = 3
-                
-                ModelButton:
-                  text = "Submenu"
-                  menuName = "submenu"
-                  proc clicked() =
-                    echo "Open Submenu"
-                
-                Separator()
-                
-                ModelButton:
-                  text = "About"
-                  proc clicked() =
-                    echo "About Clicked"
-                
-                ModelButton:
-                  text = "Close"
-                  proc clicked() =
-                    echo "Close Clicked"
+              ModelButton:
+                text = "Submenu"
+                menuName = "submenu"
+                proc clicked() =
+                  echo "Open Submenu"
               
-              Box {.name: "submenu".}:
-                orient = OrientY
-                margin = 4
-                spacing = 3
-                
-                for it in 0..<3:
-                  ModelButton:
-                    text = "Entry " & $it
-                    proc clicked() =
-                      echo "Entry " & $it
+              Separator()
+              
+              ModelButton:
+                text = "About"
+                proc clicked() =
+                  echo "About Clicked"
+              
+              ModelButton:
+                text = "Close"
+                proc clicked() =
+                  echo "Close Clicked"
+            
+            Box {.name: "submenu".}:
+              orient = OrientY
+              margin = 4
+              spacing = 3
+              
+              for it in 0..<3:
+                ModelButton:
+                  text = "Entry " & $it
+                  proc clicked() =
+                    echo "Entry " & $it
 
 
 adw.brew(gui(App()))
