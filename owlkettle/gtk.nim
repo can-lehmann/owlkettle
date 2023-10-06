@@ -539,8 +539,42 @@ proc gtk_init*()
 proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 
+# Gtk.MediaStream
+proc gtk_media_stream_get_duration*(self: GtkMediaStream): cint
+proc gtk_media_stream_get_ended*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_error*(self: GtkMediaStream): GError
+proc gtk_media_stream_get_loop*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_muted*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_playing*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_timestamp*(self: GtkMediaStream): cint
+proc gtk_media_stream_get_volume*(self: GtkMediaStream): cdouble
+proc gtk_media_stream_has_audio*(self: GtkMediaStream): cbool
+proc gtk_media_stream_has_video*(self: GtkMediaStream): cbool
+proc gtk_media_stream_is_seekable*(self: GtkMediaStream): cbool
+proc gtk_media_stream_is_seeking*(self: GtkMediaStream): cbool
+proc gtk_media_stream_pause*(self: GtkMediaStream)
+proc gtk_media_stream_play*(self: GtkMediaStream)
+# proc gtk_media_stream_realize*(self: GtkMediaStream, surface: GdkSurface)
+proc gtk_media_stream_seek*(self: GtkMediaStream, timestamp: cint)
+proc gtk_media_stream_set_loop*(self: GtkMediaStream, loop: cbool)
+proc gtk_media_stream_set_muted*(self: GtkMediaStream, muted: cbool)
+proc gtk_media_stream_set_playing*(self: GtkMediaStream, playing: cbool)
+proc gtk_media_stream_set_volume*(self: GtkMediaStream, volume: cdouble)
+# proc gtk_media_stream_unrealize*(self: GtkMediaStream, surface: GdkSurface)
+
+
 # Gtk.Settings
 proc gtk_settings_get_default*(): GtkSettings
+
+# Gtk.Video
+proc gtk_video_get_media_stream*(self: GtkWidget): GtkMediaStream
+proc gtk_video_new*(): GtkWidget
+proc gtk_video_set_autoplay*(self: GtkWidget, autoplay: cbool)
+proc gtk_video_set_file*(self: GtkWidget, file: GFile)
+proc gtk_video_set_filename*(self: GtkWidget, filename: cstring)
+proc gtk_video_set_loop*(self: GtkWidget, loop: cbool)
+proc gtk_video_set_media_stream*(self: GtkWidget, stream: GtkMediaStream)
+proc gtk_video_set_resource*(self: GtkWidget, resource_path: cstring)
 
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
