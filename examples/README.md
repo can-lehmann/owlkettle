@@ -125,7 +125,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/calendar.nim">Calendar</a></td>
-    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="743px"></td>
+    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="622px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/context_menu.nim">Context Menu</a></td>
@@ -137,7 +137,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/drop_down.nim">Drop Down</a></td>
-    <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="845px"></td>
+    <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/fixed.nim">Fixed</a></td>
@@ -149,15 +149,15 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
-    <td><img alt="Picture" src="../docs/assets/examples/picture.png" width="607px"></td>
+    <td><img alt="Picture" src="../docs/assets/examples/picture.png" width="870px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/popover_menu.nim">Popover Menu</a></td>
-    <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="891px"></td>
+    <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="328px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>
-    <td><img alt="Radio Group" src="../docs/assets/examples/radio_group.png" width="841px"></td>
+    <td><img alt="Radio Group" src="../docs/assets/examples/radio_group.png" width="522px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/scale.nim">Scale</a></td>
@@ -165,7 +165,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/text_view.nim">Text View</a></td>
-    <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="608px"></td>
+    <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="757px"></td>
   </tr>
 </table>
 
