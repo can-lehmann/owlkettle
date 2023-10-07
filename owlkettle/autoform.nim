@@ -298,6 +298,8 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
   result = gui:
     MenuButton:
       icon = "document-properties"
+      style = [ButtonFlat]
+      
       Popover():
         Box(orient = OrientY):
           sizeRequest = sizeRequest
