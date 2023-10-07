@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import owlkettle
-import owlkettle/[adw, autoform]
+import owlkettle/[adw, playground]
 
 viewable App:
   sensitive: bool = true

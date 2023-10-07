@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, autoform, adw]
+import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   min: float = 0

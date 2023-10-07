@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/[adw, autoform]
+import owlkettle, owlkettle/[adw, playground]
 
 viewable App:
   options: seq[string] = @["Option 0", "Option 1", "Option 2"]

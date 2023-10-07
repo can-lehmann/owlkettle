@@ -22,7 +22,7 @@
 
 import std/options
 import owlkettle
-import owlkettle/[adw, autoform]
+import owlkettle/[adw, playground]
 
 viewable App:
   buffer: TextBuffer

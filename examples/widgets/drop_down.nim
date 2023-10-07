@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[sequtils]
-import owlkettle, owlkettle/[autoform, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 const APP_NAME = "Drop Down Example"
 

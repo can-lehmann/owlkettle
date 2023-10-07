@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[times]
-import owlkettle, owlkettle/[adw, dataentries, autoform]
+import owlkettle, owlkettle/[adw, dataentries, playground]
 
 viewable App:
   date: DateTime = now()

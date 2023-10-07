@@ -84,7 +84,7 @@ proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Wi
           typ: The type for which `toListFormField` shall function.
           
           Implementing the proc will override this dummy Widget.
-          See the autoform module for examples.
+          See the playground module for examples.
         """
 
 proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
@@ -238,7 +238,7 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
           typ: The type for which `toListFormField` shall function.
           
           Implementing the proc will override this dummy Widget.
-          See the autoform module for examples.
+          See the playground module for examples.
         """
 
 proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[ScaleMark]): Widget =

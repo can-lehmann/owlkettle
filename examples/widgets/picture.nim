@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[asyncfutures]
-import owlkettle, owlkettle/[autoform, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 const APP_NAME = "Image Example"
 
