@@ -96,6 +96,7 @@ method view(app: AppState): Widget =
         Button {.addLeft.}:
           text = "Save"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           
           proc clicked() =
             let (res, state) = app.open: gui:
@@ -124,18 +125,21 @@ method view(app: AppState): Widget =
         Button {.addRight.}:
           icon = "object-flip-horizontal-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.flipHorizontal()
         
         Button {.addRight.}:
           icon = "object-flip-vertical-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.flipVertical()
         
         Button {.addRight.}:
           text = "Crop"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             # Crop center
             app.pixbuf = app.pixbuf.crop(
@@ -148,18 +152,21 @@ method view(app: AppState): Widget =
         Button {.addRight.}:
           text = "2x"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.scale(app.pixbuf.width * 2, app.pixbuf.height * 2)
         
         Button {.addRight.}:
           icon = "object-rotate-right-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate270()
         
         Button {.addRight.}:
           icon = "object-rotate-left-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate90()
         

@@ -41,11 +41,13 @@ method view(app: AppState): Widget =
       defaultSize = (800, 600)
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
+          style = [ButtonFlat]
           text = "Set Text"
           proc clicked() =
             app.buffer.text = "Hello, world!\n"
         
         Button {.addLeft.}:
+          style = [ButtonFlat]
           text = "Get Text"
           proc clicked() =
             if app.buffer.hasSelection:
@@ -54,11 +56,13 @@ method view(app: AppState): Widget =
               echo app.buffer.text
         
         Button {.addLeft.}:
+          style = [ButtonFlat]
           text = "Insert"
           proc clicked() =
             app.buffer.insert(app.buffer.selection.a, "Hello, world!")
         
         Button {.addLeft.}:
+          style = [ButtonFlat]
           text = "Delete"
           proc clicked() =
             app.buffer.delete(app.buffer.selection)
@@ -66,16 +70,19 @@ method view(app: AppState): Widget =
         insert(app.toAutoFormMenu(ignoreFields = @["buffer"], sizeRequest = (300, 520))) {.addRight.}
         
         Button {.addRight.}:
+          style = [ButtonFlat]
           text = "Unmark"
           proc clicked() =
             app.buffer.removeTag("marker", app.buffer.selection)
         
         Button {.addRight.}:
+          style = [ButtonFlat]
           text = "Mark"
           proc clicked() =
             app.buffer.applyTag("marker", app.buffer.selection)
         
         Button {.addRight.}:
+          style = [ButtonFlat]
           text = "Next Tag"
           proc clicked() =
             let tag = app.buffer.lookupTag("marker")

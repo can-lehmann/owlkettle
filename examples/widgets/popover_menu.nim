@@ -39,6 +39,8 @@ method view(app: AppState): Widget =
 
         MenuButton {.addRight.}:
           icon = "open-menu"
+          style = [ButtonFlat]
+          
           PopoverMenu:
             sensitive = app.sensitive
             sizeRequest = app.sizeRequest
