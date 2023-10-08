@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/[autoform, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
   description: string = "Some Description"
@@ -28,25 +28,18 @@ viewable App:
   title: string = "Some Title"
 method view(app: AppState): Widget =
   result = gui:
-    WindowSurface:
+    Window():
       defaultSize = (800, 600)
+      title = "Status Page Example"
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+
+      StatusPage():
+        description = app.description
+        iconName = app.iconName
+        title = app.title
+        
+        Label(text = "I am a child of a status page")
       
-      Box(orient = OrientX):
-        insert app.toAutoForm()
-        
-        Separator() {.expand: false.}
-        
-        Box(orient = OrientY):
-          HeaderBar {.expand: false.}:
-            WindowTitle {.addTitle.}:
-              title = "Status Page Example"
-        
-          StatusPage():
-            description = app.description
-            iconName = app.iconName
-            title = app.title
-            
-            Label(text = "I am a child of a status page")
-          
 
 adw.brew(gui(App()))
