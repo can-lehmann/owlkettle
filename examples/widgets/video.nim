@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, playground, adw]
+import owlkettle, owlkettle/[dataentries, playground, gtk, adw]
 
 viewable App:
   fileName: string = "/home/philipp/Videos/Screencasts/test.webm"
@@ -39,12 +39,21 @@ method view(app: AppState): Widget =
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu()) {.addRight.}
       
-      Video:
-        fileName = app.fileName
-        autoplay = app.autoplay
-        loop = app.loop
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
+      Box(orient = OrientY):
+        Video:
+          fileName = app.fileName
+          autoplay = app.autoplay
+          loop = app.loop
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+
+        Video:
+          file = g_file_new_for_path(app.fileName.cstring)
+          autoplay = app.autoplay
+          loop = app.loop
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
         
 adw.brew(gui(App()))

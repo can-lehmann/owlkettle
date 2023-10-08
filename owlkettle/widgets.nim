@@ -3531,6 +3531,7 @@ renderable Video of BaseWidget:
   mediaStream: GtkMediaStream
 
   setter fileName: string
+  setter file: GFile
 
   hooks:
     beforeBuild:
@@ -3558,6 +3559,12 @@ proc `hasFileName=`*(widget: Video, has: bool) =
 proc `valFileName=`*(widget: Video, fileName: string) =
   if fileExists(fileName):
     widget.valMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+
+proc `hasFile=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFile=`*(widget: Video, file: GFile) =
+  widget.valMediaStream = gtk_media_file_new_for_file(file)
 
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 

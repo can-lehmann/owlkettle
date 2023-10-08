@@ -544,6 +544,7 @@ proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 # Gtk.MediaStream
 proc `==`*(x, y: GtkMediaStream): bool {.borrow.}
 proc gtk_media_file_new_for_filename*(filename: cstring): GtkMediaStream
+proc gtk_media_file_new_for_file*(file: GFile): GtkMediaStream
 proc gtk_media_stream_get_duration*(self: GtkMediaStream): cint
 proc gtk_media_stream_get_ended*(self: GtkMediaStream): cbool
 proc gtk_media_stream_get_error*(self: GtkMediaStream): GError
