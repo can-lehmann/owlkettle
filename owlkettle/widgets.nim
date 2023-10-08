@@ -3525,10 +3525,47 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+
+# See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
+type 
+  MediaStreamObj = object
+    gdk: GtkMediaStream
+
+  MediaStream* = ref MediaStreamObj 
+
+crossVersionDestructor(stream, MediaStreamObj):
+  if isNil(stream.gdk):
+    return
+  
+  g_object_unref(pointer(stream.gdk))
+
+proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
+  let areSameObject = pointer(source.gdk) == pointer(dest.gdk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gdk):
+    g_object_ref(pointer(source.gdk))
+    
+  dest.gdk = source.gdk
+
+proc newMediaStream(gdk: GtkMediaStream): MediaStream =
+  result = MediaStream(gdk: gdk)
+
+proc newMediaStream*(fileName: string): MediaStream =
+  let gdk: GtkMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+  result = newMediaStream(gdk)
+
+proc newMediaStream*(gFile: GFile): MediaStream =
+  let gdk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
+  result = newMediaStream(gdk)
+
 renderable Video of BaseWidget:
   autoplay: bool = false
   loop: bool = false
-  mediaStream: GtkMediaStream
+  mediaStream: MediaStream
 
   setter fileName: string
   setter file: GFile
@@ -3539,11 +3576,16 @@ renderable Video of BaseWidget:
     
   hooks mediaStream:
     property:
-      let oldStream = gtk_video_get_media_stream(state.internalWidget)
-      if not oldStream.isNil():
+      let oldStream: GtkMediaStream = gtk_video_get_media_stream(state.internalWidget)
+      if not isNil(oldStream):
         g_object_unref(oldStream.pointer)
       
-      gtk_video_set_media_stream(state.internalWidget, state.mediaStream)
+      echo "Obj: ", isNil(state.mediaStream)
+      echo "Widget: ", isNil(state.internalWidget)
+      if not isNil(state.mediaStream):
+        echo "Stream: ", isNil(state.mediaStream.gdk)
+      if not isNil(state.mediaStream) and not isNil(state.mediaStream.gdk):
+        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gdk)
   
   hooks autoplay:
     property:
@@ -3558,13 +3600,13 @@ proc `hasFileName=`*(widget: Video, has: bool) =
 
 proc `valFileName=`*(widget: Video, fileName: string) =
   if fileExists(fileName):
-    widget.valMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+    widget.valMediaStream = newMediaStream(fileName)
 
 proc `hasFile=`*(widget: Video, has: bool) =
   widget.hasMediaStream = has
 
 proc `valFile=`*(widget: Video, file: GFile) =
-  widget.valMediaStream = gtk_media_file_new_for_file(file)
+  widget.valMediaStream = newMediaStream(file)
 
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 

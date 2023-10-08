@@ -20,11 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
+import std/[sequtils, os]
 import owlkettle, owlkettle/[dataentries, playground, gtk, adw]
 
+
 viewable App:
-  fileName: string = "/home/philipp/Videos/Screencasts/test.webm"
+  mediaStream: MediaStream
   autoplay: bool = false
   loop: bool = false
   sensitive: bool = true
@@ -32,22 +33,53 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
+    
   result = gui:
     Window():
       defaultSize = (800, 600)
       title = "Video Example"
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["mediaStream"], sizeRequest = (400, 400))) {.addRight.}
       
-      Box(orient = OrientY):
-        Label(text = "Video via FileName")
-        Video:
-          fileName = app.fileName
-          autoplay = app.autoplay
-          loop = app.loop
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-        Separator() {.expand: false.}
+        Button {.addLeft.}:
+          text = "Open"
+          style = [ButtonSuggested]
+          
+          proc clicked() =
+            let (res, state) = app.open: gui:
+              FileChooserDialog:
+                action = FileChooserOpen
+                
+                DialogButton {.addButton.}:
+                  text = "Cancel"
+                  res = DialogCancel
+                  style = [ButtonSuggested]
+                
+                DialogButton {.addButton.}:
+                  text = "Open"
+                  res = DialogAccept
+                  style = [ButtonSuggested]
+            
+            if res.kind == DialogAccept:
+              let path = FileChooserDialogState(state).filename
+              
+              # Load sync
+              try:
+                app.mediaStream = newMediaStream(path)
+              except IoError as err:
+                echo err.msg
+                app.mediaStream = nil
         
+      Box(orient = OrientY):
+        Label(text = "Video via FileName") {.expand: false.}
+        if not app.mediaStream.isNil():
+          Video:
+            mediaStream = app.mediaStream
+            autoplay = app.autoplay
+            loop = app.loop
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+        else:
+          Label(text = "No file selected")
 adw.brew(gui(App()))
