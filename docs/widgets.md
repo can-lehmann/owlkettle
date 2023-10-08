@@ -1476,6 +1476,25 @@ Scale:
 ```
 
 
+## Video
+
+```nim
+renderable Video of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `autoplay: bool = false`
+- `loop: bool = false`
+- `mediaStream: GtkMediaStream`
+
+###### Setters
+
+- `fileName: string`
+- `file: GFile`
+
+
 ## Expander
 
 ```nim
