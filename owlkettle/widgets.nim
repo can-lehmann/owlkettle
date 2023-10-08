@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils, common
@@ -3538,6 +3538,10 @@ renderable Video of BaseWidget:
     
   hooks mediaStream:
     property:
+      let oldStream = gtk_video_get_media_stream(state.internalWidget)
+      if not oldStream.isNil():
+        g_object_unref(oldStream.pointer)
+      
       gtk_video_set_media_stream(state.internalWidget, state.mediaStream)
   
   hooks autoplay:
@@ -3552,7 +3556,8 @@ proc `hasFileName=`*(widget: Video, has: bool) =
   widget.hasMediaStream = has
 
 proc `valFileName=`*(widget: Video, fileName: string) =
-  widget.valMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+  if fileExists(fileName):
+    widget.valMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
 
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 
