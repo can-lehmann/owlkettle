@@ -1482,7 +1482,7 @@ Scale:
 renderable Expander of BaseWidget
 ```
 
-Wrapper for GTK Expander Widget: https://docs.gtk.org/gtk4/class.Expander.html
+Container that shows or hides its child depending on whether it is expanded/collapsed
 
 ###### Fields
 
