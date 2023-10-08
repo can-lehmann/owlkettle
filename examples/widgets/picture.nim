@@ -36,7 +36,6 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (800, 600)
       title = APP_NAME
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
