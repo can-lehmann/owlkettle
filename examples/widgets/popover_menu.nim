@@ -32,10 +32,10 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (800, 600)
-
+      defaultSize = (400, 200)
+      title = "Popover Menu Demo"
       HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (400, 300))) {.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (400, 300))) {.addRight.}
 
         MenuButton {.addRight.}:
           icon = "open-menu"
