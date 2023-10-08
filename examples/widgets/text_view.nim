@@ -39,7 +39,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Text View Example"
-      defaultSize = (800, 600)
+      defaultSize = (1100, 600)
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
           style = [ButtonFlat]
@@ -98,20 +98,18 @@ method view(app: AppState): Widget =
                 iter = stop
                 break
   
-      Box(orient = OrientY):
-        ScrolledWindow:
-          Box(orient = OrientY):
-            TextView:
-              buffer = app.buffer
-              monospace = app.monospace
-              cursorVisible = app.cursorVisible
-              editable = app.editable
-              acceptsTab = app.acceptsTab
-              indent = app.indent
-              sensitive = app.sensitive
-              tooltip = app.tooltip
-              sizeRequest = app.sizeRequest
-              proc changed() = discard
+      ScrolledWindow:
+        TextView:
+          buffer = app.buffer
+          monospace = app.monospace
+          cursorVisible = app.cursorVisible
+          editable = app.editable
+          acceptsTab = app.acceptsTab
+          indent = app.indent
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          proc changed() = discard
         
 let buffer = newTextBuffer()
 discard buffer.registerTag("marker", TagStyle(

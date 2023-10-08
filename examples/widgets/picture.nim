@@ -37,7 +37,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       defaultSize = (800, 600)
-
+      title = APP_NAME
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = APP_NAME
@@ -46,10 +46,10 @@ method view(app: AppState): Widget =
             subtitle = ""
           else:
             subtitle = $app.pixbuf.width & "x" &
-                      $app.pixbuf.height & "x" &
-                      $app.pixbuf.channels & " (" &
-                      $app.pixbuf.bitsPerSample & "bits/sample, " &
-                      (if app.pixbuf.hasAlpha: "Has Alpha" else: "No Alpha") & ")"
+                       $app.pixbuf.height & "x" &
+                       $app.pixbuf.channels & " (" &
+                       $app.pixbuf.bitsPerSample & "bits/sample, " &
+                       (if app.pixbuf.hasAlpha: "Has Alpha" else: "No Alpha") & ")"
         
         Button {.addLeft.}:
           text = "Open"
@@ -170,18 +170,17 @@ method view(app: AppState): Widget =
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate90()
         
-      Box(orient = OrientY):
-        if app.pixbuf.isNil:
-          if app.loading:
-            Label(text = "Loading...")
-          else:
-            Label(text = "No image")
+      if app.pixbuf.isNil:
+        if app.loading:
+          Label(text = "Loading...")
         else:
-          Picture:
-            pixbuf = app.pixbuf
-            contentFit = app.contentFit
-            sensitive = app.sensitive
-            tooltip = app.tooltip
-            sizeRequest = app.sizeRequest
+          Label(text = "No image")
+      else:
+        Picture:
+          pixbuf = app.pixbuf
+          contentFit = app.contentFit
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
 
 adw.brew(gui(App()))
