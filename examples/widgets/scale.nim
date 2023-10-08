@@ -20,43 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[options, sequtils, json]
-import owlkettle, owlkettle/[dataentries, widgetUtils, autoform, adw]
-
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[seq[ScaleMark]]): Widget =
-  return gui:
-    ExpanderRow:
-      title = fieldName
-      
-      for index, mark in state.marks:
-        ActionRow {.addRow.}:
-          title = fieldName & $index
-          
-          NumberEntry {.addSuffix.}:
-            value = mark.value
-            xAlign = 1.0
-            maxWidth = 8
-            proc changed(value: float) =
-              state.marks[index].value = value
-          
-          DropDown {.addSuffix.}:
-            items = ScalePosition.items.toSeq().mapIt($it)
-            selected = mark.position.int
-            proc select(enumIndex: int) =
-              state.marks[index].position = enumIndex.ScalePosition
-              
-          Button {.addSuffix.}:
-            icon = "user-trash-symbolic"
-            proc clicked() =
-              state.marks.delete(index)
-      
-      ListBoxRow {.addRow.}:
-        Button:
-          icon = "list-add-symbolic"
-          style = [ButtonFlat]
-          proc clicked() =
-            state.marks.add(ScaleMark())
-
+import std/[sequtils]
+import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   min: float = 0
@@ -77,39 +42,31 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    WindowSurface:
+    Window():
+      title = "Scale Example"
       defaultSize = (800, 600)
+      HeaderBar() {.addTitlebar.}:
+        insert(app.toAutoFormMenu()) {.addRight.}
       
-      Box(orient = OrientX):
-        insert app.toAutoForm()
+      Scale:
+        min = app.min
+        max = app.max
+        value = app.value
+        marks = app.marks
+        inverted = app.inverted
+        showValue = app.showValue
+        stepSize = app.stepSize
+        pageSize = app.pageSize
+        orient = app.orient
+        showFillLevel = app.showFillLevel
+        precision = app.precision
+        valuePosition = app.valuePosition
+        sensitive = app.sensitive
+        tooltip = app.tooltip
+        sizeRequest = app.sizeRequest
         
-        Separator() {.expand: false.}
-        
-        Box(orient = OrientY):
-          HeaderBar {.expand: false.}:
-            WindowTitle {.addTitle.}:
-              title = "Scale Example"
-              subtitle = "Value: " & $app.value
-          
-          Scale:
-            min = app.min
-            max = app.max
-            value = app.value
-            marks = app.marks
-            inverted = app.inverted
-            showValue = app.showValue
-            stepSize = app.stepSize
-            pageSize = app.pageSize
-            orient = app.orient
-            showFillLevel = app.showFillLevel
-            precision = app.precision
-            valuePosition = app.valuePosition
-            sensitive = app.sensitive
-            tooltip = app.tooltip
-            sizeRequest = app.sizeRequest
-            
-            proc valueChanged(newValue: float64) =
-              app.value = newValue
-              echo "New value from Scale is ", $newValue
+        proc valueChanged(newValue: float64) =
+          app.value = newValue
+          echo "New value from Scale is ", $newValue
 
 adw.brew(gui(App()))

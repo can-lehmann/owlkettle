@@ -29,6 +29,10 @@ import gtk, widgetdef, widgets, mainloop, widgetutils
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
 
+const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
+const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwinor=X`. Defaults to 0.
+const AdwVersion = (AdwMajor, AdwMinor)
+
 {.passl: "-ladwaita-1".}
 
 type
@@ -118,7 +122,7 @@ proc adw_combo_row_set_model*(comboRow: GtkWidget, model: GListModel)
 proc adw_combo_row_set_selected*(comboRow: GtkWidget, selected: cuint)
 proc adw_combo_row_get_selected*(comboRow: GtkWidget): cuint
 
-when defined(adwaita12):
+when AdwVersion >= (1, 2):
   # Adw.EntryRow
   proc adw_entry_row_new(): GtkWidget
   proc adw_entry_row_add_suffix(row, child: GtkWidget)
@@ -145,7 +149,7 @@ proc adw_split_button_new(): GtkWidget
 proc adw_split_button_set_child(button, child: GtkWidget)
 proc adw_split_button_set_popover(button, child: GtkWidget)
 
-when defined(adwaita12):
+when AdwVersion >= (1, 2):
   # Adw.AboutWindow
   proc adw_about_window_new(): GtkWidget
   proc adw_about_window_set_application_name(window: GtkWidget, value: cstring)
@@ -482,7 +486,7 @@ renderable ComboRow of ActionRow:
       proc select(item: int) =
         app.selected = item
 
-when defined(adwaita12) or defined(owlkettleDocs):
+when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable EntryRow of PreferencesRow:
     subtitle: string
     suffixes: seq[AlignedChild[Widget]]
@@ -493,10 +497,10 @@ when defined(adwaita12) or defined(owlkettleDocs):
     
     hooks:
       beforeBuild:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           state.internalWidget = adw_entry_row_new()
         else:
-          raise newException(ValueError, "Compile with -d:adwaita12 to enable the EntryRow widget.")
+          raise newException(ValueError, "Compile for Adwaita version 1.2 or higher with -d:adwMinor=2 to enable the EntryRow widget.")
       connectEvents:
         proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
           let text = $gtk_editable_get_text(widget)
@@ -510,7 +514,7 @@ when defined(adwaita12) or defined(owlkettleDocs):
     
     hooks suffixes:
       (build, update):
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
             adw_entry_row_add_suffix,
             adw_entry_row_remove
@@ -735,7 +739,7 @@ proc `hasIcon=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild =
 proc `valIcon=`*(splitButton: SplitButton, name: string) =
   splitButton.valChild = Icon(hasName: true, valName: name)
 
-when defined(adwaita12) or defined(owlkettleDocs):
+when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable AboutWindow:
     applicationName: string
     developerName: string
@@ -748,48 +752,48 @@ when defined(adwaita12) or defined(owlkettleDocs):
     
     hooks:
       beforeBuild:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           state.internalWidget = adw_about_window_new()
     
     hooks applicationName:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
 
     hooks developerName:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
 
     hooks version:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_version(state.internalWidget, state.version.cstring)
 
     hooks supportUrl:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
 
     hooks issueUrl:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
 
     
     hooks website:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_website(state.internalWidget, state.website.cstring)
 
     hooks copyright:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
 
     hooks license:
       property:
-        when defined(adwaita12):
+        when AdwVersion >= (1, 2):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
   
   export AboutWindow

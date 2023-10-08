@@ -21,19 +21,22 @@
 # SOFTWARE.
 
 import std/[asyncfutures]
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[playground, adw]
 
 const APP_NAME = "Image Example"
 
 viewable App:
   loading: bool
   pixbuf: Pixbuf
+  contentFit: ContentFit = ContentContain
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = APP_NAME
-      
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = APP_NAME
@@ -92,6 +95,7 @@ method view(app: AppState): Widget =
         Button {.addLeft.}:
           text = "Save"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           
           proc clicked() =
             let (res, state) = app.open: gui:
@@ -115,21 +119,26 @@ method view(app: AppState): Widget =
               except IoError as err:
                 echo err.msg
         
+        insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (400, 300))) {.addRight.}
+        
         Button {.addRight.}:
           icon = "object-flip-horizontal-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.flipHorizontal()
         
         Button {.addRight.}:
           icon = "object-flip-vertical-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.flipVertical()
         
         Button {.addRight.}:
           text = "Crop"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             # Crop center
             app.pixbuf = app.pixbuf.crop(
@@ -142,22 +151,24 @@ method view(app: AppState): Widget =
         Button {.addRight.}:
           text = "2x"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.scale(app.pixbuf.width * 2, app.pixbuf.height * 2)
         
         Button {.addRight.}:
           icon = "object-rotate-right-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate270()
         
         Button {.addRight.}:
           icon = "object-rotate-left-symbolic"
           sensitive = not app.pixbuf.isNil
+          style = [ButtonFlat]
           proc clicked() =
             app.pixbuf = app.pixbuf.rotate90()
         
-      
       if app.pixbuf.isNil:
         if app.loading:
           Label(text = "Loading...")
@@ -166,5 +177,9 @@ method view(app: AppState): Widget =
       else:
         Picture:
           pixbuf = app.pixbuf
+          contentFit = app.contentFit
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
 
-owlkettle.brew(gui(App()))
+adw.brew(gui(App()))

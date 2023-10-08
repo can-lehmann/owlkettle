@@ -20,17 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[adw, playground]
 
 viewable App:
-  options: seq[string] = @["Option 0", "Option 1"]
+  options: seq[string] = @["Option 0", "Option 1", "Option 2"]
   selected: int = 1
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+  spacing: int = 3 
+  rowSpacing: int = 6 
+  orient: Orient = OrientY 
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (400, 300)
-      
+      defaultSize = (550, 300)
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = "Radio Group Example"
@@ -38,7 +43,9 @@ method view(app: AppState): Widget =
             subtitle = app.options[app.selected]
           else:
             subtitle = "Invalid Item"
-        
+          
+        insert(app.toAutoFormMenu(sizeRequest = (500, 520))) {.addRight.}
+      
         Button {.addLeft.}:
           icon = "list-add-symbolic"
           tooltip = "Add Option"
@@ -46,30 +53,31 @@ method view(app: AppState): Widget =
           
           proc clicked() =
             app.options.add("Option " & $app.options.len)
-        
+      
         Button {.addLeft.}:
           icon = "user-trash-symbolic"
           tooltip = "Remove Last Option"
           style = [ButtonFlat]
-          
+
           sensitive = app.options.len > 2
-          
+
           proc clicked() =
             discard app.options.pop()
-        
+          
+              
         Button {.addRight.}:
           icon = "go-down-symbolic"
           tooltip = "Select Next"
           style = [ButtonFlat]
-          
+
           proc clicked() =
-            app.selected += 1
-        
+            app.selected += 1  
+                        
         Button {.addRight.}:
           icon = "go-up-symbolic"
           tooltip = "Select Previous"
           style = [ButtonFlat]
-          
+
           proc clicked() =
             app.selected -= 1
       
@@ -80,6 +88,12 @@ method view(app: AppState): Widget =
           
           RadioGroup {.expand: false.}:
             selected = app.selected
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            tooltip = app.tooltip
+            spacing = app.spacing
+            rowSpacing = app.rowSpacing
+            orient = app.orient
             
             proc select(index: int) =
               app.selected = index
@@ -88,5 +102,6 @@ method view(app: AppState): Widget =
               Label:
                 text = option
                 xAlign = 0
+
 
 adw.brew(gui(App()))

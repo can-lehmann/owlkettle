@@ -20,15 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/sequtils
-import owlkettle, owlkettle/adw
+import std/[sequtils]
+import owlkettle, owlkettle/[playground, adw]
 
 const APP_NAME = "Drop Down Example"
 
 viewable App:
   selected: int = 0
   items: seq[string] = mapIt(0..<100, "Option " & $it)
-
+  enableSearch: bool = false
+  showArrow: bool = true
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  tooltip: string = "" 
+  
 method view(app: AppState): Widget =
   result = gui:
     Window:
@@ -39,29 +44,20 @@ method view(app: AppState): Widget =
         WindowTitle {.addTitle.}:
           title = APP_NAME
           subtitle = "Selected: " & $app.selected
-      
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Box(spacing = 6) {.expand: false.}:
-          Label:
-            text = "Drop Down"
-            xAlign = 0
-          
-          DropDown {.expand: false.}:
-            items = app.items
-            selected = app.selected
-            proc select(item: int) =
-              app.selected = item
         
-        Box(spacing = 6) {.expand: false.}:
-          Label:
-            text = "Searchable Drop Down"
-            xAlign = 0
-          
-          DropDown {.expand: false.}:
-            items = app.items
-            selected = app.selected
-            enableSearch = true
-            proc select(item: int) =
-              app.selected = item
+        insert(app.toAutoFormMenu(sizeRequest = (400, 470))) {.addRight.}
+      
+      Box(orient = OrientY):
+        DropDown {.expand: false.}:
+          items = app.items
+          selected = app.selected
+          enableSearch = app.enableSearch
+          showArrow = app.showArrow
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+        
+          proc select(item: int) =
+            app.selected = item
 
-owlkettle.brew(gui(App()))
+adw.brew(gui(App()))

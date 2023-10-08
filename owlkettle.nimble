@@ -40,7 +40,7 @@ task genBook, "Generate the owlkettle nimibook book docs":
   echo "INITIALIZED NIMIBOOK"
 
   try:
-    exec "./nbook build --mm:refc --define:owlkettleNimiDocs "
+    exec "./nbook build --mm:refc --define:owlkettleNimiDocs --path:."
     echo "BUILT NIMIBOOK"
   except CatchableError:
     discard

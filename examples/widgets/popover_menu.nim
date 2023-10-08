@@ -21,20 +21,32 @@
 # SOFTWARE.
 
 import owlkettle
+import owlkettle/[adw, playground]
 
 viewable App:
-  discard
+  sensitive: bool = true
+  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  offset: tuple[x, y: int] = (0, 0)
+  position: PopoverPosition = PopoverBottom
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
+      defaultSize = (400, 200)
       title = "Popover Menu Demo"
-      defaultSize = (300, 200)
-      
       HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 300))) {.addRight.}
+
         MenuButton {.addRight.}:
           icon = "open-menu"
+          style = [ButtonFlat]
+          
           PopoverMenu:
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            offset = app.offset
+            position = app.position
+            
             Box {.name: "main".}:
               orient = OrientY
               margin = 4
@@ -69,4 +81,5 @@ method view(app: AppState): Widget =
                   proc clicked() =
                     echo "Entry " & $it
 
-brew(gui(App()))
+
+adw.brew(gui(App()))
