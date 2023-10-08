@@ -37,9 +37,10 @@ method view(app: AppState): Widget =
       defaultSize = (800, 600)
       title = "Video Example"
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
       
       Box(orient = OrientY):
+        Label(text = "Video via FileName")
         Video:
           fileName = app.fileName
           autoplay = app.autoplay
@@ -47,7 +48,9 @@ method view(app: AppState): Widget =
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
-
+        Separator() {.expand: false.}
+        
+        Label(text = "Video via GFile")
         Video:
           file = g_file_new_for_path(app.fileName.cstring)
           autoplay = app.autoplay
