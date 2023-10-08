@@ -39,11 +39,8 @@ task genBook, "Generate the owlkettle nimibook book docs":
   exec "./nbook --mm:refc init"
   echo "INITIALIZED NIMIBOOK"
 
-  try:
-    exec "./nbook build --mm:refc --define:owlkettleNimiDocs --path:."
-    echo "BUILT NIMIBOOK"
-  except CatchableError:
-    discard
+  exec "./nbook build --mm:refc --define:owlkettleNimiDocs --path:."
+  echo "BUILT NIMIBOOK"
 
   ## Needed as the nimibook will serve the copied images, while the raw md files
   ## in the repository will serve the originals
