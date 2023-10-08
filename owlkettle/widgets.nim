@@ -3526,7 +3526,7 @@ renderable Scale of BaseWidget:
         app.value = newValue
 
 renderable Expander of BaseWidget:
-  ## Wrapper for GTK Expander Widget: https://docs.gtk.org/gtk4/class.Expander.html
+  ## Container that shows or hides its child depending on whether it is expanded/collapsed 
   label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
   labelWidget: Widget ## Sets the clickable header of the Expander. Overwrites `label` if provided.
   expanded: bool = false ## Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
