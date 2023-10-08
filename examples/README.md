@@ -140,6 +140,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/expander.nim">Expander</a></td>
+    <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="922px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/fixed.nim">Fixed</a></td>
     <td><img alt="Fixed" src="../docs/assets/examples/fixed.png" width="461px"></td>
   </tr>
