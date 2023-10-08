@@ -40,7 +40,14 @@ method view(app: AppState): Widget =
       title = "Video Example"
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(ignoreFields = @["mediaStream"], sizeRequest = (400, 400))) {.addRight.}
-      
+        
+        Button {.addLeft.}:
+          text = "Reset"
+          style = [ButtonFlat]
+          
+          proc clicked() =
+            app.mediaStream = nil
+            
         Button {.addLeft.}:
           text = "Open"
           style = [ButtonSuggested]
