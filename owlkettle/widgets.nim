@@ -3068,7 +3068,7 @@ renderable Calendar of BaseWidget:
   
   hooks showWeekNumbers:
     property:
-      gtk_calendar_set_show_day_names(state.internalWidget, cbool(ord(state.showWeekNumbers)))
+      gtk_calendar_set_show_week_numbers(state.internalWidget, cbool(ord(state.showWeekNumbers)))
   
   example:
     Calendar:
