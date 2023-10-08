@@ -1487,7 +1487,7 @@ renderable Video of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `autoplay: bool = false`
 - `loop: bool = false`
-- `mediaStream: GtkMediaStream`
+- `mediaStream: MediaStream`
 
 ###### Setters
 
