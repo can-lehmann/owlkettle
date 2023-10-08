@@ -345,7 +345,7 @@ renderable Overlay of BaseWidget:
   
   adder add:
     if widget.hasChild:
-      raise newException(ValueError, "Unable to add multiple children to a Overlay. You can add overlays using the addOverlay adder.")
+      raise newException(ValueError, "Unable to add multiple children to an Overlay. You can add overlays using the addOverlay adder.")
     widget.hasChild = true
     widget.valChild = child
   
@@ -3525,6 +3525,79 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+renderable Expander of BaseWidget:
+  ## Container that shows or hides its child depending on whether it is expanded/collapsed 
+  label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+  labelWidget: Widget ## Sets the clickable header of the Expander. Overwrites `label` if provided.
+  expanded: bool = false ## Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
+  child: Widget ## Determines the body of the Expander.
+  resizeToplevel: bool = false
+  useMarkup: bool = false
+  useUnderline: bool = false
+  
+  proc activate(activated: bool) ## Triggered whenever Expander is expanded or collapsed
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_expander_new(widget.valLabel.cstring)
+  
+    connectEvents:
+      proc activateEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(activated: bool)]
+      ) {.cdecl.} =
+        let expanded: bool = not gtk_expander_get_expanded(widget).bool # Necessary as widget hasn't updated itself yet, thus this returns the old value
+        ExpanderState(data[].widget).expanded = expanded
+        data[].callback(expanded)
+        data[].redraw()
+
+      state.connect(state.activate, "activate", activateEventCallback)
+
+    disconnectEvents:
+      disconnect(state.internalWidget, state.activate)
+      
+  hooks label:
+    property:
+      gtk_expander_set_label(state.internalWidget, state.label.cstring)
+
+  hooks expanded:
+    property:
+      gtk_expander_set_expanded(state.internalWidget, state.expanded.cbool)
+
+  hooks resizeToplevel:
+    property:
+      gtk_expander_set_resize_toplevel(state.internalWidget, state.resizeToplevel.cbool)
+
+  hooks useMarkup:
+    property:
+      gtk_expander_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+
+  hooks useUnderline:
+    property:
+      gtk_expander_set_use_underline(state.internalWidget, state.useUnderline.cbool)
+
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, gtk_expander_set_child)
+  
+  hooks labelWidget:
+    (build, update):
+      state.updateChild(state.labelWidget, widget.valLabelWidget, gtk_expander_set_label_widget)
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to the body of an Expander.")
+    
+    widget.hasChild = true
+    widget.valChild = child
+
+  adder addLabel:
+    if widget.hasLabelWidget:
+      raise newException(ValueError, "Unable to add multiple Labels as the header of an Expander")
+    
+    widget.hasLabelWidget = true
+    widget.valLabelWidget = child
+    
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3539,3 +3612,4 @@ export MessageDialog, MessageDialogState
 export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
+export Expander

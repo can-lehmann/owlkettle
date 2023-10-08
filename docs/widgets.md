@@ -228,7 +228,7 @@ renderable Picture of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `pixbuf: Pixbuf`
-- `contentFit: ContentFit = ContentContain` Requires GTK 4.8 to fully work, compile with `-d:gtk48` to enable
+- `contentFit: ContentFit = ContentContain` Requires GTK 4.8 or higher to fully work, compile with `-d:gtkminor=8` to enable
 
 
 ## Button
@@ -1474,5 +1474,35 @@ Scale:
     app.value = newValue
 
 ```
+
+
+## Expander
+
+```nim
+renderable Expander of BaseWidget
+```
+
+Container that shows or hides its child depending on whether it is expanded/collapsed
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `label: string` Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+- `labelWidget: Widget` Sets the clickable header of the Expander. Overwrites `label` if provided.
+- `expanded: bool = false` Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
+- `child: Widget` Determines the body of the Expander.
+- `resizeToplevel: bool = false`
+- `useMarkup: bool = false`
+- `useUnderline: bool = false`
+
+###### Events
+
+- activate: `proc (activated: bool)` Triggered whenever Expander is expanded or collapsed
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addLabel`
 
 

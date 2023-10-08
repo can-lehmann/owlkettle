@@ -1050,6 +1050,18 @@ proc gtk_level_bar_set_mode*(widget: GtkWidget, mode: GtkLevelBarMode)
 proc gtk_level_bar_set_value*(widget: GtkWidget, value: cdouble)
 proc gtk_level_bar_set_min_value*(widget: GtkWidget, value: cdouble)
 proc gtk_level_bar_set_max_value*(widget: GtkWidget, value: cdouble)
+
+# Gtk.Expander
+proc gtk_expander_new*(label: cstring): GtkWidget
+proc gtk_expander_set_child*(widget: GtkWidget, child: GtkWidget)
+proc gtk_expander_set_expanded*(widget: GtkWidget, expanded: cbool)
+proc gtk_expander_set_label*(widget: GtkWidget, label: cstring)
+proc gtk_expander_set_label_widget*(widget: GtkWidget, label_widget: GtkWidget)
+proc gtk_expander_set_resize_toplevel*(widget: GtkWidget, resize_toplevel: cbool)
+proc gtk_expander_set_use_markup*(widget: GtkWidget, use_markup: cbool)
+proc gtk_expander_set_use_underline*(widget: GtkWidget, use_underline: cbool)
+proc gtk_expander_get_expanded*(widget: GtkWidget): cbool
+
 {.pop.}
 
 {.push hint[Name]: off.}
