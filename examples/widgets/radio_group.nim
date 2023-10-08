@@ -35,7 +35,7 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      defaultSize = (800, 600)
+      defaultSize = (550, 300)
       HeaderBar {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = "Radio Group Example"
@@ -44,28 +44,64 @@ method view(app: AppState): Widget =
           else:
             subtitle = "Invalid Item"
           
-        insert(app.toAutoFormMenu(ignoreFields = @["pixbuf", "loading"], sizeRequest = (500, 520))) {.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (500, 520))) {.addRight.}
+      
+        Button {.addLeft.}:
+          icon = "list-add-symbolic"
+          tooltip = "Add Option"
+          style = [ButtonFlat]
+          
+          proc clicked() =
+            app.options.add("Option " & $app.options.len)
+      
+        Button {.addLeft.}:
+          icon = "user-trash-symbolic"
+          tooltip = "Remove Last Option"
+          style = [ButtonFlat]
 
-      Box:
-        orient = OrientY
-        margin = 12
-        
-        RadioGroup {.expand: false.}:
-          selected = app.selected
-          sensitive = app.sensitive
-          sizeRequest = app.sizeRequest
-          tooltip = app.tooltip
-          spacing = app.spacing
-          rowSpacing = app.rowSpacing
-          orient = app.orient
+          sensitive = app.options.len > 2
+
+          proc clicked() =
+            discard app.options.pop()
           
-          proc select(index: int) =
-            app.selected = index
+              
+        Button {.addRight.}:
+          icon = "go-down-symbolic"
+          tooltip = "Select Next"
+          style = [ButtonFlat]
+
+          proc clicked() =
+            app.selected += 1  
+                        
+        Button {.addRight.}:
+          icon = "go-up-symbolic"
+          tooltip = "Select Previous"
+          style = [ButtonFlat]
+
+          proc clicked() =
+            app.selected -= 1
+      
+      ScrolledWindow:
+        Box:
+          orient = OrientY
+          margin = 12
           
-          for option in app.options:
-            Label:
-              text = option
-              xAlign = 0
+          RadioGroup {.expand: false.}:
+            selected = app.selected
+            sensitive = app.sensitive
+            sizeRequest = app.sizeRequest
+            tooltip = app.tooltip
+            spacing = app.spacing
+            rowSpacing = app.rowSpacing
+            orient = app.orient
+            
+            proc select(index: int) =
+              app.selected = index
+            
+            for option in app.options:
+              Label:
+                text = option
+                xAlign = 0
 
 
 adw.brew(gui(App()))

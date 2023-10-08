@@ -120,7 +120,7 @@ method view (state: DateDialogState): Widget =
       Box(orient = OrientY):
         Calendar:
           date = state.date
-          proc daySelected(date: DateTime) =
+          proc select(date: DateTime) =
             state.date = date
 
 proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =

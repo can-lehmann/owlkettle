@@ -38,6 +38,7 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window:
+      title = "Text View Example"
       defaultSize = (800, 600)
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:

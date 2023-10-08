@@ -43,9 +43,9 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window():
+      title = "Scale Example"
       defaultSize = (800, 600)
       HeaderBar() {.addTitlebar.}:
-        Label(text = "Scale Example") {.addTitle.}
         insert(app.toAutoFormMenu()) {.addRight.}
       
       Scale:
