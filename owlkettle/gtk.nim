@@ -148,7 +148,8 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
-
+  GtkMediaStream* = distinct pointer
+  
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
 proc isNil*(obj: GtkTextTagTable): bool {.borrow.}
@@ -163,6 +164,7 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -540,6 +542,8 @@ proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 
 # Gtk.MediaStream
+proc `==`*(x, y: GtkMediaStream): bool {.borrow.}
+proc gtk_media_file_new_for_filename*(filename: cstring): GtkMediaStream
 proc gtk_media_stream_get_duration*(self: GtkMediaStream): cint
 proc gtk_media_stream_get_ended*(self: GtkMediaStream): cbool
 proc gtk_media_stream_get_error*(self: GtkMediaStream): GError

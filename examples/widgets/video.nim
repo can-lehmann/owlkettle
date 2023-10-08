@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, autoform, adw]
+import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   fileName: string = "/home/philipp/Videos/Screencasts/test.webm"
@@ -35,17 +35,16 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       defaultSize = (800, 600)
-      Box(orient = OrientY):
-        HeaderBar() {.expand: false.}:
-          Label(text = "Video Example") {.addTitle.}
-          insert(app.toAutoFormMenu()) {.addRight.}
+      title = "Video Example"
+      HeaderBar() {.addTitlebar.}:
+        insert(app.toAutoFormMenu()) {.addRight.}
+      
+      Video:
+        fileName = app.fileName
+        autoplay = app.autoplay
+        loop = app.loop
+        sensitive = app.sensitive
+        tooltip = app.tooltip
+        sizeRequest = app.sizeRequest
         
-        Video:
-          fileName = app.fileName
-          autoplay = app.autoplay
-          loop = app.loop
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-          
 adw.brew(gui(App()))

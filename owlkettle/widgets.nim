@@ -3526,18 +3526,19 @@ renderable Scale of BaseWidget:
         app.value = newValue
 
 renderable Video of BaseWidget:
-  fileName: string
   autoplay: bool = false
   loop: bool = false
   mediaStream: GtkMediaStream
+
+  setter fileName: string
 
   hooks:
     beforeBuild:
       state.internalWidget = gtk_video_new()
     
-  hooks fileName:
+  hooks mediaStream:
     property:
-      gtk_video_set_filename(state.internalWidget, state.fileName.cstring)
+      gtk_video_set_media_stream(state.internalWidget, state.mediaStream)
   
   hooks autoplay:
     property:
@@ -3546,7 +3547,13 @@ renderable Video of BaseWidget:
   hooks loop:
     property:
       gtk_video_set_loop(state.internalWidget, state.loop.cbool)
-    
+
+proc `hasFileName=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFileName=`*(widget: Video, fileName: string) =
+  widget.valMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 
   label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
