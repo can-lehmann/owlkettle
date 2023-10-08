@@ -50,13 +50,4 @@ method view(app: AppState): Widget =
           sizeRequest = app.sizeRequest
         Separator() {.expand: false.}
         
-        Label(text = "Video via GFile")
-        Video:
-          file = g_file_new_for_path(app.fileName.cstring)
-          autoplay = app.autoplay
-          loop = app.loop
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-        
 adw.brew(gui(App()))
