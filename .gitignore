@@ -45,3 +45,7 @@ build_docs
 todo.txt
 compiledBook/*
 nbook
+nimbledeps
+.vscode
+examples/widgets/adw/status_page
+owlkettle.out

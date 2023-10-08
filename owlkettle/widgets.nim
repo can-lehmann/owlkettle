@@ -1693,6 +1693,10 @@ renderable RadioGroup of BaseWidget:
       for row in state.rows:
         gtk_box_set_spacing(row.box, state.rowSpacing.cint)
   
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+
   hooks children:
     (build, update):
       widget.valChildren.assignApp(state.app)

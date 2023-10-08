@@ -21,10 +21,17 @@
 # SOFTWARE.
 
 import std/[times]
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[adw, dataentries, playground]
 
 viewable App:
   date: DateTime = now()
+  markedDays: seq[int] = @[]
+  showDayNames: bool = true
+  showHeading: bool = true
+  showWeekNumbers: bool = true
+  sensitive: bool = true
+  tooltip: string = ""
+  sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
   result = gui:
@@ -35,7 +42,9 @@ method view(app: AppState): Widget =
         WindowTitle {.addTitle.}:
           title = "Calendar Example"
           subtitle = $app.date.inZone(local())
-        
+          
+        insert(app.toAutoFormMenu(sizeRequest=(450, 520))) {.addRight.}
+    
         Button {.addLeft.}:
           icon = "go-previous"
           style = [ButtonFlat]
@@ -51,14 +60,22 @@ method view(app: AppState): Widget =
           
           proc clicked() =
             app.date += 1.days
-      
+  
       Calendar:
         date = app.date
+        markedDays = app.markedDays
+        showDayNames = app.showDayNames
+        showHeading = app.showHeading
+        showWeekNumbers = app.showWeekNumbers
+        sensitive = app.sensitive
+        tooltip = app.tooltip
+        sizeRequest = app.sizeRequest
         
         proc select(date: DateTime) =
           ## Shortcut for handling all calendar events (daySelected,
           ## nextMonth, prevMonth, nextYear, prevYear)
           app.date = date
+
 
 adw.brew(gui(App()), stylesheets=[
   loadStylesheet("calendar.css")
