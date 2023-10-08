@@ -47,7 +47,10 @@ method view(app: AppState): Widget =
         
         insert(app.toAutoFormMenu(sizeRequest = (400, 470))) {.addRight.}
       
-      Box(orient = OrientY):
+      Box:
+        orient = OrientY
+        margin = 12
+        
         DropDown {.expand: false.}:
           items = app.items
           selected = app.selected

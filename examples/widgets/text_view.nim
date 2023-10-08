@@ -100,6 +100,7 @@ method view(app: AppState): Widget =
   
       ScrolledWindow:
         TextView:
+          margin = 12
           buffer = app.buffer
           monospace = app.monospace
           cursorVisible = app.cursorVisible
@@ -113,7 +114,7 @@ method view(app: AppState): Widget =
         
 let buffer = newTextBuffer()
 discard buffer.registerTag("marker", TagStyle(
-  background: some("#ffff00"),
+  background: some("#ffff77"),
   weight: some(700)
 ))
 adw.brew(gui(App(buffer = buffer)))
