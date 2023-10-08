@@ -26,6 +26,7 @@ viewable App:
   description: string = "Some Description"
   iconName: string = "weather-clear-symbolic"
   title: string = "Some Title"
+
 method view(app: AppState): Widget =
   result = gui:
     Window():
