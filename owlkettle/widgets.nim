@@ -3552,13 +3552,22 @@ proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
   dest.gdk = source.gdk
 
 proc newMediaStream(gdk: GtkMediaStream): MediaStream =
+  if gdk.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
+
   result = MediaStream(gdk: gdk)
 
 proc newMediaStream*(fileName: string): MediaStream =
+  if not fileExists(fileName):
+    raise newException(ValueError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+  
   let gdk: GtkMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
   result = newMediaStream(gdk)
 
 proc newMediaStream*(gFile: GFile): MediaStream =
+  if gFile.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
+    
   let gdk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
   result = newMediaStream(gdk)
 
