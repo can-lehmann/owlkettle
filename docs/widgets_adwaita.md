@@ -360,6 +360,28 @@ renderable SplitButton of BaseWidget
 - `add`
 
 
+## StatusPage
+
+```nim
+renderable StatusPage of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `iconName: string` The icon to render in the center of the StatusPage. Setting this overrides paintable. See the [tooling](https://can-lehmann.github.io/owlkettle/docs/recommended_tools.html) section for how to figure out what icon names are available.
+- `paintable: Widget` The widget that implements GdkPaintable to render (e.g. IconPaintable, WidgetPaintable) in the center of the StatusPage. Setting this overrides iconName.
+- `title: string`
+- `description: string`
+- `child: Widget`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addPaintable`
+
+
 ## AboutWindow
 
 ```nim

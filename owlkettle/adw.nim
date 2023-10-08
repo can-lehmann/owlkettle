@@ -149,6 +149,14 @@ proc adw_split_button_new(): GtkWidget
 proc adw_split_button_set_child(button, child: GtkWidget)
 proc adw_split_button_set_popover(button, child: GtkWidget)
 
+# Adw.StatusPage
+proc adw_status_page_new(): GtkWidget
+proc adw_status_page_set_child(self: GtkWidget, child: GtkWidget)
+proc adw_status_page_set_description(self: GtkWidget, description: cstring)
+proc adw_status_page_set_icon_name(self: GtkWidget, icon_name: cstring)
+proc adw_status_page_set_paintable(self: GtkWidget, paintable: GtkWidget)
+proc adw_status_page_set_title(self: GtkWidget, title: cstring)
+
 when AdwVersion >= (1, 2):
   # Adw.AboutWindow
   proc adw_about_window_new(): GtkWidget
@@ -739,6 +747,49 @@ proc `hasIcon=`*(splitButton: SplitButton, value: bool) = splitButton.hasChild =
 proc `valIcon=`*(splitButton: SplitButton, name: string) =
   splitButton.valChild = Icon(hasName: true, valName: name)
 
+renderable StatusPage of BaseWidget:
+  iconName: string ## The icon to render in the center of the StatusPage. Setting this overrides paintable. See the [tooling](https://can-lehmann.github.io/owlkettle/docs/recommended_tools.html) section for how to figure out what icon names are available.
+  paintable: Widget ## The widget that implements GdkPaintable to render (e.g. IconPaintable, WidgetPaintable) in the center of the StatusPage. Setting this overrides iconName.
+  title: string
+  description: string
+  child: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_status_page_new()
+  
+  hooks iconName:
+    property:
+      adw_status_page_set_icon_name(state.internalWidget, state.iconName.cstring)
+  
+  hooks paintable:
+    (build, update):
+      state.updateChild(state.paintable, widget.valPaintable, adw_status_page_set_paintable)
+  
+  hooks title:
+    property:
+      adw_status_page_set_title(state.internalWidget, state.title.cstring)
+  
+  hooks description:
+    property:
+      adw_status_page_set_description(state.internalWidget, state.description.cstring)
+  
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_status_page_set_child)
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a StatusPage.")
+    widget.hasChild = true
+    widget.valChild = child
+    
+  adder addPaintable:
+    if widget.hasPaintable:
+      raise newException(ValueError, "Unable to add multiple paintables to a StatusPage.")
+    widget.hasPaintable = true
+    widget.valPaintable = child
+
 when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable AboutWindow:
     applicationName: string
@@ -798,7 +849,7 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton
+export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
