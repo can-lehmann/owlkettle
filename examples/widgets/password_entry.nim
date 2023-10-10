@@ -35,7 +35,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "Password Entry Example"
-      defaultSize = (400, 250)
+      defaultSize = (400, 150)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu()) {.addRight.}
       

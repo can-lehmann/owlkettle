@@ -150,6 +150,21 @@ renderable Overlay of BaseWidget
   - `vAlign = AlignFill`
 
 
+## EmojiChooser
+
+```nim
+renderable EmojiChooser of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+
+###### Events
+
+- emojiPicked: `proc (emoji: string)`
+
+
 ## Label
 
 ```nim
@@ -1504,6 +1519,24 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
 - `addLabel`
+
+
+## PasswordEntry
+
+```nim
+renderable PasswordEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `activatesDefault: bool = true`
+- `placeholderText: string = "Password"`
+- `showPeekIcon: bool = true`
+
+###### Events
+
+- activate: `proc (password: string)` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
 
 
 ## ProgressBar
