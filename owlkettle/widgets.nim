@@ -3641,20 +3641,28 @@ renderable PasswordEntry of BaseWidget:
     disconnectEvents:
       disconnect(state.internalWidget, state.activate)
   
-  # hooks menuModel:
-  #   property:
-  #     gtk_password_entry_set_extra_menu(state.internalWidget, state.menuModel)
-  
   hooks activatesDefault:
     property:
-      let value: GValue = g_value_new(state.activatesDefault)
-      g_object_set_property(state.internalWidget.pointer, "activates-default".cstring, value.addr)
-      
+      let value = g_value_new(state.activatesDefault)
+      when NimMajor == 1:
+        g_object_set_property(state.internalWidget.pointer, "activates-default", value.unsafeAddr)
+        g_value_unset(value.unsafeAddr)
+      elif NimMajor == 2:
+        g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
+        g_value_unset(value.addr)
+
   hooks placeholderText:
     property:
-      let value: GValue = g_value_new(state.placeholderText)
-      g_object_set_property(state.internalWidget.pointer, "placeholder-text".cstring, value.addr)
-      
+      let value = g_value_new(state.placeholderText)
+      when NimMajor == 1:
+        g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.unsafeAddr)
+        g_value_unset(value.unsafeAddr)
+      elif NimMajor == 2:
+        g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
+        g_value_unset(value.addr)
+
+
+
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
