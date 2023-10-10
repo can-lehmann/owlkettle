@@ -49,3 +49,7 @@ nimbledeps
 .vscode
 examples/widgets/adw/status_page
 owlkettle.out
+examples/widgets/emoji_chooser
+examples/widgets/expander
+examples/widgets/password_entry
+examples/widgets/progress_bar
