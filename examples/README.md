@@ -140,6 +140,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/emoji_chooser.nim">Emoji Chooser</a></td>
+    <td><img alt="Emoji Chooser" src="../docs/assets/examples/emoji_chooser.png" width="477px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/expander.nim">Expander</a></td>
     <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="922px"></td>
   </tr>
@@ -158,6 +162,10 @@ The `widgets` directory contains examples for how to use different widgets.
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/popover_menu.nim">Popover Menu</a></td>
     <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="328px"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/progress_bar.nim">Progress Bar</a></td>
+    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="922px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>

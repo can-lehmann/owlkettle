@@ -358,6 +358,25 @@ renderable Overlay of BaseWidget:
       vAlign: vAlign
     ))
 
+renderable EmojiChooser of BaseWidget:
+  
+  proc emojiPicked(emoji: string)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_emoji_chooser_new()
+    
+    connectEvents:
+      proc emojiPickedCallback(widget: GtkWidget, pickedEmoji: cstring, data: ptr EventObj[proc (emoji: string)]) {.cdecl.} =
+        data[].callback($pickedEmoji)
+        data[].redraw()
+    
+      state.connect(state.emojiPicked, "emoji-picked", emojiPickedCallback)
+      
+    disconnectEvents:
+      state.internalWidget.disconnect(state.emojiPicked)
+  
+
 const
   LabelTitle1* = "title-1".StyleClass
   LabelTitle2* = "title-2".StyleClass
@@ -3651,6 +3670,44 @@ renderable Expander of BaseWidget:
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
     
+renderable ProgressBar of BaseWidget:
+  ## A progress bar widget to show progress being made on a long-lasting task
+  ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
+  fraction: float = 0.0 ## Determines how much the ProgressBar is filled. Must be between 0.0 and 1.0. 
+  inverted: bool = false
+  pulseStep: float = 0.1
+  showText: bool = false
+  text: string = ""
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_progress_bar_new()
+  
+  hooks ellipsize:
+    property:
+      gtk_progress_bar_set_ellipsize(state.internalWidget, PangoEllipsizeMode(ord(state.ellipsize)))
+
+  hooks fraction:
+    property:
+      gtk_progress_bar_set_fraction(state.internalWidget, state.fraction.cdouble)
+  
+  hooks inverted:
+    property:
+      gtk_progress_bar_set_inverted(state.internalWidget, state.inverted.cbool)
+  
+  hooks pulseStep:
+    property:
+      gtk_progress_bar_set_pulse_step(state.internalWidget, state.pulseStep.cdouble)
+    
+  hooks showText:
+    property:
+      gtk_progress_bar_set_show_text(state.internalWidget, state.showText.cbool)
+
+  hooks text:
+    property:
+      gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
+
+    
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3667,3 +3724,5 @@ export buildState, updateState, assignAppEvents
 export Scale
 export Expander
 export SearchEntry
+export ProgressBar
+export EmojiChooser
