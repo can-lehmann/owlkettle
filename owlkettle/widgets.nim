@@ -3643,25 +3643,15 @@ renderable PasswordEntry of BaseWidget:
   
   hooks activatesDefault:
     property:
-      let value = g_value_new(state.activatesDefault)
-      when NimMajor == 1:
-        g_object_set_property(state.internalWidget.pointer, "activates-default", value.unsafeAddr)
-        g_value_unset(value.unsafeAddr)
-      elif NimMajor == 2:
-        g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
-        g_value_unset(value.addr)
+      var value = g_value_new(state.activatesDefault)
+      g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
+      g_value_unset(value.addr)
 
   hooks placeholderText:
     property:
-      let value = g_value_new(state.placeholderText)
-      when NimMajor == 1:
-        g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.unsafeAddr)
-        g_value_unset(value.unsafeAddr)
-      elif NimMajor == 2:
-        g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
-        g_value_unset(value.addr)
-
-
+      var value = g_value_new(state.placeholderText)
+      g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
+      g_value_unset(value.addr)
 
   hooks showPeekIcon:
     property:
