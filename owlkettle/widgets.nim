@@ -359,7 +359,6 @@ renderable Overlay of BaseWidget:
     ))
 
 renderable EmojiChooser of BaseWidget:
-  something: string = "Unrelated"
   
   proc emojiPicked(emoji: string)
   
