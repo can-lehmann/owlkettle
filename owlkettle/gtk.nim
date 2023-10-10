@@ -607,6 +607,9 @@ proc gtk_button_new*(): GtkWidget
 proc gtk_button_new_with_label*(label: cstring): GtkWidget
 proc gtk_button_set_child*(window, child: GtkWidget)
 
+# Gtk.EmojiChooser
+proc gtk_emoji_chooser_new*(): GtkWidget
+
 # Gtk.Label
 proc gtk_label_new*(text: cstring): GtkWidget
 proc gtk_label_set_text*(label: GtkWidget, text: cstring)
