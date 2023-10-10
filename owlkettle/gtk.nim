@@ -806,6 +806,15 @@ proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget
 proc gtk_popover_menu_remove_child*(popover, child: GtkWidget)
 proc gtk_popover_menu_add_child*(popover, child: GtkWidget, id: cstring)
 
+# Gtk.ProgressBar
+proc gtk_progress_bar_new*(): GtkWidget
+proc gtk_progress_bar_set_ellipsize*(widget: GtkWidget, mode: PangoEllipsizeMode)
+proc gtk_progress_bar_set_fraction*(widget: GtkWidget, fraction: cdouble)
+proc gtk_progress_bar_set_inverted*(widget: GtkWidget, inverted: cbool)
+proc gtk_progress_bar_set_pulse_step*(widget: GtkWidget, fraction: cdouble)
+proc gtk_progress_bar_set_show_text*(widget: GtkWidget, show_text: cbool)
+proc gtk_progress_bar_set_text*(widget: GtkWidget, text: cstring)
+
 # Gtk.Stack
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
 proc gtk_stack_remove*(stack, child: GtkWidget)

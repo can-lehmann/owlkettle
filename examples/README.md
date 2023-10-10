@@ -160,6 +160,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Popover Menu" src="../docs/assets/examples/popover_menu.png" width="328px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/progress_bar.nim">Progress Bar</a></td>
+    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="922px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>
     <td><img alt="Radio Group" src="../docs/assets/examples/radio_group.png" width="522px"></td>
   </tr>
