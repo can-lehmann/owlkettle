@@ -358,6 +358,25 @@ renderable Overlay of BaseWidget:
       vAlign: vAlign
     ))
 
+renderable EmojiChooser of BaseWidget:
+  
+  proc emojiPicked(emoji: string)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_emoji_chooser_new()
+    
+    connectEvents:
+      proc emojiPickedCallback(widget: GtkWidget, pickedEmoji: cstring, data: ptr EventObj[proc (emoji: string)]) {.cdecl.} =
+        data[].callback($pickedEmoji)
+        data[].redraw()
+    
+      state.connect(state.emojiPicked, "emoji-picked", emojiPickedCallback)
+      
+    disconnectEvents:
+      state.internalWidget.disconnect(state.emojiPicked)
+  
+
 const
   LabelTitle1* = "title-1".StyleClass
   LabelTitle2* = "title-2".StyleClass
@@ -3613,3 +3632,4 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export EmojiChooser
