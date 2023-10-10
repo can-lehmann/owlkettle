@@ -1993,6 +1993,59 @@ renderable ModelButton of BaseWidget:
             proc clicked() =
               echo "Clicked " & $it
 
+renderable SearchEntry of BaseWidget:
+  # child: GtkWidget # This is currently not supported
+  searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+  placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
+  
+  proc activate(searchString: string) ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+  proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
+  proc previousMatch() ## Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+  proc searchChanged(searchString: string) ## Triggered when the user types in the SearchEntry.
+  proc searchStarted(searchString: string)
+  proc stopSearch(searchString: string) ## Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus. 
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_search_entry_new()
+    connectEvents:
+      proc searchCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
+        let searchString = $gtk_editable_get_text(widget)
+        data[].callback(searchString)
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", searchCallback)
+      state.connect(state.nextMatch, "next-match", eventCallback)
+      state.connect(state.previousMatch, "previous-match", eventCallback)
+      state.connect(state.searchChanged, "search-changed", searchCallback)
+      state.connect(state.searchStarted, "search-changed", searchCallback)
+      state.connect(state.stopSearch, "stop-search", searchCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      state.internalWidget.disconnect(state.nextMatch)
+      state.internalWidget.disconnect(state.previousMatch)
+      state.internalWidget.disconnect(state.searchChanged)
+      state.internalWidget.disconnect(state.searchStarted)
+      state.internalWidget.disconnect(state.stopSearch)
+
+  # hooks child:
+  #   property:
+  #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
+
+  hooks searchDelay:
+    property:
+      when GtkMinor >= 8:
+        gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
+      else:
+        discard
+
+  hooks placeholderText:
+    property:
+      when GtkMinor >= 10:
+        gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
+      else:
+        discard
+    
 renderable Separator of BaseWidget:
   ## A separator line.
   
@@ -3613,3 +3666,4 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export SearchEntry

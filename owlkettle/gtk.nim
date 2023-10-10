@@ -28,6 +28,8 @@ import ./common
 import std/strutils as strutils
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
+const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+
 type cbool* = cint
 
 type GtkWidget* = distinct pointer
@@ -805,6 +807,14 @@ proc gtk_popover_set_pointing_to*(popover: GtkWidget, rect: ptr GdkRectangle)
 proc gtk_popover_menu_new_from_model*(model: pointer): GtkWidget
 proc gtk_popover_menu_remove_child*(popover, child: GtkWidget)
 proc gtk_popover_menu_add_child*(popover, child: GtkWidget, id: cstring)
+
+# Gtk.SearchEntry
+proc gtk_search_entry_new*(): GtkWidget
+proc gtk_search_entry_set_key_capture_widget*(widget: GtkWidget, captureWidget: GtkWidget)
+when GtkMinor >= 8:
+  proc gtk_search_entry_set_search_delay*(widget: GtkWidget, delay: cuint)
+when GtkMinor >= 10:
+  proc gtk_search_entry_set_placeholder_text*(widget: GtkWidget, text: cstring)
 
 # Gtk.Stack
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
