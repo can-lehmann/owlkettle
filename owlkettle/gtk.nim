@@ -792,6 +792,11 @@ proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_check_button_get_active*(widget: GtkWidget): cbool
 proc gtk_check_button_set_group*(widget, group: GtkWidget)
 
+# Gtk.PasswordEntry
+proc gtk_password_entry_new*(): GtkWidget
+# proc gtk_password_entry_set_extra_menu*(widget: GtkWidget, model: GtkMenuModel)
+proc gtk_password_entry_set_show_peek_icon*(widget: GtkWidget, show_peek_icon: cbool)
+
 # Gtk.Popover
 proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)

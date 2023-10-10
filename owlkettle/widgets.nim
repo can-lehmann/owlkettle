@@ -3616,7 +3616,50 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
-    
+
+renderable PasswordEntry of BaseWidget:
+  # menuModel: GtkMenuModel
+  activatesDefault: bool = true
+  placeholderText: string = "Password"
+  showPeekIcon: bool = true
+  
+  proc activate(password: string)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_password_entry_new()
+    connectEvents:
+      proc activateEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(password: string)]
+      ) {.cdecl.} =
+        let password: string = $gtk_editable_get_text(widget)
+        data[].callback(password)
+        data[].redraw()
+
+      state.connect(state.activate, "activate", activateEventCallback)
+    disconnectEvents:
+      disconnect(state.internalWidget, state.activate)
+  
+  # hooks menuModel:
+  #   property:
+  #     gtk_password_entry_set_extra_menu(state.internalWidget, state.menuModel)
+  
+  hooks activatesDefault:
+    property:
+      let value: GValue = g_value_new(state.activatesDefault)
+      g_object_set_property(state.internalWidget.pointer, "activates-default".cstring, value.addr)
+      
+  hooks placeholderText:
+    property:
+      let value: GValue = g_value_new(state.placeholderText)
+      g_object_set_property(state.internalWidget.pointer, "placeholder-text".cstring, value.addr)
+      
+  hooks showPeekIcon:
+    property:
+      gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
+  
+  
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
@@ -3672,3 +3715,4 @@ export Scale
 export Expander
 export ProgressBar
 export EmojiChooser
+export PasswordEntry
