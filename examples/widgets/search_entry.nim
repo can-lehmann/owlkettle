@@ -52,7 +52,7 @@ method view(app: AppState): Widget =
           proc nextMatch() = echo "Next Match"
           proc previousMatch() = echo "Prior Match"
           proc searchStarted(searchString: string) = echo "Search Started: ", searchString
-          proc searchChanged(searchString: string) = echo "Search Changed: ", searchString
+          proc changed(searchString: string) = echo "Search Changed: ", searchString
           proc stopSearch(searchString: string) = echo "Search Stopped: ", searchString
 
 adw.brew(gui(App()))
