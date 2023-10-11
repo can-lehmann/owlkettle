@@ -3636,6 +3636,7 @@ renderable PasswordEntry of BaseWidget:
         data: ptr EventObj[proc(password: string)]
       ) {.cdecl.} =
         let password: string = $gtk_editable_get_text(widget)
+        PasswordEntryState(data[].widget).text = password
         data[].callback(password)
         data[].redraw()
 
