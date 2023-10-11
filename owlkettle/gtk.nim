@@ -81,6 +81,23 @@ type
     GTK_SHADOW_ETCHED_IN,
     GTK_SHADOW_ETCHED_OUT
   
+  GtkStateFlag* = enum
+    GTK_STATE_FLAG_NORMAL
+    GTK_STATE_FLAG_ACTIVE
+    GTK_STATE_FLAG_PRELIGHT
+    GTK_STATE_FLAG_SELECTED
+    GTK_STATE_FLAG_INSENSITIVE
+    GTK_STATE_FLAG_INCONSISTENT
+    GTK_STATE_FLAG_FOCUSED
+    GTK_STATE_FLAG_BACKDROP
+    GTK_STATE_FLAG_DIR_LTR
+    GTK_STATE_FLAG_DIR_RTL
+    GTK_STATE_FLAG_LINK
+    GTK_STATE_FLAG_VISITED
+    GTK_STATE_FLAG_DROP_ACTIVE
+    GTK_STATE_FLAG_FOCUS_VISIBLE
+    GTK_STATE_FLAG_FOCUS_WITHIN
+  
   GtkFileChooserAction* = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -609,6 +626,12 @@ proc gtk_button_set_child*(window, child: GtkWidget)
 
 # Gtk.EmojiChooser
 proc gtk_emoji_chooser_new*(): GtkWidget
+
+# Gtk.EditableLabel
+proc gtk_editable_label_new*(str: cstring): GtkWidget
+proc gtk_editable_label_get_editing*(widget: GtkWidget): cbool
+proc gtk_editable_label_start_editing*(widget: GtkWidget)
+proc gtk_editable_label_stop_editing*(widget: GtkWidget, commit: cbool)
 
 # Gtk.Label
 proc gtk_label_new*(text: cstring): GtkWidget

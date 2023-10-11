@@ -451,6 +451,45 @@ renderable Label of BaseWidget:
       text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
       useMarkup = true
 
+renderable EditableLabel of BaseWidget:
+  editing: bool = false
+  text: string = ""
+  
+  proc changed(text: string)
+  proc editStateChanged(newEditState: bool)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_editable_label_new("".cstring)
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+        let text = $gtk_editable_get_text(widget)
+        if EditableLabelState(data[].widget).editing:
+          echo "DO an edit"
+          EditableLabelState(data[].widget).text = text
+        data[].callback(text)
+        data[].redraw()
+        
+      state.connect(state.changed, "changed", changedCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
+  
+  hooks text:
+    property:
+      let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
+      if not isEditing:
+        gtk_editable_set_text(state.internalWidget, state.text.cstring)
+
+  hooks editing:
+    property:
+      echo "Change edit mode to: ", state.editing
+      let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
+
+      if state.editing:
+        gtk_editable_label_start_editing(state.internalWidget)
+      else:
+        gtk_editable_label_stop_editing(state.internalWidget, true.cbool)
+
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   pixelSize: int = -1 ## Determines the size of the icon
@@ -3672,3 +3711,4 @@ export Scale
 export Expander
 export ProgressBar
 export EmojiChooser
+export EditableLabel
