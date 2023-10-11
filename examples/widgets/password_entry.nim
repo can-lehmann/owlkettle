@@ -51,4 +51,7 @@ method view(app: AppState): Widget =
         
           proc activate(pw: string) =
             echo "New Password: ", pw
+            
+          proc changed(pw: string) =
+            echo "Change in Password: ", pw
 adw.brew(gui(App()))

@@ -3618,12 +3618,14 @@ renderable Expander of BaseWidget:
     widget.valLabelWidget = child
 
 renderable PasswordEntry of BaseWidget:
+  text: string
   # menuModel: GtkMenuModel # Not yet supported
   activatesDefault: bool = true
   placeholderText: string = "Password"
   showPeekIcon: bool = true
   
   proc activate(password: string) ## Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus. 
+  proc changed(password: string) ## Triggered when the user types in the PasswordEntry.
   
   hooks:
     beforeBuild:
@@ -3638,9 +3640,11 @@ renderable PasswordEntry of BaseWidget:
         data[].redraw()
 
       state.connect(state.activate, "activate", activateEventCallback)
+      state.connect(state.changed, "changed", activateEventCallback)
     disconnectEvents:
       disconnect(state.internalWidget, state.activate)
-  
+      disconnect(state.internalWidget, state.changed)
+
   hooks activatesDefault:
     property:
       var value = g_value_new(state.activatesDefault)

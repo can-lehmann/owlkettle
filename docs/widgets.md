@@ -1530,6 +1530,7 @@ renderable PasswordEntry of BaseWidget
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
+- `text: string`
 - `activatesDefault: bool = true`
 - `placeholderText: string = "Password"`
 - `showPeekIcon: bool = true`
@@ -1537,6 +1538,7 @@ renderable PasswordEntry of BaseWidget
 ###### Events
 
 - activate: `proc (password: string)` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
+- changed: `proc (password: string)` Triggered when the user types in the PasswordEntry.
 
 
 ## ProgressBar
