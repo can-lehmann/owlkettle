@@ -322,6 +322,21 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
+type BaselinePosition* = enum
+  top, center, bottom
+
+renderable CenterBox of BaseWidget:
+  startWidget: Widget
+  centerWidget: Widget
+  endWidget: Widget
+  baselinePosition: BaselinePosition = center
+  shrinkCenterLast: bool = false
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_center_box_new()
+
+
 renderable Overlay of BaseWidget:
   child: Widget
   overlays: seq[AlignedChild[Widget]]
