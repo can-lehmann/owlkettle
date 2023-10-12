@@ -150,6 +150,21 @@ renderable Overlay of BaseWidget
   - `vAlign = AlignFill`
 
 
+## EmojiChooser
+
+```nim
+renderable EmojiChooser of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+
+###### Events
+
+- emojiPicked: `proc (emoji: string)`
+
+
 ## Label
 
 ```nim
@@ -190,6 +205,24 @@ Label:
   text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
   useMarkup = true
 ```
+
+
+## EditableLabel
+
+```nim
+renderable EditableLabel of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `editing: bool = false` Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
+- `text: string = ""`
+
+###### Events
+
+- changed: `proc (text: string)` Fired every time `text` changes.
+- editStateChanged: `proc (newEditState: bool)` Fired every time `editing` changes.
 
 
 ## Icon

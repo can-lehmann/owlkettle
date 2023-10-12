@@ -452,11 +452,11 @@ renderable Label of BaseWidget:
       useMarkup = true
 
 renderable EditableLabel of BaseWidget:
-  editing: bool = false
+  editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   text: string = ""
   
-  proc changed(text: string)
-  proc editStateChanged(newEditState: bool)
+  proc changed(text: string) ## Fired every time `text` changes.
+  proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
   
   hooks:
     beforeBuild:
@@ -485,6 +485,11 @@ renderable EditableLabel of BaseWidget:
       let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
       if not isEditing:
         gtk_editable_set_text(state.internalWidget, state.text.cstring)
+
+  hooks editing:
+    property:
+      if state.editing:
+        gtk_editable_label_start_editing(state.internalWidget)
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
