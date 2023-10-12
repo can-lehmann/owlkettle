@@ -464,31 +464,27 @@ renderable EditableLabel of BaseWidget:
     connectEvents:
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
         let text = $gtk_editable_get_text(widget)
-        if EditableLabelState(data[].widget).editing:
-          echo "DO an edit"
-          EditableLabelState(data[].widget).text = text
+        EditableLabelState(data[].widget).text = text
         data[].callback(text)
         data[].redraw()
+      
+      proc editedCallback(widget: GtkWidget, pspec: GtkParamSpec, data: ptr EventObj[proc (newEditState: bool)]){.cdecl.} =
+        let isEditing = gtk_editable_label_get_editing(widget).bool
+        EditableLabelState(data[].widget).editing = isEditing
+        data[].callback(isEditing)
         
       state.connect(state.changed, "changed", changedCallback)
+      state.connect(state.editStateChanged, "notify::editing", editedCallback)
+
     disconnectEvents:
       state.internalWidget.disconnect(state.changed)
+      state.internalWidget.disconnect(state.editStateChanged)
   
   hooks text:
     property:
       let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
       if not isEditing:
         gtk_editable_set_text(state.internalWidget, state.text.cstring)
-
-  hooks editing:
-    property:
-      echo "Change edit mode to: ", state.editing
-      let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
-
-      if state.editing:
-        gtk_editable_label_start_editing(state.internalWidget)
-      else:
-        gtk_editable_label_stop_editing(state.internalWidget, true.cbool)
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.

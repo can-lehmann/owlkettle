@@ -165,6 +165,7 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
+  GtkParamSpec* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -180,6 +181,7 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}

@@ -34,13 +34,13 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "Editable Label Example"
-      defaultSize = (800, 600)
+      defaultSize = (400, 100)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu()) {.addRight.}
       
-      Box(orient = OrientY):
+      Box(orient = OrientY, margin = 12, spacing = 6):
         Label(text = "The editable label:") {.expand: false.}
-        EditableLabel:
+        EditableLabel {.expand: false.}:
           text = app.text
           editing = app.editing
           sensitive = app.sensitive
@@ -48,6 +48,9 @@ method view(app: AppState): Widget =
           sizeRequest = app.sizeRequest
           
           proc changed(newValue: string) =
-            echo "New value from EditableLabel is ", $newValue
+            echo "New Value: ", $newValue
+          
+          proc editStateChanged(newEditState: bool) =
+            echo "New Edit State: ", newEditState
 
 adw.brew(gui(App()))
