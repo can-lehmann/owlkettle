@@ -26,6 +26,9 @@ import std/[os]
 import ./common
 
 import std/strutils as strutils
+
+const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
 type cbool* = cint
@@ -635,9 +638,10 @@ proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
 proc gtk_center_box_new*(): GtkWidget
 proc gtk_center_box_set_center_widget*(widget: GtkWidget, child: GtkWidget)
 proc gtk_center_box_set_end_widget*(widget: GtkWidget, child: GtkWidget)
-proc gtk_center_box_set_shrink_center_last*(widget: GtkWidget, shrink_center_last: cbool)
 proc gtk_center_box_set_start_widget*(widget: GtkWidget, child: GtkWidget)
 proc gtk_center_box_set_baseline_position*(widget: GtkWidget, position: GtkBaselinePosition)
+when GtkMinor >= 12:
+  proc gtk_center_box_set_shrink_center_last*(widget: GtkWidget, shrink_center_last: cbool)
 
 # Gtk.Orientable
 proc gtk_orientable_set_orientation*(widget: GtkWidget, orient: GtkOrientation)

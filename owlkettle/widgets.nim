@@ -332,7 +332,7 @@ renderable CenterBox of BaseWidget:
   centerWidget: Widget
   endWidget: Widget
   baselinePosition: BaselinePosition = center
-  shrinkCenterLast: bool = false
+  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
   
   hooks:
     beforeBuild:
@@ -356,7 +356,8 @@ renderable CenterBox of BaseWidget:
 
   hooks shrinkCenterLast:
     property:
-      gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+      when GtkMinor >= 12:
+        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
 
   adder addStart:
     if widget.hasStartWidget:
