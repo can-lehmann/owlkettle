@@ -3595,6 +3595,12 @@ proc newMediaStream*(gFile: GFile): MediaStream =
   let gtk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
   result = newMediaStream(gtk)
 
+proc endStream*(stream: MediaStream) =
+  when GtkMinor >= 4:
+    gtk_media_stream_stream_ended(stream.gtk)
+  else:
+    gtk_media_stream_ended(stream.gtk)
+
 proc isLooping*(stream: MediaStream): bool =
   gtk_media_stream_get_loop(stream.gtk).bool
 
