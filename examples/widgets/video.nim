@@ -33,11 +33,6 @@ viewable App:
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
-proc seek(mediaStream: MediaStream, intervalInSeconds: int) =
-  let currentTimestampInMicroS: cint = gtk_media_stream_get_timestamp(mediaStream.gtk)
-  let intervalInMicroS = intervalInSeconds * 1000000
-  gtk_media_stream_seek(mediaStream.gtk, cint(currentTimestampInMicroS + intervalInMicroS))
-
 method view(app: AppState): Widget =
     
   result = gui:
@@ -52,21 +47,20 @@ method view(app: AppState): Widget =
         
         Button {.addRight.}:
           icon = "media-seek-forward-symbolic"
-          proc clicked() = 
-            app.mediaStream.seek(5)  
+          proc clicked() = app.mediaStream.seek(5 * 1000000)  
+          
         Button {.addRight.}:
           icon = "media-playback-start"
-          proc clicked() = 
-            gtk_media_stream_set_playing(app.mediaStream.gtk, true.cbool)
+          proc clicked() = app.mediaStream.play()
         
         Button {.addRight.}:
           icon = "media-playback-pause"
-          proc clicked() = 
-            gtk_media_stream_set_playing(app.mediaStream.gtk, false.cbool)
+          proc clicked() = app.mediaStream.pause()
+
         Button {.addRight.}:
           icon = "media-seek-backward-symbolic"
           proc clicked() = 
-            app.mediaStream.seek(-5)    
+            app.mediaStream.seek(-5 * 1000000)    
 
         
         Button {.addLeft.}:

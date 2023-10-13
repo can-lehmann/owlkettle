@@ -3571,6 +3571,33 @@ proc newMediaStream*(gFile: GFile): MediaStream =
   let gtk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
   result = newMediaStream(gtk)
 
+proc play*(stream: MediaStream) =
+  gtk_media_stream_set_playing(stream.gtk, true.cbool)
+
+proc pause*(stream: MediaStream) =
+  gtk_media_stream_set_playing(stream.gtk, false.cbool)
+
+proc seek*(stream: MediaStream, intervalInMicroSeconds: int) =
+  let canSeek = gtk_media_stream_is_seekable(stream.gtk).bool
+  let alreadySeeking = gtk_media_stream_is_seeking(stream.gtk).bool
+  if not canSeek or alreadySeeking:
+    return
+  
+  let timestampInMicroS: cint = gtk_media_stream_get_timestamp(stream.gtk)
+  gtk_media_stream_seek(stream.gtk, cint(timestampInMicroS + intervalInMicroSeconds))
+
+proc mute*(stream: MediaStream, mute: bool) = 
+  gtk_media_stream_set_muted(stream.gtk, mute.cbool)
+
+proc duration*(stream: MediaStream): int =
+  gtk_media_stream_get_duration(stream.gtk).int
+
+proc volume*(stream: MediaStream): float =
+  gtk_media_stream_get_volume(stream.gtk).float
+
+proc setVolume*(stream: MediaStream, volume: float) =
+  gtk_media_stream_set_volume(stream.gtk, volume.cdouble)
+
 renderable Video of BaseWidget:
   autoplay: bool = false
   loop: bool = false
