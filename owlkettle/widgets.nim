@@ -2058,6 +2058,12 @@ renderable SearchEntry of BaseWidget:
   #   property:
   #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
 
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
   hooks searchDelay:
     property:
       when GtkMinor >= 8:

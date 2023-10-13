@@ -24,6 +24,7 @@ import owlkettle, owlkettle/[playground, adw, dataentries]
 
 viewable App:
   searchDelay: uint = 100
+  text: string = ""
   placeholderText: string = "Search"
   sensitive: bool = true
   tooltip: string = ""
@@ -45,14 +46,18 @@ method view(app: AppState): Widget =
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
+          text = app.text
           
           proc activate(searchString: string) =
+            app.text = searchString
             echo "Search triggered: ", searchString
           
           proc nextMatch() = echo "Next Match"
           proc previousMatch() = echo "Prior Match"
           proc searchStarted(searchString: string) = echo "Search Started: ", searchString
-          proc changed(searchString: string) = echo "Search Changed: ", searchString
+          proc changed(searchString: string) = 
+            app.text = searchString
+            echo "Search Changed: ", searchString
           proc stopSearch(searchString: string) = echo "Search Stopped: ", searchString
 
 adw.brew(gui(App()))
