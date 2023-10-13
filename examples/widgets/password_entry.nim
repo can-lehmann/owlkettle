@@ -29,15 +29,24 @@ viewable App:
   showPeekIcon: bool = true
   sensitive: bool = true
   tooltip: string = ""
+  text: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Password Entry Example"
-      defaultSize = (400, 150)
+      defaultSize = (600, 150)
       HeaderBar() {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Password Entry Example"
+          subtitle = "Password length: " & $app.text.len()
+        
         insert(app.toAutoFormMenu()) {.addRight.}
+        
+        Button {.addLeft.}:
+          style = [ButtonFlat]
+          text = "Reset"
+          proc clicked() = app.text = ""
       
       Box(orient = OrientY):
         Label(text = "Enter a Password") {.expand: false.}
@@ -48,10 +57,14 @@ method view(app: AppState): Widget =
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
+          text = app.text
         
           proc activate(pw: string) =
             echo "New Password: ", pw
+            app.text = pw
             
           proc changed(pw: string) =
             echo "Change in Password: ", pw
+            app.text = pw
+            
 adw.brew(gui(App()))
