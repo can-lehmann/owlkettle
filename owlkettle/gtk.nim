@@ -434,16 +434,6 @@ proc g_menu_freeze*(menu: GMenuModel)
 proc g_menu_remove*(menu: GMenuModel, position: cint)
 proc g_menu_remove_all*(menu: GMenuModel)
 
-{.pop.}
-
-{.push hint[Name]: off.}
-
-
-{.pop.}
-
-{.push importc, cdecl.}
-
-
 # Gio.Icon
 proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
 
