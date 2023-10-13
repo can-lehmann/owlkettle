@@ -41,7 +41,7 @@ method view(app: AppState): Widget =
     Window():
       defaultSize = (600, 400)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu(ignoreFields = @["items", "selected"])) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["filteredItems"])) {.addRight.}
       
         SearchEntry() {.addTitle, expand: true.}:
           margin = Margin(top:0, left: 48, bottom:0, right: 48)
