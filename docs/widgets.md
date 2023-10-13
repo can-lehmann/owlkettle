@@ -1525,3 +1525,22 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - `addLabel`
 
 
+## ProgressBar
+
+```nim
+renderable ProgressBar of BaseWidget
+```
+
+A progress bar widget to show progress being made on a long-lasting task
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `ellipsize: EllipsizeMode = EllipsizeEnd` Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
+- `fraction: float = 0.0` Determines how much the ProgressBar is filled. Must be between 0.0 and 1.0.
+- `inverted: bool = false`
+- `pulseStep: float = 0.1`
+- `showText: bool = false`
+- `text: string = ""`
+
+
