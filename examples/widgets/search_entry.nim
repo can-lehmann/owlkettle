@@ -64,7 +64,7 @@ method view(app: AppState): Widget =
             echo "Search Started: ", searchString
           
           proc activate(searchString: string) =
-            echo "activated search"
+            echo "activated search for entry: ": $app.filteredItems[app.selected]
           
           proc changed(searchString: string) = 
             app.text = searchString
