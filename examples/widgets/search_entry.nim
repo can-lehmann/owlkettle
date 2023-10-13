@@ -21,43 +21,66 @@
 # SOFTWARE
 
 import owlkettle, owlkettle/[playground, adw, dataentries]
+import std/[strutils, sequtils]
 
 viewable App:
   searchDelay: uint = 100
   text: string = ""
-  placeholderText: string = "Search"
+  placeholderText: string = "Search List"
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
+  items: seq[string] = mapIt(0..<100, "Search Entry " & $it)
+  filteredItems: seq[string] = mapIt(0..<100, "Search Entry " & $it)
+  selected: int = 0
+  
 method view(app: AppState): Widget =
+  let isInActiveSearch = app.text != ""
   result = gui:
     Window():
-      defaultSize = (400, 120)
-      title = "Search Entry Example"
+      defaultSize = (600, 400)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["items", "selected"])) {.addRight.}
       
-      Box(orient = OrientY):
-        Label(text = "Search something") {.expand: false.}
-        SearchEntry() {.expand: false.}:
+        SearchEntry() {.addTitle, expand: true.}:
+          margin = Margin(top:0, left: 48, bottom:0, right: 48)
+          text = app.text
           searchDelay = app.searchDelay
           placeholderText = app.placeholderText
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
-          text = app.text
+          
+          proc nextMatch() = 
+            if app.selected < app.filteredItems.high:
+              app.selected += 1
+          
+          proc previousMatch() = 
+            if app.selected > 0:
+              app.selected -= 1
+          
+          proc searchStarted(searchString: string) = 
+            echo "Search Started: ", searchString
           
           proc activate(searchString: string) =
-            app.text = searchString
-            echo "Search triggered: ", searchString
+            echo "activated search"
           
-          proc nextMatch() = echo "Next Match"
-          proc previousMatch() = echo "Prior Match"
-          proc searchStarted(searchString: string) = echo "Search Started: ", searchString
           proc changed(searchString: string) = 
             app.text = searchString
-            echo "Search Changed: ", searchString
-          proc stopSearch(searchString: string) = echo "Search Stopped: ", searchString
+            app.selected = 0
+            app.filteredItems = app.items.filterIt(searchString in it)
+          
+          proc stopSearch(searchString: string) = 
+            echo "Search Stopped: ", searchString
+          
+      ScrolledWindow:
+        Box(orient = OrientY):
+          for index, item in app.filteredItems:
+            if isInActiveSearch and index == app.selected:
+              Label(useMarkup = true, text = "<b> " & item & "</b>")
+            else:
+              Label(text = item) {.expand: false.}
+        
 
 adw.brew(gui(App()))
