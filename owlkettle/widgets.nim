@@ -3645,7 +3645,13 @@ renderable PasswordEntry of BaseWidget:
     disconnectEvents:
       disconnect(state.internalWidget, state.activate)
       disconnect(state.internalWidget, state.changed)
-
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
   hooks activatesDefault:
     property:
       var value = g_value_new(state.activatesDefault)
