@@ -3543,7 +3543,6 @@ proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
   `=destroy`(dest)
   wasMoved(dest)
   dest.gtk = source.gtk
-  g_object_unref(source.gtk.pointer)
   
 proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
