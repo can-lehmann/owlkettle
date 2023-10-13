@@ -25,6 +25,7 @@ import owlkettle, owlkettle/[dataentries, playground, gtk, adw]
 
 
 viewable App:
+  fileName: string
   mediaStream: MediaStream
   autoplay: bool = false
   loop: bool = false
@@ -32,14 +33,41 @@ viewable App:
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
+proc seek(mediaStream: MediaStream, intervalInSeconds: int) =
+  let currentTimestampInMicroS: cint = gtk_media_stream_get_timestamp(mediaStream.gtk)
+  let intervalInMicroS = intervalInSeconds * 1000000
+  gtk_media_stream_seek(mediaStream.gtk, cint(currentTimestampInMicroS + intervalInMicroS))
+
 method view(app: AppState): Widget =
     
   result = gui:
     Window():
-      defaultSize = (800, 600)
+      defaultSize = (1000, 600)
       title = "Video Example"
       HeaderBar() {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Video Example"
+          subtitle = app.filename
         insert(app.toAutoFormMenu(ignoreFields = @["mediaStream"], sizeRequest = (400, 400))) {.addRight.}
+        
+        Button {.addRight.}:
+          icon = "media-seek-forward-symbolic"
+          proc clicked() = 
+            app.mediaStream.seek(5)  
+        Button {.addRight.}:
+          icon = "media-playback-start"
+          proc clicked() = 
+            gtk_media_stream_set_playing(app.mediaStream.gtk, true.cbool)
+        
+        Button {.addRight.}:
+          icon = "media-playback-pause"
+          proc clicked() = 
+            gtk_media_stream_set_playing(app.mediaStream.gtk, false.cbool)
+        Button {.addRight.}:
+          icon = "media-seek-backward-symbolic"
+          proc clicked() = 
+            app.mediaStream.seek(-5)    
+
         
         Button {.addLeft.}:
           text = "Reset"
@@ -69,7 +97,7 @@ method view(app: AppState): Widget =
             
             if res.kind == DialogAccept:
               let path = FileChooserDialogState(state).filename
-              
+              app.filename = path
               # Load sync
               try:
                 app.mediaStream = newMediaStream(path)
@@ -78,7 +106,6 @@ method view(app: AppState): Widget =
                 app.mediaStream = nil
         
       Box(orient = OrientY):
-        Label(text = "Video via FileName") {.expand: false.}
         if not app.mediaStream.isNil():
           Video:
             mediaStream = app.mediaStream

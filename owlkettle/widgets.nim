@@ -3529,47 +3529,47 @@ renderable Scale of BaseWidget:
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object
-    gdk: GtkMediaStream
+    gtk*: GtkMediaStream
 
   MediaStream* = ref MediaStreamObj 
 
 crossVersionDestructor(stream, MediaStreamObj):
-  if isNil(stream.gdk):
+  if isNil(stream.gtk):
     return
   
-  g_object_unref(pointer(stream.gdk))
+  g_object_unref(pointer(stream.gtk))
 
 proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
-  let areSameObject = pointer(source.gdk) == pointer(dest.gdk)
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
     return
   
   `=destroy`(dest)
   wasMoved(dest)
-  if not isNil(source.gdk):
-    g_object_ref(pointer(source.gdk))
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
     
-  dest.gdk = source.gdk
+  dest.gtk = source.gtk
 
-proc newMediaStream(gdk: GtkMediaStream): MediaStream =
-  if gdk.isNil:
+proc newMediaStream(gtk: GtkMediaStream): MediaStream =
+  if gtk.isNil:
     raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
 
-  result = MediaStream(gdk: gdk)
+  result = MediaStream(gtk: gtk)
 
 proc newMediaStream*(fileName: string): MediaStream =
   if not fileExists(fileName):
     raise newException(ValueError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
   
-  let gdk: GtkMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
-  result = newMediaStream(gdk)
+  let gtk: GtkMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+  result = newMediaStream(gtk)
 
 proc newMediaStream*(gFile: GFile): MediaStream =
   if gFile.isNil:
     raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
     
-  let gdk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
-  result = newMediaStream(gdk)
+  let gtk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
+  result = newMediaStream(gtk)
 
 renderable Video of BaseWidget:
   autoplay: bool = false
@@ -3589,12 +3589,8 @@ renderable Video of BaseWidget:
       if not isNil(oldStream):
         g_object_unref(oldStream.pointer)
       
-      echo "Obj: ", isNil(state.mediaStream)
-      echo "Widget: ", isNil(state.internalWidget)
-      if not isNil(state.mediaStream):
-        echo "Stream: ", isNil(state.mediaStream.gdk)
-      if not isNil(state.mediaStream) and not isNil(state.mediaStream.gdk):
-        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gdk)
+      if not isNil(state.mediaStream) and not isNil(state.mediaStream.gtk):
+        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
   
   hooks autoplay:
     property:
