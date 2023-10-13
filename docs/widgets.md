@@ -129,6 +129,29 @@ HeaderBar {.addTitlebar.}:
 ```
 
 
+## CenterBox
+
+```nim
+renderable CenterBox of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `startWidget: Widget`
+- `centerWidget: Widget`
+- `endWidget: Widget`
+- `baselinePosition: BaselinePosition = center`
+- `shrinkCenterLast: bool = false`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addStart`
+- `addEnd`
+- `add`
+
+
 ## Overlay
 
 ```nim
@@ -148,6 +171,21 @@ renderable Overlay of BaseWidget
 - `addOverlay`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
+
+
+## EmojiChooser
+
+```nim
+renderable EmojiChooser of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+
+###### Events
+
+- emojiPicked: `proc (emoji: string)`
 
 
 ## Label
