@@ -74,6 +74,7 @@ method view(app: AppState): Widget =
           proc stopSearch(searchString: string) = 
             echo "Search Stopped"
             app.text = ""
+            app.filteredItems = app.items
           
       ScrolledWindow:
         Box(orient = OrientY):
