@@ -733,6 +733,32 @@ proc gtk_drawing_area_set_draw_func*(widget: GtkWidget,
 # Gtk.Native
 proc gtk_native_get_surface_transform*(native: GtkWidget, x, y: ptr cdouble)
 
+# Gtk.Notebook
+proc gtk_notebook_new (): GtkWidget
+proc gtk_notebook_append_page (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget): cint
+proc gtk_notebook_append_page_menu (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget): cint
+proc gtk_notebook_detach_tab (widget: GtkWidget, child: GtkWidget)
+proc gtk_notebook_insert_page (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, position: cint): cint
+proc gtk_notebook_insert_page_menu (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget, position: cint): cint
+proc gtk_notebook_next_page*(widget: GtkWidget)
+proc gtk_notebook_popup_enable*(widget: GtkWidget)
+proc gtk_notebook_popup_disable*(widget: GtkWidget)
+proc gtk_notebook_prepend_page*(widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget): cint
+proc gtk_notebook_prev_page*(widget: GtkWidget)
+proc gtk_notebook_remove_page*(widget: GtkWidget, page_num: cint)
+proc gtk_notebook_set_action_widget*(notebook: GtkWidget, widget: GtkWidget, pack_type: GtkPackType)
+proc gtk_notebook_set_current_page*(widget: GtkWidget, page_num: cint)
+proc gtk_notebook_set_group_name*(widget: GtkWidget, group_name: cstring)
+proc gtk_notebook_set_menu_label*(widget: GtkWidget, child: GtkWidget, menu_label: GtkWidget)
+proc gtk_notebook_set_menu_label_text*(widget: GtkWidget, child: GtkWidget, menu_text: cstring)
+proc gtk_notebook_set_scrollable*(widget: GtkWidget, scrollable: cbool)
+proc gtk_notebook_set_show_border*(widget: GtkWidget, show_border: cbool)
+proc gtk_notebook_set_show_tabs*(widget: GtkWidget, show_tabs: cbool)
+proc gtk_notebook_set_tab_detachable*(widget: GtkWidget, child: GtkWidget, detachable: cbool)
+proc gtk_notebook_set_tab_label_text*(widget: GtkWidget, child: GtkWidget, tab_text: cstring)
+proc gtk_notebook_set_tab_pos*(widget: GtkWidget, pos: GtkPositionType)
+proc gtk_notebook_set_tab_reorderable*(widget: GtkWidget, child: GtkWidget, reorderable: cbool)
+
 # Gtk.EventController
 proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 
