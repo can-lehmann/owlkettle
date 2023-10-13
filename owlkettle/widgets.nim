@@ -352,12 +352,10 @@ renderable CenterBox of BaseWidget:
 
   hooks baselinePosition:
     property:
-      echo "baseline"
       gtk_center_box_set_baseline_position(state.internalWidget, state.baselinePosition.toGtk())
 
   hooks shrinkCenterLast:
     property:
-      echo "shrink"
       gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
 
   adder addStart:
