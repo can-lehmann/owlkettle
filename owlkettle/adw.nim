@@ -26,12 +26,15 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
+import ../owlkettle
 
 export adw.StyleManager
 export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.ToastPriority
+export adw.isNil
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
@@ -714,7 +717,82 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
+## Adw.Toast
+proc newToast*(title: string): AdwToast =
+  result = adw_toast_new(title.cstring)
+
+proc dismissToast*(toast: AdwToast) =
+  adw_toast_dismiss(toast)
+
+proc setActionName*(toast: AdwToast, actionName: string) =
+  adw_toast_set_action_name(toast, actionName.cstring)
+
+proc setActionTarget*(toast: AdwToast, actionTarget: string) =
+  adw_toast_set_action_target(toast, actionTarget.cstring)
+
+proc setButtonLabel*(toast: AdwToast, buttonLabel: string) =
+  adw_toast_set_button_label(toast, buttonLabel.cstring)
+
+proc setDetailedActionName*(toast: AdwToast, detailedActionName: string) =
+  adw_toast_set_detailed_action_name(toast, detailedActionName.cstring)
+
+const setPriority* = adw_toast_set_priority
+
+proc setTimeout*(toast: AdwToast, timeout: int) =
+  adw_toast_set_timeout(toast, timeout.cuint)
+
+proc getTimeout*(toast: AdwToast): int =
+  adw_toast_get_timeout(toast).int
+
+proc setTitle*(toast: AdwToast, title: string) =
+  adw_toast_set_title(toast, title.cstring)
+
+when AdwVersion >= (1, 2):
+  proc setTitle*(toast: AdwToast, title: GtkWidget) =
+    adw_toast_set_custom_title(toast, title)
+
+when AdwVersion >= (1, 4):
+  proc setTitleMarkup*(toast: AdwToast, useMarkup: bool) =
+    adw_toast_set_use_markup(toast, useMarkup.cbool)
+
+
+proc `==`(x, y: AdwToast): bool = x.pointer == y.pointer
+
+renderable ToastOverlay of BaseWidget:
+  child: Widget
+  toast: AdwToast
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_toast_overlay_new()
+  
+  hooks child:
+    (build, update):
+      let hasChild = not state.child.isNil()
+      let child = if hasChild: state.child.unwrapInternalWidget() else: nil.GtkWidget
+      adw_toast_overlay_set_child(state.internalWidget, child)
+  
+  hooks toast:
+    property:
+      let hasToast = not state.toast.isNil()
+      if hasToast:
+        let capturedToast = state.toast
+        proc dismiss(): bool = 
+          capturedToast.dismissToast()
+          return false
+          
+        adw_toast_overlay_add_toast(state.internalWidget, capturedToast)
+        discard addGlobalTimeout(state.toast.getTimeout(), dismiss)
+
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
+    widget.hasChild = true
+    widget.valChild = child
+
+
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+export ToastOverlay, AdwToast
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
