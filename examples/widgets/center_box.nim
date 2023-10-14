@@ -24,7 +24,7 @@ import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  baselinePosition: BaselinePosition = center
+  baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false
   addStartWidget: bool = true
   addEndWidget: bool = true
@@ -55,4 +55,5 @@ method view(app: AppState): Widget =
         
         if app.addEndWidget:
           Label(text = "End of CenterBox") {.addEnd.}
+
 adw.brew(gui(App()))

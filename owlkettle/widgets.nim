@@ -331,7 +331,7 @@ renderable CenterBox of BaseWidget:
   startWidget: Widget
   centerWidget: Widget
   endWidget: Widget
-  baselinePosition: BaselinePosition = center
+  baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
   
   hooks:
