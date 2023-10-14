@@ -323,7 +323,7 @@ renderable Box of BaseWidget:
               echo it
 
 type BaselinePosition* = enum
-  top, center, bottom
+  BaselineTop, BaselineCenter, BaselineBottom
 
 proc toGtk(x: BaselinePosition): GtkBaselinePosition = GtkBaselinePosition(ord(x))
 
