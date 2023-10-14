@@ -26,11 +26,13 @@ import owlkettle, owlkettle/[dataentries, playground, adw]
 viewable App:
   baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false
-  addStartWidget: bool = true
-  addEndWidget: bool = true
+  orient: Orient = OrientX
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
+  
+  addStartWidget: bool = true
+  addEndWidget: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
@@ -46,7 +48,7 @@ method view(app: AppState): Widget =
         sensitive = app.sensitive
         tooltip = app.tooltip
         sizeRequest = app.sizeRequest
-        
+        orient = app.orient
         
         if app.addStartWidget:
           Label(text = "Start of CenterBox") {.addStart.}

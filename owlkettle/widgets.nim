@@ -333,6 +333,7 @@ renderable CenterBox of BaseWidget:
   endWidget: Widget
   baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  orient: Orient = OrientX
   
   hooks:
     beforeBuild:
@@ -358,6 +359,10 @@ renderable CenterBox of BaseWidget:
     property:
       when GtkMinor >= 12:
         gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
   adder addStart:
     if widget.hasStartWidget:
