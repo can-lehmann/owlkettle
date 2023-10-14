@@ -27,7 +27,7 @@ nbCode:
   # main.nim
   import std/json
   import owlkettle
-  import owlkettle/gtk
+  import owlkettle/bindings/gtk
 
   type Config = object
     name: string

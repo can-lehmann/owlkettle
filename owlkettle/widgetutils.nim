@@ -23,7 +23,8 @@
 # Utilities for wrapping widgets
 
 import std/[sets]
-import gtk, widgetdef, common
+import widgetdef, common
+import bindings/gtk
 
 customPragmas()
 

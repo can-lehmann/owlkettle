@@ -24,7 +24,8 @@
 
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, widgetdef, widgets, mainloop, widgetutils
+import widgetdef, widgets, mainloop, widgetutils
+import bindings/gtk
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"

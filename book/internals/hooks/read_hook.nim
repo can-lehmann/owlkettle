@@ -12,7 +12,8 @@ Let's look at a minimal example from the `ColorChooserDialog` widget:
 
 nbCode:
   import owlkettle
-  import owlkettle/[gtk, widgetdef]
+  import owlkettle/widgetdef
+  import owlkettle/bindings/gtk
 
   # The custom widget
   renderable MyColorChooserDialog of BuiltinDialog:

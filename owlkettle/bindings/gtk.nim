@@ -23,7 +23,7 @@
 # Bindings for GTK 4
 
 import std/[os]
-import ./common
+import ../common
 
 import std/strutils as strutils
 
