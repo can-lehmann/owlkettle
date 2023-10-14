@@ -58,7 +58,7 @@ proc connect*[T](renderable: Renderable,
 proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
   if not event.isNil:
     assert event.handler > 0
-    g_signal_handler_disconnect(widget, event.handler)
+    g_signal_handler_disconnect(pointer(widget), event.handler)
     event.handler = 0
     event.widget = nil
 

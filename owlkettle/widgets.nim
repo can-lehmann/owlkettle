@@ -322,6 +322,61 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
+type BaselinePosition* = enum
+  BaselineTop, BaselineCenter, BaselineBottom
+
+proc toGtk(x: BaselinePosition): GtkBaselinePosition = GtkBaselinePosition(ord(x))
+
+renderable CenterBox of BaseWidget:
+  startWidget: Widget
+  centerWidget: Widget
+  endWidget: Widget
+  baselinePosition: BaselinePosition = BaselineCenter
+  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_center_box_new()
+
+  hooks startWidget:
+    (build, update):
+      state.updateChild(state.startWidget, widget.valStartWidget, gtk_center_box_set_start_widget)
+  
+  hooks endWidget:
+    (build, update):
+      state.updateChild(state.endWidget, widget.valEndWidget, gtk_center_box_set_end_widget)
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_center_box_set_center_widget)
+
+  hooks baselinePosition:
+    property:
+      gtk_center_box_set_baseline_position(state.internalWidget, state.baselinePosition.toGtk())
+
+  hooks shrinkCenterLast:
+    property:
+      when GtkMinor >= 12:
+        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  adder addStart:
+    if widget.hasStartWidget:
+      raise newException(ValueError, "Unable to add multiple children to the start of CenterBox.")
+    widget.hasStartWidget = true
+    widget.valStartWidget = child
+
+  adder addEnd:
+    if widget.hasEndWidget:
+      raise newException(ValueError, "Unable to add multiple children to the end of CenterBox.")
+    widget.hasEndWidget = true
+    widget.valEndWidget = child
+
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children to the center of CenterBox.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
+
 renderable Overlay of BaseWidget:
   child: Widget
   overlays: seq[AlignedChild[Widget]]
@@ -3809,7 +3864,165 @@ renderable ProgressBar of BaseWidget:
     property:
       gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
 
-    
+const
+  ListViewRichList* = StyleClass("rich-list")
+  ListViewNavigationSidebar* = StyleClass("navigation-sidebar")
+  ListViewDataTable* = StyleClass("data-table")
+
+renderable ListView of BaseWidget:
+  size: int ## Number of items
+  
+  selectionMode: SelectionMode
+  selected: HashSet[int] ## Indices of the currently selected items.
+  
+  showSeparators: bool = false
+  singleClickActivate: bool = false
+  enableRubberband: bool = false
+  
+  proc viewItem(index: int): Widget
+  proc select(rows: HashSet[int])
+  proc activate(index: int)
+  
+  type ItemState = object
+    widgetState: WidgetState
+    listItem: GtkWidget
+  
+  model {.private, onlyState.}: GListModel
+  selectionModel {.private, onlyState.}: GtkSelectionModel
+  factory {.private, onlyState.}: GtkListItemFactory
+  itemStates {.private, onlyState.}: Table[int, ItemState]
+  
+  hooks:
+    beforeBuild:
+      state.factory = gtk_signal_list_item_factory_new()
+      state.model = g_list_store_new(G_TYPE_OBJECT)
+      state.internalWidget = gtk_list_view_new(GtkSelectionModel(nil), state.factory)
+      
+      type ListViewStateObj = typeof(ListViewState()[])
+      
+      proc bindCallback(factory: GtkListItemFactory,
+                        listItem: GtkWidget,
+                        stateObj: ptr ListViewStateObj) {.cdecl.} =
+        let
+          index = int(gtk_list_item_get_position(listItem))
+          updater = stateObj[].viewItem.callback(index)
+        updater.assignApp(stateObj[].app)
+        let widgetState = updater.build()
+        stateObj[].itemStates[index] = ItemState(
+          widgetState: widgetState,
+          listItem: listItem
+        )
+        gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+      
+      proc unbindCallback(factory: GtkListItemFactory,
+                          listItem: GtkWidget,
+                          stateObj: ptr ListViewStateObj) {.cdecl.} =
+        let index = int(gtk_list_item_get_position(listItem))
+        stateObj[].itemStates.del(index)
+      
+      discard g_signal_connect(state.factory, "bind", pointer(bindCallback), state[].addr)
+      discard g_signal_connect(state.factory, "unbind", pointer(unbindCallback), state[].addr)
+    update:
+      for index, itemState in state.itemStates.mpairs:
+        let updater = state.viewItem.callback(index)
+        updater.assignApp(state.app)
+        let newState = updater.update(itemState.widgetState)
+        if not newState.isNil:
+          gtk_list_item_set_child(itemState.listItem, newState.unwrapInternalWidget())
+          itemState.widgetState = newState
+    connectEvents:
+      proc activateCallback(widget: GtkWidget,
+                            position: cuint,
+                            data: ptr EventObj[proc(index: int)]) =
+        data[].callback(int(position))
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", activateCallback)
+      
+      proc selectionChangedCallback(selectionModel: GtkSelectionModel,
+                                    position: cuint,
+                                    count: cuint,
+                                    data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
+        let state = ListViewState(data[].widget)
+        for index in position..(position + count):
+          if bool(gtk_selection_model_is_selected(selectionModel, index)):
+            state.selected.incl(int(index))
+          else:
+            state.selected.excl(int(index))
+        data[].callback(state.selected)
+        data[].redraw()
+      
+      if not state.select.isNil:
+        state.select.widget = state
+        state.select.handler = g_signal_connect(
+          state.selectionModel,
+          "selection-changed",
+          selectionChangedCallback,
+          state.select[].addr
+        )
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      if not state.select.isNil:
+        assert state.select.handler > 0
+        g_signal_handler_disconnect(pointer(state.selectionModel), state.select.handler)
+        state.select.handler = 0
+        state.select.widget = nil
+  
+  # TODO: Custom List Model
+  hooks size:
+    build:
+      for it in 0..<widget.valSize:
+        g_list_store_append(state.model, pointer(state.model))
+      state.size = widget.valSize
+    update:
+      if widget.hasSize:
+        while state.size < widget.valSize:
+          g_list_store_append(state.model, pointer(state.model))
+          state.size += 1
+        
+        while state.size > widget.valSize:
+          state.size -= 1
+          g_list_store_remove(state.model, cuint(state.size))
+  
+  hooks selectionMode:
+    property:
+      case state.selectionMode:
+        of SelectionNone:
+          state.selectionModel = gtk_no_selection_new(state.model)
+        of SelectionSingle:
+          state.selectionModel = gtk_single_selection_new(state.model)
+        of SelectionBrowse, SelectionMultiple:
+          state.selectionModel = gtk_multi_selection_new(state.model)
+      
+      state.selected.reset()
+      gtk_list_view_set_model(state.internalWidget, state.selectionModel)
+  
+  hooks selected:
+    (build, update):
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
+          gtk_selection_model_unselect_item(state.selectionModel, cuint(index))
+        for index in widget.valSelected - state.selected:
+          gtk_selection_model_select_item(
+            state.selectionModel,
+            cuint(index),
+            cbool(ord(false))
+          )
+        state.selected = widget.valSelected
+  
+  hooks showSeparators:
+    property:
+      gtk_list_view_set_show_separators(state.internalWidget, cbool(ord(state.showSeparators)))
+  
+  hooks singleClickActivate:
+    property:
+      gtk_list_view_set_single_click_activate(state.internalWidget, cbool(ord(state.singleClickActivate)))
+  
+  hooks enableRubberband:
+    property:
+      gtk_list_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
+
+
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3828,3 +4041,5 @@ export Expander
 export Video
 export ProgressBar
 export EmojiChooser
+export CenterBox
+export ListView
