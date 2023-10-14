@@ -322,6 +322,61 @@ renderable Box of BaseWidget:
             proc clicked() =
               echo it
 
+type BaselinePosition* = enum
+  BaselineTop, BaselineCenter, BaselineBottom
+
+proc toGtk(x: BaselinePosition): GtkBaselinePosition = GtkBaselinePosition(ord(x))
+
+renderable CenterBox of BaseWidget:
+  startWidget: Widget
+  centerWidget: Widget
+  endWidget: Widget
+  baselinePosition: BaselinePosition = center
+  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_center_box_new()
+
+  hooks startWidget:
+    (build, update):
+      state.updateChild(state.startWidget, widget.valStartWidget, gtk_center_box_set_start_widget)
+  
+  hooks endWidget:
+    (build, update):
+      state.updateChild(state.endWidget, widget.valEndWidget, gtk_center_box_set_end_widget)
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_center_box_set_center_widget)
+
+  hooks baselinePosition:
+    property:
+      gtk_center_box_set_baseline_position(state.internalWidget, state.baselinePosition.toGtk())
+
+  hooks shrinkCenterLast:
+    property:
+      when GtkMinor >= 12:
+        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  adder addStart:
+    if widget.hasStartWidget:
+      raise newException(ValueError, "Unable to add multiple children to the start of CenterBox.")
+    widget.hasStartWidget = true
+    widget.valStartWidget = child
+
+  adder addEnd:
+    if widget.hasEndWidget:
+      raise newException(ValueError, "Unable to add multiple children to the end of CenterBox.")
+    widget.hasEndWidget = true
+    widget.valEndWidget = child
+
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children to the center of CenterBox.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
+
 renderable Overlay of BaseWidget:
   child: Widget
   overlays: seq[AlignedChild[Widget]]
@@ -3830,4 +3885,5 @@ export Scale
 export Expander
 export ProgressBar
 export EmojiChooser
+export CenterBox
 export ListView
