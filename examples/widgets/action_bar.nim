@@ -28,6 +28,8 @@ viewable App:
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
+  
+  dummyText: string = "Some Data"
 
 method view(app: AppState): Widget =
   result = gui:
@@ -35,10 +37,14 @@ method view(app: AppState): Widget =
       title = "ActionBar Example"
       defaultSize = (400, 200)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["dummyText"], sizeRequest = (400, 300))) {.addRight.}
+        
+        Button(text = "Reset") {.addRight.}:
+          proc clicked() =
+            app.dummyText = "Some Data"
       
       Box(orient = OrientY):
-        Button(text = "Some Dataset"):
+        Button(text = app.dummyText):
           style = [ButtonFlat]
           proc clicked() = app.revealed = not app.revealed
           
@@ -58,6 +64,7 @@ method view(app: AppState): Widget =
           Button(icon = "user-trash-symbolic", style = [ButtonDestructive]) {.addEnd.}:
             proc clicked() =
               echo "Delete Dataset"
+              app.dummyText = ""
               app.revealed = false
         
 adw.brew(gui(App()))
