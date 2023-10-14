@@ -148,6 +148,8 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
+  GtkListItemFactory* = distinct pointer
+  GtkSelectionModel* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -163,6 +165,8 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
+proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -332,11 +336,12 @@ const
   G_TYPE_INT* = GType(6 shl 2)
   G_TYPE_UINT* = GType(7 shl 2)
   G_TYPE_STRING* = GType(16 shl 2)
+  G_TYPE_POINTER* = GType(17 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
 
 {.push importc, cdecl.}
 # GObject
-proc g_signal_handler_disconnect*(widget: GtkWidget,
+proc g_signal_handler_disconnect*(widget: pointer,
                                   handlerId: culong)
 proc g_signal_connect_data*(widget: pointer,
                             name: cstring,
@@ -1074,6 +1079,40 @@ proc gtk_expander_set_use_markup*(widget: GtkWidget, use_markup: cbool)
 proc gtk_expander_set_use_underline*(widget: GtkWidget, use_underline: cbool)
 proc gtk_expander_get_expanded*(widget: GtkWidget): cbool
 
+# Gtk.SelectionModel
+proc gtk_selection_model_select_item*(model: GtkSelectionModel, index: cuint, unselectOther: cbool)
+proc gtk_selection_model_unselect_item*(model: GtkSelectionModel, index: cuint)
+proc gtk_selection_model_is_selected*(model: GtkSelectionModel, index: cuint): cbool
+
+# Gtk.NoSelection
+proc gtk_no_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.SingleSelection
+proc gtk_single_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.MultiSelection
+proc gtk_multi_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.SignalListItemFactory
+proc gtk_signal_list_item_factory_new*(): GtkListItemFactory
+
+# Gtk.ListItem
+proc gtk_list_item_set_child*(widget, child: GtkWidget)
+proc gtk_list_item_get_item*(widget: GtkWidget): pointer
+proc gtk_list_item_get_position*(widget: GtkWidget): cuint
+
+# Gtk.ListView
+proc gtk_list_view_new*(model: GtkSelectionModel, factory: GtkListItemFactory): GtkWidget
+proc gtk_list_view_set_model*(widget: GtkWidget, model: GtkSelectionModel)
+proc gtk_list_view_set_factory*(widget: GtkWidget, factory: GtkListItemFactory)
+proc gtk_list_view_set_show_separators*(widget: GtkWidget, show: cbool)
+proc gtk_list_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
+proc gtk_list_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+
+# Gio.ListStore
+proc g_list_store_new*(itemType: GType): GListModel
+proc g_list_store_append*(model: GListModel, item: pointer)
+proc g_list_store_remove*(model: GListModel, index: cuint)
 {.pop.}
 
 {.push hint[Name]: off.}
@@ -1112,6 +1151,12 @@ proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointe
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
 proc g_signal_connect*(app: GApplication, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: GtkListItemFactory, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: GtkSelectionModel, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 {.pop.}
 
