@@ -27,6 +27,12 @@ when defined(nimPreviewSlimSystem):
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
 
+export adw.StyleManager
+export adw.ColorScheme
+export adw.FlapFoldPolicy
+export adw.FoldThresholdPolicy
+export adw.FlapTransitionType
+
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
 
