@@ -143,6 +143,7 @@ renderable CenterBox of BaseWidget
 - `endWidget: Widget`
 - `baselinePosition: BaselinePosition = BaselineCenter`
 - `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+- `orient: Orient = OrientX`
 
 ###### Adders
 
@@ -1561,6 +1562,30 @@ A progress bar widget to show progress being made on a long-lasting task
 - `pulseStep: float = 0.1`
 - `showText: bool = false`
 - `text: string = ""`
+
+
+## ActionBar
+
+```nim
+renderable ActionBar of BaseWidget
+```
+
+A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `centerWidget: Widget`
+- `packStart: seq[Widget]` Widgets shown on the start of the ActionBar
+- `packEnd: seq[Widget]` Widgets shown on the end of the ActionBar
+- `revealed: bool`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addStart`
+- `addEnd`
 
 
 ## ListView

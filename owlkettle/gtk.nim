@@ -613,6 +613,15 @@ proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
 proc gtk_window_set_icon_name*(window: GtkWidget, name: cstring)
 
+# Gtk.ActionBar
+proc gtk_action_bar_new*(): GtkWidget
+proc gtk_action_bar_get_revealed*(widget: GtkWidget): cbool
+proc gtk_action_bar_pack_end*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_pack_start*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_remove*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_set_center_widget*(widget: GtkWidget, center_widget: GtkWidget)
+proc gtk_action_bar_set_revealed*(widget: GtkWidget, revealed: cbool)
+
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
 proc gtk_button_new_with_label*(label: cstring): GtkWidget

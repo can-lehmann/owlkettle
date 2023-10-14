@@ -3714,6 +3714,46 @@ renderable ProgressBar of BaseWidget:
     property:
       gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
 
+renderable ActionBar of BaseWidget:
+  ## A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+  centerWidget: Widget
+  packStart: seq[Widget] ## Widgets shown on the start of the ActionBar
+  packEnd: seq[Widget] ## Widgets shown on the end of the ActionBar
+  revealed: bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_action_bar_new()
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_action_bar_set_center_widget)
+      
+  hooks packStart:
+    (build, update):
+      state.updateChildren(state.packStart, widget.valPackStart, gtk_action_bar_pack_start, gtk_action_bar_remove)
+        
+  hooks packEnd:
+    (build, update):
+      state.updateChildren(state.packEnd, widget.valPackEnd, gtk_action_bar_pack_end, gtk_action_bar_remove)
+  
+  hooks revealed:
+    property:
+      gtk_action_bar_set_revealed(state.internalWidget, state.revealed.cbool)
+  
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children as center widget of ActionBar. Add them to the start or end via {.addStart.} or {.addEnd.}.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
+    
+  adder addStart:
+    widget.hasPackStart = true
+    widget.valPackStart.add(child)    
+  
+  adder addEnd:
+    widget.hasPackEnd = true
+    widget.valPackEnd.add(child)
 const
   ListViewRichList* = StyleClass("rich-list")
   ListViewNavigationSidebar* = StyleClass("navigation-sidebar")
@@ -3892,3 +3932,4 @@ export ProgressBar
 export EmojiChooser
 export CenterBox
 export ListView
+export ActionBar
