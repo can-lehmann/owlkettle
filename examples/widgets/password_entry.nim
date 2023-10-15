@@ -59,9 +59,8 @@ method view(app: AppState): Widget =
           sizeRequest = app.sizeRequest
           text = app.text
         
-          proc activate(pw: string) =
-            echo "New Password: ", pw
-            app.text = pw
+          proc activate() =
+            echo "User confirmed new password"
             
           proc changed(pw: string) =
             echo "Change in Password: ", pw

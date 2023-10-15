@@ -3844,14 +3844,14 @@ renderable PasswordEntry of BaseWidget:
   placeholderText: string = "Password"
   showPeekIcon: bool = true
   
-  proc activate(password: string) ## Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus. 
+  proc activate() ## Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus. 
   proc changed(password: string) ## Triggered when the user types in the PasswordEntry.
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_password_entry_new()
     connectEvents:
-      proc activateEventCallback(
+      proc changedEventCallback(
         widget: GtkWidget, 
         data: ptr EventObj[proc(password: string)]
       ) {.cdecl.} =
@@ -3860,8 +3860,8 @@ renderable PasswordEntry of BaseWidget:
         data[].callback(password)
         data[].redraw()
 
-      state.connect(state.activate, "activate", activateEventCallback)
-      state.connect(state.changed, "changed", activateEventCallback)
+      state.connect(state.activate, "activate", eventCallback)
+      state.connect(state.changed, "changed", changedEventCallback)
     disconnectEvents:
       disconnect(state.internalWidget, state.activate)
       disconnect(state.internalWidget, state.changed)
