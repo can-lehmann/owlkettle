@@ -113,6 +113,8 @@ proc allocCallback(fn: TimeoutProc): tuple[call: GSourceFunc, data: ptr TimeoutP
   result.destroy = destroy
   
   result.data = cast[ptr TimeoutProc](allocShared0(sizeof(ptr TimeoutProc)))
+  when defined(gcDestructors):
+    `=wasMoved`(result.data[])
   result.data[] = fn
 
 proc addGlobalTimeout*(interval: int, fn: TimeoutProc, priority: int = 200): EventDescriptor =

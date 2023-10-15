@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils, common
@@ -321,6 +321,61 @@ renderable Box of BaseWidget:
             text = "Button " & $it
             proc clicked() =
               echo it
+
+type BaselinePosition* = enum
+  BaselineTop, BaselineCenter, BaselineBottom
+
+proc toGtk(x: BaselinePosition): GtkBaselinePosition = GtkBaselinePosition(ord(x))
+
+renderable CenterBox of BaseWidget:
+  startWidget: Widget
+  centerWidget: Widget
+  endWidget: Widget
+  baselinePosition: BaselinePosition = BaselineCenter
+  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_center_box_new()
+
+  hooks startWidget:
+    (build, update):
+      state.updateChild(state.startWidget, widget.valStartWidget, gtk_center_box_set_start_widget)
+  
+  hooks endWidget:
+    (build, update):
+      state.updateChild(state.endWidget, widget.valEndWidget, gtk_center_box_set_end_widget)
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_center_box_set_center_widget)
+
+  hooks baselinePosition:
+    property:
+      gtk_center_box_set_baseline_position(state.internalWidget, state.baselinePosition.toGtk())
+
+  hooks shrinkCenterLast:
+    property:
+      when GtkMinor >= 12:
+        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  adder addStart:
+    if widget.hasStartWidget:
+      raise newException(ValueError, "Unable to add multiple children to the start of CenterBox.")
+    widget.hasStartWidget = true
+    widget.valStartWidget = child
+
+  adder addEnd:
+    if widget.hasEndWidget:
+      raise newException(ValueError, "Unable to add multiple children to the end of CenterBox.")
+    widget.hasEndWidget = true
+    widget.valEndWidget = child
+
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children to the center of CenterBox.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
 
 renderable Overlay of BaseWidget:
   child: Widget
@@ -3584,6 +3639,171 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+
+# See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
+type 
+  MediaStreamObj = object
+    gtk*: GtkMediaStream
+
+  MediaStream* = ref MediaStreamObj 
+
+crossVersionDestructor(stream, MediaStreamObj):
+  if isNil(stream.gtk):
+    return
+  
+  g_object_unref(pointer(stream.gtk))
+
+proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+  
+proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
+
+proc newMediaStream(gtk: GtkMediaStream): MediaStream =
+  if gtk.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
+  
+  result = MediaStream(gtk: gtk)
+
+proc newMediaStream*(fileName: string): MediaStream =
+  if not fileExists(fileName):
+    raise newException(IOError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+  
+  let gtk = gtk_media_file_new_for_filename(fileName.cstring)
+  result = newMediaStream(gtk)
+
+proc newMediaStream*(gFile: GFile): MediaStream =
+  if gFile.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
+    
+  let gtk = gtk_media_file_new_for_file(gFile)
+  result = newMediaStream(gtk)
+
+proc endStream*(stream: MediaStream) =
+  when GtkMinor >= 4:
+    gtk_media_stream_stream_ended(stream.gtk)
+  else:
+    gtk_media_stream_ended(stream.gtk)
+
+proc loop*(stream: MediaStream): bool =
+  gtk_media_stream_get_loop(stream.gtk).bool
+
+proc playing*(stream: MediaStream): bool =
+  gtk_media_stream_get_playing(stream.gtk).bool
+
+proc hasAudio*(stream: MediaStream): bool =
+  gtk_media_stream_has_audio(stream.gtk).bool
+
+proc hasVideo*(stream: MediaStream): bool =
+  gtk_media_stream_has_video(stream.gtk).bool
+
+proc muted*(stream: MediaStream): bool =
+  gtk_media_stream_get_muted(stream.gtk).bool
+
+proc isSeekable*(stream: MediaStream): bool =
+  gtk_media_stream_is_seekable(stream.gtk).bool
+
+proc isSeeking*(stream: MediaStream): bool =
+  gtk_media_stream_is_seeking(stream.gtk).bool
+
+proc duration*(stream: MediaStream): int64 =
+  gtk_media_stream_get_duration(stream.gtk)
+
+proc hasEnded*(stream: MediaStream): bool =
+  gtk_media_stream_get_ended(stream.gtk).bool
+
+proc getError*(stream: MediaStream): GError =
+  gtk_media_stream_get_error(stream.gtk)
+
+proc timestamp*(stream: MediaStream): int64 =
+  gtk_media_stream_get_timestamp(stream.gtk)
+
+proc volume*(stream: MediaStream): float =
+  gtk_media_stream_get_volume(stream.gtk).float
+
+proc mute*(stream: MediaStream, mute: bool) = 
+  gtk_media_stream_set_muted(stream.gtk, mute.cbool)
+
+proc pause*(stream: MediaStream) =
+  gtk_media_stream_pause(stream.gtk)
+
+proc play*(stream: MediaStream) =
+  gtk_media_stream_play(stream.gtk)
+
+proc `muted=`*(stream: MediaStream, muted: bool) =
+  gtk_media_stream_set_muted(stream.gtk, muted.cbool)
+
+proc `loop=`*(stream: MediaStream, enableLooping: bool) =
+  gtk_media_stream_set_loop(stream.gtk, enableLooping.cbool)
+
+proc `playing=`*(stream: MediaStream, playing: bool) =
+  gtk_media_stream_set_playing(stream.gtk, playing.cbool)
+
+proc `volume=`*(stream: MediaStream, volume: float) =
+  gtk_media_stream_set_volume(stream.gtk, volume.cdouble)
+
+proc seek*(stream: MediaStream, timestamp: int64) =
+  gtk_media_stream_seek(stream.gtk, timestamp)
+
+proc seekRelative*(stream: MediaStream, intervalInMicroSeconds: int64) =
+  let alreadySeeking = stream.isSeeking()
+  if not stream.isSeekable() or alreadySeeking:
+    return
+  
+  let timestampInMicroS = gtk_media_stream_get_timestamp(stream.gtk)
+  gtk_media_stream_seek(stream.gtk, timestampInMicroS + intervalInMicroSeconds)
+
+renderable Video of BaseWidget:
+  autoplay: bool = false
+  loop: bool = false
+  mediaStream: MediaStream
+
+  setter fileName: string
+  setter file: GFile
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_video_new()
+    
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_video_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+  hooks autoplay:
+    property:
+      gtk_video_set_autoplay(state.internalWidget, state.autoplay.cbool)
+
+  hooks loop:
+    property:
+      gtk_video_set_loop(state.internalWidget, state.loop.cbool)
+
+proc `hasFileName=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFileName=`*(widget: Video, fileName: string) =
+  if fileExists(fileName):
+    widget.valMediaStream = newMediaStream(fileName)
+
+proc `hasFile=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFile=`*(widget: Video, file: GFile) =
+  widget.valMediaStream = newMediaStream(file)
+
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 
   label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
@@ -3694,7 +3914,165 @@ renderable ProgressBar of BaseWidget:
     property:
       gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
 
-    
+const
+  ListViewRichList* = StyleClass("rich-list")
+  ListViewNavigationSidebar* = StyleClass("navigation-sidebar")
+  ListViewDataTable* = StyleClass("data-table")
+
+renderable ListView of BaseWidget:
+  size: int ## Number of items
+  
+  selectionMode: SelectionMode
+  selected: HashSet[int] ## Indices of the currently selected items.
+  
+  showSeparators: bool = false
+  singleClickActivate: bool = false
+  enableRubberband: bool = false
+  
+  proc viewItem(index: int): Widget
+  proc select(rows: HashSet[int])
+  proc activate(index: int)
+  
+  type ItemState = object
+    widgetState: WidgetState
+    listItem: GtkWidget
+  
+  model {.private, onlyState.}: GListModel
+  selectionModel {.private, onlyState.}: GtkSelectionModel
+  factory {.private, onlyState.}: GtkListItemFactory
+  itemStates {.private, onlyState.}: Table[int, ItemState]
+  
+  hooks:
+    beforeBuild:
+      state.factory = gtk_signal_list_item_factory_new()
+      state.model = g_list_store_new(G_TYPE_OBJECT)
+      state.internalWidget = gtk_list_view_new(GtkSelectionModel(nil), state.factory)
+      
+      type ListViewStateObj = typeof(ListViewState()[])
+      
+      proc bindCallback(factory: GtkListItemFactory,
+                        listItem: GtkWidget,
+                        stateObj: ptr ListViewStateObj) {.cdecl.} =
+        let
+          index = int(gtk_list_item_get_position(listItem))
+          updater = stateObj[].viewItem.callback(index)
+        updater.assignApp(stateObj[].app)
+        let widgetState = updater.build()
+        stateObj[].itemStates[index] = ItemState(
+          widgetState: widgetState,
+          listItem: listItem
+        )
+        gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+      
+      proc unbindCallback(factory: GtkListItemFactory,
+                          listItem: GtkWidget,
+                          stateObj: ptr ListViewStateObj) {.cdecl.} =
+        let index = int(gtk_list_item_get_position(listItem))
+        stateObj[].itemStates.del(index)
+      
+      discard g_signal_connect(state.factory, "bind", pointer(bindCallback), state[].addr)
+      discard g_signal_connect(state.factory, "unbind", pointer(unbindCallback), state[].addr)
+    update:
+      for index, itemState in state.itemStates.mpairs:
+        let updater = state.viewItem.callback(index)
+        updater.assignApp(state.app)
+        let newState = updater.update(itemState.widgetState)
+        if not newState.isNil:
+          gtk_list_item_set_child(itemState.listItem, newState.unwrapInternalWidget())
+          itemState.widgetState = newState
+    connectEvents:
+      proc activateCallback(widget: GtkWidget,
+                            position: cuint,
+                            data: ptr EventObj[proc(index: int)]) =
+        data[].callback(int(position))
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", activateCallback)
+      
+      proc selectionChangedCallback(selectionModel: GtkSelectionModel,
+                                    position: cuint,
+                                    count: cuint,
+                                    data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
+        let state = ListViewState(data[].widget)
+        for index in position..(position + count):
+          if bool(gtk_selection_model_is_selected(selectionModel, index)):
+            state.selected.incl(int(index))
+          else:
+            state.selected.excl(int(index))
+        data[].callback(state.selected)
+        data[].redraw()
+      
+      if not state.select.isNil:
+        state.select.widget = state
+        state.select.handler = g_signal_connect(
+          state.selectionModel,
+          "selection-changed",
+          selectionChangedCallback,
+          state.select[].addr
+        )
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      if not state.select.isNil:
+        assert state.select.handler > 0
+        g_signal_handler_disconnect(pointer(state.selectionModel), state.select.handler)
+        state.select.handler = 0
+        state.select.widget = nil
+  
+  # TODO: Custom List Model
+  hooks size:
+    build:
+      for it in 0..<widget.valSize:
+        g_list_store_append(state.model, pointer(state.model))
+      state.size = widget.valSize
+    update:
+      if widget.hasSize:
+        while state.size < widget.valSize:
+          g_list_store_append(state.model, pointer(state.model))
+          state.size += 1
+        
+        while state.size > widget.valSize:
+          state.size -= 1
+          g_list_store_remove(state.model, cuint(state.size))
+  
+  hooks selectionMode:
+    property:
+      case state.selectionMode:
+        of SelectionNone:
+          state.selectionModel = gtk_no_selection_new(state.model)
+        of SelectionSingle:
+          state.selectionModel = gtk_single_selection_new(state.model)
+        of SelectionBrowse, SelectionMultiple:
+          state.selectionModel = gtk_multi_selection_new(state.model)
+      
+      state.selected.reset()
+      gtk_list_view_set_model(state.internalWidget, state.selectionModel)
+  
+  hooks selected:
+    (build, update):
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
+          gtk_selection_model_unselect_item(state.selectionModel, cuint(index))
+        for index in widget.valSelected - state.selected:
+          gtk_selection_model_select_item(
+            state.selectionModel,
+            cuint(index),
+            cbool(ord(false))
+          )
+        state.selected = widget.valSelected
+  
+  hooks showSeparators:
+    property:
+      gtk_list_view_set_show_separators(state.internalWidget, cbool(ord(state.showSeparators)))
+  
+  hooks singleClickActivate:
+    property:
+      gtk_list_view_set_single_click_activate(state.internalWidget, cbool(ord(state.singleClickActivate)))
+  
+  hooks enableRubberband:
+    property:
+      gtk_list_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
+
+
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
@@ -3710,6 +4088,9 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export Video
 export ProgressBar
 export EmojiChooser
 export EditableLabel
+export CenterBox
+export ListView
