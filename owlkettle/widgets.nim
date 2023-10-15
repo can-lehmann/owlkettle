@@ -3600,6 +3600,16 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+renderable Scrollbar of BaseWidget:
+  orient: Orient = OrientY
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_scrollbar_new(state.orient.toGtk(), nil.GtkAdjustment)
+
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
@@ -4054,3 +4064,4 @@ export ProgressBar
 export EmojiChooser
 export CenterBox
 export ListView
+export ScrollBar
