@@ -39,5 +39,4 @@ jobs:
         run: |
           # For referencing latest source code
           echo 'switch("path", "$projectDir/..")' > examples/config.nims
-      - run: cat /home/runner/work/owlkettle/owlkettle/owlkettle/gtk.nim
       - run: nimble examples
