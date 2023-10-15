@@ -31,8 +31,8 @@ viewable App:
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
-  items: seq[string] = mapIt(0..<100, "Search Entry " & $it)
-  filteredItems: seq[string] = mapIt(0..<100, "Search Entry " & $it)
+  items: seq[string] = mapIt(0..<100, "Item " & $it)
+  filteredItems: seq[string] = mapIt(0..<100, "Item " & $it)
   selected: int = 0
   
 method view(app: AppState): Widget =
