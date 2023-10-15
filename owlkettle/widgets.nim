@@ -3633,21 +3633,21 @@ proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
 proc newMediaStream(gtk: GtkMediaStream): MediaStream =
   if gtk.isNil:
     raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
-
+  
   result = MediaStream(gtk: gtk)
 
 proc newMediaStream*(fileName: string): MediaStream =
   if not fileExists(fileName):
-    raise newException(ValueError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+    raise newException(IoError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
   
-  let gtk: GtkMediaStream = gtk_media_file_new_for_filename(fileName.cstring)
+  let gtk = gtk_media_file_new_for_filename(fileName.cstring)
   result = newMediaStream(gtk)
 
 proc newMediaStream*(gFile: GFile): MediaStream =
   if gFile.isNil:
-    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
+    raise newException(IoError, "Unable to create MediaStream from GFile(nil)")
     
-  let gtk: GtkMediaStream = gtk_media_file_new_for_file(gFile)
+  let gtk = gtk_media_file_new_for_file(gFile)
   result = newMediaStream(gtk)
 
 proc endStream*(stream: MediaStream) =
@@ -3656,14 +3656,20 @@ proc endStream*(stream: MediaStream) =
   else:
     gtk_media_stream_ended(stream.gtk)
 
-proc isLooping*(stream: MediaStream): bool =
+proc loop*(stream: MediaStream): bool =
   gtk_media_stream_get_loop(stream.gtk).bool
 
-proc isMuted*(stream: MediaStream): bool =
-  gtk_media_stream_get_muted(stream.gtk).bool
-
-proc isPlaying*(stream: MediaStream): bool =
+proc playing*(stream: MediaStream): bool =
   gtk_media_stream_get_playing(stream.gtk).bool
+
+proc hasAudio*(stream: MediaStream): bool =
+  gtk_media_stream_has_audio(stream.gtk).bool
+
+proc hasVideo*(stream: MediaStream): bool =
+  gtk_media_stream_has_video(stream.gtk).bool
+
+proc muted*(stream: MediaStream): bool =
+  gtk_media_stream_get_muted(stream.gtk).bool
 
 proc isSeekable*(stream: MediaStream): bool =
   gtk_media_stream_is_seekable(stream.gtk).bool
@@ -3671,20 +3677,20 @@ proc isSeekable*(stream: MediaStream): bool =
 proc isSeeking*(stream: MediaStream): bool =
   gtk_media_stream_is_seeking(stream.gtk).bool
 
-proc getDuration*(stream: MediaStream): int =
-  gtk_media_stream_get_duration(stream.gtk).int
+proc duration*(stream: MediaStream): int64 =
+  gtk_media_stream_get_duration(stream.gtk)
+
+proc hasEnded*(stream: MediaStream): bool =
+  gtk_media_stream_get_ended(stream.gtk).bool
 
 proc getError*(stream: MediaStream): GError =
   gtk_media_stream_get_error(stream.gtk)
 
-proc getTimestamp*(stream: MediaStream): int =
-  gtk_media_stream_get_timestamp(stream.gtk).int
+proc timestamp*(stream: MediaStream): int64 =
+  gtk_media_stream_get_timestamp(stream.gtk)
 
-proc getVolume*(stream: MediaStream): float =
+proc volume*(stream: MediaStream): float =
   gtk_media_stream_get_volume(stream.gtk).float
-
-proc hasEnded*(stream: MediaStream): bool =
-  gtk_media_stream_get_ended(stream.gtk).bool
 
 proc mute*(stream: MediaStream, mute: bool) = 
   gtk_media_stream_set_muted(stream.gtk, mute.cbool)
@@ -3695,22 +3701,28 @@ proc pause*(stream: MediaStream) =
 proc play*(stream: MediaStream) =
   gtk_media_stream_play(stream.gtk)
 
-proc setLoop*(stream: MediaStream, enableLooping: bool) =
+proc `muted=`*(stream: MediaStream, muted: bool) =
+  gtk_media_stream_set_muted(stream.gtk, muted.cbool)
+
+proc `loop=`*(stream: MediaStream, enableLooping: bool) =
   gtk_media_stream_set_loop(stream.gtk, enableLooping.cbool)
 
-proc setPlay*(stream: MediaStream, play: bool) =
-  gtk_media_stream_set_playing(stream.gtk, play.cbool)
+proc `playing=`*(stream: MediaStream, playing: bool) =
+  gtk_media_stream_set_playing(stream.gtk, playing.cbool)
 
-proc setVolume*(stream: MediaStream, volume: float) =
+proc `volume=`*(stream: MediaStream, volume: float) =
   gtk_media_stream_set_volume(stream.gtk, volume.cdouble)
 
-proc seek*(stream: MediaStream, intervalInMicroSeconds: int) =
+proc seek*(stream: MediaStream, timestamp: int64) =
+  gtk_media_stream_seek(stream.gtk, timestamp)
+
+proc seekRelative*(stream: MediaStream, intervalInMicroSeconds: int64) =
   let alreadySeeking = stream.isSeeking()
   if not stream.isSeekable() or alreadySeeking:
     return
   
-  let timestampInMicroS: cint = gtk_media_stream_get_timestamp(stream.gtk)
-  gtk_media_stream_seek(stream.gtk, cint(timestampInMicroS + intervalInMicroSeconds))
+  let timestampInMicroS = gtk_media_stream_get_timestamp(stream.gtk)
+  gtk_media_stream_seek(stream.gtk, timestampInMicroS + intervalInMicroSeconds)
 
 renderable Video of BaseWidget:
   autoplay: bool = false
@@ -3726,10 +3738,6 @@ renderable Video of BaseWidget:
     
   hooks mediaStream:
     property:
-      let oldStream: GtkMediaStream = gtk_video_get_media_stream(state.internalWidget)
-      if not isNil(oldStream):
-        g_object_unref(oldStream.pointer)
-      
       if not isNil(state.mediaStream) and not isNil(state.mediaStream.gtk):
         gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
   

@@ -185,7 +185,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/video.nim">Video</a></td>
-    <td><img alt="Video" src="../docs/assets/examples/video.png" width="922px"></td>
+    <td><img alt="Video" src="../docs/assets/examples/video.png" width="985px"></td>
   </tr>
 </table>
 

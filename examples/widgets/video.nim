@@ -34,42 +34,49 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
-    
   result = gui:
     Window():
       defaultSize = (1000, 600)
       title = "Video Example"
+      
       HeaderBar() {.addTitlebar.}:
         WindowTitle {.addTitle.}:
           title = "Video Example"
           subtitle = app.filename
-        insert(app.toAutoFormMenu(ignoreFields = @["mediaStream"], sizeRequest = (400, 400))) {.addRight.}
+        
+        insert(app.toAutoFormMenu(
+          ignoreFields = @["mediaStream", "fileName"],
+          sizeRequest = (400, 400)
+        )) {.addRight.}
         
         Button {.addRight.}:
           icon = "media-seek-forward-symbolic"
-          proc clicked() = app.mediaStream.seek(5 * 1000000)  
-          
-        Button {.addRight.}:
-          icon = "media-playback-start"
-          proc clicked() = app.mediaStream.play()
+          style = [ButtonFlat]
+          sensitive = not app.mediaStream.isNil
+          proc clicked() =
+            app.mediaStream.seekRelative(5 * 1000000)
         
         Button {.addRight.}:
           icon = "media-playback-pause"
-          proc clicked() = app.mediaStream.pause()
+          style = [ButtonFlat]
+          sensitive = not app.mediaStream.isNil
+          proc clicked() =
+            app.mediaStream.pause()
+        
+        Button {.addRight.}:
+          icon = "media-playback-start"
+          style = [ButtonFlat]
+          sensitive = not app.mediaStream.isNil
+          proc clicked() =
+            app.mediaStream.play()
 
         Button {.addRight.}:
           icon = "media-seek-backward-symbolic"
-          proc clicked() = 
-            app.mediaStream.seek(-5 * 1000000)    
-
-        
-        Button {.addLeft.}:
-          text = "Reset"
           style = [ButtonFlat]
-          
-          proc clicked() =
-            app.mediaStream = nil
-            
+          sensitive = not app.mediaStream.isNil
+          proc clicked() = 
+            app.mediaStream.seekRelative(-5 * 1000000)
+
         Button {.addLeft.}:
           text = "Open"
           style = [ButtonSuggested]
@@ -82,7 +89,6 @@ method view(app: AppState): Widget =
                 DialogButton {.addButton.}:
                   text = "Cancel"
                   res = DialogCancel
-                  style = [ButtonSuggested]
                 
                 DialogButton {.addButton.}:
                   text = "Open"
@@ -92,13 +98,19 @@ method view(app: AppState): Widget =
             if res.kind == DialogAccept:
               let path = FileChooserDialogState(state).filename
               app.filename = path
-              # Load sync
               try:
                 app.mediaStream = newMediaStream(path)
               except IoError as err:
                 echo err.msg
                 app.mediaStream = nil
-        
+          
+        Button {.addLeft.}:
+          text = "Reset"
+          style = [ButtonFlat]
+          
+          proc clicked() =
+            app.mediaStream = nil
+      
       Box(orient = OrientY):
         if not app.mediaStream.isNil():
           Video:
@@ -110,4 +122,5 @@ method view(app: AppState): Widget =
             sizeRequest = app.sizeRequest
         else:
           Label(text = "No file selected")
+
 adw.brew(gui(App()))

@@ -556,13 +556,13 @@ proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 proc `==`*(x, y: GtkMediaStream): bool {.borrow.}
 proc gtk_media_file_new_for_filename*(filename: cstring): GtkMediaStream
 proc gtk_media_file_new_for_file*(file: GFile): GtkMediaStream
-proc gtk_media_stream_get_duration*(self: GtkMediaStream): cint
+proc gtk_media_stream_get_duration*(self: GtkMediaStream): int64
 proc gtk_media_stream_get_ended*(self: GtkMediaStream): cbool
 proc gtk_media_stream_get_error*(self: GtkMediaStream): GError
 proc gtk_media_stream_get_loop*(self: GtkMediaStream): cbool
 proc gtk_media_stream_get_muted*(self: GtkMediaStream): cbool
 proc gtk_media_stream_get_playing*(self: GtkMediaStream): cbool
-proc gtk_media_stream_get_timestamp*(self: GtkMediaStream): cint
+proc gtk_media_stream_get_timestamp*(self: GtkMediaStream): int64
 proc gtk_media_stream_get_volume*(self: GtkMediaStream): cdouble
 proc gtk_media_stream_has_audio*(self: GtkMediaStream): cbool
 proc gtk_media_stream_has_video*(self: GtkMediaStream): cbool
@@ -571,7 +571,7 @@ proc gtk_media_stream_is_seeking*(self: GtkMediaStream): cbool
 proc gtk_media_stream_pause*(self: GtkMediaStream)
 proc gtk_media_stream_play*(self: GtkMediaStream)
 # proc gtk_media_stream_realize*(self: GtkMediaStream, surface: GdkSurface)
-proc gtk_media_stream_seek*(self: GtkMediaStream, timestamp: cint)
+proc gtk_media_stream_seek*(self: GtkMediaStream, timestamp: int64)
 proc gtk_media_stream_set_loop*(self: GtkMediaStream, loop: cbool)
 proc gtk_media_stream_set_muted*(self: GtkMediaStream, muted: cbool)
 proc gtk_media_stream_set_playing*(self: GtkMediaStream, playing: cbool)
