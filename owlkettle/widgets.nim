@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import gtk, widgetdef, cairo, widgetutils, common
@@ -3663,6 +3663,171 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+
+# See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
+type 
+  MediaStreamObj = object
+    gtk*: GtkMediaStream
+
+  MediaStream* = ref MediaStreamObj 
+
+crossVersionDestructor(stream, MediaStreamObj):
+  if isNil(stream.gtk):
+    return
+  
+  g_object_unref(pointer(stream.gtk))
+
+proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+  
+proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
+
+proc newMediaStream(gtk: GtkMediaStream): MediaStream =
+  if gtk.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
+  
+  result = MediaStream(gtk: gtk)
+
+proc newMediaStream*(fileName: string): MediaStream =
+  if not fileExists(fileName):
+    raise newException(IOError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+  
+  let gtk = gtk_media_file_new_for_filename(fileName.cstring)
+  result = newMediaStream(gtk)
+
+proc newMediaStream*(gFile: GFile): MediaStream =
+  if gFile.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
+    
+  let gtk = gtk_media_file_new_for_file(gFile)
+  result = newMediaStream(gtk)
+
+proc endStream*(stream: MediaStream) =
+  when GtkMinor >= 4:
+    gtk_media_stream_stream_ended(stream.gtk)
+  else:
+    gtk_media_stream_ended(stream.gtk)
+
+proc loop*(stream: MediaStream): bool =
+  gtk_media_stream_get_loop(stream.gtk).bool
+
+proc playing*(stream: MediaStream): bool =
+  gtk_media_stream_get_playing(stream.gtk).bool
+
+proc hasAudio*(stream: MediaStream): bool =
+  gtk_media_stream_has_audio(stream.gtk).bool
+
+proc hasVideo*(stream: MediaStream): bool =
+  gtk_media_stream_has_video(stream.gtk).bool
+
+proc muted*(stream: MediaStream): bool =
+  gtk_media_stream_get_muted(stream.gtk).bool
+
+proc isSeekable*(stream: MediaStream): bool =
+  gtk_media_stream_is_seekable(stream.gtk).bool
+
+proc isSeeking*(stream: MediaStream): bool =
+  gtk_media_stream_is_seeking(stream.gtk).bool
+
+proc duration*(stream: MediaStream): int64 =
+  gtk_media_stream_get_duration(stream.gtk)
+
+proc hasEnded*(stream: MediaStream): bool =
+  gtk_media_stream_get_ended(stream.gtk).bool
+
+proc getError*(stream: MediaStream): GError =
+  gtk_media_stream_get_error(stream.gtk)
+
+proc timestamp*(stream: MediaStream): int64 =
+  gtk_media_stream_get_timestamp(stream.gtk)
+
+proc volume*(stream: MediaStream): float =
+  gtk_media_stream_get_volume(stream.gtk).float
+
+proc mute*(stream: MediaStream, mute: bool) = 
+  gtk_media_stream_set_muted(stream.gtk, mute.cbool)
+
+proc pause*(stream: MediaStream) =
+  gtk_media_stream_pause(stream.gtk)
+
+proc play*(stream: MediaStream) =
+  gtk_media_stream_play(stream.gtk)
+
+proc `muted=`*(stream: MediaStream, muted: bool) =
+  gtk_media_stream_set_muted(stream.gtk, muted.cbool)
+
+proc `loop=`*(stream: MediaStream, enableLooping: bool) =
+  gtk_media_stream_set_loop(stream.gtk, enableLooping.cbool)
+
+proc `playing=`*(stream: MediaStream, playing: bool) =
+  gtk_media_stream_set_playing(stream.gtk, playing.cbool)
+
+proc `volume=`*(stream: MediaStream, volume: float) =
+  gtk_media_stream_set_volume(stream.gtk, volume.cdouble)
+
+proc seek*(stream: MediaStream, timestamp: int64) =
+  gtk_media_stream_seek(stream.gtk, timestamp)
+
+proc seekRelative*(stream: MediaStream, intervalInMicroSeconds: int64) =
+  let alreadySeeking = stream.isSeeking()
+  if not stream.isSeekable() or alreadySeeking:
+    return
+  
+  let timestampInMicroS = gtk_media_stream_get_timestamp(stream.gtk)
+  gtk_media_stream_seek(stream.gtk, timestampInMicroS + intervalInMicroSeconds)
+
+renderable Video of BaseWidget:
+  autoplay: bool = false
+  loop: bool = false
+  mediaStream: MediaStream
+
+  setter fileName: string
+  setter file: GFile
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_video_new()
+    
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_video_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+  hooks autoplay:
+    property:
+      gtk_video_set_autoplay(state.internalWidget, state.autoplay.cbool)
+
+  hooks loop:
+    property:
+      gtk_video_set_loop(state.internalWidget, state.loop.cbool)
+
+proc `hasFileName=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFileName=`*(widget: Video, fileName: string) =
+  if fileExists(fileName):
+    widget.valMediaStream = newMediaStream(fileName)
+
+proc `hasFile=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFile=`*(widget: Video, file: GFile) =
+  widget.valMediaStream = newMediaStream(file)
+
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 
   label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
@@ -3948,6 +4113,7 @@ export buildState, updateState, assignAppEvents
 export Scale
 export Expander
 export SearchEntry
+export Video
 export ProgressBar
 export EmojiChooser
 export CenterBox
