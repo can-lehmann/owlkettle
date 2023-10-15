@@ -21,7 +21,7 @@
 # SOFTWARE
 
 import owlkettle, owlkettle/[playground, adw, dataentries]
-import std/[strutils, sequtils]
+import std/[strutils, sets, sequtils]
 
 viewable App:
   searchDelay: uint = 100
@@ -60,29 +60,33 @@ method view(app: AppState): Widget =
             if app.selected > 0:
               app.selected -= 1
           
-          proc searchStarted(searchString: string) = 
-            echo "Search Started: ", searchString
-          
-          proc activate(searchString: string) =
+          proc activate() =
             echo "activated search for entry: ": $app.filteredItems[app.selected]
           
           proc changed(searchString: string) = 
+            echo "Changed: ", searchString
             app.text = searchString
             app.selected = 0
             app.filteredItems = app.items.filterIt(searchString in it)
           
-          proc stopSearch(searchString: string) = 
+          proc stopSearch() = 
             echo "Search Stopped"
             app.text = ""
             app.filteredItems = app.items
           
       ScrolledWindow:
         Box(orient = OrientY):
-          for index, item in app.filteredItems:
-            if isInActiveSearch and index == app.selected:
-              Label(useMarkup = true, text = "<b> " & item & "</b>") {.expand: false.}
-            else:
-              Label(text = item) {.expand: false.}
+          ListBox:
+            selected = [app.selected].toHashSet()
+            selectionMode = SelectionSingle
+            
+            proc select(rows: Hashset[int]) =
+              for num in rows:
+                app.selected = num
+            
+            for index, item in app.filteredItems:
+              Box():
+                Label(text = item, margin = 6) {.hAlign: AlignStart, expand: false.}
         
 
 adw.brew(gui(App()))

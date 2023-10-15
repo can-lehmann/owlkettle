@@ -2071,40 +2071,35 @@ renderable SearchEntry of BaseWidget:
   searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
   placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
   
-  proc activate(searchString: string) ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+  proc activate() ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
   proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
   proc previousMatch() ## Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
   proc changed(searchString: string) ## Triggered when the user types in the SearchEntry.
-  proc searchStarted(searchString: string)
-  proc stopSearch(searchString: string) ## Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus. 
+  # proc searchStarted() # Currently not supported
+  proc stopSearch() ## Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus. 
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_search_entry_new()
     connectEvents:
-      proc searchCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
-        let searchString = $gtk_editable_get_text(widget)
-        data[].callback(searchString)
-        data[].redraw()
-      
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
         let searchString = $gtk_editable_get_text(widget)
         SearchEntryState(data[].widget).text = searchString
         data[].callback(searchString)
         data[].redraw()
       
-      state.connect(state.activate, "activate", searchCallback)
+      state.connect(state.activate, "activate", eventCallback)
       state.connect(state.nextMatch, "next-match", eventCallback)
       state.connect(state.previousMatch, "previous-match", eventCallback)
       state.connect(state.changed, "search-changed", changedCallback)
-      # state.connect(state.searchStarted, "search-changed", searchCallback) # Currently not supported
-      state.connect(state.stopSearch, "stop-search", searchCallback)
+      # state.connect(state.searchStarted, "search-changed", eventCallback) # Currently not supported
+      state.connect(state.stopSearch, "stop-search", eventCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.activate)
       state.internalWidget.disconnect(state.nextMatch)
       state.internalWidget.disconnect(state.previousMatch)
       state.internalWidget.disconnect(state.changed)
-      state.internalWidget.disconnect(state.searchStarted)
+      # state.internalWidget.disconnect(state.searchStarted) # Currently not supported
       state.internalWidget.disconnect(state.stopSearch)
 
   # hooks child:
