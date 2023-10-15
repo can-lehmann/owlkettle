@@ -3638,14 +3638,14 @@ proc newMediaStream(gtk: GtkMediaStream): MediaStream =
 
 proc newMediaStream*(fileName: string): MediaStream =
   if not fileExists(fileName):
-    raise newException(IoError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+    raise newException(IOError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
   
   let gtk = gtk_media_file_new_for_filename(fileName.cstring)
   result = newMediaStream(gtk)
 
 proc newMediaStream*(gFile: GFile): MediaStream =
   if gFile.isNil:
-    raise newException(IoError, "Unable to create MediaStream from GFile(nil)")
+    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
     
   let gtk = gtk_media_file_new_for_file(gFile)
   result = newMediaStream(gtk)
@@ -3738,7 +3738,9 @@ renderable Video of BaseWidget:
     
   hooks mediaStream:
     property:
-      if not isNil(state.mediaStream) and not isNil(state.mediaStream.gtk):
+      if isNil(state.mediaStream):
+        gtk_video_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
         gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
   
   hooks autoplay:

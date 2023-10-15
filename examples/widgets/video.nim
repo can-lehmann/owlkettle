@@ -20,9 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils, os]
-import owlkettle, owlkettle/[dataentries, playground, gtk, adw]
-
+import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   fileName: string
