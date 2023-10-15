@@ -14,6 +14,7 @@ examples/widgets/picture
 examples/widgets/grid
 examples/widgets/radio_group
 examples/widgets/scale
+examples/widgets/list_view
 examples/widgets/adw/window_title
 examples/widgets/adw/preferences_group
 examples/widgets/adw/flap
