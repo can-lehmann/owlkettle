@@ -3752,17 +3752,35 @@ renderable Video of BaseWidget:
     property:
       gtk_video_set_loop(state.internalWidget, state.loop.cbool)
 
-proc `hasFileName=`*(widget: Video, has: bool) =
+renderable MediaControls of BaseWidget:
+  mediaStream: MediaStream
+  
+  setter fileName: string
+  setter file: GFile
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_media_controls_new(nil.GtkMediaStream)
+  
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_media_controls_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_media_controls_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+
+proc `hasFileName=`*(widget: Video | MediaControls, has: bool) =
   widget.hasMediaStream = has
 
-proc `valFileName=`*(widget: Video, fileName: string) =
+proc `valFileName=`*(widget: Video | MediaControls, fileName: string) =
   if fileExists(fileName):
     widget.valMediaStream = newMediaStream(fileName)
 
-proc `hasFile=`*(widget: Video, has: bool) =
+proc `hasFile=`*(widget: Video | MediaControls, has: bool) =
   widget.hasMediaStream = has
 
-proc `valFile=`*(widget: Video, file: GFile) =
+proc `valFile=`*(widget: Video | MediaControls, file: GFile) =
   widget.valMediaStream = newMediaStream(file)
 
 renderable Expander of BaseWidget:
@@ -4049,7 +4067,7 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
-export Video
+export Video, MediaControls
 export ProgressBar
 export EmojiChooser
 export CenterBox

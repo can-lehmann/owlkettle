@@ -1533,6 +1533,23 @@ renderable Video of BaseWidget
 - `file: GFile`
 
 
+## MediaControls
+
+```nim
+renderable MediaControls of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `mediaStream: MediaStream`
+
+###### Setters
+
+- `fileName: string`
+- `file: GFile`
+
+
 ## Expander
 
 ```nim
