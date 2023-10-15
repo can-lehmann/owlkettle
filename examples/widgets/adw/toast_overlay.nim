@@ -48,7 +48,7 @@ proc buildToast(state: AppState): AdwToast =
   result.setTimeout(state.timeout)
   result.setTitleMarkup(state.useMarkup)
   
-  proc dismissalHandler() =
+  proc dismissalHandler(toast: AdwToast) =
     echo "Dismissed"
   result.setDismissalHandler(dismissalHandler)
   

@@ -718,8 +718,22 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   export AboutWindow
 
 ## Adw.Toast
+proc setDismissalHandler*(toast: AdwToast, handler: proc(toast: AdwToast)) =
+  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: AdwToast)]) {.cdecl.} = 
+    let event = unwrapSharedCell(data)
+    event.callback(dismissedToast)
+    # Disconnect event-handler after Toast was dismissed
+    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+  
+  let event = EventObj[proc(toast: AdwToast)]()
+  let data = allocSharedCell(event)
+  data.callback = handler
+  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
+
 proc newToast*(title: string): AdwToast =
   result = adw_toast_new(title.cstring)
+  # The below ensures that the dismissalHandler gets called
+  result.setDismissalHandler(proc(toast: AdwToast) = discard)
 
 proc dismissToast*(toast: AdwToast) =
   adw_toast_dismiss(toast)
@@ -747,15 +761,7 @@ proc getTimeout*(toast: AdwToast): int =
 proc setTitle*(toast: AdwToast, title: string) =
   adw_toast_set_title(toast, title.cstring)
 
-proc setDismissalHandler*(toast: AdwToast, handler: proc()) =
-  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
-    unwrapSharedCell(data).callback()
-  
-  let event = EventObj[proc()]()
-  let data = allocSharedCell(event)
-  data.callback = handler
-  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
-  
+
 when AdwVersion >= (1, 2):
   proc setTitle*(toast: AdwToast, title: GtkWidget) =
     adw_toast_set_custom_title(toast, title)
