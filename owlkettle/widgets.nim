@@ -31,8 +31,6 @@ customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
-
 type 
   Margin* = object
     top*, bottom*, left*, right*: int

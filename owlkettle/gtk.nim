@@ -28,7 +28,7 @@ import ./common
 import std/strutils as strutils
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+const GtkMinor* {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
 
 type cbool* = cint
 
