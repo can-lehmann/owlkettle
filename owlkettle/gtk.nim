@@ -26,6 +26,9 @@ import std/[os]
 import ./common
 
 import std/strutils as strutils
+
+const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
 type cbool* = cint
@@ -39,6 +42,9 @@ type
   
   GtkOrientation* = enum
     GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL
+  
+  GtkBaselinePosition* = enum
+    GTK_BASELINE_POSITION_TOP, GTK_BASELINE_POSITION_CENTER, GTK_BASELINE_POSITION_BOTTOM
   
   GtkPackType* = enum
     GTK_PACK_START, GTK_PACK_END
@@ -148,6 +154,9 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
+  GtkMediaStream* = distinct pointer
+  GtkListItemFactory* = distinct pointer
+  GtkSelectionModel* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -163,6 +172,9 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkMediaStream): bool {.borrow.}
+proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
+proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -333,11 +345,12 @@ const
   G_TYPE_INT* = GType(6 shl 2)
   G_TYPE_UINT* = GType(7 shl 2)
   G_TYPE_STRING* = GType(16 shl 2)
+  G_TYPE_POINTER* = GType(17 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
   
 {.push importc, cdecl.}
 # GObject
-proc g_signal_handler_disconnect*(widget: GtkWidget,
+proc g_signal_handler_disconnect*(widget: pointer,
                                   handlerId: culong)
 proc g_signal_connect_data*(widget: pointer,
                             name: cstring,
@@ -550,8 +563,49 @@ proc gtk_init*()
 proc gtk_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 proc gtk_application_add_window*(app: GApplication, window: GtkWidget)
 
+# Gtk.MediaStream
+proc `==`*(x, y: GtkMediaStream): bool {.borrow.}
+proc gtk_media_file_new_for_filename*(filename: cstring): GtkMediaStream
+proc gtk_media_file_new_for_file*(file: GFile): GtkMediaStream
+proc gtk_media_stream_get_duration*(self: GtkMediaStream): int64
+proc gtk_media_stream_get_ended*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_error*(self: GtkMediaStream): GError
+proc gtk_media_stream_get_loop*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_muted*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_playing*(self: GtkMediaStream): cbool
+proc gtk_media_stream_get_timestamp*(self: GtkMediaStream): int64
+proc gtk_media_stream_get_volume*(self: GtkMediaStream): cdouble
+proc gtk_media_stream_has_audio*(self: GtkMediaStream): cbool
+proc gtk_media_stream_has_video*(self: GtkMediaStream): cbool
+proc gtk_media_stream_is_seekable*(self: GtkMediaStream): cbool
+proc gtk_media_stream_is_seeking*(self: GtkMediaStream): cbool
+proc gtk_media_stream_pause*(self: GtkMediaStream)
+proc gtk_media_stream_play*(self: GtkMediaStream)
+# proc gtk_media_stream_realize*(self: GtkMediaStream, surface: GdkSurface)
+proc gtk_media_stream_seek*(self: GtkMediaStream, timestamp: int64)
+proc gtk_media_stream_set_loop*(self: GtkMediaStream, loop: cbool)
+proc gtk_media_stream_set_muted*(self: GtkMediaStream, muted: cbool)
+proc gtk_media_stream_set_playing*(self: GtkMediaStream, playing: cbool)
+proc gtk_media_stream_set_volume*(self: GtkMediaStream, volume: cdouble)
+# proc gtk_media_stream_unrealize*(self: GtkMediaStream, surface: GdkSurface)
+when GtkMinor >= 4:
+  proc gtk_media_stream_stream_ended*(self: GtkMediaStream)
+else:
+  proc gtk_media_stream_ended*(self: GtkMediaStream)
+
+
 # Gtk.Settings
 proc gtk_settings_get_default*(): GtkSettings
+
+# Gtk.Video
+proc gtk_video_get_media_stream*(self: GtkWidget): GtkMediaStream
+proc gtk_video_new*(): GtkWidget
+proc gtk_video_set_autoplay*(self: GtkWidget, autoplay: cbool)
+proc gtk_video_set_file*(self: GtkWidget, file: GFile)
+proc gtk_video_set_filename*(self: GtkWidget, filename: cstring)
+proc gtk_video_set_loop*(self: GtkWidget, loop: cbool)
+proc gtk_video_set_media_stream*(self: GtkWidget, stream: GtkMediaStream)
+proc gtk_video_set_resource*(self: GtkWidget, resource_path: cstring)
 
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
@@ -638,6 +692,15 @@ proc gtk_box_prepend*(box, widget: GtkWidget)
 proc gtk_box_remove*(box, widget: GtkWidget)
 proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
+
+# Gtk.CenterBox
+proc gtk_center_box_new*(): GtkWidget
+proc gtk_center_box_set_center_widget*(widget: GtkWidget, child: GtkWidget)
+proc gtk_center_box_set_end_widget*(widget: GtkWidget, child: GtkWidget)
+proc gtk_center_box_set_start_widget*(widget: GtkWidget, child: GtkWidget)
+proc gtk_center_box_set_baseline_position*(widget: GtkWidget, position: GtkBaselinePosition)
+when GtkMinor >= 12:
+  proc gtk_center_box_set_shrink_center_last*(widget: GtkWidget, shrink_center_last: cbool)
 
 # Gtk.Orientable
 proc gtk_orientable_set_orientation*(widget: GtkWidget, orient: GtkOrientation)
@@ -1090,6 +1153,40 @@ proc gtk_expander_set_use_markup*(widget: GtkWidget, use_markup: cbool)
 proc gtk_expander_set_use_underline*(widget: GtkWidget, use_underline: cbool)
 proc gtk_expander_get_expanded*(widget: GtkWidget): cbool
 
+# Gtk.SelectionModel
+proc gtk_selection_model_select_item*(model: GtkSelectionModel, index: cuint, unselectOther: cbool)
+proc gtk_selection_model_unselect_item*(model: GtkSelectionModel, index: cuint)
+proc gtk_selection_model_is_selected*(model: GtkSelectionModel, index: cuint): cbool
+
+# Gtk.NoSelection
+proc gtk_no_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.SingleSelection
+proc gtk_single_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.MultiSelection
+proc gtk_multi_selection_new*(model: GListModel): GtkSelectionModel
+
+# Gtk.SignalListItemFactory
+proc gtk_signal_list_item_factory_new*(): GtkListItemFactory
+
+# Gtk.ListItem
+proc gtk_list_item_set_child*(widget, child: GtkWidget)
+proc gtk_list_item_get_item*(widget: GtkWidget): pointer
+proc gtk_list_item_get_position*(widget: GtkWidget): cuint
+
+# Gtk.ListView
+proc gtk_list_view_new*(model: GtkSelectionModel, factory: GtkListItemFactory): GtkWidget
+proc gtk_list_view_set_model*(widget: GtkWidget, model: GtkSelectionModel)
+proc gtk_list_view_set_factory*(widget: GtkWidget, factory: GtkListItemFactory)
+proc gtk_list_view_set_show_separators*(widget: GtkWidget, show: cbool)
+proc gtk_list_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
+proc gtk_list_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+
+# Gio.ListStore
+proc g_list_store_new*(itemType: GType): GListModel
+proc g_list_store_append*(model: GListModel, item: pointer)
+proc g_list_store_remove*(model: GListModel, index: cuint)
 {.pop.}
 
 {.push hint[Name]: off.}
@@ -1128,6 +1225,12 @@ proc g_signal_connect*(widget: GtkWidget, signal: cstring, closure, data: pointe
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
 proc g_signal_connect*(app: GApplication, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: GtkListItemFactory, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: GtkSelectionModel, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 {.pop.}
 

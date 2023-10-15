@@ -128,6 +128,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="622px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/center_box.nim">Center Box</a></td>
+    <td><img alt="Center Box" src="../docs/assets/examples/center_box.png" width="922px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/context_menu.nim">Context Menu</a></td>
     <td><img alt="Context Menu" src="../docs/assets/examples/context_menu.png" width="328px"></td>
   </tr>
@@ -182,6 +186,10 @@ The `widgets` directory contains examples for how to use different widgets.
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/text_view.nim">Text View</a></td>
     <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="757px"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/video.nim">Video</a></td>
+    <td><img alt="Video" src="../docs/assets/examples/video.png" width="985px"></td>
   </tr>
 </table>
 

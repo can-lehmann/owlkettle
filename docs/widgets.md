@@ -129,6 +129,29 @@ HeaderBar {.addTitlebar.}:
 ```
 
 
+## CenterBox
+
+```nim
+renderable CenterBox of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `startWidget: Widget`
+- `centerWidget: Widget`
+- `endWidget: Widget`
+- `baselinePosition: BaselinePosition = BaselineCenter`
+- `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addStart`
+- `addEnd`
+- `add`
+
+
 ## Overlay
 
 ```nim
@@ -1491,6 +1514,25 @@ Scale:
 ```
 
 
+## Video
+
+```nim
+renderable Video of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `autoplay: bool = false`
+- `loop: bool = false`
+- `mediaStream: MediaStream`
+
+###### Setters
+
+- `fileName: string`
+- `file: GFile`
+
+
 ## Expander
 
 ```nim
@@ -1558,5 +1600,28 @@ A progress bar widget to show progress being made on a long-lasting task
 - `pulseStep: float = 0.1`
 - `showText: bool = false`
 - `text: string = ""`
+
+
+## ListView
+
+```nim
+renderable ListView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `size: int` Number of items
+- `selectionMode: SelectionMode`
+- `selected: HashSet[int]` Indices of the currently selected items.
+- `showSeparators: bool = false`
+- `singleClickActivate: bool = false`
+- `enableRubberband: bool = false`
+
+###### Events
+
+- viewItem: `proc (index: int): Widget`
+- select: `proc (rows: HashSet[int])`
+- activate: `proc (index: int)`
 
 
