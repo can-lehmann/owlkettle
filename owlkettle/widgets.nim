@@ -2097,7 +2097,7 @@ renderable SearchEntry of BaseWidget:
       state.connect(state.nextMatch, "next-match", eventCallback)
       state.connect(state.previousMatch, "previous-match", eventCallback)
       state.connect(state.changed, "search-changed", changedCallback)
-      state.connect(state.searchStarted, "search-changed", searchCallback)
+      # state.connect(state.searchStarted, "search-changed", searchCallback) # Currently not supported
       state.connect(state.stopSearch, "stop-search", searchCallback)
     disconnectEvents:
       state.internalWidget.disconnect(state.activate)
