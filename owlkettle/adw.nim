@@ -749,11 +749,12 @@ proc setTitle*(toast: AdwToast, title: string) =
 
 proc setDismissalHandler*(toast: AdwToast, handler: proc()) =
   proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
-    data[].callback()
+    unwrapSharedCell(data).callback()
   
-  let data = Event[proc()]()
+  let event = EventObj[proc()]()
+  let data = allocSharedCell(event)
   data.callback = handler
-  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data.addr)
+  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
   
 when AdwVersion >= (1, 2):
   proc setTitle*(toast: AdwToast, title: GtkWidget) =
