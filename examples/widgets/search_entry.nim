@@ -80,7 +80,7 @@ method view(app: AppState): Widget =
         Box(orient = OrientY):
           for index, item in app.filteredItems:
             if isInActiveSearch and index == app.selected:
-              Label(useMarkup = true, text = "<b> " & item & "</b>")
+              Label(useMarkup = true, text = "<b> " & item & "</b>") {.expand: false.}
             else:
               Label(text = item) {.expand: false.}
         
