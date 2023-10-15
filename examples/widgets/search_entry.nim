@@ -64,7 +64,6 @@ method view(app: AppState): Widget =
             echo "activated search for entry: ": $app.filteredItems[app.selected]
           
           proc changed(searchString: string) = 
-            echo "Changed: ", searchString
             app.text = searchString
             app.selected = 0
             app.filteredItems = app.items.filterIt(searchString in it)
@@ -75,18 +74,17 @@ method view(app: AppState): Widget =
             app.filteredItems = app.items
           
       ScrolledWindow:
-        Box(orient = OrientY):
-          ListBox:
-            selected = [app.selected].toHashSet()
-            selectionMode = SelectionSingle
-            
-            proc select(rows: Hashset[int]) =
-              for num in rows:
-                app.selected = num
-            
-            for index, item in app.filteredItems:
-              Box():
-                Label(text = item, margin = 6) {.hAlign: AlignStart, expand: false.}
+        ListBox:
+          selected = [app.selected].toHashSet()
+          selectionMode = SelectionSingle
+          
+          proc select(rows: Hashset[int]) =
+            for num in rows:
+              app.selected = num
+          
+          for index, item in app.filteredItems:
+            Box():
+              Label(text = item, margin = 6) {.hAlign: AlignStart, expand: false.}
         
 
 adw.brew(gui(App()))
