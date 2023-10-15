@@ -747,6 +747,14 @@ proc getTimeout*(toast: AdwToast): int =
 proc setTitle*(toast: AdwToast, title: string) =
   adw_toast_set_title(toast, title.cstring)
 
+proc setDismissalHandler*(toast: AdwToast, handler: proc()) =
+  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
+    data[].callback()
+  
+  let data = Event[proc()]()
+  data.callback = handler
+  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data.addr)
+  
 when AdwVersion >= (1, 2):
   proc setTitle*(toast: AdwToast, title: GtkWidget) =
     adw_toast_set_custom_title(toast, title)

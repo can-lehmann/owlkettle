@@ -1173,6 +1173,9 @@ proc g_signal_connect*(app: GtkListItemFactory, signal: cstring, closure, data: 
 
 proc g_signal_connect*(app: GtkSelectionModel, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(app: pointer, signal: cstring, closure, data: pointer): culong =
+    result = g_signal_connect_data(app, signal, closure, data, nil, G_CONNECT_AFTER)
 {.pop.}
 
 template withCArgs(argc, argv, body: untyped) =
