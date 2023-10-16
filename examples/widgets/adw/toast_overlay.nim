@@ -38,15 +38,15 @@ viewable App:
 proc buildToast(state: AppState): AdwToast =
   result = newToast(state.title)
   if state.actionName != "":
-    result.setActionName(state.actionName)
+    result.actionName = state.actionName
   if state.actionTarget != "":
-    result.setActionTarget(state.actionTarget)
-  result.setButtonLabel(state.buttonLabel)
+    result.actionTarget = state.actionTarget
+  result.buttonLabel = state.buttonLabel
   if state.detailedActionName != "":
-    result.setDetailedActionName(state.detailedActionName)
-  result.setPriority(state.priority)
-  result.setTimeout(state.timeout)
-  result.setTitleMarkup(state.useMarkup)
+    result.detailedActionName = state.detailedActionName
+  result.priority = state.priority
+  result.timeout = state.timeout
+  result.titleMarkup = state.useMarkup
   
   proc dismissalHandler(toast: AdwToast) =
     echo "Dismissed"

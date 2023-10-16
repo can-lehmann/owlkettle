@@ -738,36 +738,37 @@ proc newToast*(title: string): AdwToast =
 proc dismissToast*(toast: AdwToast) =
   adw_toast_dismiss(toast)
 
-proc setActionName*(toast: AdwToast, actionName: string) =
+proc `actionName=`*(toast: AdwToast, actionName: string) =
   adw_toast_set_action_name(toast, actionName.cstring)
 
-proc setActionTarget*(toast: AdwToast, actionTarget: string) =
+proc `actionTarget=`*(toast: AdwToast, actionTarget: string) =
   adw_toast_set_action_target(toast, actionTarget.cstring)
 
-proc setButtonLabel*(toast: AdwToast, buttonLabel: string) =
+proc `buttonLabel=`*(toast: AdwToast, buttonLabel: string) =
   adw_toast_set_button_label(toast, buttonLabel.cstring)
 
-proc setDetailedActionName*(toast: AdwToast, detailedActionName: string) =
+proc `detailedActionName=`*(toast: AdwToast, detailedActionName: string) =
   adw_toast_set_detailed_action_name(toast, detailedActionName.cstring)
 
-const setPriority* = adw_toast_set_priority
+proc `priority=`*(toast: AdwToast, priority: ToastPriority) = 
+  adw_toast_set_priority(toast, priority)
 
-proc setTimeout*(toast: AdwToast, timeout: int) =
+proc `timeout=`*(toast: AdwToast, timeout: int) =
   adw_toast_set_timeout(toast, timeout.cuint)
 
-proc getTimeout*(toast: AdwToast): int =
+proc `timeout`*(toast: AdwToast): int =
   adw_toast_get_timeout(toast).int
 
-proc setTitle*(toast: AdwToast, title: string) =
+proc `title=`*(toast: AdwToast, title: string) =
   adw_toast_set_title(toast, title.cstring)
 
 
 when AdwVersion >= (1, 2):
-  proc setTitle*(toast: AdwToast, title: GtkWidget) =
+  proc `title=`*(toast: AdwToast, title: GtkWidget) =
     adw_toast_set_custom_title(toast, title)
 
 when AdwVersion >= (1, 4):
-  proc setTitleMarkup*(toast: AdwToast, useMarkup: bool) =
+  proc `titleMarkup=`*(toast: AdwToast, useMarkup: bool) =
     adw_toast_set_use_markup(toast, useMarkup.cbool)
 
 
@@ -797,7 +798,7 @@ renderable ToastOverlay of BaseWidget:
           return false
           
         adw_toast_overlay_add_toast(state.internalWidget, capturedToast)
-        discard addGlobalTimeout(state.toast.getTimeout(), dismiss)
+        discard addGlobalTimeout(state.toast.timeout, dismiss)
 
   adder add:
     if widget.hasChild:
