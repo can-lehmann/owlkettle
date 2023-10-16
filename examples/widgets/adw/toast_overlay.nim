@@ -30,8 +30,8 @@ viewable App:
   actionTarget: string
   buttonLabel: string = "Btn Label"
   priority: ToastPriority = ToastPriorityNormal
-  timeout: int = 1000
-  useMarkup: bool = false ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
+  timeout: int = 3000
+  useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
 
   showToast: bool = true
 
@@ -41,7 +41,8 @@ proc buildToast(state: AppState): AdwToast =
     result.actionName = state.actionName
   if state.actionTarget != "":
     result.actionTarget = state.actionTarget
-  result.buttonLabel = state.buttonLabel
+  if state.buttonLabel != "":
+    result.buttonLabel = state.buttonLabel
   if state.detailedActionName != "":
     result.detailedActionName = state.detailedActionName
   result.priority = state.priority
@@ -54,13 +55,18 @@ proc buildToast(state: AppState): AdwToast =
   
 method view(app: AppState): Widget =
   let toast: AdwToast = buildToast(app)
-  assert not toast.isNil()
   result = gui:
     Window():
       defaultSize = (800, 600)
       title = "ToastOverlay Example"
       HeaderBar {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+      
+        Button() {.addRight.}:
+          style = [ButtonFlat]
+          text = "Notify"
+          proc clicked() =
+            discard app.redraw()
       
       Box(orient = OrientY):
         Label(text = "Toast Overlay!")
