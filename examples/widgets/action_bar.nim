@@ -40,6 +40,7 @@ method view(app: AppState): Widget =
         insert(app.toAutoFormMenu(ignoreFields = @["dummyText"], sizeRequest = (400, 300))) {.addRight.}
         
         Button(text = "Reset") {.addRight.}:
+          style = [ButtonFlat]
           proc clicked() =
             app.dummyText = "Some Data"
       
@@ -62,6 +63,7 @@ method view(app: AppState): Widget =
               app.revealed = false
               
           Button(icon = "user-trash-symbolic", style = [ButtonDestructive]) {.addEnd.}:
+            style = [ButtonDestructive]
             proc clicked() =
               echo "Delete Dataset"
               app.dummyText = ""
