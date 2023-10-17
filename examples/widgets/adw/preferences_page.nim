@@ -26,7 +26,7 @@ viewable App:
   iconName: string = "weather-clear-symbolic"
   title: string = "Some Title"
   name: string = "A name"
-  description: string = "Some Description"
+  description: string = "An example of a Preferences Page"
   useUnderline: bool = false
   
   likeLevel: string 
@@ -49,19 +49,27 @@ method view(app: AppState): Widget =
         description = app.description
         useUnderline = app.useUnderline
         
-        EntryRow():
-          title = "This example is so cool because:"
-          subtitle = "Truly, just show your thoughts"
-          text = app.reasonForLikingExample
-          
-          proc changed(newText: string) =
-            app.reasonForLikingExample = newText
+        PreferencesGroup:
+          title = "First group setting"
+          description = "Figuring out how cool this example is"
+
+          ComboRow():
+            title = "How much do you like this example?"
+            items = app.likeOptions
+            
+            proc select(selectedIndex: int) =
+              app.likeLevel = app.likeOptions[selectedIndex]
         
-        ComboRow():
-          title = "How much do you like this example?"
-          items = app.likeOptions
-          
-          proc select(selectedIndex: int) =
-            app.likeLevel = app.likeOptions[selectedIndex]
-          
+        PreferencesGroup:
+          title = "Second group settings"
+          description = "Justifying why this example is so cool"
+
+          EntryRow():
+            title = "This example is so cool because:"
+            subtitle = "Truly, just show your thoughts"
+            text = app.reasonForLikingExample
+            
+            proc changed(newText: string) =
+              app.reasonForLikingExample = newText
+        
 adw.brew(gui(App()))
