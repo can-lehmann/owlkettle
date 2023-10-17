@@ -695,7 +695,6 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
       property:
         when AdwVersion >= (1, 2):
           adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
-
     
     hooks website:
       property:
@@ -714,6 +713,50 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
+when AdwVersion >= (1, 4) or defined(owlkettleDocs):
+  renderable SwitchRow of ActionRow:
+    active: bool
+    actionName: string
+    actionTarget: string
+    
+    proc activated(active: bool)
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 4):
+          state.internalWidget = adw_switch_row_new()
+      connectEvents:
+        when AdwVersion >= (1, 4):
+          proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
+            let active: bool = adw_switch_row_get_active(widget).bool
+            SwitchRowState(data[].widget).active = active
+            data[].callback(active)
+            data[].redraw()
+            
+          state.connect(state.activated, "activated", activatedCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 4):
+          state.internalWidget.disconnect(state.activated)
+    
+    hooks active:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_switch_row_set_active(state.internalWidget, state.active.cbool)
+    
+    hooks actionName:
+      property:
+        when AdwVersion >= (1, 4):
+          if state.actionName != "":
+            gtk_actionable_set_action_name(state.internalWidget, state.actionName.cstring)
+          
+    hooks actionTarget:
+      property:
+        when AdwVersion >= (1, 4):
+          if state.actionTarget != "":
+            gtk_actionable_set_action_target(state.internalWidget, state.actionTarget.cstring)
+  
+  export SwitchRow
+  
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,

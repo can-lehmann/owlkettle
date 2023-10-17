@@ -139,3 +139,15 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_website*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
+
+# Adw.Actionable
+proc gtk_actionable_set_action_name*(actionable: GtkWidget, action_name: cstring)
+proc gtk_actionable_set_action_target*(actionable: GtkWidget, format_string: cstring)
+# proc gtk_actionable_set_action_target_value*(actionable: GtkWidget, target_value: GVariant)
+proc gtk_actionable_set_detailed_action_name*(actionable: GtkWidget, detailed_action_name: cstring)
+
+when AdwVersion >= (1, 4):
+  # Adw.SwitchRow
+  proc adw_switch_row_new*(): GtkWidget
+  proc adw_switch_row_set_active*(self: GtkWidget, is_active: cbool)
+  proc adw_switch_row_get_active*(self: GtkWidget): cbool
