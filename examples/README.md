@@ -124,6 +124,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/action_bar.nim">Action Bar</a></td>
+    <td><img alt="Action Bar" src="../docs/assets/examples/action_bar.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/calendar.nim">Calendar</a></td>
     <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="622px"></td>
   </tr>
