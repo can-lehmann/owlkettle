@@ -160,6 +160,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Grid" src="../docs/assets/examples/grid.png" width="998px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/password_entry.nim">Password Entry</a></td>
+    <td><img alt="Password Entry" src="../docs/assets/examples/password_entry.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
     <td><img alt="Picture" src="../docs/assets/examples/picture.png" width="870px"></td>
   </tr>
