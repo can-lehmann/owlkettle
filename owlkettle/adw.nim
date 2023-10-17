@@ -753,7 +753,7 @@ proc `detailedActionName=`*(toast: AdwToast, detailedActionName: string) =
 proc `priority=`*(toast: AdwToast, priority: ToastPriority) = 
   adw_toast_set_priority(toast, priority)
 
-proc `timeout=`*(toast: AdwToast, timeout: int) =
+proc `timeout=`*(toast: AdwToast, timeout: SomeInteger) =
   adw_toast_set_timeout(toast, timeout.cuint)
 
 proc `timeout`*(toast: AdwToast): int =
