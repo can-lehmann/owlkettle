@@ -727,17 +727,29 @@ proc dismissToast*(toast: AdwToast) =
 proc `actionName=`*(toast: AdwToast, actionName: string) =
   adw_toast_set_action_name(toast, actionName.cstring)
 
+proc `actionName`*(toast: AdwToast): string =
+  $adw_toast_get_action_name(toast)
+
 proc `actionTarget=`*(toast: AdwToast, actionTarget: string) =
   adw_toast_set_action_target(toast, actionTarget.cstring)
 
+proc `actionTarget`*(toast: AdwToast): string =
+  $adw_toast_get_action_target(toast)
+
 proc `buttonLabel=`*(toast: AdwToast, buttonLabel: string) =
   adw_toast_set_button_label(toast, buttonLabel.cstring)
+
+proc `buttonLabel`*(toast: AdwToast): string =
+  $adw_toast_get_button_label(toast)
 
 proc `detailedActionName=`*(toast: AdwToast, detailedActionName: string) =
   adw_toast_set_detailed_action_name(toast, detailedActionName.cstring)
 
 proc `priority=`*(toast: AdwToast, priority: ToastPriority) = 
   adw_toast_set_priority(toast, priority)
+
+proc `priority`*(toast: AdwToast): ToastPriority = 
+  adw_toast_get_priority(toast)
 
 proc `timeout=`*(toast: AdwToast, timeout: SomeInteger) =
   ## Sets the time in seconds after which the toast is automatically dismissed.
@@ -749,6 +761,9 @@ proc `timeout`*(toast: AdwToast): int =
 
 proc `title=`*(toast: AdwToast, title: string) =
   adw_toast_set_title(toast, title.cstring)
+
+proc `title`*(toast: AdwToast): string =
+  $adw_toast_get_title(toast)
 
 proc `dismissalHandler=`*(toast: AdwToast, handler: proc(toast: AdwToast)) =
   proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: AdwToast)]) {.cdecl.} = 

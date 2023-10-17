@@ -54,7 +54,7 @@ proc buildToast(state: AppState): AdwToast =
   result.titleMarkup = state.useMarkup
 
   result.dismissalHandler = proc(toast: AdwToast) = 
-    echo "Dismissed"
+    echo "Dismissed: ", toast.title
     state.showToast = false
   # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
   
