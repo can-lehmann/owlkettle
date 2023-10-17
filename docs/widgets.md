@@ -867,6 +867,29 @@ PopoverMenu:
 ```
 
 
+## SearchEntry
+
+```nim
+renderable SearchEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+- `placeholderText: string = "Search"` Only available when compiling for gtk 4.10
+
+###### Events
+
+- activate: `proc (searchString: string)` Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+- nextMatch: `proc ()` Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default.
+- previousMatch: `proc ()` Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+- changed: `proc (searchString: string)` Triggered when the user types in the SearchEntry.
+- searchStarted: `proc (searchString: string)`
+- stopSearch: `proc (searchString: string)` Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus.
+
+
 ## Separator
 
 ```nim
