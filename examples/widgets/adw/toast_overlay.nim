@@ -69,9 +69,10 @@ method view(app: AppState): Widget =
           proc clicked() = discard # The click alone triggers a redraw of the application, which re-triggers setting the toast
       
       Box(orient = OrientY):
-        Label(text = "Toast Overlay!")
         ToastOverlay():
           toast = toast
-          Label(text = "Toast Overlay Child")
+          
+          Box():
+            Label(text = "A widget within Toast Overlay!")
         
 adw.brew(gui(App()))

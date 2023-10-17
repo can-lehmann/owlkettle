@@ -785,19 +785,22 @@ when AdwVersion >= (1, 4):
 proc `==`(x, y: AdwToast): bool = x.pointer == y.pointer
 
 renderable ToastOverlay of BaseWidget:
+  ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
+  ## Use `newToast` to create an `AdwToast`.
+  ## `AdwToast` has the following properties that can be assigned to:
+  ## - actionName
+  ## - actionTarget
+  ## - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
+  ## - detailedActionName
+  ## - priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+  ## - timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+  ## - title: The text to display in the toast. Gets hidden if customTitle is set.
+  ## - customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+  ## - dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
+  ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
+
   child: Widget
-  toast: AdwToast #[ The Toast currently being displayed. Create one with `newToast`. Has the following properties that need to be set via setter procs:
-    actionName
-    actionTarget
-    buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
-    detailedActionName
-    priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
-    timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
-    title: The text to display in the toast. Gets hidden if customTitle is set.
-    customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
-    dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
-    clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
-  ]#
+  toast: AdwToast ## The Toast to display
 
   hooks:
     beforeBuild:
@@ -805,15 +808,14 @@ renderable ToastOverlay of BaseWidget:
   
   hooks child:
     (build, update):
-      let hasChild = not state.child.isNil()
-      let child = if hasChild: state.child.unwrapInternalWidget() else: nil.GtkWidget
-      adw_toast_overlay_set_child(state.internalWidget, child)
+      state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
   
   hooks toast:
     property:
       adw_toast_overlay_add_toast(state.internalWidget, state.toast)
         
   adder add:
+    echo "called"
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
     widget.hasChild = true

@@ -406,11 +406,25 @@ renderable AboutWindow
 renderable ToastOverlay of BaseWidget
 ```
 
+An overlay to display Toast messages that can be dismissed manually and automatically!<br>
+Use `newToast` to create an `AdwToast`.
+`AdwToast` has the following properties that can be assigned to:
+- actionName
+- actionTarget
+- buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
+- detailedActionName
+- priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+- timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+- title: The text to display in the toast. Gets hidden if customTitle is set.
+- customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+- dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
+- clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
-- `toast: AdwToast`
+- `toast: AdwToast` The Toast to display
 
 ###### Adders
 
