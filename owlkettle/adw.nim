@@ -714,6 +714,46 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
+when AdwVersion >= (1, 3) or defined(owlkettleDocs):
+  renderable Banner of BaseWidget:
+    buttonLabel: string
+    title: string
+    useMarkup: bool = true
+    revealed: bool = true
+    
+    proc clicked()
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 3):
+          state.internalWidget = adw_banner_new("".cstring)
+      connectEvents:
+        when AdwVersion >= (1, 3):
+          state.connect(state.clicked, "button-clicked", eventCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 3):
+          state.internalWidget.disconnect(state.clicked)
+    hooks buttonLabel:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_button_label(state.internalWidget, state.buttonLabel.cstring)
+    
+    hooks title:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_title(state.internalWidget, state.title.cstring)
+    
+    hooks useMarkup:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+  
+    hooks revealed:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
+  export Banner
+
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,

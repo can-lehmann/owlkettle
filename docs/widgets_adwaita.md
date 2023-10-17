@@ -400,3 +400,22 @@ renderable AboutWindow
 - `license: string`
 
 
+## Banner
+
+```nim
+renderable Banner of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `buttonLabel: string`
+- `title: string`
+- `useMarkup: bool = true`
+- `revealed: bool = true`
+
+###### Events
+
+- clicked: `proc ()`
+
+
