@@ -883,12 +883,11 @@ renderable SearchEntry of BaseWidget
 
 ###### Events
 
-- activate: `proc (searchString: string)` Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+- activate: `proc ()` Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
 - nextMatch: `proc ()` Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default.
 - previousMatch: `proc ()` Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
 - changed: `proc (searchString: string)` Triggered when the user types in the SearchEntry.
-- searchStarted: `proc (searchString: string)`
-- stopSearch: `proc (searchString: string)` Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus.
+- stopSearch: `proc ()` Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus.
 
 
 ## Separator
@@ -1603,7 +1602,7 @@ renderable PasswordEntry of BaseWidget
 
 ###### Events
 
-- activate: `proc (password: string)` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
+- activate: `proc ()` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
 - changed: `proc (password: string)` Triggered when the user types in the PasswordEntry.
 
 
