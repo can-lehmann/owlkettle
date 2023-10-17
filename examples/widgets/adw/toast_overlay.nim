@@ -39,12 +39,16 @@ proc buildToast(state: AppState): AdwToast =
   result = newToast(state.title)
   if state.actionName != "":
     result.actionName = state.actionName
+    
   if state.actionTarget != "":
     result.actionTarget = state.actionTarget
+
   if state.buttonLabel != "":
     result.buttonLabel = state.buttonLabel
+
   if state.detailedActionName != "":
     result.detailedActionName = state.detailedActionName
+
   result.priority = state.priority
   result.timeout = state.timeout
   result.titleMarkup = state.useMarkup
@@ -65,8 +69,7 @@ method view(app: AppState): Widget =
         Button() {.addRight.}:
           style = [ButtonFlat]
           text = "Notify"
-          proc clicked() =
-            discard app.redraw()
+          proc clicked() = discard # The click alone triggers a redraw of the application, which re-triggers setting the toast
       
       Box(orient = OrientY):
         Label(text = "Toast Overlay!")
