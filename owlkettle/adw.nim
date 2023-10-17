@@ -793,13 +793,13 @@ renderable ToastOverlay of BaseWidget:
       let hasToast = not state.toast.isNil()
       if hasToast:
         let capturedToast = state.toast
-        proc dismiss(): bool = 
-          capturedToast.dismissToast()
-          return false
-          
         adw_toast_overlay_add_toast(state.internalWidget, capturedToast)
-        discard addGlobalTimeout(state.toast.timeout, dismiss)
-
+        
+        # Automatically dismissing a toast overlay after a timeout is currently not supported. It leads to use-after-free when the user manually dismisses a toast 
+        # proc dismiss(): bool = 
+        #   capturedToast.dismissToast()
+        #   return false
+        # discard addGlobalTimeout(state.toast.timeout, dismiss) 
   adder add:
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
