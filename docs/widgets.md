@@ -1586,6 +1586,26 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - `addLabel`
 
 
+## PasswordEntry
+
+```nim
+renderable PasswordEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `activatesDefault: bool = true`
+- `placeholderText: string = "Password"`
+- `showPeekIcon: bool = true`
+
+###### Events
+
+- activate: `proc (password: string)` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
+- changed: `proc (password: string)` Triggered when the user types in the PasswordEntry.
+
+
 ## ProgressBar
 
 ```nim
