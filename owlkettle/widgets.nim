@@ -331,6 +331,7 @@ renderable CenterBox of BaseWidget:
   endWidget: Widget
   baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  orient: Orient = OrientX
   
   hooks:
     beforeBuild:
@@ -356,6 +357,10 @@ renderable CenterBox of BaseWidget:
     property:
       when GtkMinor >= 12:
         gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
   adder addStart:
     if widget.hasStartWidget:
@@ -3985,6 +3990,46 @@ renderable ProgressBar of BaseWidget:
     property:
       gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
 
+renderable ActionBar of BaseWidget:
+  ## A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+  centerWidget: Widget
+  packStart: seq[Widget] ## Widgets shown on the start of the ActionBar
+  packEnd: seq[Widget] ## Widgets shown on the end of the ActionBar
+  revealed: bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_action_bar_new()
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_action_bar_set_center_widget)
+      
+  hooks packStart:
+    (build, update):
+      state.updateChildren(state.packStart, widget.valPackStart, gtk_action_bar_pack_start, gtk_action_bar_remove)
+        
+  hooks packEnd:
+    (build, update):
+      state.updateChildren(state.packEnd, widget.valPackEnd, gtk_action_bar_pack_end, gtk_action_bar_remove)
+  
+  hooks revealed:
+    property:
+      gtk_action_bar_set_revealed(state.internalWidget, state.revealed.cbool)
+  
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children as center widget of ActionBar. Add them to the start or end via {.addStart.} or {.addEnd.}.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
+    
+  adder addStart:
+    widget.hasPackStart = true
+    widget.valPackStart.add(child)    
+  
+  adder addEnd:
+    widget.hasPackEnd = true
+    widget.valPackEnd.add(child)
 const
   ListViewRichList* = StyleClass("rich-list")
   ListViewNavigationSidebar* = StyleClass("navigation-sidebar")
@@ -4166,3 +4211,4 @@ export EmojiChooser
 export PasswordEntry
 export CenterBox
 export ListView
+export ActionBar
