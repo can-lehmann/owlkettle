@@ -800,7 +800,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toast: AdwToast ## The Toast to display
+  toast: AdwToast = nil.AdwToast## The Toast to display
 
   hooks:
     beforeBuild:
@@ -812,10 +812,10 @@ renderable ToastOverlay of BaseWidget:
   
   hooks toast:
     property:
-      adw_toast_overlay_add_toast(state.internalWidget, state.toast)
+      if not state.toast.isNil():
+        adw_toast_overlay_add_toast(state.internalWidget, state.toast)
         
   adder add:
-    echo "called"
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
     widget.hasChild = true

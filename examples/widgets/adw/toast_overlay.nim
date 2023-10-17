@@ -24,7 +24,7 @@ import owlkettle
 import owlkettle/[playground, adw]
 
 viewable App:
-  title: string = "Toast title"
+  title: string
   actionName: string
   detailedActionName: string
   actionTarget: string
@@ -32,6 +32,8 @@ viewable App:
   priority: ToastPriority = ToastPriorityNormal
   timeout: int = 3
   useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
+  
+  showToast: bool = false
 
 proc buildToast(state: AppState): AdwToast =
   result = newToast(state.title)
@@ -50,8 +52,10 @@ proc buildToast(state: AppState): AdwToast =
   result.priority = state.priority
   result.timeout = state.timeout
   result.titleMarkup = state.useMarkup
-  
-  result.dismissalHandler = proc(toast: AdwToast) = echo "Dismissed"
+
+  result.dismissalHandler = proc(toast: AdwToast) = 
+    echo "Dismissed"
+    state.showToast = false
   # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
   
 method view(app: AppState): Widget =
@@ -65,12 +69,25 @@ method view(app: AppState): Widget =
       
         Button() {.addRight.}:
           style = [ButtonFlat]
+          text = "Urgent"
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityHigh
+            app.title = "Urgent Toast Title !!!"
+            
+        Button() {.addRight.}:
+          style = [ButtonFlat]
           text = "Notify"
-          proc clicked() = discard # The click alone triggers a redraw of the application, which re-triggers setting the toast
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityNormal
+            app.title = "Toast title"
+
       
       Box(orient = OrientY):
         ToastOverlay():
-          toast = toast
+          if app.showToast:
+            toast = toast
           
           Box():
             Label(text = "A widget within Toast Overlay!")
