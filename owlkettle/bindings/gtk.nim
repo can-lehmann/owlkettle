@@ -27,7 +27,7 @@ import ../common
 
 import std/strutils as strutils
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+const GtkMinor* {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
 
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
@@ -880,6 +880,14 @@ proc gtk_progress_bar_set_inverted*(widget: GtkWidget, inverted: cbool)
 proc gtk_progress_bar_set_pulse_step*(widget: GtkWidget, fraction: cdouble)
 proc gtk_progress_bar_set_show_text*(widget: GtkWidget, show_text: cbool)
 proc gtk_progress_bar_set_text*(widget: GtkWidget, text: cstring)
+
+# Gtk.SearchEntry
+proc gtk_search_entry_new*(): GtkWidget
+proc gtk_search_entry_set_key_capture_widget*(widget: GtkWidget, captureWidget: GtkWidget)
+when GtkMinor >= 8:
+  proc gtk_search_entry_set_search_delay*(widget: GtkWidget, delay: cuint)
+when GtkMinor >= 10:
+  proc gtk_search_entry_set_placeholder_text*(widget: GtkWidget, text: cstring)
 
 # Gtk.Stack
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
