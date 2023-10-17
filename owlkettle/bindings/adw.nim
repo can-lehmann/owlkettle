@@ -99,6 +99,9 @@ when AdwVersion >= (1, 2):
   proc adw_entry_row_add_suffix*(row, child: GtkWidget)
   proc adw_entry_row_remove*(row, child: GtkWidget)
 
+  # Adw.PasswordEntryRow
+  proc adw_password_entry_row_new*(): GtkWidget
+
 # Adw.Flap
 proc adw_flap_new*(): GtkWidget
 proc adw_flap_set_content*(flap, content: GtkWidget)

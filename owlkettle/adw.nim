@@ -407,7 +407,13 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
         vAlign: vAlign
       ))
   
-  export EntryRow
+  renderable PasswordEntryRow of EntryRow:
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 2):
+          state.internalWidget = adw_password_entry_row_new()
+  
+  export EntryRow, PasswordEntryRow
 
 type FlapChild[T] = object
   widget: T
@@ -713,7 +719,7 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
   
   export AboutWindow
-
+  
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
