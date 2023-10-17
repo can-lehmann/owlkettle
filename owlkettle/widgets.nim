@@ -525,6 +525,7 @@ renderable EditableLabel of BaseWidget:
         let isEditing = gtk_editable_label_get_editing(widget).bool
         EditableLabelState(data[].widget).editing = isEditing
         data[].callback(isEditing)
+        data[].redraw()
         
       state.connect(state.changed, "changed", changedCallback)
       state.connect(state.editStateChanged, "notify::editing", editedCallback)
