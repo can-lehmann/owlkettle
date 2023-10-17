@@ -27,7 +27,7 @@ import ./common
 
 import std/strutils as strutils
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+const GtkMinor* {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
 
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
@@ -342,7 +342,8 @@ type
   GNotification* = distinct pointer
   
   GListModel* = distinct pointer
-  
+  GMenuModel* = distinct pointer
+  GMenuItem* = distinct pointer
   GApplicationFlags = distinct cuint
 
 proc isNil*(obj: GResource): bool {.borrow.}
@@ -365,7 +366,7 @@ const
   G_TYPE_STRING* = GType(16 shl 2)
   G_TYPE_POINTER* = GType(17 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
-
+  
 {.push importc, cdecl.}
 # GObject
 proc g_signal_handler_disconnect*(widget: pointer,
@@ -454,6 +455,16 @@ proc g_quark_from_string*(value: cstring): GQuark
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
 proc g_resources_register*(res: GResource)
+
+# Gio.GMenu
+proc g_menu_new*(): GMenuModel
+proc g_menu_append*(menu: GMenuModel, label: cstring, detailed_action: cstring)
+proc g_menu_append_item*(menu: GMenuModel, item: GMenuItem)
+proc g_menu_append_section*(menu: GMenuModel, label: cstring, section: GMenuModel)
+proc g_menu_append_submenu*(menu: GMenuModel, label: cstring, submenu: GMenuModel)
+proc g_menu_freeze*(menu: GMenuModel)
+proc g_menu_remove*(menu: GMenuModel, position: cint)
+proc g_menu_remove_all*(menu: GMenuModel)
 
 # Gio.Icon
 proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
@@ -880,6 +891,11 @@ proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_check_button_get_active*(widget: GtkWidget): cbool
 proc gtk_check_button_set_group*(widget, group: GtkWidget)
 
+# Gtk.PasswordEntry
+proc gtk_password_entry_new*(): GtkWidget
+# proc gtk_password_entry_set_extra_menu*(widget: GtkWidget, model: GMenuModel)
+proc gtk_password_entry_set_show_peek_icon*(widget: GtkWidget, show_peek_icon: cbool)
+
 # Gtk.Popover
 proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
@@ -905,6 +921,14 @@ proc gtk_progress_bar_set_inverted*(widget: GtkWidget, inverted: cbool)
 proc gtk_progress_bar_set_pulse_step*(widget: GtkWidget, fraction: cdouble)
 proc gtk_progress_bar_set_show_text*(widget: GtkWidget, show_text: cbool)
 proc gtk_progress_bar_set_text*(widget: GtkWidget, text: cstring)
+
+# Gtk.SearchEntry
+proc gtk_search_entry_new*(): GtkWidget
+proc gtk_search_entry_set_key_capture_widget*(widget: GtkWidget, captureWidget: GtkWidget)
+when GtkMinor >= 8:
+  proc gtk_search_entry_set_search_delay*(widget: GtkWidget, delay: cuint)
+when GtkMinor >= 10:
+  proc gtk_search_entry_set_placeholder_text*(widget: GtkWidget, text: cstring)
 
 # Gtk.Stack
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)

@@ -31,8 +31,6 @@ customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
-
 type 
   Margin* = object
     top*, bottom*, left*, right*: int
@@ -2107,6 +2105,67 @@ renderable ModelButton of BaseWidget:
             proc clicked() =
               echo "Clicked " & $it
 
+renderable SearchEntry of BaseWidget:
+  text: string
+  # child: GtkWidget # This is currently not supported
+  searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+  placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
+  
+  proc activate() ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+  proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
+  proc previousMatch() ## Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+  proc changed(searchString: string) ## Triggered when the user types in the SearchEntry.
+  # proc searchStarted() # Currently not supported
+  proc stopSearch() ## Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus. 
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_search_entry_new()
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
+        let searchString = $gtk_editable_get_text(widget)
+        SearchEntryState(data[].widget).text = searchString
+        data[].callback(searchString)
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", eventCallback)
+      state.connect(state.nextMatch, "next-match", eventCallback)
+      state.connect(state.previousMatch, "previous-match", eventCallback)
+      state.connect(state.changed, "search-changed", changedCallback)
+      # state.connect(state.searchStarted, "search-changed", eventCallback) # Currently not supported
+      state.connect(state.stopSearch, "stop-search", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      state.internalWidget.disconnect(state.nextMatch)
+      state.internalWidget.disconnect(state.previousMatch)
+      state.internalWidget.disconnect(state.changed)
+      # state.internalWidget.disconnect(state.searchStarted) # Currently not supported
+      state.internalWidget.disconnect(state.stopSearch)
+
+  # hooks child:
+  #   property:
+  #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
+
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
+  hooks searchDelay:
+    property:
+      when GtkMinor >= 8:
+        gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
+      else:
+        discard
+
+  hooks placeholderText:
+    property:
+      when GtkMinor >= 10:
+        gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
+      else:
+        discard
+    
 renderable Separator of BaseWidget:
   ## A separator line.
   
@@ -3876,7 +3935,59 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
-    
+
+renderable PasswordEntry of BaseWidget:
+  text: string
+  # menuModel: GtkMenuModel # Not yet supported
+  activatesDefault: bool = true
+  placeholderText: string = "Password"
+  showPeekIcon: bool = true
+  
+  proc activate() ## Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus. 
+  proc changed(password: string) ## Triggered when the user types in the PasswordEntry.
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_password_entry_new()
+    connectEvents:
+      proc changedEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(password: string)]
+      ) {.cdecl.} =
+        let password: string = $gtk_editable_get_text(widget)
+        PasswordEntryState(data[].widget).text = password
+        data[].callback(password)
+        data[].redraw()
+
+      state.connect(state.activate, "activate", eventCallback)
+      state.connect(state.changed, "changed", changedEventCallback)
+    disconnectEvents:
+      disconnect(state.internalWidget, state.activate)
+      disconnect(state.internalWidget, state.changed)
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
+  hooks activatesDefault:
+    property:
+      var value = g_value_new(state.activatesDefault)
+      g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
+      g_value_unset(value.addr)
+
+  hooks placeholderText:
+    property:
+      var value = g_value_new(state.placeholderText)
+      g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
+      g_value_unset(value.addr)
+
+  hooks showPeekIcon:
+    property:
+      gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
+  
+  
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
@@ -4088,9 +4199,11 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export SearchEntry
 export Video
 export ProgressBar
 export EmojiChooser
 export EditableLabel
+export PasswordEntry
 export CenterBox
 export ListView
