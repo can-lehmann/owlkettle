@@ -815,7 +815,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toast: AdwToast = nil.AdwToast## The Toast to display
+  toast: AdwToast ## The Toast to display
 
   hooks:
     beforeBuild:
