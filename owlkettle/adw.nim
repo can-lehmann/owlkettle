@@ -718,22 +718,8 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   export AboutWindow
 
 ## Adw.Toast
-proc `dismissalHandler=`*(toast: AdwToast, handler: proc(toast: AdwToast)) =
-  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: AdwToast)]) {.cdecl.} = 
-    let event = unwrapSharedCell(data)
-    event.callback(dismissedToast)
-    # Disconnect event-handler after Toast was dismissed
-    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
-  
-  let event = EventObj[proc(toast: AdwToast)]()
-  let data = allocSharedCell(event)
-  data.callback = handler
-  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
-
 proc newToast*(title: string): AdwToast =
   result = adw_toast_new(title.cstring)
-  # The below ensures that the dismissalHandler gets called
-  result.dismissalHandler = proc(toast: AdwToast) = discard
 
 proc dismissToast*(toast: AdwToast) =
   adw_toast_dismiss(toast)
@@ -754,24 +740,37 @@ proc `priority=`*(toast: AdwToast, priority: ToastPriority) =
   adw_toast_set_priority(toast, priority)
 
 proc `timeout=`*(toast: AdwToast, timeout: SomeInteger) =
+  ## Sets the time in seconds after which the toast is automatically dismissed.
   adw_toast_set_timeout(toast, timeout.cuint)
 
 proc `timeout`*(toast: AdwToast): int =
+  ## The time in seconds after which this toast will be automatically dismissed by ToastOverlay.
   adw_toast_get_timeout(toast).int
 
 proc `title=`*(toast: AdwToast, title: string) =
   adw_toast_set_title(toast, title.cstring)
 
+proc `dismissalHandler=`*(toast: AdwToast, handler: proc(toast: AdwToast)) =
+  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: AdwToast)]) {.cdecl.} = 
+    let event = unwrapSharedCell(data)
+    event.callback(dismissedToast)
+    # Disconnect event-handler after Toast was dismissed
+    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+  
+  let event = EventObj[proc(toast: AdwToast)]()
+  let data = allocSharedCell(event)
+  data.callback = handler
+  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
 
 when AdwVersion >= (1, 2):
-  proc `title=`*(toast: AdwToast, title: GtkWidget) =
+  proc `customTitle=`*(toast: AdwToast, title: GtkWidget) =
     adw_toast_set_custom_title(toast, title)
 
   proc `clickedHandler=`*(toast: AdwToast, handler: proc()) =
     proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
       let event = unwrapSharedCell(data)
       event.callback()
-      # Disconnect event-handler after first click
+      # Disconnect event-handler after first click as that will dismisses the toast
       g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
     
     let event = EventObj[proc()]()
@@ -783,12 +782,22 @@ when AdwVersion >= (1, 4):
   proc `titleMarkup=`*(toast: AdwToast, useMarkup: bool) =
     adw_toast_set_use_markup(toast, useMarkup.cbool)
 
-
 proc `==`(x, y: AdwToast): bool = x.pointer == y.pointer
 
 renderable ToastOverlay of BaseWidget:
   child: Widget
-  toast: AdwToast
+  toast: AdwToast #[ The Toast currently being displayed. Create one with `newToast`. Has the following properties that need to be set via setter procs:
+    actionName
+    actionTarget
+    buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
+    detailedActionName
+    priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+    timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+    title: The text to display in the toast. Gets hidden if customTitle is set.
+    customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+    dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
+    clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
+  ]#
 
   hooks:
     beforeBuild:
@@ -802,16 +811,8 @@ renderable ToastOverlay of BaseWidget:
   
   hooks toast:
     property:
-      let hasToast = not state.toast.isNil()
-      if hasToast:
-        let capturedToast = state.toast
-        adw_toast_overlay_add_toast(state.internalWidget, capturedToast)
+      adw_toast_overlay_add_toast(state.internalWidget, state.toast)
         
-        # Automatically dismissing a toast overlay after a timeout is currently not supported. It leads to use-after-free when the user manually dismisses a toast 
-        # proc dismiss(): bool = 
-        #   capturedToast.dismissToast()
-        #   return false
-        # discard addGlobalTimeout(state.toast.timeout, dismiss) 
   adder add:
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")

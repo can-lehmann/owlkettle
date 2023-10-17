@@ -400,3 +400,21 @@ renderable AboutWindow
 - `license: string`
 
 
+## ToastOverlay
+
+```nim
+renderable ToastOverlay of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+- `toast: AdwToast`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+

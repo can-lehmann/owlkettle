@@ -30,7 +30,7 @@ viewable App:
   actionTarget: string
   buttonLabel: string = "Btn Label"
   priority: ToastPriority = ToastPriorityNormal
-  timeout: int = 3000
+  timeout: int = 3
   useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
 
 proc buildToast(state: AppState): AdwToast =
