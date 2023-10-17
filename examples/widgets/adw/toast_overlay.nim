@@ -33,8 +33,6 @@ viewable App:
   timeout: int = 3000
   useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
 
-  showToast: bool = true
-
 proc buildToast(state: AppState): AdwToast =
   result = newToast(state.title)
   if state.actionName != "":
@@ -53,9 +51,8 @@ proc buildToast(state: AppState): AdwToast =
   result.timeout = state.timeout
   result.titleMarkup = state.useMarkup
   
-  proc dismissalHandler(toast: AdwToast) =
-    echo "Dismissed"
-  result.setDismissalHandler(dismissalHandler)
+  result.dismissalHandler = proc(toast: AdwToast) = echo "Dismissed"
+  # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
   
 method view(app: AppState): Widget =
   let toast: AdwToast = buildToast(app)
