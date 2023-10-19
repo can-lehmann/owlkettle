@@ -3532,10 +3532,9 @@ proc updateNotebookChildren*(state: Renderable,
       gtk_notebook_remove_page(state.internalWidget, it.cint)
       # Add new Page
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      if not newGtkWidget.isNil():
-        setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
       let tabLabelGtkWidget = gtk_label_new(notebookUpdate.tabLabel.cstring)
       discard gtk_notebook_insert_page(state.internalWidget, newGtkWidget, tabLabelGtkWidget, it.cint)
+      setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
       
       notebookChildren[it].widget = newWidgetState
     
@@ -3550,9 +3549,8 @@ proc updateNotebookChildren*(state: Renderable,
       newGtkWidget = newWidgetState.unwrapInternalWidget()
       tabLabelGtkWidget = gtk_label_new(notebookUpdate.tabLabel.cstring)
 
-    if not newGtkWidget.isNil():
-      setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
     discard gtk_notebook_append_page(state.internalWidget, newGtkWidget, tabLabelGtkWidget)
+    setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
     
     notebookChildren.add(NotebookTab[WidgetState](
       widget: newWidgetState,
