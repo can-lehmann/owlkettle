@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sugar, sets, tables, options, asyncfutures, hashes, times, sequtils]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -3665,6 +3665,158 @@ renderable Scale of BaseWidget:
         app.value = newValue
 
 
+type StackTransitionType* = enum
+  StackTransitionNone
+  StackTransitionCrossFade
+  StackTransitionSlideRight
+  StackTransitionSlideLeft
+  StackTransitionSlideUp
+  StackTransitionSlideDown
+  StackTransitionSlideLeftRight
+  StackTransitionSlideUpDown
+  StackTransitionOverUp
+  StackTransitionOverDown
+  StackTransitionOverLeft
+  StackTransitionOverRight
+  StackTransitionUnderUp
+  StackTransitionUnderDown
+  StackTransitionUnderLeft
+  StackTransitionUnderRight
+  StackTransitionOverUpDown
+  StackTransitionOverDownUp
+  StackTransitionOverLeftRight
+  StackTransitionOverRightLeft
+  StackTransitionRotateLeft
+  StackTransitionRotateRight
+  StackTransitionRotateLeftRight
+
+proc toGtk*(x: StackTransitionType): GtkStackTransitionType =
+  GtkStackTransitionType(ord(x))
+
+type StackChild[T] = object
+  widget: T
+  title: string
+
+proc updateChildren*(state: Renderable,
+                     stackChildren: var Table[string, StackChild[WidgetState]],
+                     stackUpdates: Table[string, StackChild[Widget]],
+                     addChild: proc(widget, child: GtkWidget, name, title: cstring) {.cdecl, locker.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
+  let updates = collect(newSeq):
+    for name, stackUpdate in stackUpdates:
+      stackUpdate.widget
+  updates.assignApp(state.app)
+  
+  let newPageNames = stackUpdates.keys.toSeq().toSet()
+  let oldPageNames = stackChildren.keys.toSeq().toSet()
+  let newAddedPageNames = newPageNames.difference(oldPageNames)
+  let oldRemovedPageNames = oldPageNames.difference(newPageNames)
+  let sharedPageNames = oldPageNames.difference(oldRemovedPageNames)
+  
+  var
+    forceReadd = false
+  for pageName in sharedPageNames:
+    let stackUpdate = stackUpdates[pageName]
+    let oldWidgetState = stackChildren[pageName].widget
+    let newWidget = stackUpdate.widget
+    let newWidgetState: WidgetState = newWidget.update(oldWidgetState)
+    
+    let hasChanges = not newWidgetState.isNil()
+    if hasChanges:
+      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
+      removeChild(state.internalWidget, oldGtkWidget)
+      
+      let newGtkWidget = newWidgetState.unwrapInternalWidget()
+      addChild(state.internalWidget, newGtkWidget, pageName.cstring, stackUpdate.title.cstring)
+      stackChildren[pageName].widget = newWidgetState
+      forceReadd = true
+    elif forceReadd:
+      let stackChild = stackChildren[pageName]
+      let currentGtkWidget = stackChild.widget.unwrapInternalWidget()
+      g_object_ref(pointer(currentGtkWidget))
+      removeChild(state.internalWidget, currentGtkWidget)
+      addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
+      g_object_unref(pointer(currentGtkWidget))
+  
+  for newPageName in newAddedPageNames:
+    let
+      newStackUpdate = stackUpdates[newPageName]
+      newWidgetState = newStackUpdate.widget.build()
+      newGtkWidget = newWidgetState.unwrapInternalWidget()
+    addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackUpdate.title.cstring)
+    let newStackChild = StackChild[WidgetState](
+      widget: newWidgetState,
+      title: newStackUpdate.title
+    )
+    stackChildren[newPageName] = newStackChild
+  
+  for removedPageName in oldRemovedPageNames:
+    let stackChild = stackChildren[removedPageName]
+    let oldGtkWidget = stackChild.widget.unwrapInternalWidget()
+    removeChild(state.internalWidget, oldGtkWidget)
+    
+    stackChildren.del(removedPageName)
+
+renderable Stack of BaseWidget:
+  pages: Table[string, StackChild[Widget]]
+  hhomogenous: bool = true
+  interpolateSize: bool = true
+  transitionDuration: uint = 500
+  transitionType: StackTransitionType = StackTransitionSlideUp
+  vhomogenous: bool = true
+  visibleChildName: string
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_new()
+  
+  hooks pages:
+    (build, update):
+      state.updateChildren(
+        state.pages,
+        widget.valPages,
+        gtk_stack_add_titled,
+        gtk_stack_remove
+      )
+  
+  hooks hhomogenous:
+    property:
+      gtk_stack_set_hhomogeneous(state.internalWidget, state.hhomogenous.cbool)
+  
+  hooks interpolateSize:
+    property:
+      gtk_stack_set_interpolate_size(state.internalWidget, state.interpolateSize.cbool)
+  
+  hooks transitionDuration:
+    property:
+      gtk_stack_set_transition_duration(state.internalWidget, state.transitionDuration.cuint)
+  
+  hooks transitionType:
+    property:
+      gtk_stack_set_transition_type(state.internalWidget, state.transitionType.toGtk())
+  
+  hooks vhomogenous:
+    property:
+      gtk_stack_set_vhomogeneous(state.internalWidget, state.vhomogenous.cbool)
+      
+  hooks visibleChildName:
+    property:
+      let hasVisibleChild = state.pages.hasKey(state.visibleChildName)      
+      if hasVisibleChild:
+        let visibleChild = state.pages[state.visibleChildName].widget.unwrapInternalWidget()
+        gtk_stack_set_visible_child(state.internalWidget, visibleChild)
+    
+  adder add {.title: "", name: "".}:
+    let hasTitle = title.len() > 0
+    let stackTitle = if hasTitle: title else: name
+    let stackChild = StackChild[Widget](
+      widget: child,
+      title: stackTitle
+    )
+  
+    widget.hasPages = true
+    widget.valPages[name] = stackChild
+      
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object
@@ -4213,3 +4365,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export Stack

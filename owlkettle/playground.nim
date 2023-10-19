@@ -266,6 +266,32 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
         proc clicked() =
           state.getField(fieldName).delete(index)
 
+proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[tuple[name: string, title: string, text: string]]): Widget =
+  ## Provides a form to display a single entry of type `tuple[name: string, title: string, text: string]` in a list of entries.
+  let tup = state.getField(fieldName)[index]
+  return gui:
+    ActionRow:      
+      title = "(Name, Title, Text)"      
+      Entry() {.addSuffix.}:
+        text = state.getField(fieldName)[index].name
+        proc changed(text: string) =
+          state.getField(fieldName)[index].name = text
+      
+      Entry() {.addSuffix.}:
+        text = state.getField(fieldName)[index].title
+        proc changed(text: string) =
+          state.getField(fieldName)[index].title = text
+      
+      Entry() {.addSuffix.}:
+        text = state.getField(fieldName)[index].text
+        proc changed(text: string) =
+          state.getField(fieldName)[index].text = text
+
+      Button {.addSuffix.}:
+        icon = "user-trash-symbolic"
+        proc clicked() =
+          state.getField(fieldName).delete(index)
+
 proc toFormField[T](state: auto, fieldName: static string, typ: typedesc[seq[T]]): Widget =
   ## Provides a form field for any field on `state` with a seq type.
   ## Displays a dummy widget if there is no `toListFormField` implementation for type T.

@@ -130,6 +130,31 @@ type
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
   
+  GtkStackTransitionType* = enum
+    GTK_STACK_TRANSITION_TYPE_NONE
+    GTK_STACK_TRANSITION_TYPE_CROSSFADE
+    GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT
+    GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT
+    GTK_STACK_TRANSITION_TYPE_SLIDE_UP
+    GTK_STACK_TRANSITION_TYPE_SLIDE_DOWN
+    GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT
+    GTK_STACK_TRANSITION_TYPE_SLIDE_UP_DOWN
+    GTK_STACK_TRANSITION_TYPE_OVER_UP
+    GTK_STACK_TRANSITION_TYPE_OVER_DOWN
+    GTK_STACK_TRANSITION_TYPE_OVER_LEFT
+    GTK_STACK_TRANSITION_TYPE_OVER_RIGHT
+    GTK_STACK_TRANSITION_TYPE_UNDER_UP
+    GTK_STACK_TRANSITION_TYPE_UNDER_DOWN
+    GTK_STACK_TRANSITION_TYPE_UNDER_LEFT
+    GTK_STACK_TRANSITION_TYPE_UNDER_RIGHT
+    GTK_STACK_TRANSITION_TYPE_OVER_UP_DOWN
+    GTK_STACK_TRANSITION_TYPE_OVER_DOWN_UP
+    GTK_STACK_TRANSITION_TYPE_OVER_LEFT_RIGHT
+    GTK_STACK_TRANSITION_TYPE_OVER_RIGHT_LEFT
+    GTK_STACK_TRANSITION_TYPE_ROTATE_LEFT
+    GTK_STACK_TRANSITION_TYPE_ROTATE_RIGHT
+    GTK_STACK_TRANSITION_TYPE_ROTATE_LEFT_RIGHT
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -915,8 +940,17 @@ when GtkMinor >= 10:
   proc gtk_search_entry_set_placeholder_text*(widget: GtkWidget, text: cstring)
 
 # Gtk.Stack
+proc gtk_stack_new*(): GtkWidget
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
 proc gtk_stack_remove*(stack, child: GtkWidget)
+proc gtk_stack_add_titled*(stack, child: GtkWidget, name: cstring, title: cstring)
+proc gtk_stack_set_hhomogeneous*(stack: GtkWidget, hhomogeneous: cbool)
+proc gtk_stack_set_interpolate_size*(stack: GtkWidget, interpolate_size: cbool)
+proc gtk_stack_set_transition_duration*(stack: GtkWidget, duration: cuint)
+proc gtk_stack_set_transition_type*(stack: GtkWidget, transition: GtkStackTransitionType)
+proc gtk_stack_set_vhomogeneous*(stack: GtkWidget, vhomogeneous: cbool)
+proc gtk_stack_set_visible_child*(stack, child: GtkWidget)
+proc gtk_stack_set_visible_child_name*(stack: GtkWidget, name: cstring)
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
