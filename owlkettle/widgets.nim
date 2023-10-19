@@ -3565,7 +3565,21 @@ proc updateNotebookChildren*(state: Renderable,
   while it < notebookChildren.len:
     gtk_notebook_remove_page(state.internalWidget, it.cint)
     discard notebookChildren.pop()
-    
+
+type DirectionType* = enum
+  DirectionTabForward
+  DirectionTabBackward
+  DirectionUp
+  DirectionDown
+  DirectionLeft
+  DirectionRight
+  
+proc toGtk*(x: DirectionType): GtkDirectionType =
+  GtkDirectionType(ord(x))
+
+proc toOwl*(x: GtkDirectionType): DirectionType =
+  DirectionType(ord(x))
+
 renderable Notebook of BaseWidget:
   pages: seq[NotebookTab[Widget]]
   enablePopup: bool = true
@@ -3576,9 +3590,59 @@ renderable Notebook of BaseWidget:
   tabPosition: TabPositionType = TabTop
   currentPage: int = 0
   
+  # proc changeCurrentPage(newPageIndex: int): bool
+  proc switchPage(newPageIndex: int)
+  # proc createWindow(droppedPage: GtkWidget): GtkWidget
+  # proc focusTab(tab: GtkWidget): bool
+  proc moveFocusOut(direction: DirectionType)
+  proc pageAdded(newPageIndex: int)
+  proc pageRemoved(removedPageIndex: int)
+  proc pageReordered(newPageIndex: int)
+  # proc reorderTab(direction: DirectionType, p0: bool): bool
+  # proc selectPage(obj: bool): bool
+  
   hooks:
     beforeBuild:
       state.internalWidget = gtk_notebook_new()
+    connectEvents:
+      proc switchPageCallback(
+        widget: GtkWidget,
+        page: GtkWidget,
+        pageIndex: cuint,
+        data: ptr EventObj[proc(x: int)]
+      ) {.cdecl.} =
+        NotebookState(data[].widget).currentPage = pageIndex.int
+        data[].callback(pageIndex.int)
+        data[].redraw()  
+      
+      proc moveFocusCallback(
+        widget: GtkWidget,
+        direction: GtkDirectionType,
+        data: ptr EventObj[proc(x: DirectionType)]
+      ) {.cdecl.} =
+        data[].callback(direction.toOwl())
+        data[].redraw()
+        
+      proc pageCallback(
+        widget: GtkWidget,
+        page: GtkWidget,
+        newPageIndex: cuint,
+        data: ptr EventObj[proc(x: int)]
+      ) {.cdecl.} =
+        data[].callback(newPageIndex.int)
+        data[].redraw()
+        
+      state.connect(state.switchPage, "switch-page", switchPageCallback)
+      state.connect(state.moveFocusOut, "move-focus-out", moveFocusCallback)
+      state.connect(state.pageAdded, "page-added", pageCallback)
+      state.connect(state.pageRemoved, "page-removed", pageCallback)
+      state.connect(state.pageReordered, "page-reordered", pageCallback)
+    disconnectEvents:
+      disconnect(state.internalWidget, state.switchPage)
+      disconnect(state.internalWidget, state.moveFocusOut)
+      disconnect(state.internalWidget, state.pageAdded)
+      disconnect(state.internalWidget, state.pageRemoved)
+      disconnect(state.internalWidget, state.pageReordered)
   
   hooks pages:
     (build, update):

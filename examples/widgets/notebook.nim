@@ -59,7 +59,26 @@ method view(app: AppState): Widget =
         tooltip = app.tooltip
         sizeRequest = app.sizeRequest
         
+        proc switchPage(newPageIndex: int) =
+          echo "New Page Index: ", newPageIndex
+        
+        proc moveFocusOut(direction: DirectionType) =
+          ## TODO: Currently not working. How do you trigger?
+          echo "Moved Focus out in direction: ", direction
+        
+        proc pageAdded(newPageIndex: int) =
+          ## TODO: Currently not working, maybe page is not removed via the right proc?
+          echo "Page ", newPageIndex, " Added"
+          
+        proc pageRemoved(removedPageIndex: int) =
+          ## TODO: Currently not working, maybe page is not removed via the right proc?
+          echo "Page ", removedPageIndex, " Removed"
+
+        proc pageReordered(newPageIndex: int) =
+          echo "Page moved to new index ", newPageIndex
+
+
         for index, page in app.pages:
           Label(text = "Some Content of Page " & $(index+1)) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable, detachable: page.detachable.}
-          
+        
 adw.brew(gui(App()))

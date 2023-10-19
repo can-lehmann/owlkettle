@@ -137,6 +137,14 @@ type
     k, l, m: cint
     n: pointer
   
+  GtkDirectionType* = enum
+    GTK_DIR_TAB_FORWARD
+    GTK_DIR_TAB_BACKWARD
+    GTK_DIR_UP
+    GTK_DIR_DOWN
+    GTK_DIR_LEFT
+    GTK_DIR_RIGHT
+  
   GtkDrawingAreaDrawFunc* = proc(area: GtkWidget, ctx: pointer, width, height: cint, data: pointer) {.cdecl.}
 
 type

@@ -292,12 +292,13 @@ proc toListFormField(state: auto, fieldName: static string, index: int, typ: typ
         proc changed(newVal: bool) =
           state.getField(fieldName)[index].detachable = newVal
 
-      
       Button {.addSuffix.}:
         icon = "user-trash-symbolic"
         proc clicked() =
           state.getField(fieldName).delete(index)
 
+proc default(t: typedesc[tuple[tabLabel: string, menuLabel: string, reorderable: bool, detachable: bool]]): tuple[tabLabel: string, menuLabel: string, reorderable: bool, detachable: bool] =
+  ("new Tab", "new TabMenu", false, false)
 
 proc toFormField[T](state: auto, fieldName: static string, typ: typedesc[seq[T]]): Widget =
   ## Provides a form field for any field on `state` with a seq type.
