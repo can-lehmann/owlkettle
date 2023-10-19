@@ -199,6 +199,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/video.nim">Video</a></td>
     <td><img alt="Video" src="../docs/assets/examples/video.png" width="985px"></td>
   </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/window_controls.nim">Window Controls</a></td>
+    <td><img alt="Window Controls" src="../docs/assets/examples/window_controls.png" width="985px"></td>
+  </tr>
 </table>
 
 ### adwaita

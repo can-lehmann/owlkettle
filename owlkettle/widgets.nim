@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -179,6 +179,46 @@ renderable Window of BaseWindow:
     Window:
       Label(text = "Hello, world")
 
+type PackType* = enum
+  PackStart, PackEnd
+
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+proc toLayoutString(side: PackType, buttons: seq[WindowControlButton]): string =
+  let buttonStr: string = buttons.mapIt($it).join(",")
+  return case side:
+  of PackStart:
+    fmt"{buttonStr}:"
+  of PackEnd:
+    fmt":{buttonStr}"
+
+
+proc toGtk*(x: PackType): GtkPackType = GtkPackType(ord(x))
+
+renderable WindowControls of BaseWidget:
+  side: PackType = PackStart ## Used to tell GTK whether the controls are shown at the start or end of a window. Mostly irrelevant, only set if you explicitly need it.
+  buttons: seq[WindowControlButton] ## Determines which buttons are shown and their order by building a gtk-decoration-layout string. See gtk docs for more information: https://docs.gtk.org/gtk4/property.Settings.gtk-decoration-layout.html
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_window_controls_new(state.side.toGtk())
+  
+  hooks side:
+    property:
+      let layoutString = toLayoutString(state.side, state.buttons)
+      gtk_window_controls_set_decoration_layout(state.internalWidget, layoutString.cstring)
+      gtk_window_controls_set_side(state.internalWidget, state.side.toGtk())
+
+  hooks buttons:
+    property:
+      let layoutString = toLayoutString(state.side, state.buttons)
+      gtk_window_controls_set_decoration_layout(state.internalWidget, layoutString.cstring)
+  
 type Orient* = enum OrientX, OrientY
 
 proc toGtk(orient: Orient): GtkOrientation =
@@ -4191,7 +4231,7 @@ renderable ListView of BaseWidget:
 
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
-export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
+export Window, WindowControls, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild

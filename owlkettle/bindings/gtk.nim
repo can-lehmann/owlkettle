@@ -667,6 +667,11 @@ proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
 proc gtk_window_set_icon_name*(window: GtkWidget, name: cstring)
 
+# Gtk.WindowControls
+proc gtk_window_controls_new*(side: GtkPackType): GtkWidget
+proc gtk_window_controls_set_decoration_layout*(self: GtkWidget, layout: cstring)
+proc gtk_window_controls_set_side*(self: GtkWidget, side: GtkPackType)
+
 # Gtk.ActionBar
 proc gtk_action_bar_new*(): GtkWidget
 proc gtk_action_bar_get_revealed*(widget: GtkWidget): cbool
