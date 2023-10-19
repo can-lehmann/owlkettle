@@ -817,12 +817,12 @@ proc gtk_drawing_area_set_draw_func*(widget: GtkWidget,
 proc gtk_native_get_surface_transform*(native: GtkWidget, x, y: ptr cdouble)
 
 # Gtk.Notebook
-proc gtk_notebook_new (): GtkWidget
-proc gtk_notebook_append_page (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget): cint
-proc gtk_notebook_append_page_menu (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget): cint
-proc gtk_notebook_detach_tab (widget: GtkWidget, child: GtkWidget)
-proc gtk_notebook_insert_page (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, position: cint): cint
-proc gtk_notebook_insert_page_menu (widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget, position: cint): cint
+proc gtk_notebook_new*(): GtkWidget
+proc gtk_notebook_append_page*(widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget): cint
+proc gtk_notebook_append_page_menu*(widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget): cint
+proc gtk_notebook_detach_tab*(widget: GtkWidget, child: GtkWidget)
+proc gtk_notebook_insert_page*(widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, position: cint): cint
+proc gtk_notebook_insert_page_menu*(widget: GtkWidget, child: GtkWidget, tab_label: GtkWidget, menu_label: GtkWidget, position: cint): cint
 proc gtk_notebook_next_page*(widget: GtkWidget)
 proc gtk_notebook_popup_enable*(widget: GtkWidget)
 proc gtk_notebook_popup_disable*(widget: GtkWidget)
