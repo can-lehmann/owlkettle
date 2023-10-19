@@ -30,7 +30,7 @@ viewable App:
   showBorder: bool = true
   showTabs: bool = true
   tabPosition: TabPositionType = TabTop
-  
+  currentPage: int = 0
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
@@ -54,6 +54,7 @@ method view(app: AppState): Widget =
         showBorder = app.showBorder
         showTabs = app.showTabs
         tabPosition = app.tabPosition
+        currentPage = app.currentPage
         sensitive = app.sensitive
         tooltip = app.tooltip
         sizeRequest = app.sizeRequest

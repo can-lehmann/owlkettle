@@ -3574,6 +3574,7 @@ renderable Notebook of BaseWidget:
   showBorder: bool = true
   showTabs: bool = true
   tabPosition: TabPositionType = TabTop
+  currentPage: int = 0
   
   hooks:
     beforeBuild:
@@ -3582,6 +3583,10 @@ renderable Notebook of BaseWidget:
   hooks pages:
     (build, update):
       state.updateNotebookChildren(state.pages, widget.valPages)
+  
+  hooks currentPage:
+    property:
+      gtk_notebook_set_current_page(state.internalWidget, state.currentPage.cint)
   
   hooks enablePopup:
     property:
