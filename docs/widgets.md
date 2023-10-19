@@ -129,6 +129,30 @@ HeaderBar {.addTitlebar.}:
 ```
 
 
+## CenterBox
+
+```nim
+renderable CenterBox of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `startWidget: Widget`
+- `centerWidget: Widget`
+- `endWidget: Widget`
+- `baselinePosition: BaselinePosition = BaselineCenter`
+- `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+- `orient: Orient = OrientX`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addStart`
+- `addEnd`
+- `add`
+
+
 ## Overlay
 
 ```nim
@@ -148,6 +172,21 @@ renderable Overlay of BaseWidget
 - `addOverlay`
   - `hAlign = AlignFill`
   - `vAlign = AlignFill`
+
+
+## EmojiChooser
+
+```nim
+renderable EmojiChooser of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+
+###### Events
+
+- emojiPicked: `proc (emoji: string)`
 
 
 ## Label
@@ -829,6 +868,28 @@ PopoverMenu:
 ```
 
 
+## SearchEntry
+
+```nim
+renderable SearchEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+- `placeholderText: string = "Search"` Only available when compiling for gtk 4.10
+
+###### Events
+
+- activate: `proc ()` Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+- nextMatch: `proc ()` Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default.
+- previousMatch: `proc ()` Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+- changed: `proc (searchString: string)` Triggered when the user types in the SearchEntry.
+- stopSearch: `proc ()` Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus.
+
+
 ## Separator
 
 ```nim
@@ -1476,6 +1537,25 @@ Scale:
 ```
 
 
+## Video
+
+```nim
+renderable Video of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `autoplay: bool = false`
+- `loop: bool = false`
+- `mediaStream: MediaStream`
+
+###### Setters
+
+- `fileName: string`
+- `file: GFile`
+
+
 ## Expander
 
 ```nim
@@ -1506,6 +1586,26 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - `addLabel`
 
 
+## PasswordEntry
+
+```nim
+renderable PasswordEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `activatesDefault: bool = true`
+- `placeholderText: string = "Password"`
+- `showPeekIcon: bool = true`
+
+###### Events
+
+- activate: `proc ()` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
+- changed: `proc (password: string)` Triggered when the user types in the PasswordEntry.
+
+
 ## ProgressBar
 
 ```nim
@@ -1523,5 +1623,52 @@ A progress bar widget to show progress being made on a long-lasting task
 - `pulseStep: float = 0.1`
 - `showText: bool = false`
 - `text: string = ""`
+
+
+## ActionBar
+
+```nim
+renderable ActionBar of BaseWidget
+```
+
+A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `centerWidget: Widget`
+- `packStart: seq[Widget]` Widgets shown on the start of the ActionBar
+- `packEnd: seq[Widget]` Widgets shown on the end of the ActionBar
+- `revealed: bool`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addStart`
+- `addEnd`
+
+
+## ListView
+
+```nim
+renderable ListView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `size: int` Number of items
+- `selectionMode: SelectionMode`
+- `selected: HashSet[int]` Indices of the currently selected items.
+- `showSeparators: bool = false`
+- `singleClickActivate: bool = false`
+- `enableRubberband: bool = false`
+
+###### Events
+
+- viewItem: `proc (index: int): Widget`
+- select: `proc (rows: HashSet[int])`
+- activate: `proc (index: int)`
 
 

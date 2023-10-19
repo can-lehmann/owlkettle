@@ -14,7 +14,9 @@ Here a minimal example of a custom button widget that provides a `clicked` event
 nbCode:
   import owlkettle
   import std/tables
-  import owlkettle/[widgetutils, gtk]
+  import owlkettle/widgetutils
+  import owlkettle/bindings/gtk
+
 
   renderable MyButton of BaseWidget:
     proc clicked()

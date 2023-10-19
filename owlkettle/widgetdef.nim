@@ -25,7 +25,8 @@
 import std/[macros, strutils, tables]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import gtk, common
+import common
+import bindings/gtk
 
 type
   Widget* = ref object of RootObj

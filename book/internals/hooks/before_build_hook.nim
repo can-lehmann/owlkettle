@@ -14,7 +14,7 @@ Here a simple code-example for writing a `beforeBuild` hook:
 
 nbCode:
   import owlkettle
-  import owlkettle/gtk
+  import owlkettle/bindings/gtk
   import std/json
 
   renderable MyRenderable:

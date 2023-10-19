@@ -124,8 +124,16 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/action_bar.nim">Action Bar</a></td>
+    <td><img alt="Action Bar" src="../docs/assets/examples/action_bar.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/calendar.nim">Calendar</a></td>
     <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="622px"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/center_box.nim">Center Box</a></td>
+    <td><img alt="Center Box" src="../docs/assets/examples/center_box.png" width="922px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/context_menu.nim">Context Menu</a></td>
@@ -156,6 +164,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Grid" src="../docs/assets/examples/grid.png" width="998px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/password_entry.nim">Password Entry</a></td>
+    <td><img alt="Password Entry" src="../docs/assets/examples/password_entry.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
     <td><img alt="Picture" src="../docs/assets/examples/picture.png" width="870px"></td>
   </tr>
@@ -176,8 +188,16 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Scale Widget" src="../docs/assets/examples/scale.png" width="922px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/search_entry.nim">Search Entry</a></td>
+    <td><img alt="Search Entry Widget" src="../docs/assets/examples/search_entry.png" width="422px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/text_view.nim">Text View</a></td>
     <td><img alt="Text View" src="../docs/assets/examples/text_view.png" width="757px"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/video.nim">Video</a></td>
+    <td><img alt="Video" src="../docs/assets/examples/video.png" width="985px"></td>
   </tr>
 </table>
 

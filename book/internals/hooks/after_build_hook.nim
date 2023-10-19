@@ -15,7 +15,7 @@ Let's return to our earlier renderable example and write it so that the parent-w
 
 nbCode:
   import owlkettle
-  import owlkettle/gtk
+  import owlkettle/bindings/gtk
   import std/json
 
   renderable MyRenderable:
