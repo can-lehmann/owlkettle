@@ -45,7 +45,7 @@ method view(app: AppState): Widget =
       title = "Notebook Example"
       defaultSize = (800, 600)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (800, 700))) {.addRight.}
       
       Notebook():
         enablePopup = app.enablePopup
