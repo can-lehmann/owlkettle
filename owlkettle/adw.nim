@@ -137,6 +137,23 @@ renderable Avatar of BaseWidget:
       size = 100
       showInitials = true
 
+renderable Bin of BaseWidget:
+  child: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_bin_new()
+
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_bin_set_child)
+
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Bin.")
+    widget.hasChild = true
+    widget.valChild = child
+
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
   child: Widget
@@ -714,7 +731,7 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+export WindowSurface, WindowTitle, Avatar, Bin, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
