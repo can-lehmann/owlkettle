@@ -8,6 +8,7 @@ const AdwVersion* = (AdwMajor, AdwMinor)
 
 type
   StyleManager* = distinct pointer
+  AdwBreakpoint* = distinct pointer
   
   ColorScheme* = enum
     ColorSchemeDefault,
@@ -57,6 +58,19 @@ proc adw_avatar_set_icon_name*(avatar: GtkWidget, iconName: cstring)
 # Adw.Bin
 proc adw_bin_new*(): GtkWidget
 proc adw_bin_set_child*(self, child: GtkWidget)
+
+when AdwVersion >= (1, 4):
+  # Adw.Breakpoint
+  proc adw_breakpoint_new*(condition: AdwBreakpointCondition): AdwBreakpoint
+  proc adw_breakpoint_set_condition*(self: AdwBreakpoint, condition: AdwBreakpointCondition)
+  proc adw_breakpoint_get_condition (self: AdwBreakpoint): AdwBreakpointCondition
+  proc adw_breakpoint_add_setter*(self: AdwBreakpoint, obj: GObject, property: cstring, value: GValue)
+
+  # Adw.BreakpointBin
+  proc adw_breakpoint_bin_new*(): GtkWidget
+  proc adw_breakpoint_bin_add_breakpoint*(self: GtkWidget, breakpoint: AdwBreakpoint)
+  proc adw_breakpoint_bin_set_child*(self, child: GtkWidget)
+
 
 # Adw.Clamp
 proc adw_clamp_new*(): GtkWidget
