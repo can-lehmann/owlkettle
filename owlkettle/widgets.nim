@@ -3503,7 +3503,7 @@ proc toGtk(pos: TabPositionType): GtkPositionType =
 
 type NotebookTab[T] = object
   tabWidget: T
-  menuLabel: string
+  menuWidget: T
   widget: T
   reorderable: bool
   detachable: bool
@@ -3513,7 +3513,7 @@ proc assignApp[T](tab: NotebookTab[T], app: Viewable) =
   tab.widget.assignApp(app)
 
 proc setNotebookTabSettings[T](notebook: GtkWidget, tabWidget: GtkWidget, tab: NotebookTab[T]) =
-  gtk_notebook_set_menu_label_text(notebook, tabWidget, tab.menuLabel.cstring)
+  gtk_notebook_set_menu_label(notebook, tabWidget, tab.menuWidget.build().unwrapInternalWidget())
   gtk_notebook_set_tab_detachable(notebook, tabWidget, tab.detachable.cbool)
   gtk_notebook_set_tab_reorderable(notebook, tabWidget, tab.reorderable.cbool)
 
@@ -3560,7 +3560,7 @@ proc updateNotebookChildren*(state: Renderable,
     notebookChildren.add(NotebookTab[WidgetState](
       widget: newWidgetState,
       tabWidget: notebookUpdate.tabWidget.build(),
-      menuLabel: notebookUpdate.menuLabel,
+      menuWidget: notebookUpdate.menuWidget.build(),
       reorderable: notebookUpdate.reorderable,
       detachable: notebookUpdate.detachable
     ))
@@ -3679,6 +3679,7 @@ renderable Notebook of BaseWidget:
   adder add {.tabLabel: "", 
               tabLabelWidget: nil.Widget,
               menuLabel: "", 
+              menuLabelWidget: nil.Widget,
               reorderable: true.}: 
     let hasTabLabelWidget = tabLabel != "" or (not tabLabelWidget.isNil())
     if not hasTabLabelWidget:
@@ -3688,11 +3689,18 @@ renderable Notebook of BaseWidget:
         gui(Label(text = tabLabel))
       else:
         tabLabelWidget
-        
+    
+    let menuWidget: Widget = if not menuLabelWidget.isNil():
+        menuLabelWidget
+      elif menuLabel != "":
+        gui(Label(text = menuLabel))
+      else:
+        gui(Label(text = tabLabel))
+    
     let tab = NotebookTab[Widget](
       widget: child,
       tabWidget: tabWidget,
-      menuLabel: menuLabel,
+      menuWidget: menuWidget,
       reorderable: reorderable,
       detachable: false # Detaching is currently not supported
     )

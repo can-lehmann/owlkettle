@@ -53,15 +53,23 @@ proc tabLabelWidget(app: AppState, index: int): Widget =
         proc clicked() =
           app.pages.delete(index)
 
+proc tabMenuWidget(app: AppState, index: int): Widget =
+  let text = app.pages[index].menuLabel
+  result = gui:
+    Box(orient = OrientX):
+      Label(text = text)
+      Icon() {.expand: false.}:
+        name = "user-home-symbolic"
+        
+
 method view(app: AppState): Widget =
-  let labelWidgets = collect(newSeq):
-    for num in app.pages.low..app.pages.high:
-      tabLabelWidget(app, num)
+  let labelWidgets = (0..2).mapIt(tabLabelWidget(app, it))
+  let menuWidgets = (0..2).mapIt(tabMenuWidget(app, it))
 
   result = gui:
     Window():
       title = "Notebook Example"
-      defaultSize = (600, 300)
+      defaultSize = (500, 300)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (800, 700))) {.addRight.}
       
@@ -92,7 +100,7 @@ method view(app: AppState): Widget =
           echo "Page moved to new index ", newPageIndex
           
         for index, page in app.pages:
-          Box(orient = OrientY) {.tabLabelWidget: labelWidgets[index], menuLabel: page.menuLabel, reorderable: page.reorderable.}:
+          Box(orient = OrientY) {.tabLabelWidget: labelWidgets[index], menuLabelWidget: menuWidgets[index], reorderable: page.reorderable.}:
             Label(text = fmt"Some Content of Page {index+1}") {.expand: false.}
             Label(text = fmt" Reorderable: {page.reorderable}") {.expand: false.}
             
