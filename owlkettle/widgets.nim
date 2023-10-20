@@ -3513,7 +3513,6 @@ proc assignApp[T](tab: NotebookTab[T], app: Viewable) =
   tab.widget.assignApp(app)
 
 proc setNotebookTabSettings[T](notebook: GtkWidget, tabWidget: GtkWidget, tab: NotebookTab[T]) =
-  gtk_notebook_set_menu_label(notebook, tabWidget, tab.menuWidget.build().unwrapInternalWidget())
   gtk_notebook_set_tab_detachable(notebook, tabWidget, tab.detachable.cbool)
   gtk_notebook_set_tab_reorderable(notebook, tabWidget, tab.reorderable.cbool)
 
@@ -3536,7 +3535,9 @@ proc updateNotebookChildren*(state: Renderable,
       gtk_notebook_remove_page(state.internalWidget, it.cint)
       # Add new Page
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      discard gtk_notebook_insert_page(state.internalWidget, newGtkWidget, notebookUpdate.tabWidget.build().unwrapInternalWidget(), it.cint)
+      let labelGtkWidget = notebookUpdate.tabWidget.build().unwrapInternalWidget()
+      let menuGtkWidget = notebookUpdate.menuWidget.build().unwrapInternalWidget()
+      discard gtk_notebook_insert_page_menu(state.internalWidget, newGtkWidget, labelGtkWidget, menuGtkWidget, it.cint)
       setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
       
       notebookChildren[it].widget = newWidgetState
@@ -3553,8 +3554,9 @@ proc updateNotebookChildren*(state: Renderable,
       newWidget = notebookUpdate.widget
       newWidgetState = newWidget.build()
       newGtkWidget = newWidgetState.unwrapInternalWidget()
-
-    discard gtk_notebook_append_page(state.internalWidget, newGtkWidget, notebookUpdate.tabWidget.build().unwrapInternalWidget())
+      labelGtkWidget = notebookUpdate.tabWidget.build().unwrapInternalWidget()
+      menuGtkWidget = notebookUpdate.menuWidget.build().unwrapInternalWidget()
+    discard gtk_notebook_append_page_menu(state.internalWidget, newGtkWidget, labelGtkWidget, menuGtkWidget)
     setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
     
     notebookChildren.add(NotebookTab[WidgetState](

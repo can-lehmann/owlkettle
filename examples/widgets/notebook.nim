@@ -55,21 +55,27 @@ proc tabLabelWidget(app: AppState, index: int): Widget =
 
 proc tabMenuWidget(app: AppState, index: int): Widget =
   let text = app.pages[index].menuLabel
+
   result = gui:
     Box(orient = OrientX):
       Label(text = text)
       Icon() {.expand: false.}:
-        name = "user-home-symbolic"
+        name = "window-close"
         
 
 method view(app: AppState): Widget =
-  let labelWidgets = (0..2).mapIt(tabLabelWidget(app, it))
-  let menuWidgets = (0..2).mapIt(tabMenuWidget(app, it))
+  let labelWidgets = collect(newSeq):
+    for num in app.pages.low..app.pages.high:
+      tabLabelWidget(app, num)
+
+  let menuWidgets = collect(newSeq):
+    for num in app.pages.low..app.pages.high:
+      tabMenuWidget(app, num)
 
   result = gui:
     Window():
       title = "Notebook Example"
-      defaultSize = (500, 300)
+      defaultSize = (600, 300)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (800, 700))) {.addRight.}
       
