@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
+import std/[sequtils, strformat]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
@@ -36,14 +36,14 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
   pages: seq[tuple[tabLabel: string, menuLabel: string, reorderable: bool, detachable: bool]] = (1..3).mapIt(
-    ("Tab " & $it, "Some Menu", true, true)
+    (fmt"Tab {it}", fmt"Tab {it}" , true, true)
   )
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "Notebook Example"
-      defaultSize = (800, 600)
+      defaultSize = (600, 300)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (800, 700))) {.addRight.}
       
@@ -77,8 +77,10 @@ method view(app: AppState): Widget =
         proc pageReordered(newPageIndex: int) =
           echo "Page moved to new index ", newPageIndex
 
-
         for index, page in app.pages:
-          Label(text = "Some Content of Page " & $(index+1)) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable, detachable: page.detachable.}
-        
+          Box(orient = OrientY) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable, detachable: page.detachable.}:
+            Label(text = fmt"Some Content of Page {index+1}") {.expand: false.}
+            Label(text = fmt" Detachable: {page.detachable}") {.expand: false.}
+            Label(text = fmt" Reorderable: {page.reorderable}") {.expand: false.}
+            
 adw.brew(gui(App()))

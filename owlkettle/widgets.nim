@@ -3526,8 +3526,8 @@ proc updateNotebookChildren*(state: Renderable,
       oldWidgetState = notebookChildren[it].widget
       newWidgetState = newWidget.update(oldWidgetState)
       
-    let hasChanges = not newWidgetState.isNil()
-    if hasChanges:
+    let hasNewWidget = not newWidgetState.isNil()
+    if hasNewWidget:
       # Remove old Page
       gtk_notebook_remove_page(state.internalWidget, it.cint)
       # Add new Page
@@ -3537,7 +3537,10 @@ proc updateNotebookChildren*(state: Renderable,
       setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
       
       notebookChildren[it].widget = newWidgetState
-    
+    else: # Update old Widget
+      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
+      setNotebookTabSettings(state.internalWidget, oldGtkWidget, notebookUpdate)
+
     it += 1
   
   # Newly Added Widgets
