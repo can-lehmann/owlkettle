@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils, strformat]
+import std/[sequtils, strformat, sugar]
 import owlkettle, owlkettle/[dataentries, playground, adw]
+
+type Page = tuple[tabLabel: string, menuLabel: string, reorderable: bool]
 
 viewable App:
   enablePopup: bool = true
@@ -35,11 +37,27 @@ viewable App:
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
-  pages: seq[tuple[tabLabel: string, menuLabel: string, reorderable: bool]] = (1..3).mapIt(
+  pages: seq[Page] = (1..3).mapIt(
     (fmt"Tab {it}", fmt"Tab {it}" , true)
   )
 
+proc tabLabelWidget(app: AppState, index: int): Widget =
+  let text = app.pages[index].tabLabel
+  result = gui:
+    Box(orient = OrientX):
+      Label(text = text)
+      Button() {.expand: false.}:
+        style = [ButtonFlat]
+        icon = "window-close"
+        
+        proc clicked() =
+          app.pages.delete(index)
+
 method view(app: AppState): Widget =
+  let labelWidgets = collect(newSeq):
+    for num in app.pages.low..app.pages.high:
+      tabLabelWidget(app, num)
+
   result = gui:
     Window():
       title = "Notebook Example"
@@ -74,7 +92,7 @@ method view(app: AppState): Widget =
           echo "Page moved to new index ", newPageIndex
           
         for index, page in app.pages:
-          Box(orient = OrientY) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable.}:
+          Box(orient = OrientY) {.tabLabelWidget: labelWidgets[index], menuLabel: page.menuLabel, reorderable: page.reorderable.}:
             Label(text = fmt"Some Content of Page {index+1}") {.expand: false.}
             Label(text = fmt" Reorderable: {page.reorderable}") {.expand: false.}
             

@@ -25,7 +25,7 @@
 import std/[unicode, os, sets, tables, sequtils, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, cairo, widgetutils, common
+import widgetdef, cairo, widgetutils, common, guidsl
 import bindings/gtk
 
 customPragmas()
@@ -3502,11 +3502,15 @@ proc toGtk(pos: TabPositionType): GtkPositionType =
   result = GtkPositionType(ord(pos))
 
 type NotebookTab[T] = object
-  tabLabel: string
+  tabWidget: T
   menuLabel: string
   widget: T
   reorderable: bool
   detachable: bool
+
+proc assignApp[T](tab: NotebookTab[T], app: Viewable) =
+  tab.tabWidget.assignApp(app)
+  tab.widget.assignApp(app)
 
 proc setNotebookTabSettings[T](notebook: GtkWidget, tabWidget: GtkWidget, tab: NotebookTab[T]) =
   gtk_notebook_set_menu_label_text(notebook, tabWidget, tab.menuLabel.cstring)
@@ -3516,7 +3520,7 @@ proc setNotebookTabSettings[T](notebook: GtkWidget, tabWidget: GtkWidget, tab: N
 proc updateNotebookChildren*(state: Renderable,
                             notebookChildren: var seq[NotebookTab[WidgetState]],
                             notebookUpdates: seq[NotebookTab[Widget]]) =
-  notebookUpdates.mapIt(it.widget).assignApp(state.app)
+  notebookUpdates.assignApp(state.app)
   var it = 0
   # Updates to existing Widgets
   while it < notebookUpdates.len and it < notebookChildren.len:
@@ -3532,8 +3536,7 @@ proc updateNotebookChildren*(state: Renderable,
       gtk_notebook_remove_page(state.internalWidget, it.cint)
       # Add new Page
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      let tabLabelGtkWidget = gtk_label_new(notebookUpdate.tabLabel.cstring)
-      discard gtk_notebook_insert_page(state.internalWidget, newGtkWidget, tabLabelGtkWidget, it.cint)
+      discard gtk_notebook_insert_page(state.internalWidget, newGtkWidget, notebookUpdate.tabWidget.build().unwrapInternalWidget(), it.cint)
       setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
       
       notebookChildren[it].widget = newWidgetState
@@ -3550,14 +3553,13 @@ proc updateNotebookChildren*(state: Renderable,
       newWidget = notebookUpdate.widget
       newWidgetState = newWidget.build()
       newGtkWidget = newWidgetState.unwrapInternalWidget()
-      tabLabelGtkWidget = gtk_label_new(notebookUpdate.tabLabel.cstring)
 
-    discard gtk_notebook_append_page(state.internalWidget, newGtkWidget, tabLabelGtkWidget)
+    discard gtk_notebook_append_page(state.internalWidget, newGtkWidget, notebookUpdate.tabWidget.build().unwrapInternalWidget())
     setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
     
     notebookChildren.add(NotebookTab[WidgetState](
       widget: newWidgetState,
-      tabLabel: notebookUpdate.tabLabel,
+      tabWidget: notebookUpdate.tabWidget.build(),
       menuLabel: notebookUpdate.menuLabel,
       reorderable: notebookUpdate.reorderable,
       detachable: notebookUpdate.detachable
@@ -3675,14 +3677,21 @@ renderable Notebook of BaseWidget:
       gtk_notebook_set_tab_pos(state.internalWidget, state.tabPosition.toGtk())
   
   adder add {.tabLabel: "", 
+              tabLabelWidget: nil.Widget,
               menuLabel: "", 
               reorderable: true.}: 
-    if tabLabel == "":
-      raise newException(ValueError, "A tab label is required for a notebook tab")
+    let hasTabLabelWidget = tabLabel != "" or (not tabLabelWidget.isNil())
+    if not hasTabLabelWidget:
+      raise newException(ValueError, "A tab label is required for a notebook tab. Set either tabLabel or tabLabelWidget")
     
+    let tabWidget: Widget = if tabLabelWidget.isNil():
+        gui(Label(text = tabLabel))
+      else:
+        tabLabelWidget
+        
     let tab = NotebookTab[Widget](
       widget: child,
-      tabLabel: tabLabel,
+      tabWidget: tabWidget,
       menuLabel: menuLabel,
       reorderable: reorderable,
       detachable: false # Detaching is currently not supported
