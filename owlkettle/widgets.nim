@@ -3593,14 +3593,15 @@ renderable Notebook of BaseWidget:
   tabPosition: TabPositionType = TabTop
   currentPage: int = 0
   
-  # proc changeCurrentPage(newPageIndex: int): bool
   proc switchPage(newPageIndex: int)
-  # proc createWindow(droppedPage: GtkWidget): GtkWidget
-  # proc focusTab(tab: GtkWidget): bool
-  proc moveFocusOut(direction: DirectionType)
   proc pageAdded(newPageIndex: int)
   proc pageRemoved(removedPageIndex: int)
   proc pageReordered(newPageIndex: int)
+  # Currently not supported signals
+  # proc changeCurrentPage(newPageIndex: int): bool
+  # proc createWindow(groupName: string): Widget
+  # proc focusTab(tab: GtkWidget): bool
+  # proc moveFocusOut(direction: DirectionType)
   # proc reorderTab(direction: DirectionType, p0: bool): bool
   # proc selectPage(obj: bool): bool
   
@@ -3618,14 +3619,7 @@ renderable Notebook of BaseWidget:
         data[].callback(pageIndex.int)
         data[].redraw()  
       
-      proc moveFocusCallback(
-        widget: GtkWidget,
-        direction: GtkDirectionType,
-        data: ptr EventObj[proc(x: DirectionType)]
-      ) {.cdecl.} =
-        data[].callback(direction.toOwl())
-        data[].redraw()
-        
+      
       proc pageCallback(
         widget: GtkWidget,
         page: GtkWidget,
@@ -3636,13 +3630,11 @@ renderable Notebook of BaseWidget:
         data[].redraw()
         
       state.connect(state.switchPage, "switch-page", switchPageCallback)
-      state.connect(state.moveFocusOut, "move-focus-out", moveFocusCallback)
       state.connect(state.pageAdded, "page-added", pageCallback)
       state.connect(state.pageRemoved, "page-removed", pageCallback)
       state.connect(state.pageReordered, "page-reordered", pageCallback)
     disconnectEvents:
       disconnect(state.internalWidget, state.switchPage)
-      disconnect(state.internalWidget, state.moveFocusOut)
       disconnect(state.internalWidget, state.pageAdded)
       disconnect(state.internalWidget, state.pageRemoved)
       disconnect(state.internalWidget, state.pageReordered)
@@ -3684,8 +3676,7 @@ renderable Notebook of BaseWidget:
   
   adder add {.tabLabel: "", 
               menuLabel: "", 
-              reorderable: true, 
-              detachable: false.}:
+              reorderable: true.}: 
     if tabLabel == "":
       raise newException(ValueError, "A tab label is required for a notebook tab")
     
@@ -3694,7 +3685,7 @@ renderable Notebook of BaseWidget:
       tabLabel: tabLabel,
       menuLabel: menuLabel,
       reorderable: reorderable,
-      detachable: detachable
+      detachable: false # Detaching is currently not supported
     )
   
     widget.hasPages = true

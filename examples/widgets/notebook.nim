@@ -35,8 +35,8 @@ viewable App:
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
-  pages: seq[tuple[tabLabel: string, menuLabel: string, reorderable: bool, detachable: bool]] = (1..3).mapIt(
-    (fmt"Tab {it}", fmt"Tab {it}" , true, true)
+  pages: seq[tuple[tabLabel: string, menuLabel: string, reorderable: bool]] = (1..3).mapIt(
+    (fmt"Tab {it}", fmt"Tab {it}" , true)
   )
 
 method view(app: AppState): Widget =
@@ -62,10 +62,6 @@ method view(app: AppState): Widget =
         proc switchPage(newPageIndex: int) =
           echo "New Page Index: ", newPageIndex
         
-        proc moveFocusOut(direction: DirectionType) =
-          ## TODO: Currently not working. How do you trigger?
-          echo "Moved Focus out in direction: ", direction
-        
         proc pageAdded(newPageIndex: int) =
           ## TODO: Currently not working, maybe page is not removed via the right proc?
           echo "Page ", newPageIndex, " Added"
@@ -76,11 +72,10 @@ method view(app: AppState): Widget =
 
         proc pageReordered(newPageIndex: int) =
           echo "Page moved to new index ", newPageIndex
-
+          
         for index, page in app.pages:
-          Box(orient = OrientY) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable, detachable: page.detachable.}:
+          Box(orient = OrientY) {.tabLabel: page.tabLabel, menuLabel: page.menuLabel, reorderable: page.reorderable.}:
             Label(text = fmt"Some Content of Page {index+1}") {.expand: false.}
-            Label(text = fmt" Detachable: {page.detachable}") {.expand: false.}
             Label(text = fmt" Reorderable: {page.reorderable}") {.expand: false.}
             
 adw.brew(gui(App()))

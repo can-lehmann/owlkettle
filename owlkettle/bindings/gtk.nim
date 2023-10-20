@@ -849,7 +849,9 @@ proc gtk_notebook_set_tab_detachable*(widget: GtkWidget, child: GtkWidget, detac
 proc gtk_notebook_set_tab_label_text*(widget: GtkWidget, child: GtkWidget, tab_text: cstring)
 proc gtk_notebook_set_tab_pos*(widget: GtkWidget, pos: GtkPositionType)
 proc gtk_notebook_set_tab_reorderable*(widget: GtkWidget, child: GtkWidget, reorderable: cbool)
-
+proc gtk_notebook_get_group_name*(widget: GtkWidget): cstring
+proc gtk_notebook_get_menu_label*(widget, child: GtkWidget): GtkWidget
+proc gtk_notebook_get_tab_label*(widget, child: GtkWidget): GtkWidget
 # Gtk.EventController
 proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 
