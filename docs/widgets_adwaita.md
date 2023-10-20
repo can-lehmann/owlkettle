@@ -332,6 +332,38 @@ Flap:
 ```
 
 
+## AdwHeaderBar
+
+```nim
+renderable AdwHeaderBar of BaseWidget
+```
+
+Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `packEnd: seq[Widget]`
+- `packStart: seq[Widget]`
+- `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
+- `startButtons: seq[WindowControlButton]`
+- `endButtons: seq[WindowControlButton]`
+- `showEndButtons: bool = true`
+- `showStartButtons: bool = true`
+- `titleWidget: Widget`
+- `showBackButton: bool = true`
+- `showTitle: bool = true` Determines whether to show or hide the title
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addStart` Adds a widget to the left side of the HeaderBar.
+
+- `addEnd` Adds a widget to the right side of the HeaderBar.
+
+- `addTitle`
+
+
 ## SplitButton
 
 ```nim

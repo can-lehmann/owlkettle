@@ -26,12 +26,14 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
+import std/[strutils, sequtils, strformat]
 
 export adw.StyleManager
 export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.CenteringPolicy
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
@@ -563,6 +565,119 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
+type PackType* = enum
+  PackStart, PackEnd
+
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+proc toLayoutString(buttons: seq[WindowControlButton]): string =
+  return buttons.mapIt($it).join(",")
+
+renderable AdwHeaderBar of BaseWidget:
+  ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+  packEnd: seq[Widget]
+  packStart: seq[Widget]
+  centeringPolicy: CenteringPolicy = CenteringPolicyLoose
+  startButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very start of the Headerbar, before `packStart`. Used to generate decorationLayout.
+  endButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very end of the Headerbar, after `packEnd`. Used to generate decorationLaout.
+  showEndButtons: bool = true # Determines whether the buttons in `endButton` are shown. Does not affect Widgets in `packEnd`.
+  showStartButtons: bool = true # Determines whether the buttons in `startButton` are shown. Does not affect Widgets in `packStart`.
+  titleWidget: Widget # A widget for the title. Replaces the title string, if there is one.
+  showBackButton: bool = true
+  showTitle: bool = true ## Determines whether to show or hide the title
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_header_bar_new()
+  
+  hooks packEnd:
+    (build, update):
+      state.updateChildren(
+        state.packEnd,
+        widget.valPackEnd,
+        adw_header_bar_pack_end,
+        adw_header_bar_remove
+      )
+      
+  hooks packStart:
+    (build, update):
+      state.updateChildren(
+        state.packStart,
+        widget.valPackStart,
+        adw_header_bar_pack_start,
+        adw_header_bar_remove
+      )
+      
+  hooks centeringPolicy:
+    property:
+      adw_header_bar_set_centering_policy(state.internalWidget, state.centeringPolicy)
+  
+
+  hooks startButtons:
+    property:
+      let startLayoutString = toLayoutString(state.startButtons)
+      let endLayoutString = toLayoutString(state.endButtons)
+      let layout = fmt"{startLayoutString}:{endLayoutString}"
+      adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
+
+  hooks endButtons:
+    property:
+      let startLayoutString = toLayoutString(state.startButtons)
+      let endLayoutString = toLayoutString(state.endButtons)
+      let layout = fmt"{startLayoutString}:{endLayoutString}"
+      adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
+  
+  hooks showEndButtons:
+    property:
+      adw_header_bar_set_show_end_title_buttons(state.internalWidget, state.showEndButtons.cbool)
+  
+  hooks showStartButtons:
+    property:
+      adw_header_bar_set_show_start_title_buttons(state.internalWidget, state.showStartButtons.cbool)
+  
+  hooks titleWidget:
+    (build, update):
+      state.updateChild(
+        state.titleWidget,
+        widget.valTitleWidget,
+        adw_header_bar_set_title_widget
+      )
+  
+  hooks showBackButton:
+    property:
+      when AdwVersion >= (1, 4):
+        echo "Run"
+        adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
+  
+  hooks showTitle:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
+  
+  adder addStart:
+    ## Adds a widget to the left side of the HeaderBar.
+    widget.hasPackStart = true
+    widget.valPackStart.add(child)
+  
+  adder addEnd:
+    ## Adds a widget to the right side of the HeaderBar.
+    widget.hasPackEnd = true
+    widget.valPackEnd.add(child)
+  
+  adder addTitle:
+    when AdwVersion >= (1, 4):
+      if widget.hasTitleWidget:
+        raise newException(ValueError, "Unable to add multiple children as title to HeaderBar. Use a Box widget to display multiple widgets.")
+      widget.hasTitleWidget = true
+      widget.valTitleWidget = child
+    else:
+      raise newException(ValueError, "Compile for Adwaita version 1.4 or higher with -d:adwMinor=4 to enable setting a Title Widget for Headerbar.")
+
 renderable SplitButton of BaseWidget:
   child: Widget
   popover: Widget
@@ -714,7 +829,7 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+export WindowSurface, WindowTitle, AdwHeaderBar, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
