@@ -546,6 +546,8 @@ renderable EditableLabel of BaseWidget:
     property:
       if state.editing:
         gtk_editable_label_start_editing(state.internalWidget)
+      else:
+        gtk_editable_label_stop_editing(state.internalWidget, cbool(true))
 
   hooks enableUndo:
     property:
