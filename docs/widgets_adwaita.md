@@ -343,13 +343,13 @@ Adwaita Headerbar that combines GTK Headerbar and WindowControls.
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `packEnd: seq[Widget]`
-- `packStart: seq[Widget]`
+- `packLeft: seq[Widget]`
+- `packRight: seq[Widget]`
 - `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
-- `startButtons: seq[WindowControlButton]`
-- `endButtons: seq[WindowControlButton]`
-- `showEndButtons: bool = true`
-- `showStartButtons: bool = true`
+- `leftButtons: seq[WindowControlButton]`
+- `rightButtons: seq[WindowControlButton]`
+- `showRightButtons: bool = true`
+- `showLeftButtons: bool = true`
 - `titleWidget: Widget`
 - `showBackButton: bool = true`
 - `showTitle: bool = true` Determines whether to show or hide the title
@@ -357,9 +357,9 @@ Adwaita Headerbar that combines GTK Headerbar and WindowControls.
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `addStart` Adds a widget to the left side of the HeaderBar.
+- `addLeft` Adds a widget to the left side of the HeaderBar.
 
-- `addEnd` Adds a widget to the right side of the HeaderBar.
+- `addRight` Adds a widget to the right side of the HeaderBar.
 
 - `addTitle`
 
