@@ -510,6 +510,57 @@ renderable Label of BaseWidget:
       text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
       useMarkup = true
 
+renderable EditableLabel of BaseWidget:
+  text: string = ""
+  editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
+  enableUndo: bool = true
+  alignment: 0.0..1.0 = 0.0
+  
+  proc changed(text: string) ## Fired every time `text` changes.
+  proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_editable_label_new("".cstring)
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+        let text = $gtk_editable_get_text(widget)
+        EditableLabelState(data[].widget).text = text
+        data[].callback(text)
+        data[].redraw()
+      
+      proc editedCallback(widget: GtkWidget, pspec: GtkParamSpec, data: ptr EventObj[proc (newEditState: bool)]){.cdecl.} =
+        let isEditing = gtk_editable_label_get_editing(widget).bool
+        EditableLabelState(data[].widget).editing = isEditing
+        data[].callback(isEditing)
+        data[].redraw()
+        
+      state.connect(state.changed, "changed", changedCallback)
+      state.connect(state.editStateChanged, "notify::editing", editedCallback)
+
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
+      state.internalWidget.disconnect(state.editStateChanged)
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+
+  hooks editing:
+    property:
+      if state.editing:
+        gtk_editable_label_start_editing(state.internalWidget)
+      else:
+        gtk_editable_label_stop_editing(state.internalWidget, cbool(true))
+
+  hooks enableUndo:
+    property:
+      gtk_editable_set_enable_undo(state.internalWidget, state.enableUndo.cbool)
+    
+  hooks alignment:
+    property:
+      gtk_editable_set_alignment(state.internalWidget, state.alignment.cfloat)
+
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   pixelSize: int = -1 ## Determines the size of the icon
@@ -4361,6 +4412,7 @@ export SearchEntry
 export Video
 export ProgressBar
 export EmojiChooser
+export EditableLabel
 export PasswordEntry
 export CenterBox
 export ListView
