@@ -3996,7 +3996,7 @@ renderable ActionBar of BaseWidget:
   centerWidget: Widget
   packStart: seq[Widget] ## Widgets shown on the start of the ActionBar
   packEnd: seq[Widget] ## Widgets shown on the end of the ActionBar
-  revealed: bool
+  revealed: bool = true
   
   hooks:
     beforeBuild:
