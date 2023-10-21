@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle/[gtk, widgetutils, widgetdef, widgets, guidsl, mainloop]
+import owlkettle/[widgetutils, widgetdef, widgets, guidsl, mainloop]
+import owlkettle/bindings/gtk
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
