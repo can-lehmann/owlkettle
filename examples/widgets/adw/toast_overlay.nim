@@ -51,7 +51,7 @@ proc buildToast(state: AppState): AdwToast =
 
   result.priority = state.priority
   result.timeout = state.timeout
-  result.titleMarkup = state.useMarkup
+  # result.titleMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or highe
 
   result.dismissalHandler = proc(toast: AdwToast) = 
     echo "Dismissed: ", toast.title
