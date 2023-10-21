@@ -30,6 +30,11 @@ type
     FlapTransitionUnder
     FlapTransitionSlide
 
+  ToolbarStyle* = enum
+    ToolbarFlat
+    ToolbarRaised
+    ToolbarRaisedBorder
+
 {.push importc, cdecl.}
 # Adw
 proc adw_init*()
@@ -127,6 +132,20 @@ proc adw_status_page_set_description*(self: GtkWidget, description: cstring)
 proc adw_status_page_set_icon_name*(self: GtkWidget, icon_name: cstring)
 proc adw_status_page_set_paintable*(self: GtkWidget, paintable: GtkWidget)
 proc adw_status_page_set_title*(self: GtkWidget, title: cstring)
+
+when AdwVersion >= (1, 4):
+  proc adw_toolbar_view_new*(): GtkWidget
+  proc adw_toolbar_view_add_bottom_bar*(self, widget: GtkWidget)
+  proc adw_toolbar_view_add_top_bar*(self, widget: GtkWidget)
+  proc adw_toolbar_view_remove*(self, widget: GtkWidget)
+  proc adw_toolbar_view_set_bottom_bar_style*(self: GtkWidget, style: ToolbarStyle)
+  proc adw_toolbar_view_set_content*(self, content: GtkWidget)
+  proc adw_toolbar_view_set_extend_content_to_bottom_edge*(self: GtkWidget, extend: cbool)
+  proc adw_toolbar_view_set_extend_content_to_top_edge*(self: GtkWidget, extend: cbool)
+  proc adw_toolbar_view_set_reveal_bottom_bars*(self: GtkWidget, reveal: cbool)
+  proc adw_toolbar_view_set_reveal_top_bars*(self: GtkWidget, reveal: cbool)
+  proc adw_toolbar_view_set_top_bar_style*(self: GtkWidget, style: ToolbarStyle)
+
 
 when AdwVersion >= (1, 2):
   # Adw.AboutWindow
