@@ -86,7 +86,7 @@ type
     GTK_SHADOW_OUT,
     GTK_SHADOW_ETCHED_IN,
     GTK_SHADOW_ETCHED_OUT
-  
+    
   GtkFileChooserAction* = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -154,6 +154,7 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
+  GtkParamSpec* = distinct pointer
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
@@ -172,6 +173,7 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
@@ -684,6 +686,12 @@ proc gtk_button_set_child*(window, child: GtkWidget)
 # Gtk.EmojiChooser
 proc gtk_emoji_chooser_new*(): GtkWidget
 
+# Gtk.EditableLabel
+proc gtk_editable_label_new*(str: cstring): GtkWidget
+proc gtk_editable_label_get_editing*(widget: GtkWidget): cbool
+proc gtk_editable_label_start_editing*(widget: GtkWidget)
+proc gtk_editable_label_stop_editing*(widget: GtkWidget, commit: cbool)
+
 # Gtk.Label
 proc gtk_label_new*(text: cstring): GtkWidget
 proc gtk_label_set_text*(label: GtkWidget, text: cstring)
@@ -725,6 +733,10 @@ proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)
 proc gtk_editable_get_text*(entry: GtkWidget): cstring
 proc gtk_editable_set_width_chars*(entry: GtkWidget, chars: cint)
 proc gtk_editable_set_max_width_chars*(entry: GtkWidget, chars: cint)
+proc gtk_editable_set_alignment*(entry: GtkWidget, xalign: cfloat)
+proc gtk_editable_set_editable*(entry: GtkWidget, is_editable: cbool)
+proc gtk_editable_set_enable_undo*(entry: GtkWidget, enable_undo: cbool)
+proc gtk_editable_set_position*(entry: GtkWidget, position: cint)
 
 # Gtk.Entry
 proc gtk_entry_new*(): GtkWidget

@@ -1,3 +1,27 @@
+# MIT License
+# 
+# Copyright (c) 2022 Can Joshua Lehmann
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Bindings for Adwaita
+
 import ./gtk
 
 const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
@@ -8,7 +32,6 @@ const AdwVersion* = (AdwMajor, AdwMinor)
 
 type
   StyleManager* = distinct pointer
-  AdwBreakpoint* = distinct pointer
   
   ColorScheme* = enum
     ColorSchemeDefault,
@@ -58,19 +81,6 @@ proc adw_avatar_set_icon_name*(avatar: GtkWidget, iconName: cstring)
 # Adw.Bin
 proc adw_bin_new*(): GtkWidget
 proc adw_bin_set_child*(self, child: GtkWidget)
-
-when AdwVersion >= (1, 4):
-  # Adw.Breakpoint
-  proc adw_breakpoint_new*(condition: AdwBreakpointCondition): AdwBreakpoint
-  proc adw_breakpoint_set_condition*(self: AdwBreakpoint, condition: AdwBreakpointCondition)
-  proc adw_breakpoint_get_condition (self: AdwBreakpoint): AdwBreakpointCondition
-  proc adw_breakpoint_add_setter*(self: AdwBreakpoint, obj: GObject, property: cstring, value: GValue)
-
-  # Adw.BreakpointBin
-  proc adw_breakpoint_bin_new*(): GtkWidget
-  proc adw_breakpoint_bin_add_breakpoint*(self: GtkWidget, breakpoint: AdwBreakpoint)
-  proc adw_breakpoint_bin_set_child*(self, child: GtkWidget)
-
 
 # Adw.Clamp
 proc adw_clamp_new*(): GtkWidget
