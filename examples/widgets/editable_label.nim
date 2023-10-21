@@ -47,17 +47,16 @@ method view(app: AppState): Widget =
           editing = app.editing
           enableUndo = app.enableUndo
           alignment = app.alignment
-          maxWidthChars = app.maxWidthChars
-          widthChars = app.widthChars
-          cursorPosition = app.cursorPosition
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
           
           proc changed(newValue: string) =
+            app.text = newValue
             echo "New Value: ", $newValue
           
           proc editStateChanged(newEditState: bool) =
+            app.editing = newEditState
             echo "New Edit State: ", newEditState
 
 adw.brew(gui(App()))

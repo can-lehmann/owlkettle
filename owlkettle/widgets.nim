@@ -508,7 +508,7 @@ renderable EditableLabel of BaseWidget:
   text: string = ""
   editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   enableUndo: bool = true
-  alignment: float = 0.0
+  alignment: 0.0..1.0 = 0.0
   
   proc changed(text: string) ## Fired every time `text` changes.
   proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
