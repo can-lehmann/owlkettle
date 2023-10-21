@@ -651,7 +651,6 @@ renderable AdwHeaderBar of BaseWidget:
   hooks showBackButton:
     property:
       when AdwVersion >= (1, 4):
-        echo "Run"
         adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
   
   hooks showTitle:
