@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -31,8 +31,6 @@ import bindings/gtk
 customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
-
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
 
 type 
   Margin* = object
@@ -334,6 +332,7 @@ renderable CenterBox of BaseWidget:
   endWidget: Widget
   baselinePosition: BaselinePosition = BaselineCenter
   shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  orient: Orient = OrientX
   
   hooks:
     beforeBuild:
@@ -359,6 +358,10 @@ renderable CenterBox of BaseWidget:
     property:
       when GtkMinor >= 12:
         gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
   adder addStart:
     if widget.hasStartWidget:
@@ -506,6 +509,57 @@ renderable Label of BaseWidget:
     Label:
       text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
       useMarkup = true
+
+renderable EditableLabel of BaseWidget:
+  text: string = ""
+  editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
+  enableUndo: bool = true
+  alignment: 0.0..1.0 = 0.0
+  
+  proc changed(text: string) ## Fired every time `text` changes.
+  proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_editable_label_new("".cstring)
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+        let text = $gtk_editable_get_text(widget)
+        EditableLabelState(data[].widget).text = text
+        data[].callback(text)
+        data[].redraw()
+      
+      proc editedCallback(widget: GtkWidget, pspec: GtkParamSpec, data: ptr EventObj[proc (newEditState: bool)]){.cdecl.} =
+        let isEditing = gtk_editable_label_get_editing(widget).bool
+        EditableLabelState(data[].widget).editing = isEditing
+        data[].callback(isEditing)
+        data[].redraw()
+        
+      state.connect(state.changed, "changed", changedCallback)
+      state.connect(state.editStateChanged, "notify::editing", editedCallback)
+
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
+      state.internalWidget.disconnect(state.editStateChanged)
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+
+  hooks editing:
+    property:
+      if state.editing:
+        gtk_editable_label_start_editing(state.internalWidget)
+      else:
+        gtk_editable_label_stop_editing(state.internalWidget, cbool(true))
+
+  hooks enableUndo:
+    property:
+      gtk_editable_set_enable_undo(state.internalWidget, state.enableUndo.cbool)
+    
+  hooks alignment:
+    property:
+      gtk_editable_set_alignment(state.internalWidget, state.alignment.cfloat)
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
@@ -2068,6 +2122,67 @@ renderable ModelButton of BaseWidget:
             proc clicked() =
               echo "Clicked " & $it
 
+renderable SearchEntry of BaseWidget:
+  text: string
+  # child: GtkWidget # This is currently not supported
+  searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+  placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
+  
+  proc activate() ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+  proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
+  proc previousMatch() ## Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+  proc changed(searchString: string) ## Triggered when the user types in the SearchEntry.
+  # proc searchStarted() # Currently not supported
+  proc stopSearch() ## Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus. 
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_search_entry_new()
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
+        let searchString = $gtk_editable_get_text(widget)
+        SearchEntryState(data[].widget).text = searchString
+        data[].callback(searchString)
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", eventCallback)
+      state.connect(state.nextMatch, "next-match", eventCallback)
+      state.connect(state.previousMatch, "previous-match", eventCallback)
+      state.connect(state.changed, "search-changed", changedCallback)
+      # state.connect(state.searchStarted, "search-changed", eventCallback) # Currently not supported
+      state.connect(state.stopSearch, "stop-search", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      state.internalWidget.disconnect(state.nextMatch)
+      state.internalWidget.disconnect(state.previousMatch)
+      state.internalWidget.disconnect(state.changed)
+      # state.internalWidget.disconnect(state.searchStarted) # Currently not supported
+      state.internalWidget.disconnect(state.stopSearch)
+
+  # hooks child:
+  #   property:
+  #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
+
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
+  hooks searchDelay:
+    property:
+      when GtkMinor >= 8:
+        gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
+      else:
+        discard
+
+  hooks placeholderText:
+    property:
+      when GtkMinor >= 10:
+        gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
+      else:
+        discard
+    
 renderable Separator of BaseWidget:
   ## A separator line.
   
@@ -3600,6 +3715,171 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+
+# See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
+type 
+  MediaStreamObj = object
+    gtk*: GtkMediaStream
+
+  MediaStream* = ref MediaStreamObj 
+
+crossVersionDestructor(stream, MediaStreamObj):
+  if isNil(stream.gtk):
+    return
+  
+  g_object_unref(pointer(stream.gtk))
+
+proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+  
+proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
+  let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.gtk):
+    g_object_ref(pointer(source.gtk))
+    
+  dest.gtk = source.gtk
+
+proc newMediaStream(gtk: GtkMediaStream): MediaStream =
+  if gtk.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GtkMediaStream(nil)")
+  
+  result = MediaStream(gtk: gtk)
+
+proc newMediaStream*(fileName: string): MediaStream =
+  if not fileExists(fileName):
+    raise newException(IOError, "Unable to create MediaStream for file that does not exist: '" & fileName & "'")
+  
+  let gtk = gtk_media_file_new_for_filename(fileName.cstring)
+  result = newMediaStream(gtk)
+
+proc newMediaStream*(gFile: GFile): MediaStream =
+  if gFile.isNil:
+    raise newException(ValueError, "Unable to create MediaStream from GFile(nil)")
+    
+  let gtk = gtk_media_file_new_for_file(gFile)
+  result = newMediaStream(gtk)
+
+proc endStream*(stream: MediaStream) =
+  when GtkMinor >= 4:
+    gtk_media_stream_stream_ended(stream.gtk)
+  else:
+    gtk_media_stream_ended(stream.gtk)
+
+proc loop*(stream: MediaStream): bool =
+  gtk_media_stream_get_loop(stream.gtk).bool
+
+proc playing*(stream: MediaStream): bool =
+  gtk_media_stream_get_playing(stream.gtk).bool
+
+proc hasAudio*(stream: MediaStream): bool =
+  gtk_media_stream_has_audio(stream.gtk).bool
+
+proc hasVideo*(stream: MediaStream): bool =
+  gtk_media_stream_has_video(stream.gtk).bool
+
+proc muted*(stream: MediaStream): bool =
+  gtk_media_stream_get_muted(stream.gtk).bool
+
+proc isSeekable*(stream: MediaStream): bool =
+  gtk_media_stream_is_seekable(stream.gtk).bool
+
+proc isSeeking*(stream: MediaStream): bool =
+  gtk_media_stream_is_seeking(stream.gtk).bool
+
+proc duration*(stream: MediaStream): int64 =
+  gtk_media_stream_get_duration(stream.gtk)
+
+proc hasEnded*(stream: MediaStream): bool =
+  gtk_media_stream_get_ended(stream.gtk).bool
+
+proc getError*(stream: MediaStream): GError =
+  gtk_media_stream_get_error(stream.gtk)
+
+proc timestamp*(stream: MediaStream): int64 =
+  gtk_media_stream_get_timestamp(stream.gtk)
+
+proc volume*(stream: MediaStream): float =
+  gtk_media_stream_get_volume(stream.gtk).float
+
+proc mute*(stream: MediaStream, mute: bool) = 
+  gtk_media_stream_set_muted(stream.gtk, mute.cbool)
+
+proc pause*(stream: MediaStream) =
+  gtk_media_stream_pause(stream.gtk)
+
+proc play*(stream: MediaStream) =
+  gtk_media_stream_play(stream.gtk)
+
+proc `muted=`*(stream: MediaStream, muted: bool) =
+  gtk_media_stream_set_muted(stream.gtk, muted.cbool)
+
+proc `loop=`*(stream: MediaStream, enableLooping: bool) =
+  gtk_media_stream_set_loop(stream.gtk, enableLooping.cbool)
+
+proc `playing=`*(stream: MediaStream, playing: bool) =
+  gtk_media_stream_set_playing(stream.gtk, playing.cbool)
+
+proc `volume=`*(stream: MediaStream, volume: float) =
+  gtk_media_stream_set_volume(stream.gtk, volume.cdouble)
+
+proc seek*(stream: MediaStream, timestamp: int64) =
+  gtk_media_stream_seek(stream.gtk, timestamp)
+
+proc seekRelative*(stream: MediaStream, intervalInMicroSeconds: int64) =
+  let alreadySeeking = stream.isSeeking()
+  if not stream.isSeekable() or alreadySeeking:
+    return
+  
+  let timestampInMicroS = gtk_media_stream_get_timestamp(stream.gtk)
+  gtk_media_stream_seek(stream.gtk, timestampInMicroS + intervalInMicroSeconds)
+
+renderable Video of BaseWidget:
+  autoplay: bool = false
+  loop: bool = false
+  mediaStream: MediaStream
+
+  setter fileName: string
+  setter file: GFile
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_video_new()
+    
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_video_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_video_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+  hooks autoplay:
+    property:
+      gtk_video_set_autoplay(state.internalWidget, state.autoplay.cbool)
+
+  hooks loop:
+    property:
+      gtk_video_set_loop(state.internalWidget, state.loop.cbool)
+
+proc `hasFileName=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFileName=`*(widget: Video, fileName: string) =
+  if fileExists(fileName):
+    widget.valMediaStream = newMediaStream(fileName)
+
+proc `hasFile=`*(widget: Video, has: bool) =
+  widget.hasMediaStream = has
+
+proc `valFile=`*(widget: Video, file: GFile) =
+  widget.valMediaStream = newMediaStream(file)
+
 renderable Expander of BaseWidget:
   ## Container that shows or hides its child depending on whether it is expanded/collapsed 
   label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
@@ -3672,7 +3952,59 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
-    
+
+renderable PasswordEntry of BaseWidget:
+  text: string
+  # menuModel: GtkMenuModel # Not yet supported
+  activatesDefault: bool = true
+  placeholderText: string = "Password"
+  showPeekIcon: bool = true
+  
+  proc activate() ## Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus. 
+  proc changed(password: string) ## Triggered when the user types in the PasswordEntry.
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_password_entry_new()
+    connectEvents:
+      proc changedEventCallback(
+        widget: GtkWidget, 
+        data: ptr EventObj[proc(password: string)]
+      ) {.cdecl.} =
+        let password: string = $gtk_editable_get_text(widget)
+        PasswordEntryState(data[].widget).text = password
+        data[].callback(password)
+        data[].redraw()
+
+      state.connect(state.activate, "activate", eventCallback)
+      state.connect(state.changed, "changed", changedEventCallback)
+    disconnectEvents:
+      disconnect(state.internalWidget, state.activate)
+      disconnect(state.internalWidget, state.changed)
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+  
+  hooks activatesDefault:
+    property:
+      var value = g_value_new(state.activatesDefault)
+      g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
+      g_value_unset(value.addr)
+
+  hooks placeholderText:
+    property:
+      var value = g_value_new(state.placeholderText)
+      g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
+      g_value_unset(value.addr)
+
+  hooks showPeekIcon:
+    property:
+      gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
+  
+  
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
@@ -3710,6 +4042,46 @@ renderable ProgressBar of BaseWidget:
     property:
       gtk_progress_bar_set_text(state.internalWidget, state.text.cstring)
 
+renderable ActionBar of BaseWidget:
+  ## A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+  centerWidget: Widget
+  packStart: seq[Widget] ## Widgets shown on the start of the ActionBar
+  packEnd: seq[Widget] ## Widgets shown on the end of the ActionBar
+  revealed: bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_action_bar_new()
+  
+  hooks centerWidget:
+    (build, update):
+      state.updateChild(state.centerWidget, widget.valCenterWidget, gtk_action_bar_set_center_widget)
+      
+  hooks packStart:
+    (build, update):
+      state.updateChildren(state.packStart, widget.valPackStart, gtk_action_bar_pack_start, gtk_action_bar_remove)
+        
+  hooks packEnd:
+    (build, update):
+      state.updateChildren(state.packEnd, widget.valPackEnd, gtk_action_bar_pack_end, gtk_action_bar_remove)
+  
+  hooks revealed:
+    property:
+      gtk_action_bar_set_revealed(state.internalWidget, state.revealed.cbool)
+  
+  adder add:
+    if widget.hasCenterWidget:
+      raise newException(ValueError, "Unable to add multiple children as center widget of ActionBar. Add them to the start or end via {.addStart.} or {.addEnd.}.")
+    widget.hasCenterWidget = true
+    widget.valCenterWidget = child
+    
+  adder addStart:
+    widget.hasPackStart = true
+    widget.valPackStart.add(child)    
+  
+  adder addEnd:
+    widget.hasPackEnd = true
+    widget.valPackEnd.add(child)
 const
   ListViewRichList* = StyleClass("rich-list")
   ListViewNavigationSidebar* = StyleClass("navigation-sidebar")
@@ -3884,7 +4256,12 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export SearchEntry
+export Video
 export ProgressBar
 export EmojiChooser
+export EditableLabel
+export PasswordEntry
 export CenterBox
 export ListView
+export ActionBar
