@@ -24,38 +24,49 @@ import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false
-  orient: Orient = OrientX
+  revealed: bool = false
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
   
-  addStartWidget: bool = true
-  addEndWidget: bool = true
+  dummyText: string = "Some Data"
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Center Box Example"
-      defaultSize = (800, 600)
+      title = "ActionBar Example"
+      defaultSize = (400, 200)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["dummyText"], sizeRequest = (400, 300))) {.addRight.}
+        
+        Button(text = "Reset") {.addRight.}:
+          style = [ButtonFlat]
+          proc clicked() =
+            app.dummyText = "Some Data"
       
-      CenterBox:
-        baselinePosition = app.baselinePosition
-        shrinkCenterLast = app.shrinkCenterLast
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
-        orient = app.orient
+      Box(orient = OrientY):
+        Button(text = app.dummyText):
+          style = [ButtonFlat]
+          proc clicked() = app.revealed = not app.revealed
+          
+        Separator() {.expand: false.}
+        ActionBar {.expand: false.}:
+          revealed = app.revealed
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          
+          Label(text = "Delete Dataset?")
+          Button(icon = "process-stop-symbolic") {.addEnd.}:
+            proc clicked() = 
+              echo "Keep Dataset"
+              app.revealed = false
+              
+          Button(icon = "user-trash-symbolic", style = [ButtonDestructive]) {.addEnd.}:
+            style = [ButtonDestructive]
+            proc clicked() =
+              echo "Delete Dataset"
+              app.dummyText = ""
+              app.revealed = false
         
-        if app.addStartWidget:
-          Label(text = "Start of CenterBox") {.addStart.}
-        
-        Label(text = "Center of CenterBox")
-        
-        if app.addEndWidget:
-          Label(text = "End of CenterBox") {.addEnd.}
-
 adw.brew(gui(App()))

@@ -143,6 +143,7 @@ renderable CenterBox of BaseWidget
 - `endWidget: Widget`
 - `baselinePosition: BaselinePosition = BaselineCenter`
 - `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+- `orient: Orient = OrientX`
 
 ###### Adders
 
@@ -228,6 +229,26 @@ Label:
   text = "<b>Bold</b>, <i>Italic</i>, <span font=\"20\">Font Size</span>"
   useMarkup = true
 ```
+
+
+## EditableLabel
+
+```nim
+renderable EditableLabel of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string = ""`
+- `editing: bool = false` Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
+- `enableUndo: bool = true`
+- `alignment: 0.0 .. 1.0 = 0.0`
+
+###### Events
+
+- changed: `proc (text: string)` Fired every time `text` changes.
+- editStateChanged: `proc (newEditState: bool)` Fired every time `editing` changes.
 
 
 ## Icon
@@ -865,6 +886,28 @@ PopoverMenu:
           echo "Clicked " & $it
 
 ```
+
+
+## SearchEntry
+
+```nim
+renderable SearchEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
+- `placeholderText: string = "Search"` Only available when compiling for gtk 4.10
+
+###### Events
+
+- activate: `proc ()` Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
+- nextMatch: `proc ()` Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default.
+- previousMatch: `proc ()` Triggered when the user hits the "previous entry" keybinding while the search entry is in focus, which is Ctrl-Shift-g by default.
+- changed: `proc (searchString: string)` Triggered when the user types in the SearchEntry.
+- stopSearch: `proc ()` Triggered when the user "stops" a search, e.g. by hitting the "Esc" key while SearchEntry is in focus.
 
 
 ## Separator
@@ -1580,6 +1623,26 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - `addLabel`
 
 
+## PasswordEntry
+
+```nim
+renderable PasswordEntry of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `text: string`
+- `activatesDefault: bool = true`
+- `placeholderText: string = "Password"`
+- `showPeekIcon: bool = true`
+
+###### Events
+
+- activate: `proc ()` Triggered when the user "activated" the entry e.g. by hitting "enter" key while PasswordEntry is in focus.
+- changed: `proc (password: string)` Triggered when the user types in the PasswordEntry.
+
+
 ## ProgressBar
 
 ```nim
@@ -1597,6 +1660,30 @@ A progress bar widget to show progress being made on a long-lasting task
 - `pulseStep: float = 0.1`
 - `showText: bool = false`
 - `text: string = ""`
+
+
+## ActionBar
+
+```nim
+renderable ActionBar of BaseWidget
+```
+
+A Bar for actions to execute in a given context. Can be hidden with intro- and outro-animations.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `centerWidget: Widget`
+- `packStart: seq[Widget]` Widgets shown on the start of the ActionBar
+- `packEnd: seq[Widget]` Widgets shown on the end of the ActionBar
+- `revealed: bool`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addStart`
+- `addEnd`
 
 
 ## ListView
