@@ -538,9 +538,7 @@ renderable EditableLabel of BaseWidget:
   
   hooks text:
     property:
-      let isEditing: bool = gtk_editable_label_get_editing(state.internalWidget).bool
-      if not isEditing:
-        gtk_editable_set_text(state.internalWidget, state.text.cstring)
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
 
   hooks editing:
     property:
