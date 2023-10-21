@@ -565,9 +565,6 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-type PackType* = enum
-  PackStart, PackEnd
-
 type WindowControlButton* = enum
   WindowControlMinimize = "minimize"
   WindowControlMaximize = "maximize"
