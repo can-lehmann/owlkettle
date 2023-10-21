@@ -25,10 +25,10 @@ import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   centeringPolicy: CenteringPolicy = CenteringPolicyLoose
-  startButtons: seq[WindowControlButton] = @[WindowControlMenu, WindowControlMinimize, WindowControlMaximize]
-  endButtons: seq[WindowControlButton] = @[WindowControlClose, WindowControlIcon]
-  showEndButtons: bool = true
-  showStartButtons: bool = true
+  leftButtons: seq[WindowControlButton] = @[WindowControlMenu, WindowControlMinimize, WindowControlMaximize]
+  rightButtons: seq[WindowControlButton] = @[WindowControlClose, WindowControlIcon]
+  showRightButtons: bool = true
+  showLeftButtons: bool = true
   showBackButton: bool = true
   showTitle: bool = true
   sensitive: bool = true
@@ -44,23 +44,23 @@ method view(app: AppState): Widget =
       
       AdwHeaderBar() {.addTitlebar.}:
         centeringPolicy = app.centeringPolicy
-        startButtons = app.startButtons
-        endButtons = app.endButtons
-        showStartButtons = app.showStartButtons
-        showEndButtons = app.showEndButtons
+        leftButtons = app.leftButtons
+        rightButtons = app.rightButtons
+        showLeftButtons = app.showLeftButtons
+        showRightButtons = app.showRightButtons
         showBackButton = app.showBackButton
         showTitle = app.showTitle
         sensitive = app.sensitive
         tooltip = app.tooltip
         sizeRequest = app.sizeRequest
         
-        insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addEnd.}
+        insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
         
-        Button(text = "1") {.addEnd.}:
+        Button(text = "1") {.addRight.}:
           style = [ButtonFlat]
           proc clicked() = echo "Clicked 1"
           
-        Button(text = "2") {.addStart.}:
+        Button(text = "2") {.addLeft.}:
           style = [ButtonFlat]
           proc clicked() = echo "Clicked 2"
         

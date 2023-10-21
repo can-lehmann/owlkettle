@@ -580,13 +580,13 @@ proc toLayoutString(buttons: seq[WindowControlButton]): string =
 
 renderable AdwHeaderBar of BaseWidget:
   ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
-  packEnd: seq[Widget]
-  packStart: seq[Widget]
+  packLeft: seq[Widget]
+  packRight: seq[Widget]
   centeringPolicy: CenteringPolicy = CenteringPolicyLoose
-  startButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very start of the Headerbar, before `packStart`. Used to generate decorationLayout.
-  endButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very end of the Headerbar, after `packEnd`. Used to generate decorationLaout.
-  showEndButtons: bool = true # Determines whether the buttons in `endButton` are shown. Does not affect Widgets in `packEnd`.
-  showStartButtons: bool = true # Determines whether the buttons in `startButton` are shown. Does not affect Widgets in `packStart`.
+  leftButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very start of the Headerbar, before `packLeft`. Used to generate decorationLayout.
+  rightButtons: seq[WindowControlButton] # Determines the Window-control buttons at the very end of the Headerbar, after `packRight`. Used to generate decorationLaout.
+  showRightButtons: bool = true # Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+  showLeftButtons: bool = true # Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
   titleWidget: Widget # A widget for the title. Replaces the title string, if there is one.
   showBackButton: bool = true
   showTitle: bool = true ## Determines whether to show or hide the title
@@ -595,20 +595,20 @@ renderable AdwHeaderBar of BaseWidget:
     beforeBuild:
       state.internalWidget = adw_header_bar_new()
   
-  hooks packEnd:
+  hooks packRight:
     (build, update):
       state.updateChildren(
-        state.packEnd,
-        widget.valPackEnd,
+        state.packRight,
+        widget.valPackRight,
         adw_header_bar_pack_end,
         adw_header_bar_remove
       )
       
-  hooks packStart:
+  hooks packLeft:
     (build, update):
       state.updateChildren(
-        state.packStart,
-        widget.valPackStart,
+        state.packLeft,
+        widget.valPackLeft,
         adw_header_bar_pack_start,
         adw_header_bar_remove
       )
@@ -618,27 +618,27 @@ renderable AdwHeaderBar of BaseWidget:
       adw_header_bar_set_centering_policy(state.internalWidget, state.centeringPolicy)
   
 
-  hooks startButtons:
+  hooks leftButtons:
     property:
-      let startLayoutString = toLayoutString(state.startButtons)
-      let endLayoutString = toLayoutString(state.endButtons)
-      let layout = fmt"{startLayoutString}:{endLayoutString}"
+      let leftLayoutString = toLayoutString(state.leftButtons)
+      let rightLayoutString = toLayoutString(state.rightButtons)
+      let layout = fmt"{leftLayoutString}:{rightLayoutString}"
       adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
 
-  hooks endButtons:
+  hooks rightButtons:
     property:
-      let startLayoutString = toLayoutString(state.startButtons)
-      let endLayoutString = toLayoutString(state.endButtons)
-      let layout = fmt"{startLayoutString}:{endLayoutString}"
+      let leftLayoutString = toLayoutString(state.leftButtons)
+      let rightLayoutString = toLayoutString(state.rightButtons)
+      let layout = fmt"{leftLayoutString}:{rightLayoutString}"
       adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
   
-  hooks showEndButtons:
+  hooks showRightButtons:
     property:
-      adw_header_bar_set_show_end_title_buttons(state.internalWidget, state.showEndButtons.cbool)
+      adw_header_bar_set_show_end_title_buttons(state.internalWidget, state.showRightButtons.cbool)
   
-  hooks showStartButtons:
+  hooks showLeftButtons:
     property:
-      adw_header_bar_set_show_start_title_buttons(state.internalWidget, state.showStartButtons.cbool)
+      adw_header_bar_set_show_start_title_buttons(state.internalWidget, state.showLeftButtons.cbool)
   
   hooks titleWidget:
     (build, update):
@@ -659,15 +659,15 @@ renderable AdwHeaderBar of BaseWidget:
       when AdwVersion >= (1, 4):
         adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
   
-  adder addStart:
+  adder addLeft:
     ## Adds a widget to the left side of the HeaderBar.
-    widget.hasPackStart = true
-    widget.valPackStart.add(child)
+    widget.hasPackLeft = true
+    widget.valPackLeft.add(child)
   
-  adder addEnd:
+  adder addRight:
     ## Adds a widget to the right side of the HeaderBar.
-    widget.hasPackEnd = true
-    widget.valPackEnd.add(child)
+    widget.hasPackRight = true
+    widget.valPackRight.add(child)
   
   adder addTitle:
     when AdwVersion >= (1, 4):
