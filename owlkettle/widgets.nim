@@ -505,8 +505,10 @@ renderable Label of BaseWidget:
       useMarkup = true
 
 renderable EditableLabel of BaseWidget:
-  editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   text: string = ""
+  editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
+  enableUndo: bool = true
+  alignment: float = 0.0
   
   proc changed(text: string) ## Fired every time `text` changes.
   proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
@@ -544,6 +546,14 @@ renderable EditableLabel of BaseWidget:
     property:
       if state.editing:
         gtk_editable_label_start_editing(state.internalWidget)
+
+  hooks enableUndo:
+    property:
+      gtk_editable_set_enable_undo(state.internalWidget, state.enableUndo.cbool)
+    
+  hooks alignment:
+    property:
+      gtk_editable_set_alignment(state.internalWidget, state.alignment.cfloat)
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.

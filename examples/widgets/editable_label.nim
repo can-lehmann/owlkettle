@@ -26,6 +26,8 @@ import owlkettle, owlkettle/[dataentries, playground, adw]
 viewable App:
   editing: bool = false
   text: string = "Initial Text"
+  enableUndo: bool = true
+  alignment: 0.0..1.0 = 0.0
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
@@ -43,6 +45,11 @@ method view(app: AppState): Widget =
         EditableLabel {.expand: false.}:
           text = app.text
           editing = app.editing
+          enableUndo = app.enableUndo
+          alignment = app.alignment
+          maxWidthChars = app.maxWidthChars
+          widthChars = app.widthChars
+          cursorPosition = app.cursorPosition
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest

@@ -741,6 +741,10 @@ proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)
 proc gtk_editable_get_text*(entry: GtkWidget): cstring
 proc gtk_editable_set_width_chars*(entry: GtkWidget, chars: cint)
 proc gtk_editable_set_max_width_chars*(entry: GtkWidget, chars: cint)
+proc gtk_editable_set_alignment*(entry: GtkWidget, xalign: cfloat)
+proc gtk_editable_set_editable*(entry: GtkWidget, is_editable: cbool)
+proc gtk_editable_set_enable_undo*(entry: GtkWidget, enable_undo: cbool)
+proc gtk_editable_set_position*(entry: GtkWidget, position: cint)
 
 # Gtk.Entry
 proc gtk_entry_new*(): GtkWidget
