@@ -332,6 +332,35 @@ Flap:
 ```
 
 
+## OverlaySplitView
+
+```nim
+renderable OverlaySplitView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `content: Widget`
+- `sidebar: Widget`
+- `collapsed: bool = false`
+- `enableHideGesture: bool = true`
+- `enableShowGesture: bool = true`
+- `maxSidebarWidth: float = 280.0`
+- `minSidebarWidth: float = 180.0`
+- `pinSidebar: bool = false`
+- `showSidebar: bool = true`
+- `sidebarPosition: PackType = PackStart`
+- `widthFraction: float = 0.25`
+- `widthUnit: LengthUnit = LengthScaleIndependent`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addSidebar`
+
+
 ## SplitButton
 
 ```nim

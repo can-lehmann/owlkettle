@@ -221,6 +221,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Flap" src="../docs/assets/examples/flap.png" width="622px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/overlay_split_view.nim">Overlay Split View</a></td>
+    <td><img alt="Overlay Split View" src="../docs/assets/examples/overlay_split_view.png" width="721px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/preferences_group.nim">Preferences Group</a></td>
     <td><img alt="Preferences Group" src="../docs/assets/examples/preferences_group.png" width="721px"></td>
   </tr>

@@ -32,6 +32,13 @@ customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
+type PackType* = enum
+  PackStart
+  PackEnd
+  
+proc toGtk*[INPUT: enum, OUTPUT](x: INPUT, typ: typedesc[OUTPUT]): OUTPUT =
+  OUTPUT(ord(x))
+
 type 
   Margin* = object
     top*, bottom*, left*, right*: int

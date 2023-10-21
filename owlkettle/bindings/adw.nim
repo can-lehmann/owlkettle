@@ -29,7 +29,12 @@ type
     FlapTransitionOver
     FlapTransitionUnder
     FlapTransitionSlide
-
+  
+  LengthUnit* = enum
+    LengthPixel
+    LengthPoint
+    LengthScaleIndependent
+  
 {.push importc, cdecl.}
 # Adw
 proc adw_init*()
@@ -115,6 +120,22 @@ proc adw_flap_set_swipe_to_close*(flap: GtkWidget, swipe: cbool)
 proc adw_flap_get_reveal_flap*(flap: GtkWidget): cbool
 proc adw_flap_get_folded*(flap: GtkWidget): cbool
 
+when AdwVersion >= (1, 4):
+  # Adw.OverlaySplitView
+  proc adw_overlay_split_view_new*(): GtkWidget
+  proc adw_overlay_split_view_set_collapsed*(self: GtkWidget, collapsed: cbool)
+  proc adw_overlay_split_view_set_content*(self, content: GtkWidget)
+  proc adw_overlay_split_view_set_enable_hide_gesture*(self: GtkWidget, enable_hide_gesture: cbool)
+  proc adw_overlay_split_view_set_enable_show_gesture*(self: GtkWidget, enable_show_gesture: cbool)
+  proc adw_overlay_split_view_set_max_sidebar_width*(self: GtkWidget, width: cdouble)
+  proc adw_overlay_split_view_set_min_sidebar_width*(self: GtkWidget, width: cdouble)
+  proc adw_overlay_split_view_set_pin_sidebar*(self: GtkWidget, pin_sidebar: cbool)
+  proc adw_overlay_split_view_set_show_sidebar*(self: GtkWidget, show_sidebar: cbool)
+  proc adw_overlay_split_view_set_sidebar*(self, sidebar: GtkWidget)
+  proc adw_overlay_split_view_set_sidebar_position*(self: GtkWidget, position: GtkPackType)
+  proc adw_overlay_split_view_set_sidebar_width_fraction*(self: GtkWidget, fraction: cdouble)
+  proc adw_overlay_split_view_set_sidebar_width_unit*(self: GtkWidget, unit: LengthUnit)
+  
 # Adw.SplitButton
 proc adw_split_button_new*(): GtkWidget
 proc adw_split_button_set_child*(button, child: GtkWidget)
