@@ -24,7 +24,7 @@
 
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, widgets, mainloop, widgetutils
+import widgetdef, widgets, mainloop, widgetutils, common
 import ./bindings/[adw, gtk]
 import ../owlkettle
 
@@ -724,6 +724,29 @@ type
   
   Toast* = ref ToastObj
 
+crossVersionDestructor(toast, ToastObj):
+  if isNil(toast.adw):
+    return
+  
+  g_object_unref(pointer(toast.adw))
+
+proc `=sink`(dest: var ToastObj; source: ToastObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.adw = source.adw
+  
+proc `=copy`*(dest: var ToastObj, source: ToastObj) =
+  let areSameObject = pointer(source.adw) == pointer(dest.adw)
+  if areSameObject:
+    return
+  
+  `=destroy`(dest)
+  wasMoved(dest)
+  if not isNil(source.adw):
+    g_object_ref(pointer(source.adw))
+    
+  dest.adw = source.adw
+
 proc newToast*(title: string): Toast =
   let adwToast: AdwToast = adw_toast_new(title.cstring)
   result = Toast(adw: adwToast)
@@ -842,6 +865,7 @@ renderable ToastOverlay of BaseWidget:
   hooks toast:
     property:
       if not state.toast.isNil():
+        g_object_ref(pointer(state.toast.adw)) # Increase ref count as Toast is owned by ToastOverlay. This ensures Toast doesn't get freed when the reference from the owlkettle side is lost.
         adw_toast_overlay_add_toast(state.internalWidget, state.toast.adw)
         
   adder add:
