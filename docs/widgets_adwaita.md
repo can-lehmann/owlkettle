@@ -88,6 +88,23 @@ Avatar:
 ```
 
 
+## Bin
+
+```nim
+renderable Bin of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+
 ## Clamp
 
 ```nim
