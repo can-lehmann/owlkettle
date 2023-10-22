@@ -166,3 +166,11 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_website*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
+
+when AdwVersion >= (1, 3):
+  # Adw.Banner
+  proc adw_banner_new*(title: cstring): GtkWidget
+  proc adw_banner_set_button_label*(self: GtkWidget, label: cstring)
+  proc adw_banner_set_title*(self: GtkWidget, title: cstring)
+  proc adw_banner_set_use_markup*(self: GtkWidget, use_markup: cbool)
+  proc adw_banner_set_revealed*(self: GtkWidget, revealed: cbool)
