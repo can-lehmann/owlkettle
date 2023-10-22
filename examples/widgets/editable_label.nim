@@ -24,38 +24,39 @@ import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false
-  orient: Orient = OrientX
+  editing: bool = false
+  text: string = "Initial Text"
+  enableUndo: bool = true
+  alignment: 0.0..1.0 = 0.0
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
-  addStartWidget: bool = true
-  addEndWidget: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Center Box Example"
-      defaultSize = (800, 600)
+      title = "Editable Label Example"
+      defaultSize = (400, 100)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu()) {.addRight.}
       
-      CenterBox:
-        baselinePosition = app.baselinePosition
-        shrinkCenterLast = app.shrinkCenterLast
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
-        orient = app.orient
-        
-        if app.addStartWidget:
-          Label(text = "Start of CenterBox") {.addStart.}
-        
-        Label(text = "Center of CenterBox")
-        
-        if app.addEndWidget:
-          Label(text = "End of CenterBox") {.addEnd.}
+      Box(orient = OrientY, margin = 12, spacing = 6):
+        Label(text = "The editable label:") {.expand: false.}
+        EditableLabel {.expand: false.}:
+          text = app.text
+          editing = app.editing
+          enableUndo = app.enableUndo
+          alignment = app.alignment
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          
+          proc changed(newValue: string) =
+            app.text = newValue
+            echo "New Value: ", $newValue
+          
+          proc editStateChanged(newEditState: bool) =
+            app.editing = newEditState
+            echo "New Edit State: ", newEditState
 
 adw.brew(gui(App()))

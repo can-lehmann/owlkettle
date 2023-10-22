@@ -27,7 +27,7 @@ import ../common
 
 import std/strutils as strutils
 
-const GtkMinor {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
+const GtkMinor* {.intdefine: "gtkminor".}: int = 0 ## Specifies the minimum GTK4 minor version required to run an application. Overwriteable via `-d:gtkminor=X`. Defaults to 0.
 
 {.passl: strutils.strip(gorge("pkg-config --libs gtk4")).}
 
@@ -86,7 +86,7 @@ type
     GTK_SHADOW_OUT,
     GTK_SHADOW_ETCHED_IN,
     GTK_SHADOW_ETCHED_OUT
-  
+
   GtkFileChooserAction* = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -154,6 +154,7 @@ type
   GtkShortcutAction* = distinct pointer
   GtkExpression* = distinct pointer
   GtkStringObject* = distinct pointer
+  GtkParamSpec* = distinct pointer
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
@@ -172,6 +173,7 @@ proc isNil*(obj: GtkShortcutTrigger): bool {.borrow.}
 proc isNil*(obj: GtkShortcutAction): bool {.borrow.}
 proc isNil*(obj: GtkExpression): bool {.borrow.}
 proc isNil*(obj: GtkStringObject): bool {.borrow.}
+proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
@@ -323,7 +325,8 @@ type
   GNotification* = distinct pointer
   
   GListModel* = distinct pointer
-  
+  GMenuModel* = distinct pointer
+  GMenuItem* = distinct pointer
   GApplicationFlags = distinct cuint
 
 proc isNil*(obj: GResource): bool {.borrow.}
@@ -435,6 +438,16 @@ proc g_quark_from_string*(value: cstring): GQuark
 # Gio.Resource
 proc g_resource_load*(path: cstring, err: ptr GError): GResource
 proc g_resources_register*(res: GResource)
+
+# Gio.GMenu
+proc g_menu_new*(): GMenuModel
+proc g_menu_append*(menu: GMenuModel, label: cstring, detailed_action: cstring)
+proc g_menu_append_item*(menu: GMenuModel, item: GMenuItem)
+proc g_menu_append_section*(menu: GMenuModel, label: cstring, section: GMenuModel)
+proc g_menu_append_submenu*(menu: GMenuModel, label: cstring, submenu: GMenuModel)
+proc g_menu_freeze*(menu: GMenuModel)
+proc g_menu_remove*(menu: GMenuModel, position: cint)
+proc g_menu_remove_all*(menu: GMenuModel)
 
 # Gio.Icon
 proc g_icon_new_for_string*(name: cstring, err: ptr GError): GIcon
@@ -656,6 +669,15 @@ proc gtk_window_close*(window: GtkWidget)
 proc gtk_window_destroy*(window: GtkWidget)
 proc gtk_window_set_icon_name*(window: GtkWidget, name: cstring)
 
+# Gtk.ActionBar
+proc gtk_action_bar_new*(): GtkWidget
+proc gtk_action_bar_get_revealed*(widget: GtkWidget): cbool
+proc gtk_action_bar_pack_end*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_pack_start*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_remove*(widget: GtkWidget, child: GtkWidget)
+proc gtk_action_bar_set_center_widget*(widget: GtkWidget, center_widget: GtkWidget)
+proc gtk_action_bar_set_revealed*(widget: GtkWidget, revealed: cbool)
+
 # Gtk.Button
 proc gtk_button_new*(): GtkWidget
 proc gtk_button_new_with_label*(label: cstring): GtkWidget
@@ -663,6 +685,12 @@ proc gtk_button_set_child*(window, child: GtkWidget)
 
 # Gtk.EmojiChooser
 proc gtk_emoji_chooser_new*(): GtkWidget
+
+# Gtk.EditableLabel
+proc gtk_editable_label_new*(str: cstring): GtkWidget
+proc gtk_editable_label_get_editing*(widget: GtkWidget): cbool
+proc gtk_editable_label_start_editing*(widget: GtkWidget)
+proc gtk_editable_label_stop_editing*(widget: GtkWidget, commit: cbool)
 
 # Gtk.Label
 proc gtk_label_new*(text: cstring): GtkWidget
@@ -705,6 +733,10 @@ proc gtk_editable_set_text*(entry: GtkWidget, text: cstring)
 proc gtk_editable_get_text*(entry: GtkWidget): cstring
 proc gtk_editable_set_width_chars*(entry: GtkWidget, chars: cint)
 proc gtk_editable_set_max_width_chars*(entry: GtkWidget, chars: cint)
+proc gtk_editable_set_alignment*(entry: GtkWidget, xalign: cfloat)
+proc gtk_editable_set_editable*(entry: GtkWidget, is_editable: cbool)
+proc gtk_editable_set_enable_undo*(entry: GtkWidget, enable_undo: cbool)
+proc gtk_editable_set_position*(entry: GtkWidget, position: cint)
 
 # Gtk.Entry
 proc gtk_entry_new*(): GtkWidget
@@ -855,6 +887,11 @@ proc gtk_check_button_set_active*(widget: GtkWidget, state: cbool)
 proc gtk_check_button_get_active*(widget: GtkWidget): cbool
 proc gtk_check_button_set_group*(widget, group: GtkWidget)
 
+# Gtk.PasswordEntry
+proc gtk_password_entry_new*(): GtkWidget
+# proc gtk_password_entry_set_extra_menu*(widget: GtkWidget, model: GMenuModel)
+proc gtk_password_entry_set_show_peek_icon*(widget: GtkWidget, show_peek_icon: cbool)
+
 # Gtk.Popover
 proc gtk_popover_new*(relativeTo: GtkWidget): GtkWidget
 proc gtk_popover_popup*(popover: GtkWidget)
@@ -880,6 +917,14 @@ proc gtk_progress_bar_set_inverted*(widget: GtkWidget, inverted: cbool)
 proc gtk_progress_bar_set_pulse_step*(widget: GtkWidget, fraction: cdouble)
 proc gtk_progress_bar_set_show_text*(widget: GtkWidget, show_text: cbool)
 proc gtk_progress_bar_set_text*(widget: GtkWidget, text: cstring)
+
+# Gtk.SearchEntry
+proc gtk_search_entry_new*(): GtkWidget
+proc gtk_search_entry_set_key_capture_widget*(widget: GtkWidget, captureWidget: GtkWidget)
+when GtkMinor >= 8:
+  proc gtk_search_entry_set_search_delay*(widget: GtkWidget, delay: cuint)
+when GtkMinor >= 10:
+  proc gtk_search_entry_set_placeholder_text*(widget: GtkWidget, text: cstring)
 
 # Gtk.Stack
 proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)

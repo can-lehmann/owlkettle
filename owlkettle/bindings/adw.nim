@@ -1,3 +1,27 @@
+# MIT License
+# 
+# Copyright (c) 2022 Can Joshua Lehmann
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Bindings for Adwaita
+
 import ./gtk
 
 const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
@@ -151,3 +175,10 @@ when AdwVersion >= (1, 4):
   proc adw_switch_row_new*(): GtkWidget
   proc adw_switch_row_set_active*(self: GtkWidget, is_active: cbool)
   proc adw_switch_row_get_active*(self: GtkWidget): cbool
+when AdwVersion >= (1, 3):
+  # Adw.Banner
+  proc adw_banner_new*(title: cstring): GtkWidget
+  proc adw_banner_set_button_label*(self: GtkWidget, label: cstring)
+  proc adw_banner_set_title*(self: GtkWidget, title: cstring)
+  proc adw_banner_set_use_markup*(self: GtkWidget, use_markup: cbool)
+  proc adw_banner_set_revealed*(self: GtkWidget, revealed: cbool)
