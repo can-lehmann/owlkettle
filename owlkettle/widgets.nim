@@ -3600,6 +3600,45 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+proc newAdjustment*(
+  value = 0.0, 
+  lower = 0.0, 
+  upper = 0.0, 
+  stepIncrement = 0.0, 
+  pageIncrement = 0.0, 
+  pageSize: float = 0.0
+): GtkAdjustment =
+  gtk_adjustment_new(value.cdouble, lower.cdouble, upper.cdouble, stepIncrement.cdouble, pageIncrement.cdouble, pageSize.cdouble)
+
+proc value*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_value(adjustment).float
+proc lower*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_lower(adjustment).float
+proc upper*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_upper(adjustment).float
+proc stepIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_step_increment(adjustment).float
+proc pageIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_page_increment(adjustment).float
+proc pageSize*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_page_size(adjustment).float
+proc minimumIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_minimum_increment(adjustment).float
+proc `value=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_value(adjustment, newValue.cdouble)
+proc `lower=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_lower(adjustment, newValue.cdouble)
+proc `upper=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_upper(adjustment, newValue.cdouble)
+proc `stepIncrement=`*(adjustment: GtkAdjustment, newValue: float) = 
+  gtk_adjustment_set_step_increment(adjustment, newValue.cdouble)
+proc `pageIncrement=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_page_increment(adjustment, newValue.cdouble)
+proc `pageSize=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_page_size(adjustment, newValue.cdouble)
+proc configure*(adjustment: GtkAdjustment, value: float, lower: float, upper: float, step_increment: float, page_increment: float, page_siz: float) =
+  gtk_adjustment_configure(adjustment, value.cdouble, lower.cdouble, upper.cdouble, step_increment.cdouble, page_increment.cdouble, page_siz.cdouble)
+
 renderable Scrollbar of BaseWidget:
   orient: Orient = OrientY
   

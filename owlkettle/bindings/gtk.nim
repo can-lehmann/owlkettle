@@ -731,6 +731,16 @@ proc gtk_adjustment_set_upper*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_step_increment*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_page_increment*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_page_size*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_clamp_page*(adjustment: GtkAdjustment, lower: cdouble, upper: cdouble)
+proc gtk_adjustment_configure*(adjustment: GtkAdjustment, value: cdouble, lower: cdouble, upper: cdouble, step_increment: cdouble, page_increment: cdouble, page_siz: cdouble)
+proc gtk_adjustment_get_lower*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_minimum_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_page_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_page_size*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_step_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_upper*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_value*(adjustment: GtkAdjustment): cdouble
+
 
 # Gtk.Scrollbar
 proc gtk_scrollbar_new*(orientation: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
