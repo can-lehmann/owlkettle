@@ -450,6 +450,8 @@ renderable SwitchRow of ActionRow
 ###### Events
 
 - activated: `proc (active: bool)`
+
+
 ## Banner
 
 ```nim

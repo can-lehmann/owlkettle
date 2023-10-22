@@ -40,8 +40,8 @@ method view(app: AppState): Widget =
       HeaderBar {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (400, 510))){.addRight.}
 
-      ListBox():
-        SwitchRow() {.addRow.}:
+      PreferencesGroup():
+        SwitchRow():
           active = app.active
           title = app.title
           subtitle = app.subtitle
