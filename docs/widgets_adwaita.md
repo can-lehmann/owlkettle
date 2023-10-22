@@ -406,16 +406,18 @@ renderable AboutWindow
 renderable Banner of BaseWidget
 ```
 
+A rectangular Box taking up the entire vailable width with an optional button.
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `buttonLabel: string`
+- `buttonLabel: string` Label of the optional banner button. Button will only be added to the banner if this Label has a value.
 - `title: string`
-- `useMarkup: bool = true`
-- `revealed: bool = true`
+- `useMarkup: bool = true` Determines whether using Markup in title is allowed or not.
+- `revealed: bool = true` Determines whether the banner is shown.
 
 ###### Events
 
-- clicked: `proc ()`
+- clicked: `proc ()` Triggered by clicking the banner button
 
 

@@ -716,12 +716,13 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
 
 when AdwVersion >= (1, 3) or defined(owlkettleDocs):
   renderable Banner of BaseWidget:
-    buttonLabel: string
+    ## A rectangular Box taking up the entire vailable width with an optional button.
+    buttonLabel: string ## Label of the optional banner button. Button will only be added to the banner if this Label has a value.
     title: string
-    useMarkup: bool = true
-    revealed: bool = true
+    useMarkup: bool = true ## Determines whether using Markup in title is allowed or not.
+    revealed: bool = true ## Determines whether the banner is shown.
     
-    proc clicked()
+    proc clicked() ## Triggered by clicking the banner button
     
     hooks:
       beforeBuild:
