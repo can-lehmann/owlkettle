@@ -205,3 +205,11 @@ when AdwVersion >= (1, 2):
 when AdwVersion >= (1, 4):
   proc adw_toast_set_use_markup*(self: AdwToast, use_markup: cbool)
   proc adw_toast_get_use_markup*(self: AdwToast): cbool
+
+when AdwVersion >= (1, 3):
+  # Adw.Banner
+  proc adw_banner_new*(title: cstring): GtkWidget
+  proc adw_banner_set_button_label*(self: GtkWidget, label: cstring)
+  proc adw_banner_set_title*(self: GtkWidget, title: cstring)
+  proc adw_banner_set_use_markup*(self: GtkWidget, use_markup: cbool)
+  proc adw_banner_set_revealed*(self: GtkWidget, revealed: cbool)

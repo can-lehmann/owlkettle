@@ -213,6 +213,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/banner.nim">Banner</a></td>
+    <td><img alt="Banner" src="../docs/assets/examples/banner.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/combo_row.nim">Combo Row</a></td>
     <td><img alt="Combo Row" src="../docs/assets/examples/combo_row.png" width="684px"></td>
   </tr>

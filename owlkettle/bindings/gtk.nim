@@ -86,7 +86,7 @@ type
     GTK_SHADOW_OUT,
     GTK_SHADOW_ETCHED_IN,
     GTK_SHADOW_ETCHED_OUT
-    
+
   GtkFileChooserAction* = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
@@ -349,7 +349,7 @@ const
   G_TYPE_STRING* = GType(16 shl 2)
   G_TYPE_POINTER* = GType(17 shl 2)
   G_TYPE_OBJECT* = GType(20 shl 2)
-  
+
 {.push importc, cdecl.}
 # GObject
 proc g_signal_handler_disconnect*(widget: pointer,
