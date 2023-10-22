@@ -419,13 +419,6 @@ Use `newToast` to create an `AdwToast`.
 - customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
 - dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
 - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
-## Banner
-
-```nim
-renderable Banner of BaseWidget
-```
-
-A rectangular Box taking up the entire vailable width with an optional button.
 
 ###### Fields
 
@@ -437,6 +430,19 @@ A rectangular Box taking up the entire vailable width with an optional button.
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
+
+
+## Banner
+
+```nim
+renderable Banner of BaseWidget
+```
+
+A rectangular Box taking up the entire vailable width with an optional button.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
 - `buttonLabel: string` Label of the optional banner button. Button will only be added to the banner if this Label has a value.
 - `title: string`
 - `useMarkup: bool = true` Determines whether using Markup in title is allowed or not.
