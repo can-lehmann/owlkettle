@@ -33,7 +33,7 @@ viewable App:
   #Adjustment
   value: float = 0.0
   lower: float = 0.0
-  upper: float = 0.0
+  upper: float = 100.0
   stepIncrement: float = 0.0
   pageIncrement: float = 0.0
   pageSize: float = 0.0
@@ -55,4 +55,8 @@ method view(app: AppState): Widget =
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
 
+          proc scrolled(newValue: float) =
+            echo "newValue: ", newValue
+            
+          proc adjustmentChanged() = echo "Adjustment changed"
 adw.brew(gui(App()))
