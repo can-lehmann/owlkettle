@@ -3753,6 +3753,29 @@ proc `pageSize=`*(adjustment: GtkAdjustment, newValue: float) =
   gtk_adjustment_set_page_size(adjustment, newValue.cdouble)
 proc configure*(adjustment: GtkAdjustment, value: float, lower: float, upper: float, step_increment: float, page_increment: float, page_siz: float) =
   gtk_adjustment_configure(adjustment, value.cdouble, lower.cdouble, upper.cdouble, step_increment.cdouble, page_increment.cdouble, page_siz.cdouble)
+
+# proc `valueChangedHandler=`*(adjustment: GtkAdjustment, handler: proc(newValue: float)) =
+#   proc valueChangedCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc (newValue: float)]) {.cdecl.} = 
+#     let event = unwrapSharedCell(data)
+#     event.callback(adjustment.value)
+
+#   let event = EventObj[proc(newValue: float)]()
+#   let data = allocSharedCell(event)
+#   data.callback = handler
+#   data.handler = g_signal_connect(adjustment, "value-changed".cstring, valueChangedCallback, data)
+
+# proc `adjustmentChangedHandler=`*(adjustment: GtkAdjustment, handler: proc()) =
+#   proc adjustmentChangedCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc()]) {.cdecl.} =
+#     let event = unwrapSharedCell(data)
+#     event.callback()
+
+#   let event = EventObj[proc()]()
+#   let data = allocSharedCell(event)
+#   data.callback = handler
+#   data.handler = g_signal_connect(adjustment, "changed".cstring, adjustmentChangedCallback, data)
+
+# TODO: Add hooks 
+
 proc `==`*(x, y: GtkAdjustment): bool = x.pointer == y.pointer
 
 renderable Scrollbar of BaseWidget:
@@ -3768,10 +3791,29 @@ renderable Scrollbar of BaseWidget:
   orient: Orient = OrientY
   adjustment: GtkAdjustment = nil.GtkAdjustment
   
+  proc scrolled(newValue: float)
+  proc adjustmentChanged()
+  
   hooks:
     beforeBuild:
       state.internalWidget = gtk_scrollbar_new(state.orient.toGtk(), nil.GtkAdjustment)
-
+    connectEvents:
+      proc adjustmentCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc()]){.cdecl.} =
+        echo "CB triggered?"
+        data[].callback()
+        data[].redraw()
+      
+      proc scrollCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc(newValue: float)]){.cdecl.} =
+        echo "CB triggered?"
+        data[].callback(adjustment.value)
+        data[].redraw()
+      
+      state.adjustment.connect(state.scrolled, "changed", adjustmentCallback)
+      state.adjustment.connect(state.adjustmentChanged, "changed", scrollCallback)
+    disconnectEvents:
+      state.adjustment.disconnect(state.scrolled)
+      state.adjustment.disconnect(state.adjustmentChanged)
+  
   hooks orient:
     property:
       gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
