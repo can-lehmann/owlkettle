@@ -34,7 +34,7 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      defaultSize = (1000, 600)
+      defaultSize = (1000, 800)
       title = "Video Example"
       
       HeaderBar() {.addTitlebar.}:
@@ -52,7 +52,8 @@ method view(app: AppState): Widget =
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
           proc clicked() =
-            app.mediaStream.seekRelative(5 * 1000000)
+            const seekTime = 5 * 1000000
+            app.mediaStream.seekRelative(seekTime)
         
         Button {.addRight.}:
           icon = "media-playback-pause"
@@ -73,7 +74,8 @@ method view(app: AppState): Widget =
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
           proc clicked() = 
-            app.mediaStream.seekRelative(-5 * 1000000)
+            const seekTime = 5 * 1000000
+            app.mediaStream.seekRelative(-1 * seekTime)
 
         Button {.addLeft.}:
           text = "Open"
@@ -94,7 +96,7 @@ method view(app: AppState): Widget =
                   style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
-              let path = FileChooserDialogState(state).filename
+              let path = FileChooserDialogState(state).filenames[0]
               app.filename = path
               try:
                 app.mediaStream = newMediaStream(path)
@@ -111,10 +113,19 @@ method view(app: AppState): Widget =
       
       Box(orient = OrientY):
         if not app.mediaStream.isNil():
-          Video:
+          Video {.expand: false.}:
             mediaStream = app.mediaStream
             autoplay = app.autoplay
             loop = app.loop
+            sensitive = app.sensitive
+            tooltip = app.tooltip
+            sizeRequest = app.sizeRequest
+          
+          Separator() {.expand: false.}
+          
+          Label(text = "Media Controls for Media Stream") {.expand: true.}
+          MediaControls {.expand: false.}:
+            mediaStream = app.mediaStream
             sensitive = app.sensitive
             tooltip = app.tooltip
             sizeRequest = app.sizeRequest
