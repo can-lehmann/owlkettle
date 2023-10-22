@@ -24,38 +24,46 @@ import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false
-  orient: Orient = OrientX
+  activatesDefault: bool = true
+  placeholderText: string = "Password"
+  showPeekIcon: bool = true
   sensitive: bool = true
   tooltip: string = ""
+  text: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
-  addStartWidget: bool = true
-  addEndWidget: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Center Box Example"
-      defaultSize = (800, 600)
+      defaultSize = (600, 150)
       HeaderBar() {.addTitlebar.}:
+        WindowTitle {.addTitle.}:
+          title = "Password Entry Example"
+          subtitle = "Password length: " & $app.text.len()
+        
         insert(app.toAutoFormMenu()) {.addRight.}
+        
+        Button {.addLeft.}:
+          style = [ButtonFlat]
+          text = "Reset"
+          proc clicked() = app.text = ""
       
-      CenterBox:
-        baselinePosition = app.baselinePosition
-        shrinkCenterLast = app.shrinkCenterLast
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
-        orient = app.orient
+      Box(orient = OrientY):
+        Label(text = "Enter a Password") {.expand: false.}
+        PasswordEntry{.expand: false.}: 
+          activatesDefault = app.activatesDefault
+          placeholderText = app.placeholderText
+          showPeekIcon = app.showPeekIcon
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          text = app.text
         
-        if app.addStartWidget:
-          Label(text = "Start of CenterBox") {.addStart.}
-        
-        Label(text = "Center of CenterBox")
-        
-        if app.addEndWidget:
-          Label(text = "End of CenterBox") {.addEnd.}
-
+          proc activate() =
+            echo "User confirmed new password"
+            
+          proc changed(pw: string) =
+            echo "Change in Password: ", pw
+            app.text = pw
+            
 adw.brew(gui(App()))

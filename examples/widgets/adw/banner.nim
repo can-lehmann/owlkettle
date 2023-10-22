@@ -20,42 +20,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, playground, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false
-  orient: Orient = OrientX
+  buttonLabel: string = "Okay"
+  title: string = "Banner Title"
+  useMarkup: bool = false
+  revealed: bool = true
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
-  addStartWidget: bool = true
-  addEndWidget: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Center Box Example"
-      defaultSize = (800, 600)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+      defaultSize = (400, 200)
+      title = "Banner Example"
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 450))){.addRight.}
       
-      CenterBox:
-        baselinePosition = app.baselinePosition
-        shrinkCenterLast = app.shrinkCenterLast
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
-        orient = app.orient
-        
-        if app.addStartWidget:
-          Label(text = "Start of CenterBox") {.addStart.}
-        
-        Label(text = "Center of CenterBox")
-        
-        if app.addEndWidget:
-          Label(text = "End of CenterBox") {.addEnd.}
+      Box(orient = OrientY):
+        Banner() {.expand: false.}:
+          buttonLabel = app.buttonLabel
+          title = app.title
+          useMarkup = app.useMarkup
+          revealed = app.revealed
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          
+          proc clicked() =
+            app.revealed = not app.revealed
 
 adw.brew(gui(App()))
