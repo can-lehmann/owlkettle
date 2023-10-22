@@ -262,7 +262,6 @@ renderable EntryRow of PreferencesRow
 ###### Fields
 
 - All fields from [PreferencesRow](#PreferencesRow)
-- `subtitle: string`
 - `suffixes: seq[AlignedChild[Widget]]`
 - `text: string`
 
@@ -277,6 +276,17 @@ renderable EntryRow of PreferencesRow
   - `hAlign = AlignFill`
   - `vAlign = AlignCenter`
 
+###### Example
+
+```nim
+EntryRow:
+  title = "Name"
+  text = app.name
+  proc changed(name: string) =
+    app.name = name
+
+```
+
 
 ## PasswordEntryRow
 
@@ -284,9 +294,22 @@ renderable EntryRow of PreferencesRow
 renderable PasswordEntryRow of EntryRow
 ```
 
+An `EntryRow` that hides the user input
+
 ###### Fields
 
 - All fields from [EntryRow](#EntryRow)
+
+###### Example
+
+```nim
+PasswordEntryRow:
+  title = "Password"
+  text = app.name
+  proc changed(name: string) =
+    app.name = name
+
+```
 
 
 ## Flap

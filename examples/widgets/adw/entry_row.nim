@@ -23,29 +23,69 @@
 import owlkettle, owlkettle/[adw, playground]
 
 viewable App:
-  title: string = "Password"
-  password: string
+  text: string
+  
+  title: string = "Entry Row"
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
+
 method view(app: AppState): Widget =
   result = gui:
     Window:
-      title = "Password Entry Row Example"
-      defaultSize = (500, 120)
+      title = "Entry Row Example"
+      defaultSize = (500, 300)
+      
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest=(400, 400))) {.addRight.}
       
-      ListBox:        
-        PasswordEntryRow {.addRow.}:
-          title = app.title
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
+      Clamp:
+        maximumSize = 500
+        margin = 12
+        
+        Box:
+          orient = OrientY
+          spacing = 12
           
-          proc changed(newPassword: string) =
-            app.password = newPassword
+          PreferencesGroup {.expand: false.}:
+            title = "Entry Row"
             
+            EntryRow:
+              text = app.text
+              
+              title = app.title
+              sensitive = app.sensitive
+              tooltip = app.tooltip
+              sizeRequest = app.sizeRequest
+              
+              proc changed(text: string) =
+                app.text = text
+            
+            EntryRow:
+              text = app.text
+              
+              title = "With Suffix"
+              
+              proc changed(text: string) =
+                app.text = text
+              
+              Button {.addSuffix.}:
+                icon = "user-trash-symbolic"
+                style = [ButtonFlat]
+                
+                proc clicked() =
+                  app.text = ""
+          
+          PreferencesGroup {.expand: false.}:
+            title = "Password Entry Row"
+            description = "Hides the user input"
+            
+            PasswordEntryRow:
+              text = app.text
+              
+              title = "Password"
+              
+              proc changed(text: string) =
+                app.text = text
 
 adw.brew(gui(App()))

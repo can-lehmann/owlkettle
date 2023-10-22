@@ -221,16 +221,16 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Combo Row" src="../docs/assets/examples/combo_row.png" width="684px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/entry_row.nim">Entry Row</a></td>
+    <td><img alt="Entry Row" src="../docs/assets/examples/entry_row.png" width="622px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/expander_row.nim">Expander Row</a></td>
     <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="803px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/flap.nim">Flap</a></td>
     <td><img alt="Flap" src="../docs/assets/examples/flap.png" width="622px"></td>
-  </tr>
-  <tr>
-    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/password_entry_row.nim">Password Entry Row</a></td>
-    <td><img alt="Password Entry Row" src="../docs/assets/examples/password_entry_row.png" width="622px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/preferences_group.nim">Preferences Group</a></td>
