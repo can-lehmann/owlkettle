@@ -16,7 +16,7 @@ proc findExamples(path: string): seq[string] =
 
 task examples, "Build examples":
   when defined(github):
-    let uncompileable: seq[string] = @["widgets/adw/banner.nim"] # Can not compile because they rely on an adwaita version higher than available in test-image of CI pipeline
+    let uncompileable: seq[string] = @["widgets/adw/banner.nim", "widgets/adw/preferences_page.nim"] # Can not compile because they rely on an adwaita version higher than available in test-image of CI pipeline
     let adwaitaFlag = ""
   else:
     let uncompileable: seq[string] = @[] # You should be able to run any example locally assuming you have an up-to-date system.
