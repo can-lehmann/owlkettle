@@ -424,10 +424,10 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
     example:
       PasswordEntryRow:
         title = "Password"
-        text = app.name
+        text = app.password
         
-        proc changed(name: string) =
-          app.name = name
+        proc changed(password: string) =
+          app.password = password
   
   export EntryRow, PasswordEntryRow
 

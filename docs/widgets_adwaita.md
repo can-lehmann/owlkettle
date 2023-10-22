@@ -305,9 +305,9 @@ An `EntryRow` that hides the user input
 ```nim
 PasswordEntryRow:
   title = "Password"
-  text = app.name
-  proc changed(name: string) =
-    app.name = name
+  text = app.password
+  proc changed(password: string) =
+    app.password = password
 
 ```
 
