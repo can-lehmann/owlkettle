@@ -148,6 +148,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Drop Down" src="../docs/assets/examples/drop_down.png" width="378px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/editable_label.nim">Editable Label</a></td>
+    <td><img alt="Editable Label" src="../docs/assets/examples/editable_label.png" width="522px"></td>
+  </tr>  
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/emoji_chooser.nim">Emoji Chooser</a></td>
     <td><img alt="Emoji Chooser" src="../docs/assets/examples/emoji_chooser.png" width="477px"></td>
   </tr>
@@ -207,6 +211,10 @@ The `widgets` directory contains examples for how to use different widgets.
   <tr>
     <th>Name</th>
     <th>Image</th>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/banner.nim">Banner</a></td>
+    <td><img alt="Banner" src="../docs/assets/examples/banner.png" width="522px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/combo_row.nim">Combo Row</a></td>
