@@ -39,4 +39,4 @@ jobs:
         run: |
           # For referencing latest source code
           echo 'switch("path", "$projectDir/..")' > examples/config.nims
-      - run: nimble examples
+      - run: nimble -d:github examples
