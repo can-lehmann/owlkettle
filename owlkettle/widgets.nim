@@ -3638,9 +3638,20 @@ proc `pageSize=`*(adjustment: GtkAdjustment, newValue: float) =
   gtk_adjustment_set_page_size(adjustment, newValue.cdouble)
 proc configure*(adjustment: GtkAdjustment, value: float, lower: float, upper: float, step_increment: float, page_increment: float, page_siz: float) =
   gtk_adjustment_configure(adjustment, value.cdouble, lower.cdouble, upper.cdouble, step_increment.cdouble, page_increment.cdouble, page_siz.cdouble)
+proc `==`*(x, y: GtkAdjustment): bool = x.pointer == y.pointer
 
 renderable Scrollbar of BaseWidget:
+  ## A scrollbar widget whose properties can be customized via `GtkAdjustment`.
+  ## Use `newAdjustment` to create a GtkAdjustment.
+  ## `GtkAdjustment` has the following properties that can be assigned to:
+  ## - value: The position of the scrollbar within the upper and lower bounds. If e.g. value/upper = 0.5, the scrollbar will be at 50% height.
+  ## - lower: The lower bound for the value of the scrollbar. If `value` == `lower`, then the scrollbar is at the top of the page.
+  ## - upper: The upper bound for the value of the scrollbar. If `value` == `upper`, then the scrollbar is at the bottom of the page.
+  ## - stepIncrement
+  ## - pageIncrement
+  ## - pageSize: The size of the Scrollbar, also relative to the upper and lower bounds. If e.g. `pageSize` / (`upper`- `lower`) = 0.2, then the scrollbar will take up 20% of the total available height.
   orient: Orient = OrientY
+  adjustment: GtkAdjustment = nil.GtkAdjustment
   
   hooks:
     beforeBuild:
@@ -3650,6 +3661,10 @@ renderable Scrollbar of BaseWidget:
     property:
       gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
 
+  hooks adjustment:
+    property:
+      gtk_scrollbar_set_adjustment(state.internalWidget, state.adjustment)
+  
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object

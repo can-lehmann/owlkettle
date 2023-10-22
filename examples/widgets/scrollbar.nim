@@ -29,8 +29,17 @@ viewable App:
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
+  
+  #Adjustment
+  value: float = 0.0
+  lower: float = 0.0
+  upper: float = 0.0
+  stepIncrement: float = 0.0
+  pageIncrement: float = 0.0
+  pageSize: float = 0.0
 
 method view(app: AppState): Widget =
+  let adj = newAdjustment(app.value, app.lower, app.upper, app.stepIncrement, app.pageIncrement, app.pageSize)
   result = gui:
     Window():
       title = "Orient Example"
@@ -39,15 +48,11 @@ method view(app: AppState): Widget =
         insert(app.toAutoFormMenu()) {.addRight.}
       
       ScrolledWindow:
-        Box(orient = OrientX):
-          ListBox():
-            for str in app.items:
-              Label(text = str)
-              
-          ScrollBar {.expand: true.}:
-            orient = app.orient
-            sensitive = app.sensitive
-            tooltip = app.tooltip
-            sizeRequest = app.sizeRequest
+        ScrollBar:
+          orient = app.orient
+          adjustment = adj
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
 
 adw.brew(gui(App()))
