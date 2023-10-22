@@ -346,11 +346,11 @@ Adwaita Headerbar that combines GTK Headerbar and WindowControls.
 - `packLeft: seq[Widget]`
 - `packRight: seq[Widget]`
 - `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
-- `leftButtons: seq[WindowControlButton]`
-- `rightButtons: seq[WindowControlButton]`
-- `showRightButtons: bool = true`
-- `showLeftButtons: bool = true`
-- `titleWidget: Widget`
+- `leftButtons: seq[WindowControlButton]` Determines the Window-control buttons at the very start of the Headerbar, before `packLeft`. Used to generate decorationLayout.
+- `rightButtons: seq[WindowControlButton]` Determines the Window-control buttons at the very end of the Headerbar, after `packRight`. Used to generate decorationLaout.
+- `showRightButtons: bool = true` Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+- `showLeftButtons: bool = true` Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+- `titleWidget: Widget` A widget for the title. Replaces the title string, if there is one.
 - `showBackButton: bool = true`
 - `showTitle: bool = true` Determines whether to show or hide the title
 
