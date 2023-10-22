@@ -278,6 +278,17 @@ renderable EntryRow of PreferencesRow
   - `vAlign = AlignCenter`
 
 
+## PasswordEntryRow
+
+```nim
+renderable PasswordEntryRow of EntryRow
+```
+
+###### Fields
+
+- All fields from [EntryRow](#EntryRow)
+
+
 ## Flap
 
 ```nim
