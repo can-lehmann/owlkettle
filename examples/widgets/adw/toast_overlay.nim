@@ -35,7 +35,7 @@ viewable App:
   
   showToast: bool = false
 
-proc buildToast(state: AppState): AdwToast =
+proc buildToast(state: AppState): Toast =
   result = newToast(state.title)
   if state.actionName != "":
     result.actionName = state.actionName
@@ -53,13 +53,13 @@ proc buildToast(state: AppState): AdwToast =
   result.timeout = state.timeout
   # result.titleMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or highe
 
-  result.dismissalHandler = proc(toast: AdwToast) = 
+  result.dismissalHandler = proc(toast: Toast) = 
     echo "Dismissed: ", toast.title
     state.showToast = false
   # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
   
 method view(app: AppState): Widget =
-  let toast: AdwToast = buildToast(app)
+  let toast: Toast = buildToast(app)
   result = gui:
     Window():
       defaultSize = (800, 600)

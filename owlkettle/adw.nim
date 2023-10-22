@@ -718,70 +718,78 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   export AboutWindow
 
 ## Adw.Toast
-proc newToast*(title: string): AdwToast =
-  result = adw_toast_new(title.cstring)
+type 
+  ToastObj = object
+    adw: AdwToast
+  
+  Toast* = ref ToastObj
 
-proc dismissToast*(toast: AdwToast) =
-  adw_toast_dismiss(toast)
+proc newToast*(title: string): Toast =
+  let adwToast: AdwToast = adw_toast_new(title.cstring)
+  result = Toast(adw: adwToast)
+  
+proc dismissToast*(toast: Toast) =
+  adw_toast_dismiss(toast.adw)
 
-proc `actionName=`*(toast: AdwToast, actionName: string) =
-  adw_toast_set_action_name(toast, actionName.cstring)
+proc `actionName=`*(toast: Toast, actionName: string) =
+  adw_toast_set_action_name(toast.adw, actionName.cstring)
 
-proc `actionName`*(toast: AdwToast): string =
-  $adw_toast_get_action_name(toast)
+proc `actionName`*(toast: Toast): string =
+  $adw_toast_get_action_name(toast.adw)
 
-proc `actionTarget=`*(toast: AdwToast, actionTarget: string) =
-  adw_toast_set_action_target(toast, actionTarget.cstring)
+proc `actionTarget=`*(toast: Toast, actionTarget: string) =
+  adw_toast_set_action_target(toast.adw, actionTarget.cstring)
 
-proc `actionTarget`*(toast: AdwToast): string =
-  $adw_toast_get_action_target(toast)
+proc `actionTarget`*(toast: Toast): string =
+  $adw_toast_get_action_target(toast.adw)
 
-proc `buttonLabel=`*(toast: AdwToast, buttonLabel: string) =
-  adw_toast_set_button_label(toast, buttonLabel.cstring)
+proc `buttonLabel=`*(toast: Toast, buttonLabel: string) =
+  adw_toast_set_button_label(toast.adw, buttonLabel.cstring)
 
-proc `buttonLabel`*(toast: AdwToast): string =
-  $adw_toast_get_button_label(toast)
+proc `buttonLabel`*(toast: Toast): string =
+  $adw_toast_get_button_label(toast.adw)
 
-proc `detailedActionName=`*(toast: AdwToast, detailedActionName: string) =
-  adw_toast_set_detailed_action_name(toast, detailedActionName.cstring)
+proc `detailedActionName=`*(toast: Toast, detailedActionName: string) =
+  adw_toast_set_detailed_action_name(toast.adw, detailedActionName.cstring)
 
-proc `priority=`*(toast: AdwToast, priority: ToastPriority) = 
-  adw_toast_set_priority(toast, priority)
+proc `priority=`*(toast: Toast, priority: ToastPriority) = 
+  adw_toast_set_priority(toast.adw, priority)
 
-proc `priority`*(toast: AdwToast): ToastPriority = 
-  adw_toast_get_priority(toast)
+proc `priority`*(toast: Toast): ToastPriority = 
+  adw_toast_get_priority(toast.adw)
 
-proc `timeout=`*(toast: AdwToast, timeout: SomeInteger) =
+proc `timeout=`*(toast: Toast, timeout: SomeInteger) =
   ## Sets the time in seconds after which the toast is automatically dismissed.
-  adw_toast_set_timeout(toast, timeout.cuint)
+  adw_toast_set_timeout(toast.adw, timeout.cuint)
 
-proc `timeout`*(toast: AdwToast): int =
+proc `timeout`*(toast: Toast): int =
   ## The time in seconds after which this toast will be automatically dismissed by ToastOverlay.
-  adw_toast_get_timeout(toast).int
+  adw_toast_get_timeout(toast.adw).int
 
-proc `title=`*(toast: AdwToast, title: string) =
-  adw_toast_set_title(toast, title.cstring)
+proc `title=`*(toast: Toast, title: string) =
+  adw_toast_set_title(toast.adw, title.cstring)
 
-proc `title`*(toast: AdwToast): string =
-  $adw_toast_get_title(toast)
+proc `title`*(toast: Toast): string =
+  $adw_toast_get_title(toast.adw)
 
-proc `dismissalHandler=`*(toast: AdwToast, handler: proc(toast: AdwToast)) =
-  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: AdwToast)]) {.cdecl.} = 
+proc `dismissalHandler=`*(toast: Toast, handler: proc(toast: Toast)) =
+  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
     let event = unwrapSharedCell(data)
-    event.callback(dismissedToast)
+    let toastObj = Toast(adw: dismissedToast)
+    event.callback(toastObj)
     # Disconnect event-handler after Toast was dismissed
     g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
   
-  let event = EventObj[proc(toast: AdwToast)]()
+  let event = EventObj[proc(toast: Toast)]()
   let data = allocSharedCell(event)
   data.callback = handler
-  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
+  data.handler = g_signal_connect(toast.adw, "dismissed".cstring, dismissalCallback, data)
 
 when AdwVersion >= (1, 2):
-  proc `customTitle=`*(toast: AdwToast, title: GtkWidget) =
-    adw_toast_set_custom_title(toast, title)
+  proc `customTitle=`*(toast: Toast, title: GtkWidget) =
+    adw_toast_set_custom_title(toast.adw, title)
 
-  proc `clickedHandler=`*(toast: AdwToast, handler: proc()) =
+  proc `clickedHandler=`*(toast: Toast, handler: proc()) =
     proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
       let event = unwrapSharedCell(data)
       event.callback()
@@ -791,18 +799,24 @@ when AdwVersion >= (1, 2):
     let event = EventObj[proc()]()
     let data = allocSharedCell(event)
     data.callback = handler
-    data.handler = g_signal_connect(toast, "button-clicked".cstring, clickCallback, data)
+    data.handler = g_signal_connect(toast.adw, "button-clicked".cstring, clickCallback, data)
     
 when AdwVersion >= (1, 4):
-  proc `titleMarkup=`*(toast: AdwToast, useMarkup: bool) =
-    adw_toast_set_use_markup(toast, useMarkup.cbool)
+  proc `titleMarkup=`*(toast: Toast, useMarkup: bool) =
+    adw_toast_set_use_markup(toast.adw, useMarkup.cbool)
 
-proc `==`(x, y: AdwToast): bool = x.pointer == y.pointer
+proc `==`(x, y: Toast): bool =
+  if x.isNil() and y.isNil():
+    return true
+  elif x.isNil() and not y.isNil():
+    return false
+  else:
+    return x.adw.pointer == y.adw.pointer
 
 renderable ToastOverlay of BaseWidget:
   ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
-  ## Use `newToast` to create an `AdwToast`.
-  ## `AdwToast` has the following properties that can be assigned to:
+  ## Use `newToast` to create an `Toast`.
+  ## `Toast` has the following properties that can be assigned to:
   ## - actionName
   ## - actionTarget
   ## - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
@@ -815,7 +829,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toast: AdwToast ## The Toast to display
+  toast: Toast ## The Toast to display
 
   hooks:
     beforeBuild:
@@ -828,7 +842,7 @@ renderable ToastOverlay of BaseWidget:
   hooks toast:
     property:
       if not state.toast.isNil():
-        adw_toast_overlay_add_toast(state.internalWidget, state.toast)
+        adw_toast_overlay_add_toast(state.internalWidget, state.toast.adw)
         
   adder add:
     if widget.hasChild:
@@ -878,7 +892,7 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
   export Banner
 
 export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
-export ToastOverlay, AdwToast
+export ToastOverlay, Toast
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
