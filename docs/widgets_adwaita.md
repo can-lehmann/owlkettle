@@ -444,8 +444,6 @@ renderable SwitchRow of ActionRow
 
 - All fields from [ActionRow](#ActionRow)
 - `active: bool`
-- `actionName: string`
-- `actionTarget: string`
 
 ###### Events
 
