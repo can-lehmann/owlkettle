@@ -26,8 +26,6 @@ viewable App:
   active: bool = false
   title: string = "Switch Row Title"
   subtitle: string = "subtitle"
-  actionName: string = ""
-  actionTarget: string = ""
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
