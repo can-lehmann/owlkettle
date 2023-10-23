@@ -37,17 +37,25 @@ method view(app: AppState): Widget =
       title = "Switch Row Example"
       HeaderBar {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (400, 510))){.addRight.}
-
-      PreferencesGroup():
-        SwitchRow():
-          active = app.active
-          title = app.title
-          subtitle = app.subtitle
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
+      
+      Clamp:
+        maximumSize = 500
+        margin = 12
         
-          proc activated(active: bool) =
-            app.active = active
-            echo "New Value: ", active
+        Box():
+          margin = 12
+          PreferencesGroup():
+            title = "Switch Row"
+            
+            SwitchRow():
+              title = app.title
+              active = app.active
+              subtitle = app.subtitle
+              sensitive = app.sensitive
+              tooltip = app.tooltip
+              sizeRequest = app.sizeRequest
+            
+              proc activated(active: bool) =
+                app.active = active
+                echo "New Value: ", active
 adw.brew(gui(App()))
