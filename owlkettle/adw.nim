@@ -364,11 +364,9 @@ renderable ComboRow of ActionRow:
 
 when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable EntryRow of PreferencesRow:
-    subtitle: string
     suffixes: seq[AlignedChild[Widget]]
-    
     text: string
-        
+    
     proc changed(text: string)
     
     hooks:
@@ -409,8 +407,32 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
         hAlign: hAlign,
         vAlign: vAlign
       ))
+    
+    example:
+      EntryRow:
+        title = "Name"
+        text = app.name
+        
+        proc changed(name: string) =
+          app.name = name
   
-  export EntryRow
+  renderable PasswordEntryRow of EntryRow:
+    ## An `EntryRow` that hides the user input
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 2):
+          state.internalWidget = adw_password_entry_row_new()
+    
+    example:
+      PasswordEntryRow:
+        title = "Password"
+        text = app.name
+        
+        proc changed(name: string) =
+          app.name = name
+  
+  export EntryRow, PasswordEntryRow
 
 type FlapChild[T] = object
   widget: T
@@ -882,6 +904,7 @@ proc `hasToast=`*(overlay: ToastOverlay, has: bool) =
 proc `valToast=`*(overlay: ToastOverlay, toast: Toast) =
   overlay.valToasts = @[toast]
 
+  
 when AdwVersion >= (1, 3) or defined(owlkettleDocs):
   renderable Banner of BaseWidget:
     ## A rectangular Box taking up the entire vailable width with an optional button.
