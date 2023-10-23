@@ -38,15 +38,16 @@ proc buildToast(state: AppState): Toast =
   let dismissalHandler = proc(toast: Toast) = 
     echo "Dismissed: ", toast.title
     state.showToast = false
-
+  
+  let clickedHandler = proc() = echo "Click"
   result = newToast(
     title = state.title,
     buttonLabel = state.buttonLabel,
     priority = state.priority,
     dismissalHandler = dismissalHandler,
-    timeout = state.timeout
-    # clickedHandler = proc() = echo "Click" ,# Comment in if you compile with -d:adwminor=2 or higher 
-    # useMarkup = state.useMarkup ,# Comment in if you compile with -d:adwminor=2 or higher
+    timeout = state.timeout,
+    # clickedHandler = clickedHandler,# Comment in if you compile with -d:adwminor=2 or higher 
+    # useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
   )
   
 method view(app: AppState): Widget =

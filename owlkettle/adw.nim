@@ -789,7 +789,7 @@ proc newToast*(
 
 proc toOwl(adwToast: AdwToast): Toast =
   when AdwVersion >= (1, 4):
-    let useMarkup = adw_toast_get_use_markup(adwToast)
+    let useMarkup = adw_toast_get_use_markup(adwToast).bool
   else:
     let useMarkup = false
   
@@ -810,7 +810,7 @@ proc toGtk(toast: Toast): AdwToast =
   adw_toast_set_timeout(result, timeout)
   
   # Set Dismissal Handler
-  block:
+  if not toast.dismissalHandler.isNil():
     proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
       let event = unwrapSharedCell(data)
       let toast: Toast = dismissedToast.toOwl()
@@ -822,13 +822,14 @@ proc toGtk(toast: Toast): AdwToast =
     let data = allocSharedCell(event)
     data.callback = toast.dismissalHandler
     data.handler = g_signal_connect(result, "dismissed".cstring, dismissalCallback, data)
-
+  
   when AdwVersion >= (1, 2):
-    let customTitleWidget = toast.customTitle.build().unwrapInternalWidget()
-    adw_toast_set_custom_title(result, customTitleWidget)
-    
+    if not toast.customTitle.isNil():
+      let customTitleWidget = toast.customTitle.build().unwrapInternalWidget()
+      adw_toast_set_custom_title(result, customTitleWidget)
+
     # Set Clicked Handler
-    block:
+    if not toast.clickedHandler.isNil():
       proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
         let event = unwrapSharedCell(data)
         event.callback()
@@ -837,9 +838,9 @@ proc toGtk(toast: Toast): AdwToast =
       
       let event = EventObj[proc()]()
       let data = allocSharedCell(event)
-      data.callback = handler
+      data.callback = toast.clickedHandler
       data.handler = g_signal_connect(result, "button-clicked".cstring, clickCallback, data)
-    
+
   when AdwVersion >= (1, 4):
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
