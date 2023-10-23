@@ -22,6 +22,7 @@
 
 import owlkettle
 import owlkettle/[playground, adw]
+import std/sugar
 
 viewable App:
   title: string
@@ -34,6 +35,7 @@ viewable App:
   useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
   
   showToast: bool = false
+  toastCount: int = 1
 
 proc buildToast(state: AppState): Toast =
   result = newToast(state.title)
@@ -59,7 +61,10 @@ proc buildToast(state: AppState): Toast =
   # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
   
 method view(app: AppState): Widget =
-  let toast: Toast = buildToast(app)
+  let toasts = collect(newSeq):
+    for num in 0..(app.toastCount - 1):
+      buildToast(app)
+
   result = gui:
     Window():
       defaultSize = (800, 600)
@@ -74,6 +79,7 @@ method view(app: AppState): Widget =
             app.showToast = true
             app.priority = ToastPriorityHigh
             app.title = "Urgent Toast Title !!!"
+            app.toastCount = 1
             
         Button() {.addRight.}:
           style = [ButtonFlat]
@@ -82,13 +88,24 @@ method view(app: AppState): Widget =
             app.showToast = true
             app.priority = ToastPriorityNormal
             app.title = "Toast title"
+            app.toastCount = 1
 
+        Button() {.addRight.}:
+          style = [ButtonFlat]
+          text = "Notify*3"
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityNormal
+            app.title = "Toast title"
+            app.toastCount = 3
       
       Box(orient = OrientY):
         ToastOverlay():
-          if app.showToast:
-            toast = toast
-          
+          if app.showToast and app.toastCount == 1:
+            toast = toasts[0]
+          elif app.showToast and app.toastCount > 1:
+            toasts = toasts
+            
           Box():
             Label(text = "A widget within Toast Overlay!")
         

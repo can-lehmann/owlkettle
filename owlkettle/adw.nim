@@ -852,7 +852,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toast: Toast ## The Toast to display
+  toasts: seq[Toast] ## The Toast to display
 
   hooks:
     beforeBuild:
@@ -862,17 +862,25 @@ renderable ToastOverlay of BaseWidget:
     (build, update):
       state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
   
-  hooks toast:
+  hooks toasts:
     property:
-      if not state.toast.isNil():
-        g_object_ref(pointer(state.toast.adw)) # Increase ref count as Toast is owned by ToastOverlay. This ensures Toast doesn't get freed when the reference from the owlkettle side is lost.
-        adw_toast_overlay_add_toast(state.internalWidget, state.toast.adw)
-        
+      for toast in state.toasts:
+        g_object_ref(pointer(toast.adw)) # Increase ref count as Toast is owned by ToastOverlay. This ensures Toast doesn't get freed when the reference from the owlkettle side is lost.
+        adw_toast_overlay_add_toast(state.internalWidget, toast.adw)
+  
+  setter toast: Toast
+  
   adder add:
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
     widget.hasChild = true
     widget.valChild = child
+
+proc `hasToast=`*(overlay: ToastOverlay, has: bool) =
+  overlay.hasToasts = has
+
+proc `valToast=`*(overlay: ToastOverlay, toast: Toast) =
+  overlay.valToasts = @[toast]
 
 when AdwVersion >= (1, 3) or defined(owlkettleDocs):
   renderable Banner of BaseWidget:
