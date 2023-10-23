@@ -26,9 +26,6 @@ import std/sugar
 
 viewable App:
   title: string
-  actionName: string
-  detailedActionName: string
-  actionTarget: string
   buttonLabel: string = "Btn Label"
   priority: ToastPriority = ToastPriorityNormal
   timeout: int = 3
@@ -38,27 +35,19 @@ viewable App:
   toastCount: int = 1
 
 proc buildToast(state: AppState): Toast =
-  result = newToast(state.title)
-  if state.actionName != "":
-    result.actionName = state.actionName
-    
-  if state.actionTarget != "":
-    result.actionTarget = state.actionTarget
-
-  if state.buttonLabel != "":
-    result.buttonLabel = state.buttonLabel
-
-  if state.detailedActionName != "":
-    result.detailedActionName = state.detailedActionName
-
-  result.priority = state.priority
-  result.timeout = state.timeout
-  # result.titleMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or highe
-
-  result.dismissalHandler = proc(toast: Toast) = 
+  let dismissalHandler = proc(toast: Toast) = 
     echo "Dismissed: ", toast.title
     state.showToast = false
-  # result.clickedHandler = proc() = echo "Click" # Comment in if you compile with -d:adwminor=2 or higher
+
+  result = newToast(
+    title = state.title,
+    buttonLabel = state.buttonLabel,
+    priority = state.priority,
+    dismissalHandler = dismissalHandler,
+    timeout = state.timeout
+    # clickedHandler = proc() = echo "Click" ,# Comment in if you compile with -d:adwminor=2 or higher 
+    # useMarkup = state.useMarkup ,# Comment in if you compile with -d:adwminor=2 or higher
+  )
   
 method view(app: AppState): Widget =
   let toasts = collect(newSeq):

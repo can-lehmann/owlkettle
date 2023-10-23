@@ -740,123 +740,108 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   export AboutWindow
 
 ## Adw.Toast
-type 
-  ToastObj = object
-    adw: AdwToast
+type Toast* = ref object
+  title*: string
+  customTitle*: Widget
+  buttonLabel*: string
+  priority*: ToastPriority
+  timeout*: int
+  dismissalHandler: proc(toast: Toast)
+  clickedHandler: proc()
+  useMarkup: bool
+
+proc newToast*(
+  title: string,
+  buttonLabel: string = "", 
+  priority: ToastPriority = ToastPriorityNormal, 
+  dismissalHandler: proc(toast: Toast) = nil, 
+  clickedHandler: proc() = nil,
+  timeout: int = 5, 
+  useMarkup: bool = false,
+  customTitle: Widget = nil.Widget
+): Toast =
+  result = Toast(
+    title: title, 
+    buttonLabel: buttonLabel,
+    priority: priority,
+    timeout: timeout,
+    dismissalHandler: dismissalHandler
+  )
   
-  Toast* = ref ToastObj
+  when AdwVersion >= (1, 2):
+    result.clickedHandler = clickedHandler
+    result.customTitle = customTitle
+  else:
+    let isUsingCustomTitle = not customTitle.isNil()
+    if isUsingCustomTitle:
+      raise newException(LibraryError, "The customTitle field on Toast is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
 
-crossVersionDestructor(toast, ToastObj):
-  if isNil(toast.adw):
-    return
+    let isUsingClickedHandler = not clickedHandler.isNil()
+    if isUsingClickedHandler:
+      raise newException(LibraryError, "The clickedHandler field on Toast is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+      
+  when AdwVersion >= (1, 4):
+    result.useMarkup = useMarkup
+  else:
+    let isUsingUseMarkup = useMarkup == true
+    if isUsingUseMarkup:
+      raise newException(LibraryError, "The useMarkup on Toast field is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
+
+proc toOwl(adwToast: AdwToast): Toast =
+  when AdwVersion >= (1, 4):
+    let useMarkup = adw_toast_get_use_markup(adwToast)
+  else:
+    let useMarkup = false
   
-  g_object_unref(pointer(toast.adw))
-
-proc `=sink`(dest: var ToastObj; source: ToastObj) =
-  `=destroy`(dest)
-  wasMoved(dest)
-  dest.adw = source.adw
+  result = newToast(
+    title = $adw_toast_get_title(adwToast),
+    buttonLabel = $adw_toast_get_button_label(adwToast),
+    priority = adw_toast_get_priority(adwToast),
+    timeout = adw_toast_get_timeout(adwToast).int,
+    useMarkup = useMarkup
+  )
   
-proc `=copy`*(dest: var ToastObj, source: ToastObj) =
-  let areSameObject = pointer(source.adw) == pointer(dest.adw)
-  if areSameObject:
-    return
+proc toGtk(toast: Toast): AdwToast =
+  result = adw_toast_new(toast.title.cstring)
+  if toast.buttonLabel != "":
+    adw_toast_set_button_label(result, toast.buttonLabel.cstring)
+  adw_toast_set_priority(result, toast.priority)
+  let timeout: cuint = cuint(toast.timeout)
+  adw_toast_set_timeout(result, timeout)
   
-  `=destroy`(dest)
-  wasMoved(dest)
-  if not isNil(source.adw):
-    g_object_ref(pointer(source.adw))
-    
-  dest.adw = source.adw
-
-proc newToast*(title: string): Toast =
-  let adwToast: AdwToast = adw_toast_new(title.cstring)
-  result = Toast(adw: adwToast)
-  
-proc dismissToast*(toast: Toast) =
-  adw_toast_dismiss(toast.adw)
-
-proc `actionName=`*(toast: Toast, actionName: string) =
-  adw_toast_set_action_name(toast.adw, actionName.cstring)
-
-proc `actionName`*(toast: Toast): string =
-  $adw_toast_get_action_name(toast.adw)
-
-proc `actionTarget=`*(toast: Toast, actionTarget: string) =
-  adw_toast_set_action_target(toast.adw, actionTarget.cstring)
-
-proc `actionTarget`*(toast: Toast): string =
-  $adw_toast_get_action_target(toast.adw)
-
-proc `buttonLabel=`*(toast: Toast, buttonLabel: string) =
-  adw_toast_set_button_label(toast.adw, buttonLabel.cstring)
-
-proc `buttonLabel`*(toast: Toast): string =
-  $adw_toast_get_button_label(toast.adw)
-
-proc `detailedActionName=`*(toast: Toast, detailedActionName: string) =
-  adw_toast_set_detailed_action_name(toast.adw, detailedActionName.cstring)
-
-proc `priority=`*(toast: Toast, priority: ToastPriority) = 
-  adw_toast_set_priority(toast.adw, priority)
-
-proc `priority`*(toast: Toast): ToastPriority = 
-  adw_toast_get_priority(toast.adw)
-
-proc `timeout=`*(toast: Toast, timeout: SomeInteger) =
-  ## Sets the time in seconds after which the toast is automatically dismissed.
-  adw_toast_set_timeout(toast.adw, timeout.cuint)
-
-proc `timeout`*(toast: Toast): int =
-  ## The time in seconds after which this toast will be automatically dismissed by ToastOverlay.
-  adw_toast_get_timeout(toast.adw).int
-
-proc `title=`*(toast: Toast, title: string) =
-  adw_toast_set_title(toast.adw, title.cstring)
-
-proc `title`*(toast: Toast): string =
-  $adw_toast_get_title(toast.adw)
-
-proc `dismissalHandler=`*(toast: Toast, handler: proc(toast: Toast)) =
-  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
-    let event = unwrapSharedCell(data)
-    let toastObj = Toast(adw: dismissedToast)
-    event.callback(toastObj)
-    # Disconnect event-handler after Toast was dismissed
-    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
-  
-  let event = EventObj[proc(toast: Toast)]()
-  let data = allocSharedCell(event)
-  data.callback = handler
-  data.handler = g_signal_connect(toast.adw, "dismissed".cstring, dismissalCallback, data)
-
-when AdwVersion >= (1, 2):
-  proc `customTitle=`*(toast: Toast, title: GtkWidget) =
-    adw_toast_set_custom_title(toast.adw, title)
-
-  proc `clickedHandler=`*(toast: Toast, handler: proc()) =
-    proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
+  # Set Dismissal Handler
+  block:
+    proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
       let event = unwrapSharedCell(data)
-      event.callback()
-      # Disconnect event-handler after first click as that will dismisses the toast
+      let toast: Toast = dismissedToast.toOwl()
+      event.callback(toast)
+      # Disconnect event-handler after Toast was dismissed
       g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
     
-    let event = EventObj[proc()]()
+    let event = EventObj[proc(toast: Toast)]()
     let data = allocSharedCell(event)
-    data.callback = handler
-    data.handler = g_signal_connect(toast.adw, "button-clicked".cstring, clickCallback, data)
-    
-when AdwVersion >= (1, 4):
-  proc `titleMarkup=`*(toast: Toast, useMarkup: bool) =
-    adw_toast_set_use_markup(toast.adw, useMarkup.cbool)
+    data.callback = toast.dismissalHandler
+    data.handler = g_signal_connect(result, "dismissed".cstring, dismissalCallback, data)
 
-proc `==`(x, y: Toast): bool =
-  if x.isNil() and y.isNil():
-    return true
-  elif x.isNil() and not y.isNil():
-    return false
-  else:
-    return x.adw.pointer == y.adw.pointer
+  when AdwVersion >= (1, 2):
+    let customTitleWidget = toast.customTitle.build().unwrapInternalWidget()
+    adw_toast_set_custom_title(result, customTitleWidget)
+    
+    # Set Clicked Handler
+    block:
+      proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
+        let event = unwrapSharedCell(data)
+        event.callback()
+        # Disconnect event-handler after first click as that will dismisses the toast
+        g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+      
+      let event = EventObj[proc()]()
+      let data = allocSharedCell(event)
+      data.callback = handler
+      data.handler = g_signal_connect(result, "button-clicked".cstring, clickCallback, data)
+    
+  when AdwVersion >= (1, 4):
+    adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
 renderable ToastOverlay of BaseWidget:
   ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
@@ -887,8 +872,8 @@ renderable ToastOverlay of BaseWidget:
   hooks toasts:
     property:
       for toast in state.toasts:
-        g_object_ref(pointer(toast.adw)) # Increase ref count as Toast is owned by ToastOverlay. This ensures Toast doesn't get freed when the reference from the owlkettle side is lost.
-        adw_toast_overlay_add_toast(state.internalWidget, toast.adw)
+        let adwToast: AdwToast = toast.toGtk()
+        adw_toast_overlay_add_toast(state.internalWidget, adwToast)
   
   setter toast: Toast
   
