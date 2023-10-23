@@ -717,7 +717,6 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
       property:
         when AdwVersion >= (1, 2):
           adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
-
     
     hooks website:
       property:
@@ -735,6 +734,36 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
   
   export AboutWindow
+
+when AdwVersion >= (1, 4) or defined(owlkettleDocs):
+  renderable SwitchRow of ActionRow:
+    active: bool    
+    
+    proc activated(active: bool)
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 4):
+          state.internalWidget = adw_switch_row_new()
+      connectEvents:
+        when AdwVersion >= (1, 4):
+          proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
+            let active: bool = adw_switch_row_get_active(widget).bool
+            SwitchRowState(data[].widget).active = active
+            data[].callback(active)
+            data[].redraw()
+            
+          state.connect(state.activated, "activated", activatedCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 4):
+          state.internalWidget.disconnect(state.activated)
+    
+    hooks active:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_switch_row_set_active(state.internalWidget, state.active.cbool)
+    
+  export SwitchRow
   
 when AdwVersion >= (1, 3) or defined(owlkettleDocs):
   renderable Banner of BaseWidget:

@@ -241,6 +241,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Status Page" src="../docs/assets/examples/status_page.png" width="704px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/switch_row.nim">Switch Row</a></td>
+    <td><img alt="Switch Row" src="../docs/assets/examples/switch_row.png" width="522px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/window_title.nim">Window Title</a></td>
     <td><img alt="Window Title" src="../docs/assets/examples/window_title.png" width="288px"></td>
   </tr>

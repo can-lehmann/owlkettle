@@ -434,6 +434,22 @@ renderable AboutWindow
 - `license: string`
 
 
+## SwitchRow
+
+```nim
+renderable SwitchRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `active: bool`
+
+###### Events
+
+- activated: `proc (active: bool)`
+
+
 ## Banner
 
 ```nim
