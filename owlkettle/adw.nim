@@ -724,28 +724,28 @@ type
   
   Toast* = ref ToastObj
 
-crossVersionDestructor(toast, ToastObj):
-  if isNil(toast.adw):
-    return
+# crossVersionDestructor(toast, ToastObj):
+#   if isNil(toast.adw):
+#     return
   
-  g_object_unref(pointer(toast.adw))
+#   g_object_unref(pointer(toast.adw))
 
-proc `=sink`(dest: var ToastObj; source: ToastObj) =
-  `=destroy`(dest)
-  wasMoved(dest)
-  dest.adw = source.adw
+# proc `=sink`(dest: var ToastObj; source: ToastObj) =
+#   `=destroy`(dest)
+#   wasMoved(dest)
+#   dest.adw = source.adw
   
-proc `=copy`*(dest: var ToastObj, source: ToastObj) =
-  let areSameObject = pointer(source.adw) == pointer(dest.adw)
-  if areSameObject:
-    return
+# proc `=copy`*(dest: var ToastObj, source: ToastObj) =
+#   let areSameObject = pointer(source.adw) == pointer(dest.adw)
+#   if areSameObject:
+#     return
   
-  `=destroy`(dest)
-  wasMoved(dest)
-  if not isNil(source.adw):
-    g_object_ref(pointer(source.adw))
+#   `=destroy`(dest)
+#   wasMoved(dest)
+#   if not isNil(source.adw):
+#     g_object_ref(pointer(source.adw))
     
-  dest.adw = source.adw
+#   dest.adw = source.adw
 
 proc newToast*(title: string): Toast =
   let adwToast: AdwToast = adw_toast_new(title.cstring)
@@ -852,7 +852,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toasts: seq[Toast] ## The Toast to display
+  toasts: seq[Toast] ## The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a FIFO queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a LIFO queue.
 
   hooks:
     beforeBuild:

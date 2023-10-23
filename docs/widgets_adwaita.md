@@ -407,8 +407,8 @@ renderable ToastOverlay of BaseWidget
 ```
 
 An overlay to display Toast messages that can be dismissed manually and automatically!<br>
-Use `newToast` to create an `AdwToast`.
-`AdwToast` has the following properties that can be assigned to:
+Use `newToast` to create an `Toast`.
+`Toast` has the following properties that can be assigned to:
 - actionName
 - actionTarget
 - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, it will not contain a button.
@@ -424,7 +424,11 @@ Use `newToast` to create an `AdwToast`.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
-- `toast: AdwToast` The Toast to display
+- `toasts: seq[Toast]` The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a FIFO queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a LIFO queue.
+
+###### Setters
+
+- `toast: Toast`
 
 ###### Adders
 
