@@ -27,6 +27,8 @@ examples/widgets/adw/preferences_group
 examples/widgets/adw/flap
 examples/widgets/adw/expander_row
 examples/widgets/adw/combo_row
+examples/widgets/adw/entry_row
+examples/widgets/adw/banner
 examples/dialogs/file_dialog
 examples/dialogs/message_dialog
 examples/dialogs/about_dialog

@@ -262,7 +262,6 @@ renderable EntryRow of PreferencesRow
 ###### Fields
 
 - All fields from [PreferencesRow](#PreferencesRow)
-- `subtitle: string`
 - `suffixes: seq[AlignedChild[Widget]]`
 - `text: string`
 
@@ -276,6 +275,41 @@ renderable EntryRow of PreferencesRow
 - `addSuffix`
   - `hAlign = AlignFill`
   - `vAlign = AlignCenter`
+
+###### Example
+
+```nim
+EntryRow:
+  title = "Name"
+  text = app.name
+  proc changed(name: string) =
+    app.name = name
+
+```
+
+
+## PasswordEntryRow
+
+```nim
+renderable PasswordEntryRow of EntryRow
+```
+
+An `EntryRow` that hides the user input
+
+###### Fields
+
+- All fields from [EntryRow](#EntryRow)
+
+###### Example
+
+```nim
+PasswordEntryRow:
+  title = "Password"
+  text = app.password
+  proc changed(password: string) =
+    app.password = password
+
+```
 
 
 ## Flap
@@ -427,6 +461,22 @@ renderable AboutWindow
 - `website: string`
 - `copyright: string`
 - `license: string`
+
+
+## SwitchRow
+
+```nim
+renderable SwitchRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `active: bool`
+
+###### Events
+
+- activated: `proc (active: bool)`
 
 
 ## Banner
