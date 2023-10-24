@@ -44,10 +44,11 @@ method view(app: AppState): Widget =
       
         WindowControls() {.addLeft.}:
           side = app.side1
-          buttons = app.buttons1
+          buttons = (app.buttons1, app.buttons2)
+            
           
-        WindowControls() {.addRight.}:
-          side = app.side2
-          buttons = app.buttons2
+        # WindowControls() {.addRight.}:
+        #   side = app.side2
+        #   buttons = (app.buttons1, app.buttons2)
         
 adw.brew(gui(App()))

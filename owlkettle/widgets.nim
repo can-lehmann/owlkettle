@@ -189,20 +189,20 @@ type WindowControlButton* = enum
   WindowControlIcon = "icon"
   WindowControlMenu = "menu"
 
-proc toLayoutString(side: PackType, buttons: seq[WindowControlButton]): string =
-  let buttonStr: string = buttons.mapIt($it).join(",")
-  return case side:
-  of PackStart:
-    fmt"{buttonStr}:"
-  of PackEnd:
-    fmt":{buttonStr}"
+type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
 
+proc toLayoutString(layout: DecorationLayout): string =
+  let leftButtons: string = layout.left.mapIt($it).join(",")
+  let rightButtons: string = layout.right.mapIt($it).join(",")
+  return fmt"{leftButtons}:{rightButtons}"
 
 proc toGtk*(x: PackType): GtkPackType = GtkPackType(ord(x))
 
 renderable WindowControls of BaseWidget:
   side: PackType = PackStart ## Used to tell GTK whether the controls are shown at the start or end of a window. Mostly irrelevant, only set if you explicitly need it.
-  buttons: seq[WindowControlButton] ## Determines which buttons are shown and their order by building a gtk-decoration-layout string. See gtk docs for more information: https://docs.gtk.org/gtk4/property.Settings.gtk-decoration-layout.html
+  decorationLayout: string = "menu:minimize,maximize,close" ## Determines which buttons are shown and their order by building a gtk-decoration-layout string. See gtk docs for more information: https://docs.gtk.org/gtk4/property.Settings.gtk-decoration-layout.html
+  
+  setter buttons: DecorationLayout
   
   hooks:
     beforeBuild:
@@ -210,15 +210,18 @@ renderable WindowControls of BaseWidget:
   
   hooks side:
     property:
-      let layoutString = toLayoutString(state.side, state.buttons)
-      gtk_window_controls_set_decoration_layout(state.internalWidget, layoutString.cstring)
       gtk_window_controls_set_side(state.internalWidget, state.side.toGtk())
 
-  hooks buttons:
+  hooks decorationLayout:
     property:
-      let layoutString = toLayoutString(state.side, state.buttons)
-      gtk_window_controls_set_decoration_layout(state.internalWidget, layoutString.cstring)
-  
+      gtk_window_controls_set_decoration_layout(state.internalWidget, state.decorationLayout.cstring)
+
+proc `hasButtons=`*(widget: WindowControls, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valButtons=`*(widget: WindowControls, buttons: DecorationLayout) =
+  widget.valDecorationLayout = buttons.toLayoutString()
+
 type Orient* = enum OrientX, OrientY
 
 proc toGtk(orient: Orient): GtkOrientation =
