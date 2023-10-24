@@ -758,6 +758,7 @@ proc gtk_header_bar_pack_start*(headerBar, child: GtkWidget)
 proc gtk_header_bar_pack_end*(headerBar, child: GtkWidget)
 proc gtk_header_bar_remove*(headerBar, child: GtkWidget)
 proc gtk_header_bar_set_title_widget*(headerBar, child: GtkWidget)
+proc gtk_header_bar_set_decoration_layout*(headerBar: GtkWidget, layout: cstring)
 
 
 # Gtk.Adjustment

@@ -1022,6 +1022,7 @@ proc updateChild*(state: Renderable,
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
+  decorationLayout: string = "icon,menu:minimize,maximize,close"
   left: seq[Widget]
   right: seq[Widget]
   
@@ -1033,6 +1034,10 @@ renderable HeaderBar of BaseWidget:
     property:
       gtk_header_bar_set_show_title_buttons(state.internalWidget, cbool(ord(state.showTitleButtons)))
   
+  hooks decorationLayout:
+    property:
+      gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.cstring)
+      
   hooks left:
     (build, update):
       state.updateChildren(
