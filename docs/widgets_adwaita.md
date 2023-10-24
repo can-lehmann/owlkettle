@@ -305,9 +305,9 @@ An `EntryRow` that hides the user input
 ```nim
 PasswordEntryRow:
   title = "Password"
-  text = app.name
-  proc changed(name: string) =
-    app.name = name
+  text = app.password
+  proc changed(password: string) =
+    app.password = password
 
 ```
 
@@ -468,6 +468,22 @@ Use `newToast` to create an `Toast`.
 
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
+
+
+## SwitchRow
+
+```nim
+renderable SwitchRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `active: bool`
+
+###### Events
+
+- activated: `proc (active: bool)`
 
 
 ## Banner

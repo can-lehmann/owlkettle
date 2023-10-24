@@ -16,10 +16,11 @@ proc findExamples(path: string): seq[string] =
 
 task examples, "Build examples":
   when defined(github):
-     # Can not compile because they rely on an adwaita version higher than available in test-image of CI pipeline
+    # Can not compile because they rely on an adwaita version higher than available in test-image of CI pipeline
     let uncompileable: seq[string] = @[
       "widgets/adw/banner.nim",
-      "widgets/adw/entry_row.nim"
+      "widgets/adw/entry_row.nim",
+      "widgets/adw/switch_row.nim"
     ]
     let adwaitaFlag = ""
   else:

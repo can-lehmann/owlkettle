@@ -209,6 +209,11 @@ when AdwVersion >= (1, 4):
   proc adw_toast_set_use_markup*(self: AdwToast, use_markup: cbool)
   proc adw_toast_get_use_markup*(self: AdwToast): cbool
 
+when AdwVersion >= (1, 4):
+  # Adw.SwitchRow
+  proc adw_switch_row_new*(): GtkWidget
+  proc adw_switch_row_set_active*(self: GtkWidget, is_active: cbool)
+  proc adw_switch_row_get_active*(self: GtkWidget): cbool
 when AdwVersion >= (1, 3):
   # Adw.Banner
   proc adw_banner_new*(title: cstring): GtkWidget
