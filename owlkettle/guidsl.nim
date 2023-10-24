@@ -43,7 +43,7 @@ type
     lineInfo: NimNode
     case kind: NodeKind:
       of NodeWidget:
-        widget: string
+        widget: seq[string]
         adder: Adder
       of NodeAttribute:
         name: string
@@ -87,15 +87,15 @@ proc parseGui(node: NimNode): Node =
         if node.len != 2:
           error("The insert statement must have exactly one argument", node)
         return Node(kind: NodeInsert, insert: node[1], lineInfo: node)
-      elif node[0].isName:
-        result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
+      elif node[0].isQualifiedName:
+        result = Node(kind: NodeWidget, widget: node[0].qualifiedName, lineInfo: node)
       else:
         result = node[0].parseGui()
       for it in 1..<node.len:
         result.children.add(node[it].parseGui())
     of nnkPragmaExpr:
-      if node[0].isName:
-        result = Node(kind: NodeWidget, widget: node[0].strVal, lineInfo: node)
+      if node[0].isQualifiedName:
+        result = Node(kind: NodeWidget, widget: node[0].qualifiedName, lineInfo: node)
       else:
         result = node[0].parseGui()
       let adder = node[1].parseAdder()
@@ -208,8 +208,7 @@ proc gen(node: Node, stmts, parent: NimNode) =
       let
         body = newStmtList()
         name = gensym(nskLet)
-        widgetTyp = ident(node.widget)
-      widgetTyp.copyLineInfo(node.lineInfo)
+        widgetTyp = newQualifiedIdent(node.widget, node.lineInfo)
       body.add(newLetStmt(name, newCall(widgetTyp)))
       for child in node.children:
         child.gen(body, name)

@@ -128,6 +128,9 @@ when AdwVersion >= (1, 2):
   proc adw_entry_row_add_suffix*(row, child: GtkWidget)
   proc adw_entry_row_remove*(row, child: GtkWidget)
 
+  # Adw.PasswordEntryRow
+  proc adw_password_entry_row_new*(): GtkWidget
+
 # Adw.Flap
 proc adw_flap_new*(): GtkWidget
 proc adw_flap_set_content*(flap, content: GtkWidget)
@@ -182,6 +185,11 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
 
+when AdwVersion >= (1, 4):
+  # Adw.SwitchRow
+  proc adw_switch_row_new*(): GtkWidget
+  proc adw_switch_row_set_active*(self: GtkWidget, is_active: cbool)
+  proc adw_switch_row_get_active*(self: GtkWidget): cbool
 when AdwVersion >= (1, 3):
   # Adw.Banner
   proc adw_banner_new*(title: cstring): GtkWidget
