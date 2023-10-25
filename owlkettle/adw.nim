@@ -38,9 +38,9 @@ export adw.CenteringPolicy
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
 
-renderable WindowSurface of BaseWindow:
+renderable AdwWindow of BaseWindow:
   ## A Window that does not have a title bar.
-  ## A WindowSurface is equivalent to an `Adw.Window`.
+  ## A AdwWindow is equivalent to an `Adw.Window`.
   content: Widget
   
   hooks:
@@ -54,12 +54,12 @@ renderable WindowSurface of BaseWindow:
   adder add:
     ## Adds a child to the window surface. Each window surface may only have one child.
     if widget.hasContent:
-      raise newException(ValueError, "Unable to add multiple children to a WindowSurface. Use a Box widget to display multiple widgets in a WindowSurface.")
+      raise newException(ValueError, "Unable to add multiple children to a AdwWindow. Use a Box widget to display multiple widgets in a AdwWindow.")
     widget.hasContent = true
     widget.valContent = child
   
   example:
-    WindowSurface:
+    AdwWindow:
       Box:
         orient = OrientX
         
@@ -865,7 +865,7 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
         when AdwVersion >= (1, 3):
           adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
   export Banner
-export WindowSurface, WindowTitle, AdwHeaderBar, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
