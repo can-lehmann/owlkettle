@@ -88,7 +88,7 @@ proc toFormField(state: auto, field: ptr auto, fieldName: static string): Widget
           See the playground module for examples.
         """
 
-proc toFormField(state: auto, field: ptr enum, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr[enum] , fieldName: static string): Widget =
   ## Provides a form field for enums
   let options: seq[string] = type(field[]).items.toSeq().mapIt($it)
   return gui:
