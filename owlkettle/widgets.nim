@@ -1014,7 +1014,9 @@ renderable HeaderBar of BaseWidget:
     property:
       if state.decorationLayout.isSome():
         gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
-      
+      else:
+        gtk_header_bar_set_decoration_layout(state.internalWidget, nil)
+
   hooks left:
     (build, update):
       state.updateChildren(
