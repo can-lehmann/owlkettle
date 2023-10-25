@@ -199,8 +199,13 @@ proc toFormField[T](state: auto, field: ptr seq[T], fieldName: string): Widget =
       title = fieldName
       
       for index, formField in formFields:
-        insert(formField){.addRow.}:
-          Button(text = "lala") {.addSuffix.}
+        Box(orient = OrientX) {.addRow.}:
+          insert(formField)
+          Button() {.expand: false.}:
+            icon = "user-trash-symbolic"
+            style = [ButtonDestructive]
+            proc clicked() =
+              field[].delete(index) 
       
       ListBoxRow {.addRow.}:
         Button:
