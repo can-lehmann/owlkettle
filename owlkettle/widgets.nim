@@ -996,7 +996,7 @@ proc toLayoutString(layout: DecorationLayout): string =
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
-  decorationLayout: string = "icon,menu:minimize,maximize,close"
+  decorationLayout: Option[string] = none(string)
   left: seq[Widget]
   right: seq[Widget]
   
@@ -1012,7 +1012,8 @@ renderable HeaderBar of BaseWidget:
   
   hooks decorationLayout:
     property:
-      gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.cstring)
+      if state.decorationLayout.isSome():
+        gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
       
   hooks left:
     (build, update):
@@ -1080,7 +1081,7 @@ proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
   widget.hasDecorationLayout = true
 
 proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
-  widget.valDecorationLayout = buttons.toLayoutString()
+  widget.valDecorationLayout = some(buttons.toLayoutString())
   
 renderable ScrolledWindow of BaseWidget:
   child: Widget
