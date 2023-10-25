@@ -360,7 +360,7 @@ renderable HeaderBar of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `title: BoxChild[Widget]`
 - `showTitleButtons: bool = true`
-- `decorationLayout: string = "icon,menu:minimize,maximize,close"`
+- `decorationLayout: Option[string] = none(string)`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
 
