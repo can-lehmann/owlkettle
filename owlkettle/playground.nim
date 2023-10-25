@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[options, times, macros, strformat, strutils, sequtils, typetraits]
+import std/[options, times, macros, strformat, sugar, strutils, sequtils, typetraits]
 import ./dataentries
 import ./adw
 import ./widgetutils
@@ -32,71 +32,72 @@ macro getField*(someType: untyped, fieldName: static string): untyped =
   nnkDotExpr.newTree(someType, ident(fieldName))
 
 # Default `toFormField` implementations
-proc toFormField[T: SomeNumber](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
+proc toFormField(state: auto, field: ptr SomeNumber, fieldName: static string): Widget =
   ## Provides a form field for all number times in SomeNumber
   return gui:
     ActionRow:
       title = fieldName
       FormulaEntry() {.addSuffix.}:
-        value = state.getField(fieldName).float
+        value = field[].float
         xAlign = 1.0
         maxWidth = 8
         proc changed(value: float) =
-          state.getField(fieldName) = value.T
+          field[] = type(field[])(value)
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[string]): Widget =
+proc toFormField(state: auto, field: ptr string, fieldName: static string): Widget =
   ## Provides a form field for string
   return gui:
     ActionRow:
       title = fieldName
       Entry() {.addSuffix.}:
-        text = state.getField(fieldName)
+        text = field[]
         proc changed(text: string) =
-          state.getField(fieldName) = text
+          field[] = text
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[bool]): Widget =
+proc toFormField(state: auto, field: ptr bool, fieldName: static string): Widget =
   ## Provides a form field for bool
   return gui:
     ActionRow:
       title = fieldName
       Box() {.addSuffix.}:
         Switch() {.vAlign: AlignCenter, expand: false.}:
-          state = state.getField(fieldName)
+          state = field[]
           proc changed(newVal: bool) =
-            state.getField(fieldName) = newVal
+            field[] = newVal
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[auto]): Widget =
+proc toFormField(state: auto, field: ptr auto, fieldName: static string): Widget =
   ## Provides a dummy field as a fallback for any type without a `toFormField`.
+  const typeName: string = $field[].type
   return gui:
     ActionRow:
       title = fieldName
       Label():
-        text = fmt"Override `toFormField` for '{$typ.type}'"
+        text = fmt"Override `toFormField` for '{typeName}'"
         tooltip = fmt"""
-          The type '{$typ.type}' must implement a `toFormField` proc:
+          The type '{typeName}' must implement a `toFormField` proc:
           `toFormField(
             state: auto, 
+            field: ptr {typeName}
             fieldName: static string, 
-            typ: typedesc[{$typ.type}]
           ): Widget`
           state: The <Widget>State
+          field: The field's value to assign to/get the value from
           fieldName: The name of the field on `state` for which the current form field is being generated
-          typ: The type for which `toListFormField` shall function.
           
           Implementing the proc will override this dummy Widget.
           See the playground module for examples.
         """
 
-proc toFormField[T: enum](state: auto, fieldName: static string, typ: typedesc[T]): Widget =
+proc toFormField(state: auto, field: ptr enum, fieldName: static string): Widget =
   ## Provides a form field for enums
-  let options: seq[string] = T.items.toSeq().mapIt($it)
+  let options: seq[string] = type(field[]).items.toSeq().mapIt($it)
   return gui:
     ComboRow:
       title = fieldName
       items = options
-      selected = ord(state.getField(fieldName))
+      selected = ord(field[])
       proc select(enumIndex: int) =
-        state.getField(fieldName) = enumIndex.T
+        field[] = type(field[])(enumIndex)
 
 viewable DateDialog:
   date: DateTime = now()
@@ -123,165 +124,79 @@ method view (state: DateDialogState): Widget =
           proc select(date: DateTime) =
             state.date = date
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[DateTime]): Widget =
+proc toFormField(state: auto, field: ptr DateTime, fieldName: static string): Widget =
   ## Provides a form field for DateTime
   return gui:
     ActionRow:
       title = fieldName
-      subtitle =  $state.getField(fieldName).inZone(local())
+      subtitle =  $(field[]).inZone(local())
       Button {.addSuffix.}:
         icon = "x-office-calendar-symbolic"
         text = "Select"
         proc clicked() =
           let (res, dialogState) = state.open(gui(DateDialog()))
           if res.kind == DialogAccept:
-            state.getField(fieldName) = DateDialogState(dialogState).date
+            field[] = DateDialogState(dialogState).date
 
-proc toFormField(state: auto, fieldName: static string, typ: typedesc[tuple[x,y: int]]): Widget =
+proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: static string): Widget =
   ## Provides a form field for the tuple type of sizeRequest
+  let tup = field[]
   return gui:
     ActionRow:
       title = fieldName
       NumberEntry() {.addSuffix.}:
-        value = state.getField(fieldName)[0].float
+        value = tup[0].float
         xAlign = 1.0
         maxWidth = 8
         proc changed(value: float) =
-          state.getField(fieldName)[0] = value.int
+          field[][0] = value.int
         
       NumberEntry() {.addSuffix.}:
-        value = state.getField(fieldName)[1].float
+        value = tup[1].float
         xAlign = 1.0
         maxWidth = 8
         proc changed(value: float) =
-          state.getField(fieldName)[1] = value.int
+          field[][1] = value.int
 
-
-## Default `toListFormField` implementations
-proc toListFormField[T: SomeNumber](state: auto, fieldName: static string, index: int, typ: typedesc[T]): Widget =
-  ## Provides a form to display a single entry of any number in a list of number entries.
-  return gui:
-    ActionRow:
-      title = fieldName & $index
-      
-      FormulaEntry() {.addSuffix.}:
-        value = state.getField(fieldName)[index].float
-        xAlign = 1.0
-        maxWidth = 8
-        proc changed(value: float) =
-          state.getField(fieldName)[index] = value.T
-
-proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[string]): Widget =
-  ## Provides a form to display a single entry of type `string` in a list of `string` entries.
-  return gui:
-    ActionRow:
-      title = fieldName
-      Entry() {.addSuffix.}:
-        text = state.getField(fieldName)[index]
-        proc changed(text: string) =
-          state.getField(fieldName)[index] = text
-
-proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[bool]): Widget =
-  ## Provides a form to display a single entry of type `bool` in a list of `bool` entries.
-  return gui:
-    ActionRow:
-      title = fieldName
-      Box() {.addSuffix.}:
-        Switch() {.vAlign: AlignCenter, expand: false.}:
-          state = state.getField(fieldName)[index]
-          proc changed(newVal: bool) =
-            state.getField(fieldName)[index] = newVal
-
-proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[DateTime]): Widget =
-  ## Provides a form to display a single entry of type `DateTime` in a list of `DateTime` entries.
-  return gui:
-    ActionRow:
-      title = fieldName
-      subtitle =  $state.getField(fieldName)[index].inZone(local())
-      Button {.addSuffix.}:
-        icon = "x-office-calendar-symbolic"
-        text = "Select"
-        proc clicked() =
-          let (res, dialogState) = state.open(gui(DateDialog()))
-          if res.kind == DialogAccept:
-            state.getField(fieldName)[index] = DateDialogState(dialogState).date
-
-proc toListFormField[T: enum](state: auto, fieldName: static string, index: int, typ: typedesc[T]): Widget =
-  ## Provides a form to display a single entry of an enum in a list of enum entries.
-  let options: seq[string] = T.items.toSeq().mapIt($it)
-  return gui:
-    ComboRow:
-      title = fieldName
-      items = options
-      selected = ord(state.getField(fieldName)[index])
-      proc select(enumIndex: int) =
-        state.getField(fieldName)[index] = enumIndex.T
-
-proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[auto]): Widget =
-  ## Provides a dummy row widget for displaying an entry in a list of any type without its own `toListFormField`
-  return gui:
-    ActionRow:
-      title = fieldName
-      Label():
-        text = fmt"Override `toListFormField` for '{$typ.type}'"
-        tooltip = fmt"""
-          The type '{$typ.type}' must implement a `toListFormField` proc:
-          `toListFormField(
-            state: auto, 
-            fieldName: static string, 
-            index: int,
-            typ: typedesc[{$typ.type}]
-          ): Widget`
-          state: The <Widget>State
-          fieldName: The name of the field on `state` that contains the seq for which the current form-row is being generated
-          index: The index on the list of entries in `state.<fieldName>`
-          typ: The type for which `toListFormField` shall function.
-          
-          Implementing the proc will override this dummy Widget.
-          See the playground module for examples.
-        """
-
-proc toListFormField(state: auto, fieldName: static string, index: int, typ: typedesc[ScaleMark]): Widget =
+proc toFormField(state: auto, field: ptr ScaleMark, fieldName: static string): Widget =
   ## Provides a form to display a single entry of type `ScaleMark` in a list of `ScaleMark` entries.
-  let mark: ScaleMark = state.getField(fieldName)[index]
   return gui:
     ActionRow:
-      title = fieldName & $index
+      title = fieldName
       
       FormulaEntry {.addSuffix.}:
-        value = mark.value
+        value = field[].value
         xAlign = 1.0
         maxWidth = 8
         proc changed(value: float) =
-          state.getField(fieldName)[index].value = value
+          field[].value = value
       
       DropDown {.addSuffix.}:
         items = ScalePosition.items.toSeq().mapIt($it)
-        selected = mark.position.int
+        selected = field[].position.int
         proc select(enumIndex: int) =
-          state.getField(fieldName)[index].position = enumIndex.ScalePosition
-          
-      Button {.addSuffix.}:
-        icon = "user-trash-symbolic"
-        proc clicked() =
-          state.getField(fieldName).delete(index)
+          field[].position = enumIndex.ScalePosition
 
-proc toFormField[T](state: auto, fieldName: static string, typ: typedesc[seq[T]]): Widget =
+proc toFormField[T](state: auto, field: ptr seq[T], fieldName: static string): Widget =
   ## Provides a form field for any field on `state` with a seq type.
   ## Displays a dummy widget if there is no `toListFormField` implementation for type T.
+  let formFields = collect(newSeq):
+    for index, value in field[]:
+      toFormField(state, field[][index].addr, fieldName)
+      
   return gui:
     ExpanderRow:
       title = fieldName
       
-      for index, num in state.getField(fieldName):
-        insert(toListFormField(state, fieldName, index, T)){.addRow.}
+      for index, formField in formFields:
+        insert(formField){.addRow.}
       
       ListBoxRow {.addRow.}:
         Button:
           icon = "list-add-symbolic"
           style = [ButtonFlat]
           proc clicked() =
-            state.getField(fieldName).add(default(T))
+            field[].add(default(T))
 
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
   ## Provides a form for every field in a given `app` instance.
@@ -292,7 +207,8 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
   var fieldWidgets: seq[Widget] = @[]
   for name, value in app[].fieldPairs:
     when name notin ["app", "viewed"] and name notin ignoreFields:
-      let fieldWidget = app.toFormField(name, value.type)
+      let field: ptr = value.addr
+      let fieldWidget = app.toFormField(field, name)
       fieldWidgets.add(fieldWidget)
       
   result = gui:
