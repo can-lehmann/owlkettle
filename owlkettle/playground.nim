@@ -28,11 +28,11 @@ import ./guidsl
 import ./widgetdef
 import ./widgets
 
-macro getField*(someType: untyped, fieldName: static string): untyped =
+macro getField*(someType: untyped, fieldName: string): untyped =
   nnkDotExpr.newTree(someType, ident(fieldName))
 
 # Default `toFormField` implementations
-proc toFormField(state: auto, field: ptr SomeNumber, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number times in SomeNumber
   return gui:
     ActionRow:
@@ -44,7 +44,7 @@ proc toFormField(state: auto, field: ptr SomeNumber, fieldName: static string): 
         proc changed(value: float) =
           field[] = type(field[])(value)
 
-proc toFormField(state: auto, field: ptr string, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr string, fieldName: string): Widget =
   ## Provides a form field for string
   return gui:
     ActionRow:
@@ -54,7 +54,7 @@ proc toFormField(state: auto, field: ptr string, fieldName: static string): Widg
         proc changed(text: string) =
           field[] = text
 
-proc toFormField(state: auto, field: ptr bool, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr bool, fieldName: string): Widget =
   ## Provides a form field for bool
   return gui:
     ActionRow:
@@ -65,7 +65,7 @@ proc toFormField(state: auto, field: ptr bool, fieldName: static string): Widget
           proc changed(newVal: bool) =
             field[] = newVal
 
-proc toFormField(state: auto, field: ptr auto, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr auto, fieldName: string): Widget =
   ## Provides a dummy field as a fallback for any type without a `toFormField`.
   const typeName: string = $field[].type
   return gui:
@@ -78,7 +78,7 @@ proc toFormField(state: auto, field: ptr auto, fieldName: static string): Widget
           `toFormField(
             state: auto, 
             field: ptr {typeName}
-            fieldName: static string, 
+            fieldName: string, 
           ): Widget`
           state: The <Widget>State
           field: The field's value to assign to/get the value from
@@ -88,7 +88,7 @@ proc toFormField(state: auto, field: ptr auto, fieldName: static string): Widget
           See the playground module for examples.
         """
 
-proc toFormField(state: auto, field: ptr[enum] , fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr[enum] , fieldName: string): Widget =
   ## Provides a form field for enums
   let options: seq[string] = type(field[]).items.toSeq().mapIt($it)
   return gui:
@@ -124,7 +124,7 @@ method view (state: DateDialogState): Widget =
           proc select(date: DateTime) =
             state.date = date
 
-proc toFormField(state: auto, field: ptr DateTime, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr DateTime, fieldName: string): Widget =
   ## Provides a form field for DateTime
   return gui:
     ActionRow:
@@ -138,7 +138,7 @@ proc toFormField(state: auto, field: ptr DateTime, fieldName: static string): Wi
           if res.kind == DialogAccept:
             field[] = DateDialogState(dialogState).date
 
-proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: string): Widget =
   ## Provides a form field for the tuple type of sizeRequest
   let tup = field[]
   return gui:
@@ -158,7 +158,7 @@ proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: static str
         proc changed(value: float) =
           field[][1] = value.int
 
-proc toFormField(state: auto, field: ptr ScaleMark, fieldName: static string): Widget =
+proc toFormField(state: auto, field: ptr ScaleMark, fieldName: string): Widget =
   ## Provides a form to display a single entry of type `ScaleMark` in a list of `ScaleMark` entries.
   return gui:
     ActionRow:
@@ -177,7 +177,7 @@ proc toFormField(state: auto, field: ptr ScaleMark, fieldName: static string): W
         proc select(enumIndex: int) =
           field[].position = enumIndex.ScalePosition
 
-proc toFormField[T](state: auto, field: ptr seq[T], fieldName: static string): Widget =
+proc toFormField[T](state: auto, field: ptr seq[T], fieldName: string): Widget =
   ## Provides a form field for any field on `state` with a seq type.
   ## Displays a dummy widget if there is no `toListFormField` implementation for type T.
   let formFields = collect(newSeq):
