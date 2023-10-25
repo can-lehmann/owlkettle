@@ -179,49 +179,6 @@ renderable Window of BaseWindow:
     Window:
       Label(text = "Hello, world")
 
-type PackType* = enum
-  PackStart, PackEnd
-
-type WindowControlButton* = enum
-  WindowControlMinimize = "minimize"
-  WindowControlMaximize = "maximize"
-  WindowControlClose = "close"
-  WindowControlIcon = "icon"
-  WindowControlMenu = "menu"
-
-type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
-
-proc toLayoutString(layout: DecorationLayout): string =
-  let leftButtons: string = layout.left.mapIt($it).join(",")
-  let rightButtons: string = layout.right.mapIt($it).join(",")
-  return fmt"{leftButtons}:{rightButtons}"
-
-proc toGtk*(x: PackType): GtkPackType = GtkPackType(ord(x))
-
-renderable WindowControls of BaseWidget:
-  side: PackType = PackStart ## Used to tell GTK whether the controls are shown at the start or end of a window. Mostly irrelevant, only set if you explicitly need it.
-  decorationLayout: string = "menu:minimize,maximize,close" ## Determines which buttons are shown and their order by building a gtk-decoration-layout string. See gtk docs for more information: https://docs.gtk.org/gtk4/property.Settings.gtk-decoration-layout.html
-  
-  setter buttons: DecorationLayout
-  
-  hooks:
-    beforeBuild:
-      state.internalWidget = gtk_window_controls_new(state.side.toGtk())
-  
-  hooks side:
-    property:
-      gtk_window_controls_set_side(state.internalWidget, state.side.toGtk())
-
-  hooks decorationLayout:
-    property:
-      gtk_window_controls_set_decoration_layout(state.internalWidget, state.decorationLayout.cstring)
-
-proc `hasButtons=`*(widget: WindowControls, has: bool) =
-  widget.hasDecorationLayout = true
-
-proc `valButtons=`*(widget: WindowControls, buttons: DecorationLayout) =
-  widget.valDecorationLayout = buttons.toLayoutString()
-
 type Orient* = enum OrientX, OrientY
 
 proc toGtk(orient: Orient): GtkOrientation =
@@ -1022,12 +979,28 @@ proc updateChild*(state: Renderable,
       child.expand = updater.expand
       gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
 
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
+
+proc toLayoutString(layout: DecorationLayout): string =
+  let leftButtons: string = layout.left.mapIt($it).join(",")
+  let rightButtons: string = layout.right.mapIt($it).join(",")
+  return fmt"{leftButtons}:{rightButtons}"
+
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
   decorationLayout: string = "icon,menu:minimize,maximize,close"
   left: seq[Widget]
   right: seq[Widget]
+  
+  setter windowControls: DecorationLayout
   
   hooks:
     beforeBuild:
@@ -1103,6 +1076,12 @@ renderable HeaderBar of BaseWidget:
         Button {.addRight.}:
           icon = "open-menu-symbolic"
 
+proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = buttons.toLayoutString()
+  
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
@@ -4290,7 +4269,7 @@ renderable ListView of BaseWidget:
 
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
-export Window, WindowControls, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
+export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
 export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
 export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
 export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild

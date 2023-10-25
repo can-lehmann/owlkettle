@@ -24,8 +24,6 @@ import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  side1: PackType = PackStart
-  side2: PackType = PackEnd
   buttons1: seq[WindowControlButton] = @[WindowControlMenu, WindowControlMinimize, WindowControlMaximize]
   buttons2: seq[WindowControlButton] = @[WindowControlClose, WindowControlIcon]
   sensitive: bool = true
@@ -40,15 +38,9 @@ method view(app: AppState): Widget =
       iconName = "go-home-symbolic" # Used by WindowControlIcon
       
       HeaderBar() {.addTitlebar.}:
+        windowControls = (app.buttons1, app.buttons2)
+        
         insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
-      
-        WindowControls() {.addLeft.}:
-          side = app.side1
-          buttons = (app.buttons1, app.buttons2)
-            
-          
-        # WindowControls() {.addRight.}:
-        #   side = app.side2
-        #   buttons = (app.buttons1, app.buttons2)
+        
         
 adw.brew(gui(App()))
