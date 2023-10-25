@@ -28,9 +28,6 @@ import ./guidsl
 import ./widgetdef
 import ./widgets
 
-macro getField*(someType: untyped, fieldName: string): untyped =
-  nnkDotExpr.newTree(someType, ident(fieldName))
-
 # Default `toFormField` implementations
 proc toFormField(state: auto, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number times in SomeNumber
@@ -43,6 +40,19 @@ proc toFormField(state: auto, field: ptr SomeNumber, fieldName: string): Widget 
         maxWidth = 8
         proc changed(value: float) =
           field[] = type(field[])(value)
+
+# Default `toFormField` implementations
+proc toFormField(state: auto, field: ptr range[0.0..1.0], fieldName: string): Widget =
+  ## Provides a form field for a range of float numbers between 0.0 and 1.0
+  return gui:
+    ActionRow:
+      title = fieldName
+      FormulaEntry() {.addSuffix.}:
+        value = field[]
+        xAlign = 1.0
+        maxWidth = 8
+        proc changed(value: float) =
+          field[] = value
 
 proc toFormField(state: auto, field: ptr string, fieldName: string): Widget =
   ## Provides a form field for string
@@ -189,7 +199,8 @@ proc toFormField[T](state: auto, field: ptr seq[T], fieldName: string): Widget =
       title = fieldName
       
       for index, formField in formFields:
-        insert(formField){.addRow.}
+        insert(formField){.addRow.}:
+          Button(text = "lala") {.addSuffix.}
       
       ListBoxRow {.addRow.}:
         Button:
