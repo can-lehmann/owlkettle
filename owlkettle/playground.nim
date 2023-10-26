@@ -29,7 +29,7 @@ import ./widgetdef
 import ./widgets
 
 # Default `toFormField` implementations
-proc toFormField(state: auto, field: ptr SomeNumber, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number times in SomeNumber
   return gui:
     ActionRow:
@@ -42,7 +42,7 @@ proc toFormField(state: auto, field: ptr SomeNumber, fieldName: string): Widget 
           field[] = type(field[])(value)
 
 # Default `toFormField` implementations
-proc toFormField(state: auto, field: ptr range[0.0..1.0], fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr range[0.0..1.0], fieldName: string): Widget =
   ## Provides a form field for a range of float numbers between 0.0 and 1.0
   return gui:
     ActionRow:
@@ -54,7 +54,7 @@ proc toFormField(state: auto, field: ptr range[0.0..1.0], fieldName: string): Wi
         proc changed(value: float) =
           field[] = value
 
-proc toFormField(state: auto, field: ptr string, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr string, fieldName: string): Widget =
   ## Provides a form field for string
   return gui:
     ActionRow:
@@ -64,7 +64,7 @@ proc toFormField(state: auto, field: ptr string, fieldName: string): Widget =
         proc changed(text: string) =
           field[] = text
 
-proc toFormField(state: auto, field: ptr bool, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget =
   ## Provides a form field for bool
   return gui:
     ActionRow:
@@ -75,7 +75,7 @@ proc toFormField(state: auto, field: ptr bool, fieldName: string): Widget =
           proc changed(newVal: bool) =
             field[] = newVal
 
-proc toFormField(state: auto, field: ptr auto, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr auto, fieldName: string): Widget =
   ## Provides a dummy field as a fallback for any type without a `toFormField`.
   const typeName: string = $field[].type
   return gui:
@@ -86,7 +86,7 @@ proc toFormField(state: auto, field: ptr auto, fieldName: string): Widget =
         tooltip = fmt"""
           The type '{typeName}' must implement a `toFormField` proc:
           `toFormField(
-            state: auto, 
+            state: Viewable, 
             field: ptr {typeName}
             fieldName: string, 
           ): Widget`
@@ -98,7 +98,7 @@ proc toFormField(state: auto, field: ptr auto, fieldName: string): Widget =
           See the playground module for examples.
         """
 
-proc toFormField(state: auto, field: ptr[enum] , fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr[enum] , fieldName: string): Widget =
   ## Provides a form field for enums
   let options: seq[string] = type(field[]).items.toSeq().mapIt($it)
   return gui:
@@ -134,7 +134,7 @@ method view (state: DateDialogState): Widget =
           proc select(date: DateTime) =
             state.date = date
 
-proc toFormField(state: auto, field: ptr DateTime, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr DateTime, fieldName: string): Widget =
   ## Provides a form field for DateTime
   return gui:
     ActionRow:
@@ -148,7 +148,7 @@ proc toFormField(state: auto, field: ptr DateTime, fieldName: string): Widget =
           if res.kind == DialogAccept:
             field[] = DateDialogState(dialogState).date
 
-proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget =
   ## Provides a form field for the tuple type of sizeRequest
   let tup = field[]
   return gui:
@@ -168,7 +168,7 @@ proc toFormField(state: auto, field: ptr tuple[x, y: int], fieldName: string): W
         proc changed(value: float) =
           field[][1] = value.int
 
-proc toFormField(state: auto, field: ptr ScaleMark, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget =
   ## Provides a form to display a single entry of type `ScaleMark` in a list of `ScaleMark` entries.
   return gui:
     ActionRow:
@@ -187,7 +187,7 @@ proc toFormField(state: auto, field: ptr ScaleMark, fieldName: string): Widget =
         proc select(enumIndex: int) =
           field[].position = enumIndex.ScalePosition
 
-proc toFormField[T](state: auto, field: ptr seq[T], fieldName: string): Widget =
+proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget =
   ## Provides a form field for any field on `state` with a seq type.
   ## Displays a dummy widget if there is no `toListFormField` implementation for type T.
   let formFields = collect(newSeq):
