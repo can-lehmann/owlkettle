@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[options, times, macros, strformat, sugar, strutils, sequtils, typetraits]
+import std/[options, times, macros, strformat, sugar, strutils, sequtils, typetraits, tables]
 import ./dataentries
 import ./adw
 import ./widgetutils
@@ -203,6 +203,57 @@ proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widg
           style = [ButtonFlat]
           proc clicked() =
             field[].add(default(T))
+
+template getIterator*(a: typed): untyped =
+  ## Provides a fieldPairs iterator for both ref-types and value-types
+  when a is ref:
+    a[].fieldPairs
+    
+  else:
+    a.fieldPairs
+    
+proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
+  ## Provides a fallback form field for any type that does not match any of the types above.
+  ## If the type has fields (e.g. object or tuple) it will generate a form with a formfield 
+  ## for each field on the type.
+  ## If the type does not have fields it will generate a dummy-field with text informing the user to 
+  ## define their own `toFormField` proc.
+  const hasFields = field is ptr object or field is ptr ref object or field is ptr tuple or field is ptr ref tuple 
+  when hasFields:
+    var subFieldWidgets: Table[string, Widget] = initTable[string, Widget]()
+    for subFieldName, subFieldValue in field[].getIterator():      
+      let subField: ptr = subFieldValue.addr
+      let subFieldWidget = state.toFormField(subField, subFieldName)
+      subFieldWidgets[subFieldName] = subFieldWidget
+    
+    return gui:
+      ExpanderRow:
+        title = fieldName
+        
+        for subFieldName in subFieldWidgets.keys:
+          insert(subFieldWidgets[subFieldName]) {.addRow.}
+
+  else:
+    const typeName: string = $field[].type
+    return gui:
+      ActionRow:
+        title = fieldName
+        Label():
+          text = fmt"Override `toFormField` for '{typeName}'"
+          tooltip = fmt"""
+            The type '{typeName}' must implement a `toFormField` proc:
+            `toFormField(
+              state: Viewable, 
+              field: ptr {typeName}
+              fieldName: string, 
+            ): Widget`
+            state: The <Widget>State
+            field: The field's value to assign to/get the value from
+            fieldName: The name of the field on `state` for which the current form field is being generated
+            
+            Implementing the proc will override this dummy Widget.
+            See the playground module for examples.
+          """
 
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
   ## Provides a form for every field in a given `app` instance.
