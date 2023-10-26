@@ -29,7 +29,7 @@ import ./widgetdef
 import ./widgets
 
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
-  ## Provides a form field for all number times in SomeNumber
+  ## Provides a form field for all number types in SomeNumber
   return gui:
     ActionRow:
       title = fieldName
@@ -40,11 +40,8 @@ proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Wid
         proc changed(value: float) =
           field[] = type(field[])(value)
 
-type Range = concept r # Necessary as there is no range typeclass *for parameters*. So `field: ptr range` is not a valid parameter.
-  r is range
-
 proc toFormField(state: Viewable, field: ptr Range, fieldName: string): Widget =
-  ## Provides a form field for any range
+  ## Provides a form field for all range types
   return gui:
     ActionRow:
       title = fieldName
@@ -56,7 +53,7 @@ proc toFormField(state: Viewable, field: ptr Range, fieldName: string): Widget =
           field[] = value
 
 proc toFormField(state: Viewable, field: ptr string, fieldName: string): Widget =
-  ## Provides a form field for string
+  ## Provides a form field for strings
   return gui:
     ActionRow:
       title = fieldName
@@ -66,7 +63,7 @@ proc toFormField(state: Viewable, field: ptr string, fieldName: string): Widget 
           field[] = text
 
 proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget =
-  ## Provides a form field for bool
+  ## Provides a form field for booleans
   return gui:
     ActionRow:
       title = fieldName
@@ -76,31 +73,8 @@ proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget =
           proc changed(newVal: bool) =
             field[] = newVal
 
-proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
-  ## Provides a dummy field as a fallback for any type without a `toFormField`.
-  const typeName: string = $field[].type
-  return gui:
-    ActionRow:
-      title = fieldName
-      Label():
-        text = fmt"Override `toFormField` for '{typeName}'"
-        tooltip = fmt"""
-          The type '{typeName}' must implement a `toFormField` proc:
-          `toFormField(
-            state: Viewable, 
-            field: ptr {typeName}
-            fieldName: string, 
-          ): Widget`
-          state: The <Widget>State
-          field: The field's value to assign to/get the value from
-          fieldName: The name of the field on `state` for which the current form field is being generated
-          
-          Implementing the proc will override this dummy Widget.
-          See the playground module for examples.
-        """
-
 proc toFormField(state: Viewable, field: ptr[enum] , fieldName: string): Widget =
-  ## Provides a form field for enums
+  ## Provides a form field for all enum types
   let options: seq[string] = type(field[]).items.toSeq().mapIt($it)
   return gui:
     ComboRow:
@@ -136,7 +110,7 @@ method view (state: DateDialogState): Widget =
             state.date = date
 
 proc toFormField(state: Viewable, field: ptr DateTime, fieldName: string): Widget =
-  ## Provides a form field for DateTime
+  ## Provides a form field for DateTimes
   return gui:
     ActionRow:
       title = fieldName
@@ -170,7 +144,7 @@ proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string
           field[][1] = value.int
 
 proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget =
-  ## Provides a form to display a single entry of type `ScaleMark` in a list of `ScaleMark` entries.
+  ## Provides a form field for the type ScaleMark
   return gui:
     ActionRow:
       title = fieldName
@@ -189,8 +163,7 @@ proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widg
           field[].position = enumIndex.ScalePosition
 
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget =
-  ## Provides a form field for any field on `state` with a seq type.
-  ## Displays a dummy widget if there is no `toListFormField` implementation for type T.
+  ## Provides a form field for any seq type
   let formFields = collect(newSeq):
     for index, value in field[]:
       toFormField(state, field[][index].addr, fieldName)
