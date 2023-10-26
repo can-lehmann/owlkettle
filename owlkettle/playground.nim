@@ -28,7 +28,6 @@ import ./guidsl
 import ./widgetdef
 import ./widgets
 
-# Default `toFormField` implementations
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number times in SomeNumber
   return gui:
@@ -41,9 +40,11 @@ proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Wid
         proc changed(value: float) =
           field[] = type(field[])(value)
 
-# Default `toFormField` implementations
-proc toFormField(state: Viewable, field: ptr range[0.0..1.0], fieldName: string): Widget =
-  ## Provides a form field for a range of float numbers between 0.0 and 1.0
+type Range = concept r # Necessary as there is no range typeclass *for parameters*. So `field: ptr range` is not a valid parameter.
+  r is range
+
+proc toFormField(state: Viewable, field: ptr Range, fieldName: string): Widget =
+  ## Provides a form field for any range
   return gui:
     ActionRow:
       title = fieldName
@@ -75,7 +76,7 @@ proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget =
           proc changed(newVal: bool) =
             field[] = newVal
 
-proc toFormField(state: Viewable, field: ptr auto, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
   ## Provides a dummy field as a fallback for any type without a `toFormField`.
   const typeName: string = $field[].type
   return gui:
