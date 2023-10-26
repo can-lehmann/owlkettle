@@ -28,6 +28,22 @@ import ./guidsl
 import ./widgetdef
 import ./widgets
 
+type Range = concept r # Necessary as there is no range typeclass *for parameters*. So `field: ptr range` is not a valid parameter.
+  r is range
+
+# Forward Declarations so order of procs below doesn't matter
+proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr Range, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr string, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr[enum], fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr DateTime, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget
+proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr auto, fieldName: string): Widget
+
+
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number types in SomeNumber
   return gui:
