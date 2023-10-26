@@ -38,6 +38,7 @@ proc toFormField(state: Viewable, field: ptr string, fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr bool, fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr[enum], fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr DateTime, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr[distinct], fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget
@@ -138,6 +139,13 @@ proc toFormField(state: Viewable, field: ptr DateTime, fieldName: string): Widge
           let (res, dialogState) = state.open(gui(DateDialog()))
           if res.kind == DialogAccept:
             field[] = DateDialogState(dialogState).date
+
+
+proc toFormField(state: Viewable, field: ptr[distinct], fieldName: string): Widget =
+  ## Provides a form field for any distinct type. 
+  ## The form field provided is the same that the base-type of the distinct type would have.
+  let baseField = field[].distinctBase.addr
+  toFormField(state, baseField, fieldName)
 
 proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget =
   ## Provides a form field for the tuple type of sizeRequest
