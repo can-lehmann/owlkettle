@@ -166,7 +166,7 @@ proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widg
   ## Provides a form field for any seq type
   let formFields = collect(newSeq):
     for index, value in field[]:
-      toFormField(state, field[][index].addr, fieldName)
+      toFormField(state, field[][index].addr, fmt"{fieldName} {index}")
       
   return gui:
     ExpanderRow:
