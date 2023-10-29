@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, strformat, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -1001,6 +1001,7 @@ renderable HeaderBar of BaseWidget:
   right: seq[Widget]
   
   setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
   
   hooks:
     beforeBuild:
@@ -1084,6 +1085,10 @@ proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
 
 proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
   widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
   
 renderable ScrolledWindow of BaseWidget:
   child: Widget
