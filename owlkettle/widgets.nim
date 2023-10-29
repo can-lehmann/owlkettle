@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -979,11 +979,29 @@ proc updateChild*(state: Renderable,
       child.expand = updater.expand
       gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
 
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
+
+proc toLayoutString(layout: DecorationLayout): string =
+  let leftButtons: string = layout.left.mapIt($it).join(",")
+  let rightButtons: string = layout.right.mapIt($it).join(",")
+  return fmt"{leftButtons}:{rightButtons}"
+
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
+  decorationLayout: Option[string] = none(string)
   left: seq[Widget]
   right: seq[Widget]
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
   
   hooks:
     beforeBuild:
@@ -993,6 +1011,13 @@ renderable HeaderBar of BaseWidget:
     property:
       gtk_header_bar_set_show_title_buttons(state.internalWidget, cbool(ord(state.showTitleButtons)))
   
+  hooks decorationLayout:
+    property:
+      if state.decorationLayout.isSome():
+        gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        gtk_header_bar_set_decoration_layout(state.internalWidget, nil)
+
   hooks left:
     (build, update):
       state.updateChildren(
@@ -1055,6 +1080,16 @@ renderable HeaderBar of BaseWidget:
         Button {.addRight.}:
           icon = "open-menu-symbolic"
 
+proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
