@@ -26,7 +26,7 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
-import std/[strutils, sequtils, strformat]
+import std/[strutils, sequtils, strformat, options, sugar]
 
 export adw.StyleManager
 export adw.ColorScheme
@@ -565,28 +565,20 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-type WindowControlButton* = enum
-  WindowControlMinimize = "minimize"
-  WindowControlMaximize = "maximize"
-  WindowControlClose = "close"
-  WindowControlIcon = "icon"
-  WindowControlMenu = "menu"
-
-proc toLayoutString(buttons: seq[WindowControlButton]): string =
-  return buttons.mapIt($it).join(",")
-
 renderable AdwHeaderBar of BaseWidget:
   ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
   packLeft: seq[Widget]
   packRight: seq[Widget]
   centeringPolicy: CenteringPolicy = CenteringPolicyLoose
-  leftButtons: seq[WindowControlButton] ## Determines the Window-control buttons at the very start of the Headerbar, before `packLeft`. Used to generate decorationLayout.
-  rightButtons: seq[WindowControlButton] ## Determines the Window-control buttons at the very end of the Headerbar, after `packRight`. Used to generate decorationLaout.
+  decorationLayout: Option[string] = none(string)
   showRightButtons: bool = true ## Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
   showLeftButtons: bool = true ## Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
   titleWidget: Widget ## A widget for the title. Replaces the title string, if there is one.
   showBackButton: bool = true
   showTitle: bool = true ## Determines whether to show or hide the title
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
   
   hooks:
     beforeBuild:
@@ -614,20 +606,12 @@ renderable AdwHeaderBar of BaseWidget:
     property:
       adw_header_bar_set_centering_policy(state.internalWidget, state.centeringPolicy)
   
-
-  hooks leftButtons:
+  hooks decorationLayout:
     property:
-      let leftLayoutString = toLayoutString(state.leftButtons)
-      let rightLayoutString = toLayoutString(state.rightButtons)
-      let layout = fmt"{leftLayoutString}:{rightLayoutString}"
-      adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
-
-  hooks rightButtons:
-    property:
-      let leftLayoutString = toLayoutString(state.leftButtons)
-      let rightLayoutString = toLayoutString(state.rightButtons)
-      let layout = fmt"{leftLayoutString}:{rightLayoutString}"
-      adw_header_bar_set_decoration_layout(state.internalWidget, layout.cstring)
+      if state.decorationLayout.isSome():
+        adw_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        adw_header_bar_set_decoration_layout(state.internalWidget, nil)
   
   hooks showRightButtons:
     property:
@@ -674,6 +658,16 @@ renderable AdwHeaderBar of BaseWidget:
     else:
       raise newException(ValueError, "Compile for Adwaita version 1.4 or higher with -d:adwMinor=4 to enable setting a Title Widget for Headerbar.")
 
+proc `hasWindowControls=`*(widget: AdwHeaderbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable SplitButton of BaseWidget:
   child: Widget
   popover: Widget

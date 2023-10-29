@@ -988,7 +988,7 @@ type WindowControlButton* = enum
 
 type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
 
-proc toLayoutString(layout: DecorationLayout): string =
+proc toLayoutString*(layout: DecorationLayout): string =
   let leftButtons: string = layout.left.mapIt($it).join(",")
   let rightButtons: string = layout.right.mapIt($it).join(",")
   return fmt"{leftButtons}:{rightButtons}"

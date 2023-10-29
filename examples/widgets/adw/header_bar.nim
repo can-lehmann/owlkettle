@@ -36,6 +36,7 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
+  let layout = (app.leftButtons, app.rightButtons)
   result = gui:
     Window():
       title = "AdwHeaderBar Example"
@@ -43,9 +44,8 @@ method view(app: AppState): Widget =
       iconName = "go-home-symbolic" # Used by WindowControlIcon
       
       AdwHeaderBar() {.addTitlebar.}:
+        windowControls = layout
         centeringPolicy = app.centeringPolicy
-        leftButtons = app.leftButtons
-        rightButtons = app.rightButtons
         showLeftButtons = app.showLeftButtons
         showRightButtons = app.showRightButtons
         showBackButton = app.showBackButton
