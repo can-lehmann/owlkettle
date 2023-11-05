@@ -367,6 +367,7 @@ renderable HeaderBar of BaseWidget
 ###### Setters
 
 - `windowControls: DecorationLayout`
+- `windowControls: Option[DecorationLayout]`
 
 ###### Adders
 
