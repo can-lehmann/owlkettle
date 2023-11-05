@@ -31,19 +31,27 @@ import ./widgets
 type Range = concept r # Necessary as there is no range typeclass *for parameters*. So `field: ptr range` is not a valid parameter.
   r is range
 
+template getIterator*(a: typed): untyped =
+  ## Provides a fieldPairs iterator for both ref-types and value-types
+  when a is ref:
+    a[].fieldPairs
+    
+  else:
+    a.fieldPairs
+
 proc selfAssign[T](v: var T) = v = v
-proc isObjectVariantType(Obj: typedesc[object]): bool =
+proc isObjectVariantType(Obj: typedesc[object | ref object]): bool =
   ## Checks if a given typedesc is of an object variant
   ## by checking if you can assign to a field. This is a 
   ## compile-time error when doing this with the fieldPairs iterator
   ## to an object variant "kind" field. 
   var obj = default Obj
-  for name, field in obj.fieldpairs:
+  for name, field in obj.getIterator():
     when not compiles(selfAssign field):
       return true
   
   return false
-    
+
 type ObjectVariantType = concept type V
   ## A concept covering all object variant types. 
   ## This concept is **not** intended for use with object variant **instances**,
@@ -244,14 +252,6 @@ proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widg
           proc clicked() =
             field[].add(default(T))
 
-template getIterator*(a: typed): untyped =
-  ## Provides a fieldPairs iterator for both ref-types and value-types
-  when a is ref:
-    a[].fieldPairs
-    
-  else:
-    a.fieldPairs
-    
 proc toPlaceHolderFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
   ## Provides a placeholder form field informing the user to implement their own
   ## `toFormField` proc, as none of the existing `toFormField` overloads could be applied.
