@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[asyncfutures]
+import std/asyncfutures
 import owlkettle, owlkettle/[playground, adw]
 
 const APP_NAME = "Image Example"

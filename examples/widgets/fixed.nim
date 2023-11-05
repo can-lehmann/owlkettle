@@ -21,7 +21,7 @@
 # SOFTWARE
 
 import std/random
-import owlkettle, owlkettle/[adw, dataentries]
+import owlkettle, owlkettle/[adw]
 
 type FixedItem = ref object
   name: string

@@ -3407,6 +3407,43 @@ renderable BuiltinDialog of BaseWidget:
   
   adder addButton
 
+proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
+  let
+    state = widget.build()
+    dialogState = state.unwrapRenderable()
+    window = app.unwrapInternalWidget()
+    dialog = state.unwrapInternalWidget()
+  gtk_window_set_transient_for(dialog, window)
+  gtk_window_set_modal(dialog, cbool(bool(true)))
+  gtk_window_present(dialog)
+  
+  proc destroyDialog(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
+    closed[] = true
+  
+  var closed = false
+  discard g_signal_connect(dialog, "destroy", destroyDialog , closed.addr)
+  
+  if dialogState of DialogState or dialogState of BuiltinDialogState:
+    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
+      res[] = responseId
+    
+    var res = low(cint)
+    discard g_signal_connect(dialog, "response", response, res.addr)
+    while res == low(cint):
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    if not closed:
+      gtk_window_destroy(dialog)
+    result = (toDialogResponse(res), state)
+  else:
+    while not closed:
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    result = (DialogResponse(), state)
+
+
 proc addButton*(dialog: BuiltinDialog, button: DialogButton) =
   dialog.hasButtons = true
   dialog.valButtons.add(button)
