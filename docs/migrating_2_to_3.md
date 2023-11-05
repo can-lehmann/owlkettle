@@ -8,3 +8,4 @@
 - `FileChooserDialogState.filename` has been deprecated. Use `filenames` instead.
 - The `{.internal.}` pragma has been removed. Use `{.private.}` instead.
   Contrary to `{.internal.}`, `{.private.}` actually does not export the given field.
+- The `WindowSurface` Widget was renamed `AdwWindow`. This change was made as part of introducing a new naming scheme where Adwaita Widgets with identically named counterparts in Gtk will receive the `Adw` prefix to avoid name collisions.
