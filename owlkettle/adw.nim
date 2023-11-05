@@ -40,7 +40,6 @@ when defined(owlkettleDocs) and isMainModule:
 
 renderable AdwWindow of BaseWindow:
   ## A Window that does not have a title bar.
-  ## A AdwWindow is equivalent to an `Adw.Window`.
   content: Widget
   
   hooks:
