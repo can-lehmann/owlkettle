@@ -9,3 +9,5 @@
 - The `{.internal.}` pragma has been removed. Use `{.private.}` instead.
   Contrary to `{.internal.}`, `{.private.}` actually does not export the given field.
 - The `WindowSurface` Widget was renamed `AdwWindow`. This change was made as part of introducing a new naming scheme where Adwaita Widgets with identically named counterparts in Gtk will receive the `Adw` prefix to avoid name collisions.
+- The compiler flag `-d:adwaita12` was removed. Use `-d:adwminor=<MINOR_VERSION_NUMBER>` (defaults to 0) and/or `-d:adwmajor=<MAJOR_VERSION_NUMBER>` (defaults to 1) instead. This change was necessary to allow more fine-grained control over which adwaita features are available when compiling for a specific adwaita version.
+- The compiler flag `-d:gtk48` was removed. Use `-d:gtkminor=<MINOR_VERSION_NUMBER>` (defaults to 0) instead. This change was necessary to allow more fine-grained control over which features are available when compiling for a specific gtk version.
