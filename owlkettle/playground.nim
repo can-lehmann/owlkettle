@@ -207,6 +207,9 @@ proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widg
 
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget =
   ## Provides a form field for any seq type
+  ## Enables adding new entries and deleting existing entries.
+  ## Note that deletion of an entry is only enabled if the `toFormField` proc for
+  ## the given field's type `T` is an ActionRow widget.
   let formFields = collect(newSeq):
     for index, value in field[]:
       toFormField(state, field[][index].addr, fmt"{fieldName} {index}")
@@ -216,13 +219,14 @@ proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widg
       title = fieldName
       
       for index, formField in formFields:
-        Box(orient = OrientX) {.addRow.}:
-          insert(formField)
-          Button() {.expand: false.}:
-            icon = "user-trash-symbolic"
-            style = [ButtonDestructive]
-            proc clicked() =
-              field[].delete(index) 
+        ActionRow() {.addRow.}:
+            insert(formField) {.addSuffix.}
+            if formField of ActionRow: # GTK allows only removing ActionRow Widgets from ExpanderRow
+              Button() {.expand: false.}:
+                icon = "user-trash-symbolic"
+                style = [ButtonDestructive]
+                proc clicked() =
+                  field[].delete(index) 
       
       ListBoxRow {.addRow.}:
         Button:
@@ -261,6 +265,8 @@ proc toPlaceHolderFormField(state: Viewable, field: ptr[auto], fieldName: string
           
           Implementing the proc will override this dummy Widget.
           See the playground module for examples.
+          Note: You should prefer returning ActionRow, ExpanderRow, EntryRow or other 
+          PreferencesRow-based Widgets.
         """
 
 proc toFormField(state: Viewable, field: ptr ObjectVariantType, fieldName: string): Widget =
