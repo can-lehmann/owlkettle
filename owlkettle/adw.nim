@@ -34,6 +34,7 @@ export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
 export adw.CenteringPolicy
+export adw.AdwVersion
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
