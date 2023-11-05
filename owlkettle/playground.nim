@@ -32,7 +32,7 @@ type Range = concept r # Necessary as there is no range typeclass *for parameter
   r is range
 
 proc selfAssign[T](v: var T) = v = v
-proc isObjectVariant(Obj: typedesc[object]): bool =
+proc isObjectVariantType(Obj: typedesc[object]): bool =
   ## Checks if a given typedesc is of an object variant
   ## by checking if you can assign to a field. This is a 
   ## compile-time error when doing this with the fieldPairs iterator
@@ -44,9 +44,11 @@ proc isObjectVariant(Obj: typedesc[object]): bool =
   
   return false
     
-type ObjectVariant = concept type V
-  ## A concept covering all object variant types
-  isObjectVariant(V)
+type ObjectVariantType = concept type V
+  ## A concept covering all object variant types. 
+  ## This concept is **not** intended for use with object variant **instances**,
+  ## as its implementation relies on type.
+  isObjectVariantType(V)
 
 # Forward Declarations so order of procs below doesn't matter
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget
@@ -59,7 +61,7 @@ proc toFormField(state: Viewable, field: ptr[distinct], fieldName: string): Widg
 proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget
-proc toFormField(state: Viewable, field: ptr ObjectVariant, fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr ObjectVariantType, fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr auto, fieldName: string): Widget
 
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
@@ -261,7 +263,7 @@ proc toPlaceHolderFormField(state: Viewable, field: ptr[auto], fieldName: string
           See the playground module for examples.
         """
 
-proc toFormField(state: Viewable, field: ptr ObjectVariant, fieldName: string): Widget =
+proc toFormField(state: Viewable, field: ptr ObjectVariantType, fieldName: string): Widget =
   ## Provides a form field for any object variant type
   return state.toPlaceHolderFormField(field, fieldName)
 
