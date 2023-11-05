@@ -205,28 +205,37 @@ proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widg
         proc select(enumIndex: int) =
           field[].position = enumIndex.ScalePosition
 
+proc addDeleteButton(formField: Widget, value: ptr seq[auto], index: int) =
+  let button = gui:
+    Button():
+      icon = "user-trash-symbolic"
+      style = [ButtonDestructive]
+      proc clicked() =
+        value[].delete(index) 
+
+  if formField of ActionRow:
+    ActionRow(formField).addSuffix(button)
+  elif formField of ExpanderRow:
+    ExpanderRow(formField).addRow(button)
+
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget =
   ## Provides a form field for any seq type
   ## Enables adding new entries and deleting existing entries.
   ## Note that deletion of an entry is only enabled if the `toFormField` proc for
-  ## the given field's type `T` is an ActionRow widget.
+  ## the given field's type `T` is an ActionRow or ExpanderRow widget.
   let formFields = collect(newSeq):
     for index, value in field[]:
-      toFormField(state, field[][index].addr, fmt"{fieldName} {index}")
-      
+      let formField = toFormField(state, field[][index].addr, fmt"{fieldName} {index}")
+      formField.addDeleteButton(field, index)
+      formField
+  
   return gui:
     ExpanderRow:
       title = fieldName
       
       for index, formField in formFields:
-        ActionRow() {.addRow.}:
-            insert(formField) {.addSuffix.}
-            if formField of ActionRow: # GTK allows only removing ActionRow Widgets from ExpanderRow
-              Button() {.expand: false.}:
-                icon = "user-trash-symbolic"
-                style = [ButtonDestructive]
-                proc clicked() =
-                  field[].delete(index) 
+        insert(formField) {.addRow.}
+
       
       ListBoxRow {.addRow.}:
         Button:
