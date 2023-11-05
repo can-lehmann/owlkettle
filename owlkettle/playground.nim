@@ -31,6 +31,23 @@ import ./widgets
 type Range = concept r # Necessary as there is no range typeclass *for parameters*. So `field: ptr range` is not a valid parameter.
   r is range
 
+proc selfAssign[T](v: var T) = v = v
+proc isObjectVariant(Obj: typedesc[object]): bool =
+  ## Checks if a given typedesc is of an object variant
+  ## by checking if you can assign to a field. This is a 
+  ## compile-time error when doing this with the fieldPairs iterator
+  ## to an object variant "kind" field. 
+  var obj = default Obj
+  for name, field in obj.fieldpairs:
+    when not compiles(selfAssign field):
+      return true
+  
+  return false
+    
+type ObjectVariant = concept type V
+  ## A concept covering all object variant types
+  isObjectVariant(V)
+
 # Forward Declarations so order of procs below doesn't matter
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr Range, fieldName: string): Widget
@@ -42,8 +59,8 @@ proc toFormField(state: Viewable, field: ptr[distinct], fieldName: string): Widg
 proc toFormField(state: Viewable, field: ptr tuple[x, y: int], fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr ScaleMark, fieldName: string): Widget
 proc toFormField[T](state: Viewable, field: ptr seq[T], fieldName: string): Widget
+proc toFormField(state: Viewable, field: ptr ObjectVariant, fieldName: string): Widget
 proc toFormField(state: Viewable, field: ptr auto, fieldName: string): Widget
-
 
 proc toFormField(state: Viewable, field: ptr SomeNumber, fieldName: string): Widget =
   ## Provides a form field for all number types in SomeNumber
@@ -220,13 +237,42 @@ template getIterator*(a: typed): untyped =
   else:
     a.fieldPairs
     
+proc toPlaceHolderFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
+  ## Provides a placeholder form field informing the user to implement their own
+  ## `toFormField` proc, as none of the existing `toFormField` overloads could be applied.
+  const typeName: string = $field[].type
+  return gui:
+    ActionRow:
+      title = fieldName
+      Label():
+        text = fmt"Override `toFormField` for '{typeName}'"
+        tooltip = fmt"""
+          The type '{typeName}' must implement a `toFormField` proc:
+          `toFormField(
+            state: Viewable, 
+            field: ptr {typeName}
+            fieldName: string, 
+          ): Widget`
+          state: The <Widget>State
+          field: The field's value to assign to/get the value from
+          fieldName: The name of the field on `state` for which the current form field is being generated
+          
+          Implementing the proc will override this dummy Widget.
+          See the playground module for examples.
+        """
+
+proc toFormField(state: Viewable, field: ptr ObjectVariant, fieldName: string): Widget =
+  ## Provides a form field for any object variant type
+  return state.toPlaceHolderFormField(field, fieldName)
+
 proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
-  ## Provides a fallback form field for any type that does not match any of the types above.
+  ## Provides a fallback form field for any type that does not match any of the other `toFormField` overloads.
   ## If the type has fields (e.g. object or tuple) it will generate a form with a formfield 
   ## for each field on the type.
   ## If the type does not have fields it will generate a dummy-field with text informing the user to 
   ## define their own `toFormField` proc.
-  const hasFields = field is ptr object or field is ptr ref object or field is ptr tuple or field is ptr ref tuple 
+  const hasFields = field is ptr object or field is ptr ref object or field is ptr tuple or field is ptr ref tuple
+  
   when hasFields:
     var subFieldWidgets: Table[string, Widget] = initTable[string, Widget]()
     for subFieldName, subFieldValue in field[].getIterator():      
@@ -242,26 +288,7 @@ proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
           insert(subFieldWidgets[subFieldName]) {.addRow.}
 
   else:
-    const typeName: string = $field[].type
-    return gui:
-      ActionRow:
-        title = fieldName
-        Label():
-          text = fmt"Override `toFormField` for '{typeName}'"
-          tooltip = fmt"""
-            The type '{typeName}' must implement a `toFormField` proc:
-            `toFormField(
-              state: Viewable, 
-              field: ptr {typeName}
-              fieldName: string, 
-            ): Widget`
-            state: The <Widget>State
-            field: The field's value to assign to/get the value from
-            fieldName: The name of the field on `state` for which the current form field is being generated
-            
-            Implementing the proc will override this dummy Widget.
-            See the playground module for examples.
-          """
+    return state.toPlaceHolderFormField(field, fieldName)
 
 proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignoreFields: static seq[string]): Widget =
   ## Provides a form for every field in a given `app` instance.
