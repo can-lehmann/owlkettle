@@ -64,8 +64,8 @@ method view(app: AppState): Widget =
           style = [ButtonFlat]
           proc clicked() = echo "Clicked 2"
         
-        
-        Box() {.addTitle.}:
-          Label(text = "Title Widget")
-          Icon(name="go-home-symbolic") {.expand: false.}
+        if AdwVersion >= (1, 4):
+          Box() {.addTitle.}:
+            Label(text = "Title Widget")
+            Icon(name="go-home-symbolic") {.expand: false.}
 adw.brew(gui(App()))
