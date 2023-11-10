@@ -1665,7 +1665,7 @@ A Bar for actions to execute in a given context. Can be hidden with intro- and o
 - `centerWidget: Widget`
 - `packStart: seq[Widget]` Widgets shown on the start of the ActionBar
 - `packEnd: seq[Widget]` Widgets shown on the end of the ActionBar
-- `revealed: bool`
+- `revealed: bool = true`
 
 ###### Adders
 
