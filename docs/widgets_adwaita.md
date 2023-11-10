@@ -1,14 +1,13 @@
 # Libadwaita Widgets
 
 
-## WindowSurface
+## AdwWindow
 
 ```nim
-renderable WindowSurface of BaseWindow
+renderable AdwWindow of BaseWindow
 ```
 
 A Window that does not have a title bar.
-A WindowSurface is equivalent to an `Adw.Window`.
 
 ###### Fields
 
@@ -24,7 +23,7 @@ A WindowSurface is equivalent to an `Adw.Window`.
 ###### Example
 
 ```nim
-WindowSurface:
+AdwWindow:
   Box:
     orient = OrientX
     Box {.expand: false.}:
@@ -364,6 +363,42 @@ Flap:
       text = "Content ".repeat(10)
       wrap = true
 ```
+
+
+## AdwHeaderBar
+
+```nim
+renderable AdwHeaderBar of BaseWidget
+```
+
+Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `packLeft: seq[Widget]`
+- `packRight: seq[Widget]`
+- `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
+- `decorationLayout: Option[string] = none(string)`
+- `showRightButtons: bool = true` Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+- `showLeftButtons: bool = true` Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+- `titleWidget: Widget` A widget for the title. Replaces the title string, if there is one.
+- `showBackButton: bool = true`
+- `showTitle: bool = true` Determines whether to show or hide the title
+
+###### Setters
+
+- `windowControls: DecorationLayout`
+- `windowControls: Option[DecorationLayout]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addLeft` Adds a widget to the left side of the HeaderBar.
+
+- `addRight` Adds a widget to the right side of the HeaderBar.
+
+- `addTitle`
 
 
 ## SplitButton

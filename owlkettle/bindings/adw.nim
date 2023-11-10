@@ -33,6 +33,10 @@ const AdwVersion* = (AdwMajor, AdwMinor)
 type
   StyleManager* = distinct pointer
   
+  CenteringPolicy* = enum
+    CenteringPolicyLoose
+    CenteringPolicyStrict
+  
   ColorScheme* = enum
     ColorSchemeDefault,
     ColorSchemeForceLight,
@@ -165,6 +169,21 @@ proc adw_status_page_set_description*(self: GtkWidget, description: cstring)
 proc adw_status_page_set_icon_name*(self: GtkWidget, icon_name: cstring)
 proc adw_status_page_set_paintable*(self: GtkWidget, paintable: GtkWidget)
 proc adw_status_page_set_title*(self: GtkWidget, title: cstring)
+
+# Adw.HeaderBar
+proc adw_header_bar_new*(): GtkWidget
+proc adw_header_bar_pack_end*(self, child: GtkWidget)
+proc adw_header_bar_pack_start*(self, child: GtkWidget)
+proc adw_header_bar_remove*(self, child: GtkWidget)
+proc adw_header_bar_set_centering_policy*(self: GtkWidget, centering_policy: CenteringPolicy)
+proc adw_header_bar_set_decoration_layout*(self: GtkWidget, layout: cstring)
+proc adw_header_bar_set_show_end_title_buttons*(self: GtkWidget, setting: cbool)
+proc adw_header_bar_set_show_start_title_buttons*(self: GtkWidget, setting: cbool)
+proc adw_header_bar_set_title_widget*(self, title_widget: GtkWidget)
+
+when AdwVersion >= (1, 4):
+  proc adw_header_bar_set_show_back_button*(self: GtkWidget, show_back_button: cbool)
+  proc adw_header_bar_set_show_title*(self: GtkWidget, show_title: cbool)
 
 when AdwVersion >= (1, 2):
   # Adw.AboutWindow
