@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -986,11 +986,29 @@ proc updateChild*(state: Renderable,
       child.expand = updater.expand
       gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
 
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
+
+proc toLayoutString*(layout: DecorationLayout): string =
+  let leftButtons: string = layout.left.mapIt($it).join(",")
+  let rightButtons: string = layout.right.mapIt($it).join(",")
+  return fmt"{leftButtons}:{rightButtons}"
+
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
+  decorationLayout: Option[string] = none(string)
   left: seq[Widget]
   right: seq[Widget]
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
   
   hooks:
     beforeBuild:
@@ -1000,6 +1018,13 @@ renderable HeaderBar of BaseWidget:
     property:
       gtk_header_bar_set_show_title_buttons(state.internalWidget, cbool(ord(state.showTitleButtons)))
   
+  hooks decorationLayout:
+    property:
+      if state.decorationLayout.isSome():
+        gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        gtk_header_bar_set_decoration_layout(state.internalWidget, nil)
+
   hooks left:
     (build, update):
       state.updateChildren(
@@ -1062,6 +1087,16 @@ renderable HeaderBar of BaseWidget:
         Button {.addRight.}:
           icon = "open-menu-symbolic"
 
+proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
@@ -3413,6 +3448,43 @@ renderable BuiltinDialog of BaseWidget:
           gtk_style_context_add_class(ctx, cstring($styleClass))
   
   adder addButton
+
+proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
+  let
+    state = widget.build()
+    dialogState = state.unwrapRenderable()
+    window = app.unwrapInternalWidget()
+    dialog = state.unwrapInternalWidget()
+  gtk_window_set_transient_for(dialog, window)
+  gtk_window_set_modal(dialog, cbool(bool(true)))
+  gtk_window_present(dialog)
+  
+  proc destroyDialog(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
+    closed[] = true
+  
+  var closed = false
+  discard g_signal_connect(dialog, "destroy", destroyDialog , closed.addr)
+  
+  if dialogState of DialogState or dialogState of BuiltinDialogState:
+    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
+      res[] = responseId
+    
+    var res = low(cint)
+    discard g_signal_connect(dialog, "response", response, res.addr)
+    while res == low(cint):
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    if not closed:
+      gtk_window_destroy(dialog)
+    result = (toDialogResponse(res), state)
+  else:
+    while not closed:
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    result = (DialogResponse(), state)
+
 
 proc addButton*(dialog: BuiltinDialog, button: DialogButton) =
   dialog.hasButtons = true

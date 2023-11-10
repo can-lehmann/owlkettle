@@ -360,8 +360,14 @@ renderable HeaderBar of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `title: BoxChild[Widget]`
 - `showTitleButtons: bool = true`
+- `decorationLayout: Option[string] = none(string)`
 - `left: seq[Widget]`
 - `right: seq[Widget]`
+
+###### Setters
+
+- `windowControls: DecorationLayout`
+- `windowControls: Option[DecorationLayout]`
 
 ###### Adders
 
