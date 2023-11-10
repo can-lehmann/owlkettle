@@ -26,19 +26,21 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
+import std/[strutils, sequtils, strformat, options, sugar]
 
 export adw.StyleManager
 export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.CenteringPolicy
+export adw.AdwVersion
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
 
-renderable WindowSurface of BaseWindow:
+renderable AdwWindow of BaseWindow:
   ## A Window that does not have a title bar.
-  ## A WindowSurface is equivalent to an `Adw.Window`.
   content: Widget
   
   hooks:
@@ -52,12 +54,12 @@ renderable WindowSurface of BaseWindow:
   adder add:
     ## Adds a child to the window surface. Each window surface may only have one child.
     if widget.hasContent:
-      raise newException(ValueError, "Unable to add multiple children to a WindowSurface. Use a Box widget to display multiple widgets in a WindowSurface.")
+      raise newException(ValueError, "Unable to add multiple children to a AdwWindow. Use a Box widget to display multiple widgets in a AdwWindow.")
     widget.hasContent = true
     widget.valContent = child
   
   example:
-    WindowSurface:
+    AdwWindow:
       Box:
         orient = OrientX
         
@@ -633,6 +635,109 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
+renderable AdwHeaderBar of BaseWidget:
+  ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+  packLeft: seq[Widget]
+  packRight: seq[Widget]
+  centeringPolicy: CenteringPolicy = CenteringPolicyLoose
+  decorationLayout: Option[string] = none(string)
+  showRightButtons: bool = true ## Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+  showLeftButtons: bool = true ## Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+  titleWidget: Widget ## A widget for the title. Replaces the title string, if there is one.
+  showBackButton: bool = true
+  showTitle: bool = true ## Determines whether to show or hide the title
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_header_bar_new()
+  
+  hooks packRight:
+    (build, update):
+      state.updateChildren(
+        state.packRight,
+        widget.valPackRight,
+        adw_header_bar_pack_end,
+        adw_header_bar_remove
+      )
+      
+  hooks packLeft:
+    (build, update):
+      state.updateChildren(
+        state.packLeft,
+        widget.valPackLeft,
+        adw_header_bar_pack_start,
+        adw_header_bar_remove
+      )
+      
+  hooks centeringPolicy:
+    property:
+      adw_header_bar_set_centering_policy(state.internalWidget, state.centeringPolicy)
+  
+  hooks decorationLayout:
+    property:
+      if state.decorationLayout.isSome():
+        adw_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        adw_header_bar_set_decoration_layout(state.internalWidget, nil)
+  
+  hooks showRightButtons:
+    property:
+      adw_header_bar_set_show_end_title_buttons(state.internalWidget, state.showRightButtons.cbool)
+  
+  hooks showLeftButtons:
+    property:
+      adw_header_bar_set_show_start_title_buttons(state.internalWidget, state.showLeftButtons.cbool)
+  
+  hooks titleWidget:
+    (build, update):
+      state.updateChild(
+        state.titleWidget,
+        widget.valTitleWidget,
+        adw_header_bar_set_title_widget
+      )
+  
+  hooks showBackButton:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
+  
+  hooks showTitle:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
+  
+  adder addLeft:
+    ## Adds a widget to the left side of the HeaderBar.
+    widget.hasPackLeft = true
+    widget.valPackLeft.add(child)
+  
+  adder addRight:
+    ## Adds a widget to the right side of the HeaderBar.
+    widget.hasPackRight = true
+    widget.valPackRight.add(child)
+  
+  adder addTitle:
+    when AdwVersion >= (1, 4):
+      if widget.hasTitleWidget:
+        raise newException(ValueError, "Unable to add multiple children as title to HeaderBar. Use a Box widget to display multiple widgets.")
+      widget.hasTitleWidget = true
+      widget.valTitleWidget = child
+    else:
+      raise newException(ValueError, "Compile for Adwaita version 1.4 or higher with -d:adwMinor=4 to enable setting a Title Widget for Headerbar.")
+
+proc `hasWindowControls=`*(widget: AdwHeaderbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable SplitButton of BaseWidget:
   child: Widget
   popover: Widget
@@ -854,7 +959,7 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
           adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
   export Banner
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage
+export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
