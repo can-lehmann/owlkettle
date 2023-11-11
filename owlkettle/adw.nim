@@ -273,8 +273,8 @@ renderable ExpanderRow of PreferencesRow:
   expanded: bool = false
   enableExpansion: bool = true
   showEnableSwitch: bool = false
-  titleLines: int
-  subtitleLines: int
+  titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
+  subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
   
   hooks:
     beforeBuild:
