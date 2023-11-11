@@ -116,6 +116,7 @@ proc adw_expander_row_remove*(row, child: GtkWidget)
 proc adw_expander_row_set_enable_expansion*(self: GtkWidget, enable_expansion: cbool)
 proc adw_expander_row_set_expanded*(self: GtkWidget, expanded: cbool)
 proc adw_expander_row_set_show_enable_switch*(self: GtkWidget, show_enable_switch: cbool)
+proc adw_expander_row_get_expanded*(self: GtkWidget): cbool
 
 when AdwVersion >= (1, 3):
   proc adw_expander_row_set_subtitle_lines*(self: GtkWidget, subtitle_lines: cint)

@@ -276,10 +276,28 @@ renderable ExpanderRow of PreferencesRow:
   titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
   subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
   
+  proc expand(newExpandState: bool) ## Triggered when row gets expanded
+  
   hooks:
     beforeBuild:
       state.internalWidget = adw_expander_row_new()
-  
+    connectEvents:
+      proc expandCallback(
+        widget: GtkWidget,
+        pspec: pointer,
+        data: ptr EventObj[proc (isExpanded: bool)]
+      ) {.cdecl.} =
+        let isExpanded = bool(adw_expander_row_get_expanded(widget))
+        
+        let state = ExpanderRowState(data[].widget)
+        state.expanded = isExpanded
+        data[].callback(isExpanded)
+        data[].redraw()
+        
+      state.connect(state.expand, "notify::expanded", expandCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.expand)
+
   hooks subtitle:
     property:
       adw_expander_row_set_subtitle(state.internalWidget, state.subtitle.cstring)

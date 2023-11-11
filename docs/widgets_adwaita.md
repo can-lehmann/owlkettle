@@ -207,6 +207,10 @@ renderable ExpanderRow of PreferencesRow
 - `titleLines: int` Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
 - `subtitleLines: int` Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
 
+###### Events
+
+- expand: `proc (newExpandState: bool)` Triggered when row gets expanded
+
 ###### Adders
 
 - All adders from [PreferencesRow](#PreferencesRow)

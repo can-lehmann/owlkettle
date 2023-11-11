@@ -25,6 +25,8 @@ import owlkettle, owlkettle/[playground, adw]
 viewable App:
   subtitle: string = "a very long subtitle that benefits from expander row showing multiple lines for the subtitle by quite a bit and will be elipsized once the end of that line is reached. Some more text to demonstrate it elipsizing."
   enableExpansion: bool = true
+  expanded1: bool = false
+  expanded2: bool = false
   showEnableSwitch: bool = false
   titleLines: int = 0
   subtitleLines: int = 2
@@ -49,8 +51,13 @@ method view(app: AppState): Widget =
             enableExpansion = app.enableExpansion
             showEnableSwitch = app.showEnableSwitch
             titleLines = app.titleLines
+            expanded = app.expanded1
             subtitleLines = app.subtitleLines
-              
+            
+            proc expand(hasExpanded: bool) =
+              echo "Expanding First Expander: ", hasExpanded
+              app.expanded1 = hasExpanded
+            
             for it in 0..<3:
               ActionRow {.addRow.}:
                 title = "Nested Row " & $it
@@ -62,7 +69,12 @@ method view(app: AppState): Widget =
             showEnableSwitch = app.showEnableSwitch
             titleLines = app.titleLines
             subtitleLines = app.subtitleLines
+            expanded = app.expanded2
             
+            proc expand(hasExpanded: bool) =
+              echo "Expanding Second Expander: ", hasExpanded
+              app.expanded2 = hasExpanded
+              
             Button {.addAction.}:
               text = "Action"
             
