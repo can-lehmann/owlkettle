@@ -139,6 +139,35 @@ renderable Avatar of BaseWidget:
       size = 100
       showInitials = true
 
+renderable ButtonContent of BaseWidget:
+  label: string
+  iconName: string
+  useUnderline: bool ## Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you surround a part of the label text with `_` it will hide the `_` and activate the button if you press ALT + The first key of the surrounded label text. E.g. `_Button_ Text` will trigger the button when pressing `ALT + B`.
+  canShrink: bool ## Defines whether the ButtonContent can be smaller than the size of its contents. 
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_button_content_new()
+  
+  hooks label:
+    property:
+      adw_button_content_set_label(state.internalWidget, state.label.cstring)
+    
+  hooks iconName:
+    property:
+      adw_button_content_set_icon_name(state.internalWidget, state.iconName.cstring)
+    
+  hooks useUnderline:
+    property:
+      adw_button_content_set_use_underline(state.internalWidget, state.useUnderline.cbool)
+  
+  hooks canShrink:
+    property:
+      when AdwVersion >= (1, 3):
+        adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
+      else:
+        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the canShrink property for the ButtonContent widget.")
+
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
   child: Widget
@@ -910,7 +939,7 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
         when AdwVersion >= (1, 3):
           adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
   export Banner
-export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
