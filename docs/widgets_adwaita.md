@@ -87,6 +87,21 @@ Avatar:
 ```
 
 
+## ButtonContent
+
+```nim
+renderable ButtonContent of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `label: string`
+- `iconName: string`
+- `useUnderline: bool` Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you surround a part of the label text with `_` it will hide the `_` and activate the button if you press ALT + The first key of the surrounded label text. E.g. `_Button_ Text` will trigger the button when pressing `ALT + B`.
+- `canShrink: bool` Defines whether the ButtonContent can be smaller than the size of its contents.
+
+
 ## Clamp
 
 ```nim
