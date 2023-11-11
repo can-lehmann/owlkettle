@@ -270,6 +270,11 @@ renderable ExpanderRow of PreferencesRow:
   subtitle: string
   actions: seq[AlignedChild[Widget]]
   rows: seq[AlignedChild[Widget]]
+  expanded: bool = false
+  enableExpansion: bool = true
+  showEnableSwitch: bool = false
+  titleLines: int
+  subtitleLines: int
   
   hooks:
     beforeBuild:
@@ -298,6 +303,32 @@ renderable ExpanderRow of PreferencesRow:
         adw_expander_row_remove
       )
   
+  hooks expanded:
+    property:
+      adw_expander_row_set_expanded(state.internalWidget, state.expanded.cbool)
+      
+  hooks enableExpansion:
+    property:
+      adw_expander_row_set_enable_expansion(state.internalWidget, state.enableExpansion.cbool)
+        
+  hooks showEnableSwitch:
+    property:
+      adw_expander_row_set_show_enable_switch(state.internalWidget, state.showEnableSwitch.cbool)
+      
+  hooks titleLines:
+    property:
+      when AdwVersion >= (1, 3):
+        adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
+      else:
+        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the titleLines property of the ExpanderRow widget.")
+
+  hooks subtitleLines:
+    property:
+      when AdwVersion >= (1, 3):
+        adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
+      else:
+        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the subtitleLines property of the ExpanderRow widget.")
+
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
     widget.valActions.add(AlignedChild[Widget](
