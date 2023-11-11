@@ -230,7 +230,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/expander_row.nim">Expander Row</a></td>
-    <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="803px"></td>
+    <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="922px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/flap.nim">Flap</a></td>
