@@ -281,8 +281,13 @@ renderable ExpanderRow of PreferencesRow:
   
   hooks actions:
     (build, update):
+      const rowAdder = when AdwVersion >= (1, 4):
+          adw_expander_row_add_suffix
+        else:
+          adw_expander_row_add_action
+      
       state.updateAlignedChildren(state.actions, widget.valActions,
-        adw_expander_row_add_action,
+        rowAdder,
         adw_expander_row_remove
       )
   

@@ -110,10 +110,13 @@ proc adw_action_row_set_activatable_widget*(row, child: GtkWidget)
 # Adw.ExpanderRow
 proc adw_expander_row_new*(): GtkWidget
 proc adw_expander_row_set_subtitle*(row: GtkWidget, subtitle: cstring)
-proc adw_expander_row_add_action*(row, child: GtkWidget)
 proc adw_expander_row_add_prefix*(row, child: GtkWidget)
 proc adw_expander_row_add_row*(expanderRow, row: GtkWidget)
 proc adw_expander_row_remove*(row, child: GtkWidget)
+when AdwVersion >= (1, 4):
+  proc adw_expander_row_add_suffix*(row, child: GtkWidget)
+else:
+  proc adw_expander_row_add_action*(row, child: GtkWidget)
 
 # Adw.ComboRow
 proc adw_combo_row_new*(): GtkWidget
