@@ -28,6 +28,9 @@ import bindings/gtk
 
 customPragmas()
 
+proc newGtkWidget*(className: string): GtkWidget =
+  GtkWidget(g_object_new(g_type_from_name(className), nil))
+
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
     raise newException(ValueError, "App is nil")

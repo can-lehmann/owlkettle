@@ -2104,7 +2104,7 @@ renderable ModelButton of BaseWidget:
   
   hooks:
     beforeBuild:
-      state.internalWidget = GtkWidget(g_object_new(g_type_from_name("GtkModelButton"), nil))
+      state.internalWidget = newGtkWidget("GtkModelButton")
     connectEvents:
       state.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
