@@ -82,6 +82,14 @@ proc adw_avatar_set_size*(avatar: GtkWidget, size: cint)
 proc adw_avatar_set_text*(avatar: GtkWidget, text: cstring)
 proc adw_avatar_set_icon_name*(avatar: GtkWidget, iconName: cstring)
 
+# Adw.ButtonContent
+proc adw_button_content_new*(): GtkWidget
+proc adw_button_content_set_icon_name*(self: GtkWidget, icon_name: cstring)
+proc adw_button_content_set_label*(self: GtkWidget, label: cstring)
+proc adw_button_content_set_use_underline*(self: GtkWidget, use_underline: cbool)
+when AdwVersion >= (1, 4):
+  proc adw_button_content_set_can_shrink*(self: GtkWidget, can_shrink: cbool)
+
 # Adw.Clamp
 proc adw_clamp_new*(): GtkWidget
 proc adw_clamp_set_child*(clamp, child: GtkWidget)
