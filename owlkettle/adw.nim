@@ -163,7 +163,7 @@ renderable ButtonContent of BaseWidget:
   
   hooks canShrink:
     property:
-      when AdwVersion >= (1, 3):
+      when AdwVersion >= (1, 4):
         adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
 
 renderable Clamp of BaseWidget:
