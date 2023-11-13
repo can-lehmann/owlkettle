@@ -273,8 +273,8 @@ renderable ExpanderRow of PreferencesRow:
   expanded: bool = false
   enableExpansion: bool = true
   showEnableSwitch: bool = false
-  titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
-  subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
+  titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
   
   proc expand(newExpandState: bool) ## Triggered when row gets expanded
   
@@ -338,14 +338,14 @@ renderable ExpanderRow of PreferencesRow:
       when AdwVersion >= (1, 3):
         adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
       else:
-        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the titleLines property of the ExpanderRow widget.")
+        discard
 
   hooks subtitleLines:
     property:
       when AdwVersion >= (1, 3):
         adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
       else:
-        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the subtitleLines property of the ExpanderRow widget.")
+        discard
 
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
