@@ -166,7 +166,7 @@ renderable ButtonContent of BaseWidget:
       when AdwVersion >= (1, 3):
         adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
       else:
-        raise newException(ValueError, "Compile for Adwaita version 1.3 or higher with -d:adwMinor=3 to enable the canShrink property for the ButtonContent widget.")
+        discard
 
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
