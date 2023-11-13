@@ -337,15 +337,11 @@ renderable ExpanderRow of PreferencesRow:
     property:
       when AdwVersion >= (1, 3):
         adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
-      else:
-        discard
 
   hooks subtitleLines:
     property:
       when AdwVersion >= (1, 3):
         adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
-      else:
-        discard
 
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
