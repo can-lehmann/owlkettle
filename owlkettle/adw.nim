@@ -143,7 +143,7 @@ renderable ButtonContent of BaseWidget:
   label: string
   iconName: string
   useUnderline: bool ## Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
-  canShrink: bool ## Defines whether the ButtonContent can be smaller than the size of its contents. 
+  canShrink: bool ## Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
   
   hooks:
     beforeBuild:
