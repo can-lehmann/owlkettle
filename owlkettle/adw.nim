@@ -165,8 +165,6 @@ renderable ButtonContent of BaseWidget:
     property:
       when AdwVersion >= (1, 3):
         adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
-      else:
-        discard
 
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
