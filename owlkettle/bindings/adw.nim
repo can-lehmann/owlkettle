@@ -62,6 +62,9 @@ type
 # Adw
 proc adw_init*()
 
+# Adw.Application
+proc adw_application_new*(id: cstring, flags: GApplicationFlags): GApplication
+
 # Adw.StyleManager
 proc adw_style_manager_get_default*(): StyleManager
 proc adw_style_manager_set_color_scheme*(manager: StyleManager, colorScheme: ColorScheme)

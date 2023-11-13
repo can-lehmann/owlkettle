@@ -937,19 +937,54 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
         when AdwVersion >= (1, 3):
           adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
   export Banner
+
 export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+
+type AdwAppConfig = object of AppConfig
+  colorScheme: ColorScheme
+
+proc setupApp(config: AdwAppConfig): WidgetState =
+  let styleManager = adw_style_manager_get_default()
+  adw_style_manager_set_color_scheme(styleManager, config.colorScheme)
+  result = setupApp(AppConfig(config))
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
-  let styleManager = adw_style_manager_get_default()
-  adw_style_manager_set_color_scheme(styleManager, colorScheme)
-  let state = setupApp(AppConfig(
+  let state = setupApp(AdwAppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: false,
+    darkTheme: false,
+    colorScheme: colorScheme,
     stylesheets: @stylesheets
   ))
   runMainloop(state)
+
+proc brew*(id: string,
+           widget: Widget,
+           icons: openArray[string] = [],
+           colorScheme: ColorScheme = ColorSchemeDefault,
+           stylesheets: openArray[Stylesheet] = []) =
+  var config = AdwAppConfig(
+    widget: widget,
+    icons: @icons,
+    darkTheme: false,
+    colorScheme: colorScheme,
+    stylesheets: @stylesheets
+  )
+  
+  proc activateCallback(app: GApplication, data: ptr AdwAppConfig) {.cdecl.} =
+    let
+      state = setupApp(data[])
+      window = state.unwrapRenderable().internalWidget
+    gtk_window_present(window)
+    gtk_application_add_window(app, window)
+  
+  let app = adw_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
+  defer: g_object_unref(app.pointer)
+  
+  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  discard g_application_run(app)
+
