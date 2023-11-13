@@ -30,23 +30,29 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
+    Window:
       defaultSize = (500, 150)
       title = "ButtonContent Example"
-      HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
       
-      Box(orient = OrientX):
-        Box(orient = OrientY):
-          Label(text = "Press Alt + B to activate the Button!")
-          Button() {.expand: false.}:
-            proc clicked() =
-              echo "Button was activated"
-              
-            ButtonContent():
-              label = app.label
-              iconName = app.iconName
-              useUnderline = app.useUnderline
-              canShrink = app.canShrink
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))) {.addRight.}
+      
+      Box:
+        orient = OrientY
+        margin = 12
+        spacing = 6
+        
+        Button {.hAlign: AlignCenter, vAlign: AlignCenter.}:
+          ButtonContent:
+            label = app.label
+            iconName = app.iconName
+            useUnderline = app.useUnderline
+            canShrink = app.canShrink
+          
+          proc clicked() =
+            echo "Button clicked"
+        
+        Label {.expand: false.}:
+          text = "Press Alt + B to activate the Button!"
 
 adw.brew(gui(App()))
