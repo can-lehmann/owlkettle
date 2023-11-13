@@ -23,7 +23,7 @@
 import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  label: string = "_Button_ Text"
+  label: string = "_Button Text"
   iconName: string = "go-home-symbolic"
   useUnderline: bool = true
   canShrink: bool = true
