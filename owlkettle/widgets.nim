@@ -2112,21 +2112,15 @@ renderable ModelButton of BaseWidget:
   
   hooks text:
     property:
-      var value = g_value_new(state.text)
-      g_object_set_property(state.internalWidget.pointer, "text", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("text", state.text)
   
   hooks icon:
     property:
-      var value = g_value_new(state.icon.len > 0)
-      g_object_set_property(state.internalWidget.pointer, "iconic", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("iconic", state.icon.len > 0)
       if state.icon.len > 0:
         var err: GError
         let icon = g_icon_new_for_string(state.icon.cstring, err.addr)
-        var value = g_value_new(icon)
-        g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
-        g_value_unset(value.addr)
+        pointer(state.internalWidget).setProperty("icon", icon)
   
   hooks menuName:
     property:
@@ -2141,9 +2135,7 @@ renderable ModelButton of BaseWidget:
   
   hooks shortcut:
     property:
-      var value = g_value_new(state.shortcut)
-      g_object_set_property(state.internalWidget.pointer, "accel", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("accel", state.shortcut)
   
   example:
     PopoverMenu:
@@ -2227,6 +2219,14 @@ renderable Separator of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
+# renderable ShortcutsShortcut of BaseWidget:
+  
+  
+#   hooks:
+#     beforeBuild:
+#       state.internalWidget = newGtkWidget("ShortcutsWindow")
+      
+
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,
@@ -2297,9 +2297,7 @@ proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
   result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)
   for attr, value in fieldPairs(style):
     if value.isSome:
-      var gvalue = g_value_new(get(value))
-      g_object_set_property(result.pointer, attr.cstring, gvalue.addr)
-      g_value_unset(gvalue.addr)
+      pointer(result).setProperty(attr, get(value))
 
 proc lookupTag*(buffer: TextBuffer, name: string): TextTag =
   let tab = gtk_text_buffer_get_tag_table(buffer.gtk)
@@ -4062,20 +4060,15 @@ renderable PasswordEntry of BaseWidget:
   
   hooks activatesDefault:
     property:
-      var value = g_value_new(state.activatesDefault)
-      g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("activates-default", state.activatesDefault)
 
   hooks placeholderText:
     property:
-      var value = g_value_new(state.placeholderText)
-      g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("placeholder-text", state.placeholderText)
 
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
-  
   
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task

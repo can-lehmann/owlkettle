@@ -31,6 +31,24 @@ customPragmas()
 proc newGtkWidget*(className: string): GtkWidget =
   GtkWidget(g_object_new(g_type_from_name(className), nil))
 
+proc setProperty*[T](obj: pointer, propertyName: string, value: T) =
+  var value = g_value_new(value)
+  
+  g_object_set_property(
+    obj,
+    propertyName.cstring,
+    value.addr
+  )
+  
+  g_value_unset(value.addr)
+
+proc setProperty*[T](widget: GtkWidget, propertyName: string, value: T) =
+  (widget.pointer).setProperty[T](propertyName, value)
+
+proc setProperty*[T](widget: WidgetState, propertyName: string, value: T) =
+  (widget.unwrapInternalWidget()).setProperty[T](propertyName, value)
+
+
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
     raise newException(ValueError, "App is nil")
