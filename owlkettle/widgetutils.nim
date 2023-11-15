@@ -42,11 +42,8 @@ proc setProperty*[T](obj: pointer, propertyName: string, value: T) =
   
   g_value_unset(value.addr)
 
-proc setProperty*[T](widget: GtkWidget, propertyName: string, value: T) =
-  (widget.pointer).setProperty[T](propertyName, value)
-
-proc setProperty*[T](widget: WidgetState, propertyName: string, value: T) =
-  (widget.unwrapInternalWidget()).setProperty[T](propertyName, value)
+proc setProperty*(widget: pointer, propertyName: string, value: enum) =
+  (widget.pointer).setProperty(propertyName, ord(value))
 
 
 proc redraw*[T](event: EventObj[T]) =

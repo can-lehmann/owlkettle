@@ -2219,14 +2219,64 @@ renderable Separator of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
-# renderable ShortcutsShortcut of BaseWidget:
-  
-  
-#   hooks:
-#     beforeBuild:
-#       state.internalWidget = newGtkWidget("ShortcutsWindow")
-      
+type TextDirection* = enum
+  None
+  LeftToRight
+  RightToLeft
 
+type ShortcutType* = enum
+  Accelerator
+  GesturePinch
+  GestureStretch
+  GestureRotateClockwise
+  GestureRotateCounterclockwise
+  GestureTwoFingerSwipeLeft
+  GestureTwoFingerSwipeRight
+  Gesture
+  GestureSwipeLeft
+  GestureSwipeRight
+
+renderable ShortcutsShortcut:
+  # accelSizeGroup: ???
+  accelerator: string
+  actionName: string
+  direction: TextDirection
+  # icon: ???
+  shortcutType: ShortcutType
+  subtitle: string
+  title: string
+  # titleSizeGroup: ???
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = g_object_new(gtk_shortcuts_shortcut_get_type(), nil).GtkWidget
+
+  
+  hooks accelerator:
+    property:
+      pointer(state.internalWidget).setProperty("accelerator", state.accelerator)
+  
+  hooks actionName:
+    property:
+      pointer(state.internalWidget).setProperty("action-name", state.actionName)
+  
+  hooks direction:
+    property:
+      pointer(state.internalWidget).setProperty("direction", state.direction)
+  
+  hooks shortcutType:
+    property:
+      pointer(state.internalWidget).setProperty("shortcut-type", state.shortcutType)
+  
+  hooks subtitle:
+    property:
+      pointer(state.internalWidget).setProperty("subtitle", state.subtitle)
+  
+  hooks title:
+    property:
+      pointer(state.internalWidget).setProperty("title", state.title)
+
+export ShortcutsShortcut
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,

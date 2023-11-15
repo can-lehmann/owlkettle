@@ -130,6 +130,23 @@ type
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
   
+  GtkShortcutType* = enum
+    GTK_SHORTCUT_ACCELERATOR
+    GTK_SHORTCUT_GESTURE_PINCH
+    GTK_SHORTCUT_GESTURE_STRETCH
+    GTK_SHORTCUT_GESTURE_ROTATE_CLOCKWISE
+    GTK_SHORTCUT_GESTURE_ROTATE_COUNTERCLOCKWISE
+    GTK_SHORTCUT_GESTURE_TWO_FINGER_SWIPE_LEFT
+    GTK_SHORTCUT_GESTURE_TWO_FINGER_SWIPE_RIGHT
+    GTK_SHORTCUT_GESTURE
+    GTK_SHORTCUT_GESTURE_SWIPE_LEFT
+    GTK_SHORTCUT_GESTURE_SWIPE_RIGHT
+  
+  GtkTextDirection* = enum
+    GTK_TEXT_DIR_NONE
+    GTK_TEXT_DIR_LTR
+    GTK_TEXT_DIR_RTL
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -855,7 +872,7 @@ proc gtk_shortcut_action_parse_string*(str: cstring): GtkShortcutAction
 
 # Gtk.Shortcut
 proc gtk_shortcut_new*(trigger: GtkShortcutTrigger, action: GtkShortcutAction): GtkShortcut
-
+proc gtk_shortcuts_shortcut_get_type*(): GType
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
 proc gtk_color_chooser_get_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
