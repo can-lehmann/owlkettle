@@ -561,6 +561,11 @@ renderable EditableLabel of BaseWidget:
     property:
       gtk_editable_set_alignment(state.internalWidget, state.alignment.cfloat)
 
+## TODO: Memo to myself, make everythin in owlkettle use this
+proc newIcon*(iconName: string): GIcon =
+  var err = GError(nil)
+  return g_icon_new_for_string(iconName.cstring, err.addr)
+
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
   pixelSize: int = -1 ## Determines the size of the icon
@@ -2236,33 +2241,39 @@ type ShortcutType* = enum
   GestureSwipeLeft
   GestureSwipeRight
 
+type ShortcutModifier* = enum
+  Primary
+  Shift
+  Ctrl
+
+type Shortcut* = tuple[modifiers: seq[ShortcutModifier], key: string]
+
 renderable ShortcutsShortcut:
-  # accelSizeGroup: ???
-  accelerator: string
-  actionName: string
+  accelerator: string ## String representing the keypresses needed to trigger the shortcut. Only necessary if this is an Accelerator shortcut aka one triggered via a combination of keys. Consists of at least one key and maybe one or more modifiers (e.g. Shift). The format is "<'Modifier'>'Key'", e.g. "<Shift>H" for the shortcut "Shift + H" or "<Shift><Ctrl>H" for the shortcut "Shift + Ctrl + H".
   direction: TextDirection
-  # icon: ???
-  shortcutType: ShortcutType
+  icon: string ## Only relevant if shortcutType == Gesture. Shows an icon for a given gesture shortcut.
+  shortcutType: ShortcutType ## The type of shortcut. This influences what gets shown next to the title and subtitle. 'Accelerator' represents a shortcut made of keypresses. It displays the keypresses needed to trigger the shortcut. Gesture<X> represents a touch gesture. It displays the gesture in question graphically. If the value is Gesture it displays the icon provided in `icon`.
   subtitle: string
   title: string
-  # titleSizeGroup: ???
+  
+  setter hotkey: Shortcut
   
   hooks:
     beforeBuild:
       state.internalWidget = g_object_new(gtk_shortcuts_shortcut_get_type(), nil).GtkWidget
-
   
   hooks accelerator:
     property:
       pointer(state.internalWidget).setProperty("accelerator", state.accelerator)
-  
-  hooks actionName:
-    property:
-      pointer(state.internalWidget).setProperty("action-name", state.actionName)
-  
+
   hooks direction:
     property:
       pointer(state.internalWidget).setProperty("direction", state.direction)
+    
+  hooks icon:
+    property:
+      pointer(state.internalWidget).setProperty("icon", newIcon(state.icon))
+      pointer(state.internalWidget).setProperty("icon-set", true)
   
   hooks shortcutType:
     property:
@@ -2271,11 +2282,19 @@ renderable ShortcutsShortcut:
   hooks subtitle:
     property:
       pointer(state.internalWidget).setProperty("subtitle", state.subtitle)
+      pointer(state.internalWidget).setProperty("subtitle-set", true)
   
   hooks title:
     property:
       pointer(state.internalWidget).setProperty("title", state.title)
 
+proc `hasHotkey=`*(shortcut: ShortcutsShortcut, has: bool) =
+  shortcut.hasAccelerator = has
+
+proc `valHotkey=`*(shortcut: ShortcutsShortcut, keys: Shortcut) =
+  let modifierStr = keys.modifiers.mapIt(fmt"<{it}>").join()
+  shortcut.valAccelerator = modifierStr & keys.key
+  
 export ShortcutsShortcut
 type
   UnderlineKind* = enum
