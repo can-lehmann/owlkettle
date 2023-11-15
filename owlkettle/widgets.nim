@@ -2248,7 +2248,7 @@ type ShortcutModifier* = enum
 
 type Shortcut* = tuple[modifiers: seq[ShortcutModifier], key: string]
 
-renderable ShortcutsShortcut:
+renderable ShortcutsShortcut of BaseWidget:
   accelerator: string ## String representing the keypresses needed to trigger the shortcut. Only necessary if this is an Accelerator shortcut aka one triggered via a combination of keys. Consists of at least one key and maybe one or more modifiers (e.g. Shift). The format is "<'Modifier'>'Key'", e.g. "<Shift>H" for the shortcut "Shift + H" or "<Shift><Ctrl>H" for the shortcut "Shift + Ctrl + H".
   direction: TextDirection
   icon: string ## Only relevant if shortcutType == Gesture. Shows an icon for a given gesture shortcut.
@@ -2294,8 +2294,9 @@ proc `hasHotkey=`*(shortcut: ShortcutsShortcut, has: bool) =
 proc `valHotkey=`*(shortcut: ShortcutsShortcut, keys: Shortcut) =
   let modifierStr = keys.modifiers.mapIt(fmt"<{it}>").join()
   shortcut.valAccelerator = modifierStr & keys.key
-  
-export ShortcutsShortcut
+
+renderable 
+
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,
@@ -4399,3 +4400,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export ShortcutsShortcut
