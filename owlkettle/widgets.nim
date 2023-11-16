@@ -2245,6 +2245,7 @@ type ShortcutModifier* = enum
   Primary
   Shift
   Ctrl
+  Alt
 
 type Shortcut* = tuple[modifiers: seq[ShortcutModifier], key: string]
 
