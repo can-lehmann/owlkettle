@@ -2319,8 +2319,10 @@ proc toNode(window: auto): XMLNode =
   result = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
   
   result.addProperty(window, "SectionName")
-  result.addProperty(window, "ViewName")
-  
+  result.addProperty(window, "Modal")
+  let modalValue = if window.hasModal: window.valModal else: true
+  let modalNode = newNode(Property, {"name": "Modal".toKebapCase()}.toXmlAttributes(), $(modalValue.int)) 
+  result.add(modalNode)
   result.addChildNodes(window, "Sections")
   
 proc toShortcutsWindowUiString(window: auto): string =
@@ -2331,10 +2333,12 @@ renderable ShortcutsWindow:
   sections: seq[ShortcutsSection]
   sectionName: string
   viewName: string
+  modal: bool = true
   
   hooks:
     beforeBuild:
       let uiString = widget.toShortcutsWindowUiString()
+      echo uiString
       state.internalWidget = newWidgetFromString(uiString, "widget")
   
   adder add:
