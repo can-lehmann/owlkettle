@@ -25,7 +25,7 @@
 import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, cairo, widgetutils, common
+import widgetdef, cairo, widgetutils, common, builder
 import bindings/gtk
 
 customPragmas()
@@ -2248,7 +2248,7 @@ type ShortcutModifier* = enum
 
 type Shortcut* = tuple[modifiers: seq[ShortcutModifier], key: string]
 
-renderable ShortcutsShortcut of BaseWidget:
+renderable ShortcutsShortcut:
   accelerator: string ## String representing the keypresses needed to trigger the shortcut. Only necessary if this is an Accelerator shortcut aka one triggered via a combination of keys. Consists of at least one key and maybe one or more modifiers (e.g. Shift). The format is "<'Modifier'>'Key'", e.g. "<Shift>H" for the shortcut "Shift + H" or "<Shift><Ctrl>H" for the shortcut "Shift + Ctrl + H".
   direction: TextDirection
   icon: string ## Only relevant if shortcutType == Gesture. Shows an icon for a given gesture shortcut.
@@ -2257,36 +2257,6 @@ renderable ShortcutsShortcut of BaseWidget:
   title: string
   
   setter hotkey: Shortcut
-  
-  hooks:
-    beforeBuild:
-      state.internalWidget = g_object_new(gtk_shortcuts_shortcut_get_type(), nil).GtkWidget
-  
-  hooks accelerator:
-    property:
-      pointer(state.internalWidget).setProperty("accelerator", state.accelerator)
-
-  hooks direction:
-    property:
-      pointer(state.internalWidget).setProperty("direction", state.direction)
-    
-  hooks icon:
-    property:
-      pointer(state.internalWidget).setProperty("icon", newIcon(state.icon))
-      pointer(state.internalWidget).setProperty("icon-set", true)
-  
-  hooks shortcutType:
-    property:
-      pointer(state.internalWidget).setProperty("shortcut-type", state.shortcutType)
-  
-  hooks subtitle:
-    property:
-      pointer(state.internalWidget).setProperty("subtitle", state.subtitle)
-      pointer(state.internalWidget).setProperty("subtitle-set", true)
-  
-  hooks title:
-    property:
-      pointer(state.internalWidget).setProperty("title", state.title)
 
 proc `hasHotkey=`*(shortcut: ShortcutsShortcut, has: bool) =
   shortcut.hasAccelerator = has
@@ -2295,8 +2265,50 @@ proc `valHotkey=`*(shortcut: ShortcutsShortcut, keys: Shortcut) =
   let modifierStr = keys.modifiers.mapIt(fmt"<{it}>").join()
   shortcut.valAccelerator = modifierStr & keys.key
 
-renderable 
+renderable ShortcutsGroup:
+  shortcuts: seq[ShortcutsShortcut]
+  height: int
+  title: string
+  view: string
+  
+  adder add:
+    widget.hasShortcuts = true
+    widget.valShortcuts.add(child.ShortcutsShortcut)
 
+renderable ShortcutsSection:
+  groups: seq[ShortcutsGroup]
+  maxHeight: int
+  actionName: string
+  title: string
+  viewName: string
+  
+  adder add:
+    widget.hasGroups = true
+    widget.valGroups.add(child.ShortcutsGroup)
+
+export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection
+
+proc generateShortcutsWindow(sections: seq[ShortcutsSection]): string =
+  ## Do the actual implementation
+  for section in sections:
+    echo section.repr
+  
+  const uiString = staticRead("/home/philipp/dev/owlkettle/example.ui")
+  return uiString
+
+renderable ShortcutsWindow:
+  sections: seq[ShortcutsSection]
+  
+  hooks:
+    beforeBuild:
+      let uiString = generateShortcutsWindow(widget.valSections)
+      state.internalWidget = newWidgetFromString(uiString, "widget")
+
+  adder add:
+    widget.hasSections = true
+    widget.valSections.add(child.ShortcutsSection)
+
+export ShortcutsWindow
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,
