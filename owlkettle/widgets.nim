@@ -2278,7 +2278,7 @@ renderable ShortcutsGroup:
 renderable ShortcutsSection:
   groups: seq[ShortcutsGroup]
   maxHeight: int
-  actionName: string
+  sectionName: string
   title: string
   viewName: string
   
@@ -2328,7 +2328,7 @@ proc toNode(section: ShortcutsSection, translatable = false): XMLNode =
   result.attrs = {"class": "GtkShortcutsSection"}.toXMLAttributes()
   
   result.addProperty(section, "MaxHeight")
-  result.addProperty(section, "ActionName")
+  result.addProperty(section, "SectionName")
   result.addProperty(section, "Title")
   result.addProperty(section, "ViewName")
   
@@ -2345,11 +2345,7 @@ proc generateShortcutsWindow(window: auto, translatable = false): string =
   
   rootNode.add(windowNode)
   
-  let generatedUIString = fmt"{xmlHeader}{rootNode}"
-  echo generatedUIString
-  
-  const uiString = staticRead("/home/philipp/dev/owlkettle/example.ui")
-  return generatedUiString
+  return fmt"{xmlHeader}{rootNode}"  
 
 renderable ShortcutsWindow:
   sections: seq[ShortcutsSection]
