@@ -2225,21 +2225,21 @@ renderable Separator of BaseWidget:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
 type TextDirection* = enum
-  None
-  LeftToRight
-  RightToLeft
+  None = "none"
+  LeftToRight = "ltr"
+  RightToLeft = "rtl"
 
 type ShortcutType* = enum
-  Accelerator
-  GesturePinch
-  GestureStretch
-  GestureRotateClockwise
-  GestureRotateCounterclockwise
-  GestureTwoFingerSwipeLeft
-  GestureTwoFingerSwipeRight
-  Gesture
-  GestureSwipeLeft
-  GestureSwipeRight
+  Accelerator = "accelerator"
+  GesturePinch = "gesture-pinch"
+  GestureStretch = "gesture-stretch"
+  GestureRotateClockwise = "gesture-rotate-clockwise"
+  GestureRotateCounterclockwise = "gesture-rotate-counterclockwise"
+  GestureTwoFingerSwipeLeft = "gesture-two-finger-swipe-left"
+  GestureTwoFingerSwipeRight = "gesture-two-finger-swipe-right"
+  Gesture = "gesture"
+  GestureSwipeLeft = "gesture-swipe-left"
+  GestureSwipeRight = "gesture-swipe-right"
 
 type ShortcutModifier* = enum
   Primary
@@ -2288,22 +2288,76 @@ renderable ShortcutsSection:
 
 export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection
 
-proc generateShortcutsWindow(sections: seq[ShortcutsSection]): string =
+proc addChildNodes(
+  rootNode: XMLNode,
+  obj: ref object,
+  propertyName: static string
+) =
+  let hasValue = obj.getField("has" & propertyName)
+  if not hasValue:
+    return
+  
+  for childObj in obj.getField("val" & propertyName):
+    let childNode = newElement("child")
+    childNode.add(childObj.toNode())
+    rootNode.add(childNode)
+
+proc toNode(shortcut: ShortcutsShortcut, translatable = false): XMLNode =
+  result = newElement("object")
+  result.attrs = {"class": "GtkShortcutsShortcut"}.toXmlAttributes()
+  
+  result.addProperty(shortcut, "Accelerator")
+  result.addProperty(shortcut, "Direction")
+  result.addProperty(shortcut, "Icon")
+  result.addProperty(shortcut, "ShortcutType")
+  result.addProperty(shortcut, "Subtitle", translatable = translatable)
+  result.addProperty(shortcut, "Title", translatable = translatable)
+    
+proc toNode(group: ShortcutsGroup, translatable = false): XMLNode =
+  result = newElement("object")
+  result.attrs = {"class": "GtkShortcutsGroup"}.toXmlAttributes()
+  
+  result.addProperty(group, "Height")
+  result.addProperty(group, "Title")
+  result.addProperty(group, "View")
+  
+  result.addChildNodes(group, "Shortcuts")
+  
+proc toNode(section: ShortcutsSection, translatable = false): XMLNode =
+  result = newElement("object")
+  result.attrs = {"class": "GtkShortcutsSection"}.toXMLAttributes()
+  
+  result.addProperty(section, "MaxHeight")
+  result.addProperty(section, "ActionName")
+  result.addProperty(section, "Title")
+  result.addProperty(section, "ViewName")
+  
+  result.addChildNodes(section, "Groups")
+      
+proc generateShortcutsWindow(window: auto, translatable = false): string =
   ## Do the actual implementation
-  for section in sections:
-    echo section.repr
+  let rootNode = newElement("interface")
+  
+  let windowNode = newElement("object")
+  windowNode.attrs = {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes()
+    
+  windowNode.addChildNodes(window, "Sections")
+  
+  rootNode.add(windowNode)
+  
+  let generatedUIString = fmt"{xmlHeader}{rootNode}"
+  echo generatedUIString
   
   const uiString = staticRead("/home/philipp/dev/owlkettle/example.ui")
-  return uiString
+  return generatedUiString
 
 renderable ShortcutsWindow:
   sections: seq[ShortcutsSection]
   
   hooks:
     beforeBuild:
-      let uiString = generateShortcutsWindow(widget.valSections)
+      let uiString = widget.generateShortcutsWindow()
       state.internalWidget = newWidgetFromString(uiString, "widget")
-
   adder add:
     widget.hasSections = true
     widget.valSections.add(child.ShortcutsSection)

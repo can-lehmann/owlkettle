@@ -1,4 +1,6 @@
 import ./bindings/gtk
+import std/[strutils, re, macros, xmltree]
+export xmltree
 
 type 
   BuilderObj = object
@@ -37,3 +39,32 @@ proc newWidgetFromFile*(fileName: string, id: string = "widget"): GtkWidget =
 proc newWidgetFromResource*(resource: string, id: string = "widget"): GtkWidget =
   let builder = newBuilderFromResource(resource)
   return builder.getWidget(id)
+
+
+
+macro getField*(obj: auto, fieldName: static string): untyped =
+  nnkDotExpr.newTree(obj, ident(fieldName))
+
+proc toKebapCase*(camelCase: string): string =
+  return findAll(camelCase, re"(^[a-z0-9]+|[A-Z0-9][a-z0-9]*)").join("-").toLower()
+  
+proc addProperty*(
+  rootNode: XMLNode, 
+  shortcut: ref object, 
+  propertyName: static string, 
+  translatable = false
+) =
+  let hasValue = shortcut.getField("has" & propertyName)
+  if not hasValue:
+    return
+
+  let propertyNode = newElement("property")
+  propertyNode.attrs = if translatable:
+      {"name": propertyName.toKebapCase(), "translatable": "yes"}.toXmlAttributes()
+    else:
+      {"name": propertyName.toKebapCase()}.toXmlAttributes()
+      
+  let fieldValStr = $ shortcut.getField("val" & propertyName)
+  propertyNode.add(newText(fieldValStr))
+  
+  rootNode.add(propertyNode)
