@@ -2288,59 +2288,41 @@ renderable ShortcutsSection:
 
 export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection
 
-proc addChildNodes(
-  rootNode: XMLNode,
-  obj: ref object,
-  propertyName: static string
-) =
-  let hasValue = obj.getField("has" & propertyName)
-  if not hasValue:
-    return
-  
-  for childObj in obj.getField("val" & propertyName):
-    let childNode = newElement("child")
-    childNode.add(childObj.toNode())
-    rootNode.add(childNode)
 
-proc toNode(shortcut: ShortcutsShortcut, translatable = false): XMLNode =
-  result = newElement("object")
-  result.attrs = {"class": "GtkShortcutsShortcut"}.toXmlAttributes()
+
+proc toNode(shortcut: ShortcutsShortcut): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsShortcut"}.toXmlAttributes())
   
   result.addProperty(shortcut, "Accelerator")
   result.addProperty(shortcut, "Direction")
   result.addProperty(shortcut, "Icon")
   result.addProperty(shortcut, "ShortcutType")
-  result.addProperty(shortcut, "Subtitle", translatable = translatable)
-  result.addProperty(shortcut, "Title", translatable = translatable)
+  result.addProperty(shortcut, "Subtitle", translatable = true)
+  result.addProperty(shortcut, "Title", translatable = true)
     
-proc toNode(group: ShortcutsGroup, translatable = false): XMLNode =
-  result = newElement("object")
-  result.attrs = {"class": "GtkShortcutsGroup"}.toXmlAttributes()
+proc toNode(group: ShortcutsGroup): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsGroup"}.toXmlAttributes())
   
   result.addProperty(group, "Height")
-  result.addProperty(group, "Title")
+  result.addProperty(group, "Title", translatable = true)
   result.addProperty(group, "View")
   
   result.addChildNodes(group, "Shortcuts")
   
-proc toNode(section: ShortcutsSection, translatable = false): XMLNode =
-  result = newElement("object")
-  result.attrs = {"class": "GtkShortcutsSection"}.toXMLAttributes()
+proc toNode(section: ShortcutsSection): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsSection"}.toXmlAttributes())
   
   result.addProperty(section, "MaxHeight")
   result.addProperty(section, "SectionName")
-  result.addProperty(section, "Title")
+  result.addProperty(section, "Title", translatable = true)
   result.addProperty(section, "ViewName")
   
   result.addChildNodes(section, "Groups")
       
-proc generateShortcutsWindow(window: auto, translatable = false): string =
-  ## Do the actual implementation
-  let rootNode = newElement("interface")
-  
-  let windowNode = newElement("object")
-  windowNode.attrs = {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes()
-    
+proc generateShortcutsWindow(window: auto): string =
+  let rootNode = newNode(Interface)
+  let windowNode = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
+
   windowNode.addChildNodes(window, "Sections")
   
   rootNode.add(windowNode)

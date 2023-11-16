@@ -47,7 +47,30 @@ macro getField*(obj: auto, fieldName: static string): untyped =
 
 proc toKebapCase*(camelCase: string): string =
   return findAll(camelCase, re"(^[a-z0-9]+|[A-Z0-9][a-z0-9]*)").join("-").toLower()
+
+type UiTags* = enum
+  Object, Property, Child, Interface
+
+proc newNode*(tag: UiTags, children: varargs[XmlNode]): XmlNode =
+  result = newElement(($tag).toLower())
   
+  for child in children:
+    result.add(child)
+
+proc newNode*(tag: UiTags, attributes: XmlAttributes): XmlNode =
+  result = newNode(tag)
+  result.attrs = attributes
+
+proc newNode*(tag: UiTags, attributes: XmlAttributes, text: string): XmlNode =
+  result = newNode(tag, attributes)
+  result.add(newText(text))
+
+proc newNode*(tag: UiTags, text: string): XmlNode =
+  result = newNode(tag)
+  result.add(newText(text))
+
+
+
 proc addProperty*(
   rootNode: XMLNode, 
   shortcut: ref object, 
@@ -58,13 +81,24 @@ proc addProperty*(
   if not hasValue:
     return
 
-  let propertyNode = newElement("property")
-  propertyNode.attrs = if translatable:
+  let attributes = if translatable:
       {"name": propertyName.toKebapCase(), "translatable": "yes"}.toXmlAttributes()
     else:
       {"name": propertyName.toKebapCase()}.toXmlAttributes()
-      
   let fieldValStr = $ shortcut.getField("val" & propertyName)
-  propertyNode.add(newText(fieldValStr))
+  let propertyNode = newNode(Property, attributes, fieldValStr)
   
   rootNode.add(propertyNode)
+
+proc addChildNodes*(
+  rootNode: XMLNode,
+  obj: ref object,
+  propertyName: static string
+) =
+  let hasValue = obj.getField("has" & propertyName)
+  if not hasValue:
+    return
+  
+  for childObj in obj.getField("val" & propertyName):    
+    let childNode = newNode(Child, childObj.toNode())
+    rootNode.add(childNode)
