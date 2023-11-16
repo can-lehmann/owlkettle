@@ -2314,24 +2314,29 @@ proc toNode(section: ShortcutsSection): XMLNode =
   result.addProperty(section, "ViewName")
   
   result.addChildNodes(section, "Groups")
-      
-proc toShortcutsWindowUiString(window: auto): string =
-  let rootNode = newNode(Interface)
-  let windowNode = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
 
-  windowNode.addChildNodes(window, "Sections")
+proc toNode(window: auto): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
   
-  rootNode.add(windowNode)
+  result.addProperty(window, "SectionName")
+  result.addProperty(window, "ViewName")
   
+  result.addChildNodes(window, "Sections")
+  
+proc toShortcutsWindowUiString(window: auto): string =
+  let rootNode = newNode(Interface, window.toNode())  
   return fmt"{xmlHeader}{rootNode}"  
 
 renderable ShortcutsWindow:
   sections: seq[ShortcutsSection]
+  sectionName: string
+  viewName: string
   
   hooks:
     beforeBuild:
       let uiString = widget.toShortcutsWindowUiString()
       state.internalWidget = newWidgetFromString(uiString, "widget")
+  
   adder add:
     widget.hasSections = true
     widget.valSections.add(child.ShortcutsSection)
