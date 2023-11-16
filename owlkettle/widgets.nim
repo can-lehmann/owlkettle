@@ -2265,6 +2265,16 @@ proc `valHotkey=`*(shortcut: ShortcutsShortcut, keys: Shortcut) =
   let modifierStr = keys.modifiers.mapIt(fmt"<{it}>").join()
   shortcut.valAccelerator = modifierStr & keys.key
 
+proc toNode(shortcut: ShortcutsShortcut): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsShortcut"}.toXmlAttributes())
+  
+  result.addProperty(shortcut, "Accelerator")
+  result.addProperty(shortcut, "Direction")
+  result.addProperty(shortcut, "Icon")
+  result.addProperty(shortcut, "ShortcutType")
+  result.addProperty(shortcut, "Subtitle", translatable = true)
+  result.addProperty(shortcut, "Title", translatable = true)
+    
 renderable ShortcutsGroup:
   shortcuts: seq[ShortcutsShortcut]
   height: int
@@ -2275,6 +2285,15 @@ renderable ShortcutsGroup:
     widget.hasShortcuts = true
     widget.valShortcuts.add(child.ShortcutsShortcut)
 
+proc toNode(group: ShortcutsGroup): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsGroup"}.toXmlAttributes())
+  
+  result.addProperty(group, "Height")
+  result.addProperty(group, "Title", translatable = true)
+  result.addProperty(group, "View")
+  
+  result.addChildNodes(group, "Shortcuts")
+  
 renderable ShortcutsSection:
   groups: seq[ShortcutsGroup]
   maxHeight: int
@@ -2286,29 +2305,6 @@ renderable ShortcutsSection:
     widget.hasGroups = true
     widget.valGroups.add(child.ShortcutsGroup)
 
-export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection
-
-
-
-proc toNode(shortcut: ShortcutsShortcut): XMLNode =
-  result = newNode(Object, {"class": "GtkShortcutsShortcut"}.toXmlAttributes())
-  
-  result.addProperty(shortcut, "Accelerator")
-  result.addProperty(shortcut, "Direction")
-  result.addProperty(shortcut, "Icon")
-  result.addProperty(shortcut, "ShortcutType")
-  result.addProperty(shortcut, "Subtitle", translatable = true)
-  result.addProperty(shortcut, "Title", translatable = true)
-    
-proc toNode(group: ShortcutsGroup): XMLNode =
-  result = newNode(Object, {"class": "GtkShortcutsGroup"}.toXmlAttributes())
-  
-  result.addProperty(group, "Height")
-  result.addProperty(group, "Title", translatable = true)
-  result.addProperty(group, "View")
-  
-  result.addChildNodes(group, "Shortcuts")
-  
 proc toNode(section: ShortcutsSection): XMLNode =
   result = newNode(Object, {"class": "GtkShortcutsSection"}.toXmlAttributes())
   
@@ -2319,7 +2315,7 @@ proc toNode(section: ShortcutsSection): XMLNode =
   
   result.addChildNodes(section, "Groups")
       
-proc generateShortcutsWindow(window: auto): string =
+proc toShortcutsWindowUiString(window: auto): string =
   let rootNode = newNode(Interface)
   let windowNode = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
 
@@ -2334,13 +2330,12 @@ renderable ShortcutsWindow:
   
   hooks:
     beforeBuild:
-      let uiString = widget.generateShortcutsWindow()
+      let uiString = widget.toShortcutsWindowUiString()
       state.internalWidget = newWidgetFromString(uiString, "widget")
   adder add:
     widget.hasSections = true
     widget.valSections.add(child.ShortcutsSection)
 
-export ShortcutsWindow
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,
@@ -4444,4 +4439,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
-export ShortcutsShortcut
+export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection, ShortcutsWindow
