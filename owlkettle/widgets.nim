@@ -2339,7 +2339,6 @@ renderable ShortcutsWindow:
   hooks:
     beforeBuild:
       let uiString = widget.toShortcutsWindowUiString()
-      echo uiString
       state.internalWidget = newWidgetFromString(uiString, "widget")
   
   adder add:
