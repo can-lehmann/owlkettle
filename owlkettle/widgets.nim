@@ -25,7 +25,7 @@
 import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, cairo, widgetutils, common
+import widgetdef, cairo, widgetutils, common, builder
 import bindings/gtk
 
 customPragmas()
@@ -560,6 +560,11 @@ renderable EditableLabel of BaseWidget:
   hooks alignment:
     property:
       gtk_editable_set_alignment(state.internalWidget, state.alignment.cfloat)
+
+## TODO: Memo to myself, make everythin in owlkettle use this
+proc newIcon*(iconName: string): GIcon =
+  var err = GError(nil)
+  return g_icon_new_for_string(iconName.cstring, err.addr)
 
 renderable Icon of BaseWidget:
   name: string ## See [recommended_tools.md](recommended_tools.md#icons) for a list of icons.
@@ -2104,7 +2109,7 @@ renderable ModelButton of BaseWidget:
   
   hooks:
     beforeBuild:
-      state.internalWidget = GtkWidget(g_object_new(g_type_from_name("GtkModelButton"), nil))
+      state.internalWidget = newGtkWidget("GtkModelButton")
     connectEvents:
       state.connect(state.clicked, "clicked", eventCallback)
     disconnectEvents:
@@ -2112,21 +2117,15 @@ renderable ModelButton of BaseWidget:
   
   hooks text:
     property:
-      var value = g_value_new(state.text)
-      g_object_set_property(state.internalWidget.pointer, "text", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("text", state.text)
   
   hooks icon:
     property:
-      var value = g_value_new(state.icon.len > 0)
-      g_object_set_property(state.internalWidget.pointer, "iconic", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("iconic", state.icon.len > 0)
       if state.icon.len > 0:
         var err: GError
         let icon = g_icon_new_for_string(state.icon.cstring, err.addr)
-        var value = g_value_new(icon)
-        g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
-        g_value_unset(value.addr)
+        pointer(state.internalWidget).setProperty("icon", icon)
   
   hooks menuName:
     property:
@@ -2141,9 +2140,7 @@ renderable ModelButton of BaseWidget:
   
   hooks shortcut:
     property:
-      var value = g_value_new(state.shortcut)
-      g_object_set_property(state.internalWidget.pointer, "accel", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("accel", state.shortcut)
   
   example:
     PopoverMenu:
@@ -2227,6 +2224,127 @@ renderable Separator of BaseWidget:
     beforeBuild:
       state.internalWidget = gtk_separator_new(widget.valOrient.toGtk())
 
+type TextDirection* = enum
+  None = "none"
+  LeftToRight = "ltr"
+  RightToLeft = "rtl"
+
+type ShortcutType* = enum
+  Accelerator = "accelerator"
+  GesturePinch = "gesture-pinch"
+  GestureStretch = "gesture-stretch"
+  GestureRotateClockwise = "gesture-rotate-clockwise"
+  GestureRotateCounterclockwise = "gesture-rotate-counterclockwise"
+  GestureTwoFingerSwipeLeft = "gesture-two-finger-swipe-left"
+  GestureTwoFingerSwipeRight = "gesture-two-finger-swipe-right"
+  Gesture = "gesture"
+  GestureSwipeLeft = "gesture-swipe-left"
+  GestureSwipeRight = "gesture-swipe-right"
+
+type ShortcutModifier* = enum
+  Primary
+  Shift
+  Ctrl
+  Alt
+
+type Shortcut* = tuple[modifiers: seq[ShortcutModifier], key: string]
+
+renderable ShortcutsShortcut:
+  accelerator: string ## String representing the keypresses needed to trigger the shortcut. Only necessary if this is an Accelerator shortcut aka one triggered via a combination of keys. Consists of at least one key and maybe one or more modifiers (e.g. Shift). The format is "<'Modifier'>'Key'", e.g. "<Shift>H" for the shortcut "Shift + H" or "<Shift><Ctrl>H" for the shortcut "Shift + Ctrl + H".
+  direction: TextDirection
+  icon: string ## Only relevant if shortcutType == Gesture. Shows an icon for a given gesture shortcut.
+  shortcutType: ShortcutType ## The type of shortcut. This influences what gets shown next to the title and subtitle. 'Accelerator' represents a shortcut made of keypresses. It displays the keypresses needed to trigger the shortcut. Gesture<X> represents a touch gesture. It displays the gesture in question graphically. If the value is Gesture it displays the icon provided in `icon`.
+  subtitle: string
+  title: string
+  
+  setter hotkey: Shortcut
+
+proc `hasHotkey=`*(shortcut: ShortcutsShortcut, has: bool) =
+  shortcut.hasAccelerator = has
+
+proc `valHotkey=`*(shortcut: ShortcutsShortcut, keys: Shortcut) =
+  let modifierStr = keys.modifiers.mapIt(fmt"<{it}>").join()
+  shortcut.valAccelerator = modifierStr & keys.key
+
+proc toNode(shortcut: ShortcutsShortcut): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsShortcut"}.toXmlAttributes())
+  
+  result.addProperty(shortcut, "Accelerator")
+  result.addProperty(shortcut, "Direction")
+  result.addProperty(shortcut, "Icon")
+  result.addProperty(shortcut, "ShortcutType")
+  result.addProperty(shortcut, "Subtitle", translatable = true)
+  result.addProperty(shortcut, "Title", translatable = true)
+    
+renderable ShortcutsGroup:
+  shortcuts: seq[ShortcutsShortcut]
+  height: int
+  title: string
+  view: string
+  
+  adder add:
+    widget.hasShortcuts = true
+    widget.valShortcuts.add(child.ShortcutsShortcut)
+
+proc toNode(group: ShortcutsGroup): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsGroup"}.toXmlAttributes())
+  
+  result.addProperty(group, "Height")
+  result.addProperty(group, "Title", translatable = true)
+  result.addProperty(group, "View")
+  
+  result.addChildNodes(group, "Shortcuts")
+  
+renderable ShortcutsSection:
+  groups: seq[ShortcutsGroup]
+  maxHeight: int
+  sectionName: string
+  title: string
+  viewName: string
+  
+  adder add:
+    widget.hasGroups = true
+    widget.valGroups.add(child.ShortcutsGroup)
+
+proc toNode(section: ShortcutsSection): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsSection"}.toXmlAttributes())
+  
+  result.addProperty(section, "MaxHeight")
+  result.addProperty(section, "SectionName")
+  result.addProperty(section, "Title", translatable = true)
+  result.addProperty(section, "ViewName")
+  
+  result.addChildNodes(section, "Groups")
+
+proc toNode(window: auto): XMLNode =
+  result = newNode(Object, {"class": "GtkShortcutsWindow", "id": "widget"}.toXMLAttributes())
+  
+  result.addProperty(window, "SectionName")
+  result.addProperty(window, "Modal")
+  let modalValue = if window.hasModal: window.valModal else: true
+  let modalNode = newNode(Property, {"name": "Modal".toKebapCase()}.toXmlAttributes(), $(modalValue.int)) 
+  result.add(modalNode)
+  result.addChildNodes(window, "Sections")
+  
+proc toShortcutsWindowUiString(window: auto): string =
+  let rootNode = newNode(Interface, window.toNode())  
+  return fmt"{xmlHeader}{rootNode}"  
+
+renderable ShortcutsWindow:
+  sections: seq[ShortcutsSection]
+  sectionName: string
+  viewName: string
+  modal: bool = true
+  
+  hooks:
+    beforeBuild:
+      let uiString = widget.toShortcutsWindowUiString()
+      state.internalWidget = newWidgetFromString(uiString, "widget")
+  
+  adder add:
+    widget.hasSections = true
+    widget.valSections.add(child.ShortcutsSection)
+
 type
   UnderlineKind* = enum
     UnderlineNone, UnderlineSingle, UnderlineDouble,
@@ -2297,9 +2415,7 @@ proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
   result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)
   for attr, value in fieldPairs(style):
     if value.isSome:
-      var gvalue = g_value_new(get(value))
-      g_object_set_property(result.pointer, attr.cstring, gvalue.addr)
-      g_value_unset(gvalue.addr)
+      pointer(result).setProperty(attr, get(value))
 
 proc lookupTag*(buffer: TextBuffer, name: string): TextTag =
   let tab = gtk_text_buffer_get_tag_table(buffer.gtk)
@@ -4062,20 +4178,15 @@ renderable PasswordEntry of BaseWidget:
   
   hooks activatesDefault:
     property:
-      var value = g_value_new(state.activatesDefault)
-      g_object_set_property(state.internalWidget.pointer, "activates-default", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("activates-default", state.activatesDefault)
 
   hooks placeholderText:
     property:
-      var value = g_value_new(state.placeholderText)
-      g_object_set_property(state.internalWidget.pointer, "placeholder-text", value.addr)
-      g_value_unset(value.addr)
+      pointer(state.internalWidget).setProperty("placeholder-text", state.placeholderText)
 
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
-  
   
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
@@ -4337,3 +4448,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export ShortcutsShortcut, ShortcutsGroup, ShortcutsSection, ShortcutsWindow

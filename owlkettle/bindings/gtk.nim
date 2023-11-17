@@ -130,6 +130,23 @@ type
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
   
+  GtkShortcutType* = enum
+    GTK_SHORTCUT_ACCELERATOR
+    GTK_SHORTCUT_GESTURE_PINCH
+    GTK_SHORTCUT_GESTURE_STRETCH
+    GTK_SHORTCUT_GESTURE_ROTATE_CLOCKWISE
+    GTK_SHORTCUT_GESTURE_ROTATE_COUNTERCLOCKWISE
+    GTK_SHORTCUT_GESTURE_TWO_FINGER_SWIPE_LEFT
+    GTK_SHORTCUT_GESTURE_TWO_FINGER_SWIPE_RIGHT
+    GTK_SHORTCUT_GESTURE
+    GTK_SHORTCUT_GESTURE_SWIPE_LEFT
+    GTK_SHORTCUT_GESTURE_SWIPE_RIGHT
+  
+  GtkTextDirection* = enum
+    GTK_TEXT_DIR_NONE
+    GTK_TEXT_DIR_LTR
+    GTK_TEXT_DIR_RTL
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -158,6 +175,7 @@ type
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
+  GtkBuilder* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -710,6 +728,15 @@ proc gtk_box_remove*(box, widget: GtkWidget)
 proc gtk_box_insert_child_after*(box, widget, after: GtkWidget)
 proc gtk_box_set_spacing*(box: GtkWidget, spacing: cint)
 
+# Gtk.Builder
+proc add_child*(buildable: GtkWidget, builder: GtkBuilder, child: GtkWidget, typ: cstring)
+proc add_child*(buildable: GtkWidget, builder: GtkBuilder, child: GtkWidget)
+proc gtk_builder_new_from_file*(filename: cstring): GtkBuilder
+proc gtk_builder_new_from_resource*(resource: cstring): GtkBuilder
+proc gtk_builder_new_from_string*(uiString: cstring, length: cint): GtkBuilder
+proc gtk_builder_new*(): GtkBuilder
+proc gtk_builder_get_object*(builder: GtkBuilder, id: cstring): pointer
+
 # Gtk.CenterBox
 proc gtk_center_box_new*(): GtkWidget
 proc gtk_center_box_set_center_widget*(widget: GtkWidget, child: GtkWidget)
@@ -855,6 +882,9 @@ proc gtk_shortcut_action_parse_string*(str: cstring): GtkShortcutAction
 
 # Gtk.Shortcut
 proc gtk_shortcut_new*(trigger: GtkShortcutTrigger, action: GtkShortcutAction): GtkShortcut
+
+# Gtk.ShortcutsShortcut
+proc gtk_shortcuts_shortcut_get_type*(): GType
 
 # Gtk.ColorChooser
 proc gtk_color_chooser_set_rgba*(widget: GtkWidget, rgba: ptr GdkRgba)
