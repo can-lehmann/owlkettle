@@ -327,7 +327,7 @@ type
   GListModel* = distinct pointer
   GMenuModel* = distinct pointer
   GMenuItem* = distinct pointer
-  GApplicationFlags = distinct cuint
+  GApplicationFlags* = distinct cuint
 
 proc isNil*(obj: GResource): bool {.borrow.}
 proc isNil*(obj: GIcon): bool {.borrow.}
