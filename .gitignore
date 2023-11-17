@@ -28,6 +28,8 @@ examples/widgets/adw/flap
 examples/widgets/adw/expander_row
 examples/widgets/adw/combo_row
 examples/widgets/adw/entry_row
+examples/widgets/adw/header_bar
+examples/widgets/adw/button_content
 examples/widgets/adw/banner
 examples/dialogs/file_dialog
 examples/dialogs/message_dialog

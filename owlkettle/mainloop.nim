@@ -65,7 +65,7 @@ proc loadStylesheet*(path: string, priority: int = DEFAULT_PRIORITY): Stylesheet
     raise newException(IOError, $error[].message)
   result = Stylesheet(provider: provider, priority: priority)
 
-type AppConfig* = object
+type AppConfig* = object of RootObj
   widget*: Widget
   icons*: seq[string]
   darkTheme*: bool

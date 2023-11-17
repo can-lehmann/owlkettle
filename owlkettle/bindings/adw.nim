@@ -62,6 +62,9 @@ type
 # Adw
 proc adw_init*()
 
+# Adw.Application
+proc adw_application_new*(id: cstring, flags: GApplicationFlags): GApplication
+
 # Adw.StyleManager
 proc adw_style_manager_get_default*(): StyleManager
 proc adw_style_manager_set_color_scheme*(manager: StyleManager, colorScheme: ColorScheme)
@@ -81,6 +84,14 @@ proc adw_avatar_set_show_initials*(avatar: GtkWidget, value: cbool)
 proc adw_avatar_set_size*(avatar: GtkWidget, size: cint)
 proc adw_avatar_set_text*(avatar: GtkWidget, text: cstring)
 proc adw_avatar_set_icon_name*(avatar: GtkWidget, iconName: cstring)
+
+# Adw.ButtonContent
+proc adw_button_content_new*(): GtkWidget
+proc adw_button_content_set_icon_name*(self: GtkWidget, icon_name: cstring)
+proc adw_button_content_set_label*(self: GtkWidget, label: cstring)
+proc adw_button_content_set_use_underline*(self: GtkWidget, use_underline: cbool)
+when AdwVersion >= (1, 4):
+  proc adw_button_content_set_can_shrink*(self: GtkWidget, can_shrink: cbool)
 
 # Adw.Clamp
 proc adw_clamp_new*(): GtkWidget
