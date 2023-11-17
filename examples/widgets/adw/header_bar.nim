@@ -25,8 +25,8 @@ import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   centeringPolicy: CenteringPolicy = CenteringPolicyLoose
-  leftButtons: seq[WindowControlButton] = @[WindowControlMenu, WindowControlMinimize, WindowControlMaximize]
-  rightButtons: seq[WindowControlButton] = @[WindowControlClose, WindowControlIcon]
+  leftButtons: seq[WindowControlButton] = @[WindowControlIcon, WindowControlMenu]
+  rightButtons: seq[WindowControlButton] = @[WindowControlMinimize, WindowControlMaximize, WindowControlClose]
   showRightButtons: bool = true
   showLeftButtons: bool = true
   showBackButton: bool = true
@@ -38,12 +38,12 @@ viewable App:
 method view(app: AppState): Widget =
   let layout = (app.leftButtons, app.rightButtons)
   result = gui:
-    Window():
+    Window:
       title = "AdwHeaderBar Example"
       defaultSize = (600, 100)
       iconName = "go-home-symbolic" # Used by WindowControlIcon
       
-      AdwHeaderBar() {.addTitlebar.}:
+      AdwHeaderBar {.addTitlebar.}:
         windowControls = layout
         centeringPolicy = app.centeringPolicy
         showLeftButtons = app.showLeftButtons
@@ -56,16 +56,23 @@ method view(app: AppState): Widget =
         
         insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
         
-        Button(text = "1") {.addRight.}:
+        Button {.addLeft.}:
+          text = "1"
           style = [ButtonFlat]
-          proc clicked() = echo "Clicked 1"
           
-        Button(text = "2") {.addLeft.}:
+          proc clicked() =
+            echo "Clicked 1"
+        
+        Button {.addRight.}:
+          text = "2"
           style = [ButtonFlat]
-          proc clicked() = echo "Clicked 2"
+          
+          proc clicked() =
+            echo "Clicked 2"
         
         if AdwVersion >= (1, 4):
-          Box() {.addTitle.}:
+          Box {.addTitle.}:
             Label(text = "Title Widget")
-            Icon(name="go-home-symbolic") {.expand: false.}
+            Icon(name = "go-home-symbolic") {.expand: false.}
+
 adw.brew(gui(App()))

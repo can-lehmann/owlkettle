@@ -176,17 +176,22 @@ macro customCapture(vars: varargs[typed], body: untyped): untyped =
   var
     params = @[newEmptyNode()]
     args: seq[NimNode] = @[]
+  
+  result = newStmtList()
+  
   for variable in vars:
     let name = variable.unwrapName()
     assert name.isName
-    params.add:
-      newIdentDefs(ident(name.strVal), variable.getTypeInst())
-
+    params.add(newIdentDefs(
+      ident(name.strVal),
+      newTree(nnkTypeOfExpr, variable)
+    ))
     args.add(variable)
-  result = newProc(
+  
+  result.add(newProc(
     params = params,
     body = body
-  ).newCall(args)
+  ).newCall(args))
 
 proc findVariables(node: NimNode): seq[NimNode] =
   case node.kind:
