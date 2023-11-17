@@ -154,19 +154,20 @@ proc brew*(widget: Widget,
   let state = setupApp(AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
+    darkTheme: darkTheme,
     stylesheets: @stylesheets
   ))
   runMainloop(state)
 
-proc brew*(id: string, widget: Widget,
+proc brew*(id: string,
+           widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
+    darkTheme: darkTheme,
     stylesheets: @stylesheets
   )
   

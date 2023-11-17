@@ -21,7 +21,8 @@ task examples, "Build examples":
       "widgets/adw/banner.nim",
       "widgets/adw/entry_row.nim",
       "widgets/adw/switch_row.nim",
-      "widgets/adw/toolbar_view.nim"
+      "widgets/adw/toolbar_view.nim",
+      "widgets/adw/button_content.nim"
     ]
     let adwaitaFlag = ""
   else:
