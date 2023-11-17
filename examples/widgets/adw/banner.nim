@@ -20,22 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, playground, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  min: float = 0
-  max: float = 100
-  value: float = 50
-  marks: seq[ScaleMark] = @[]
-  inverted: bool = false
-  showValue: bool = true
-  stepSize: float = 5
-  pageSize: float = 10
-  orient: Orient = OrientX
-  showFillLevel: bool = true
-  precision: int64 = 1
-  valuePosition: ScalePosition
+  buttonLabel: string = "Okay"
+  title: string = "Banner Title"
+  useMarkup: bool = false
+  revealed: bool = true
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
@@ -43,31 +34,22 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Scale Example"
-      defaultSize = (800, 150)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+      defaultSize = (400, 200)
+      title = "Banner Example"
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 450))){.addRight.}
       
       Box(orient = OrientY):
-        Scale {.expand: false.}:
-          min = app.min
-          max = app.max
-          value = app.value
-          marks = app.marks
-          inverted = app.inverted
-          showValue = app.showValue
-          stepSize = app.stepSize
-          pageSize = app.pageSize
-          orient = app.orient
-          showFillLevel = app.showFillLevel
-          precision = app.precision
-          valuePosition = app.valuePosition
+        Banner() {.expand: false.}:
+          buttonLabel = app.buttonLabel
+          title = app.title
+          useMarkup = app.useMarkup
+          revealed = app.revealed
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
           
-          proc valueChanged(newValue: float64) =
-            app.value = newValue
-            echo "New value from Scale is ", $newValue
+          proc clicked() =
+            app.revealed = not app.revealed
 
 adw.brew(gui(App()))

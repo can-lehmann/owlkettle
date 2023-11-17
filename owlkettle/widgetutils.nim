@@ -30,7 +30,12 @@ customPragmas()
 
 proc redraw*[T](event: EventObj[T]) =
   if event.app.isNil:
-    raise newException(ValueError, "App is nil")
+    raise newException(ValueError,
+      "App is nil. " &
+      "Note that top-level event handlers directly inside of brew or open are not supported. " &
+      "Encapsulate your logic inside a viewable in order to use event handlers. " &
+      "If you are implementing a custom widget make sure to call assignApp on all child widgets."
+    )
   discard event.app.redraw()
 
 proc allocSharedCell*[T](data: T): ptr T =

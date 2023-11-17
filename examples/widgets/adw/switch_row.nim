@@ -20,22 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
-import owlkettle, owlkettle/[dataentries, playground, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  min: float = 0
-  max: float = 100
-  value: float = 50
-  marks: seq[ScaleMark] = @[]
-  inverted: bool = false
-  showValue: bool = true
-  stepSize: float = 5
-  pageSize: float = 10
-  orient: Orient = OrientX
-  showFillLevel: bool = true
-  precision: int64 = 1
-  valuePosition: ScalePosition
+  active: bool = false
+  title: string = "Switch Row Title"
+  subtitle: string = "subtitle"
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
@@ -43,31 +33,29 @@ viewable App:
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      title = "Scale Example"
-      defaultSize = (800, 150)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+      defaultSize = (400, 150)
+      title = "Switch Row Example"
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 510))){.addRight.}
       
-      Box(orient = OrientY):
-        Scale {.expand: false.}:
-          min = app.min
-          max = app.max
-          value = app.value
-          marks = app.marks
-          inverted = app.inverted
-          showValue = app.showValue
-          stepSize = app.stepSize
-          pageSize = app.pageSize
-          orient = app.orient
-          showFillLevel = app.showFillLevel
-          precision = app.precision
-          valuePosition = app.valuePosition
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-          
-          proc valueChanged(newValue: float64) =
-            app.value = newValue
-            echo "New value from Scale is ", $newValue
-
+      Clamp:
+        maximumSize = 500
+        margin = 12
+        
+        Box():
+          margin = 12
+          PreferencesGroup():
+            title = "Switch Row"
+            
+            SwitchRow():
+              title = app.title
+              active = app.active
+              subtitle = app.subtitle
+              sensitive = app.sensitive
+              tooltip = app.tooltip
+              sizeRequest = app.sizeRequest
+            
+              proc activated(active: bool) =
+                app.active = active
+                echo "New Value: ", active
 adw.brew(gui(App()))

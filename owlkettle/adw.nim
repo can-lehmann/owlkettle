@@ -26,19 +26,21 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils
 import ./bindings/[adw, gtk]
+import std/[strutils, sequtils, strformat, options, sugar]
 
 export adw.StyleManager
 export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.CenteringPolicy
+export adw.AdwVersion
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
 
-renderable WindowSurface of BaseWindow:
+renderable AdwWindow of BaseWindow:
   ## A Window that does not have a title bar.
-  ## A WindowSurface is equivalent to an `Adw.Window`.
   content: Widget
   
   hooks:
@@ -52,12 +54,12 @@ renderable WindowSurface of BaseWindow:
   adder add:
     ## Adds a child to the window surface. Each window surface may only have one child.
     if widget.hasContent:
-      raise newException(ValueError, "Unable to add multiple children to a WindowSurface. Use a Box widget to display multiple widgets in a WindowSurface.")
+      raise newException(ValueError, "Unable to add multiple children to a AdwWindow. Use a Box widget to display multiple widgets in a AdwWindow.")
     widget.hasContent = true
     widget.valContent = child
   
   example:
-    WindowSurface:
+    AdwWindow:
       Box:
         orient = OrientX
         
@@ -136,6 +138,33 @@ renderable Avatar of BaseWidget:
       text = "Erika Mustermann"
       size = 100
       showInitials = true
+
+renderable ButtonContent of BaseWidget:
+  label: string
+  iconName: string
+  useUnderline: bool ## Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
+  canShrink: bool ## Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_button_content_new()
+  
+  hooks label:
+    property:
+      adw_button_content_set_label(state.internalWidget, state.label.cstring)
+    
+  hooks iconName:
+    property:
+      adw_button_content_set_icon_name(state.internalWidget, state.iconName.cstring)
+    
+  hooks useUnderline:
+    property:
+      adw_button_content_set_use_underline(state.internalWidget, state.useUnderline.cbool)
+  
+  hooks canShrink:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
 
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
@@ -361,11 +390,9 @@ renderable ComboRow of ActionRow:
 
 when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable EntryRow of PreferencesRow:
-    subtitle: string
     suffixes: seq[AlignedChild[Widget]]
-    
     text: string
-        
+    
     proc changed(text: string)
     
     hooks:
@@ -406,8 +433,32 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
         hAlign: hAlign,
         vAlign: vAlign
       ))
+    
+    example:
+      EntryRow:
+        title = "Name"
+        text = app.name
+        
+        proc changed(name: string) =
+          app.name = name
   
-  export EntryRow
+  renderable PasswordEntryRow of EntryRow:
+    ## An `EntryRow` that hides the user input
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 2):
+          state.internalWidget = adw_password_entry_row_new()
+    
+    example:
+      PasswordEntryRow:
+        title = "Password"
+        text = app.password
+        
+        proc changed(password: string) =
+          app.password = password
+  
+  export EntryRow, PasswordEntryRow
 
 type FlapChild[T] = object
   widget: T
@@ -563,6 +614,109 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
+renderable AdwHeaderBar of BaseWidget:
+  ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+  packLeft: seq[Widget]
+  packRight: seq[Widget]
+  centeringPolicy: CenteringPolicy = CenteringPolicyLoose
+  decorationLayout: Option[string] = none(string)
+  showRightButtons: bool = true ## Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+  showLeftButtons: bool = true ## Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+  titleWidget: Widget ## A widget for the title. Replaces the title string, if there is one.
+  showBackButton: bool = true
+  showTitle: bool = true ## Determines whether to show or hide the title
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_header_bar_new()
+  
+  hooks packRight:
+    (build, update):
+      state.updateChildren(
+        state.packRight,
+        widget.valPackRight,
+        adw_header_bar_pack_end,
+        adw_header_bar_remove
+      )
+      
+  hooks packLeft:
+    (build, update):
+      state.updateChildren(
+        state.packLeft,
+        widget.valPackLeft,
+        adw_header_bar_pack_start,
+        adw_header_bar_remove
+      )
+      
+  hooks centeringPolicy:
+    property:
+      adw_header_bar_set_centering_policy(state.internalWidget, state.centeringPolicy)
+  
+  hooks decorationLayout:
+    property:
+      if state.decorationLayout.isSome():
+        adw_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        adw_header_bar_set_decoration_layout(state.internalWidget, nil)
+  
+  hooks showRightButtons:
+    property:
+      adw_header_bar_set_show_end_title_buttons(state.internalWidget, state.showRightButtons.cbool)
+  
+  hooks showLeftButtons:
+    property:
+      adw_header_bar_set_show_start_title_buttons(state.internalWidget, state.showLeftButtons.cbool)
+  
+  hooks titleWidget:
+    (build, update):
+      state.updateChild(
+        state.titleWidget,
+        widget.valTitleWidget,
+        adw_header_bar_set_title_widget
+      )
+  
+  hooks showBackButton:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
+  
+  hooks showTitle:
+    property:
+      when AdwVersion >= (1, 4):
+        adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
+  
+  adder addLeft:
+    ## Adds a widget to the left side of the HeaderBar.
+    widget.hasPackLeft = true
+    widget.valPackLeft.add(child)
+  
+  adder addRight:
+    ## Adds a widget to the right side of the HeaderBar.
+    widget.hasPackRight = true
+    widget.valPackRight.add(child)
+  
+  adder addTitle:
+    when AdwVersion >= (1, 4):
+      if widget.hasTitleWidget:
+        raise newException(ValueError, "Unable to add multiple children as title to HeaderBar. Use a Box widget to display multiple widgets.")
+      widget.hasTitleWidget = true
+      widget.valTitleWidget = child
+    else:
+      raise newException(ValueError, "Compile for Adwaita version 1.4 or higher with -d:adwMinor=4 to enable setting a Title Widget for Headerbar.")
+
+proc `hasWindowControls=`*(widget: AdwHeaderbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: AdwHeaderbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable SplitButton of BaseWidget:
   child: Widget
   popover: Widget
@@ -695,7 +849,6 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
       property:
         when AdwVersion >= (1, 2):
           adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
-
     
     hooks website:
       property:
@@ -714,19 +867,124 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
-export WindowSurface, WindowTitle, Avatar, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+when AdwVersion >= (1, 4) or defined(owlkettleDocs):
+  renderable SwitchRow of ActionRow:
+    active: bool    
+    
+    proc activated(active: bool)
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 4):
+          state.internalWidget = adw_switch_row_new()
+      connectEvents:
+        when AdwVersion >= (1, 4):
+          proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
+            let active: bool = adw_switch_row_get_active(widget).bool
+            SwitchRowState(data[].widget).active = active
+            data[].callback(active)
+            data[].redraw()
+            
+          state.connect(state.activated, "activated", activatedCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 4):
+          state.internalWidget.disconnect(state.activated)
+    
+    hooks active:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_switch_row_set_active(state.internalWidget, state.active.cbool)
+    
+  export SwitchRow
+  
+when AdwVersion >= (1, 3) or defined(owlkettleDocs):
+  renderable Banner of BaseWidget:
+    ## A rectangular Box taking up the entire vailable width with an optional button.
+    buttonLabel: string ## Label of the optional banner button. Button will only be added to the banner if this Label has a value.
+    title: string
+    useMarkup: bool = true ## Determines whether using Markup in title is allowed or not.
+    revealed: bool = true ## Determines whether the banner is shown.
+    
+    proc clicked() ## Triggered by clicking the banner button
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 3):
+          state.internalWidget = adw_banner_new("".cstring)
+      connectEvents:
+        when AdwVersion >= (1, 3):
+          state.connect(state.clicked, "button-clicked", eventCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 3):
+          state.internalWidget.disconnect(state.clicked)
+    hooks buttonLabel:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_button_label(state.internalWidget, state.buttonLabel.cstring)
+    
+    hooks title:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_title(state.internalWidget, state.title.cstring)
+    
+    hooks useMarkup:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+  
+    hooks revealed:
+      property:
+        when AdwVersion >= (1, 3):
+          adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
+  export Banner
+
+export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
+
+type AdwAppConfig = object of AppConfig
+  colorScheme: ColorScheme
+
+proc setupApp(config: AdwAppConfig): WidgetState =
+  let styleManager = adw_style_manager_get_default()
+  adw_style_manager_set_color_scheme(styleManager, config.colorScheme)
+  result = setupApp(AppConfig(config))
 
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
-  let styleManager = adw_style_manager_get_default()
-  adw_style_manager_set_color_scheme(styleManager, colorScheme)
-  let state = setupApp(AppConfig(
+  let state = setupApp(AdwAppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: false,
+    darkTheme: false,
+    colorScheme: colorScheme,
     stylesheets: @stylesheets
   ))
   runMainloop(state)
+
+proc brew*(id: string,
+           widget: Widget,
+           icons: openArray[string] = [],
+           colorScheme: ColorScheme = ColorSchemeDefault,
+           stylesheets: openArray[Stylesheet] = []) =
+  var config = AdwAppConfig(
+    widget: widget,
+    icons: @icons,
+    darkTheme: false,
+    colorScheme: colorScheme,
+    stylesheets: @stylesheets
+  )
+  
+  proc activateCallback(app: GApplication, data: ptr AdwAppConfig) {.cdecl.} =
+    let
+      state = setupApp(data[])
+      window = state.unwrapRenderable().internalWidget
+    gtk_window_present(window)
+    gtk_application_add_window(app, window)
+  
+  let app = adw_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
+  defer: g_object_unref(app.pointer)
+  
+  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  discard g_application_run(app)
+
