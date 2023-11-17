@@ -66,7 +66,6 @@ method view(app: AppState): Widget =
 
           EntryRow():
             title = "This example is so cool because:"
-            subtitle = "Truly, just show your thoughts"
             text = app.reasonForLikingExample
             
             proc changed(newText: string) =
