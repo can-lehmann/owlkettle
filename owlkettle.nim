@@ -134,42 +134,6 @@ proc remove*(event: EventDescriptor) =
   if g_source_remove(cuint(event)) == 0:
     raise newException(IoError, "Unable to remove " & $event)
 
-proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
-  let
-    state = widget.build()
-    dialogState = state.unwrapRenderable()
-    window = app.unwrapInternalWidget()
-    dialog = state.unwrapInternalWidget()
-  gtk_window_set_transient_for(dialog, window)
-  gtk_window_set_modal(dialog, cbool(bool(true)))
-  gtk_window_present(dialog)
-  
-  proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
-    closed[] = true
-  
-  var closed = false
-  discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
-  
-  if dialogState of DialogState or dialogState of BuiltinDialogState:
-    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
-      res[] = responseId
-    
-    var res = low(cint)
-    discard g_signal_connect(dialog, "response", response, res.addr)
-    while res == low(cint):
-      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
-    
-    state.read()
-    if not closed:
-      gtk_window_destroy(dialog)
-    result = (toDialogResponse(res), state)
-  else:
-    while not closed:
-      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
-    
-    state.read()
-    result = (DialogResponse(), state)
-
 proc respond*(state: WidgetState, response: DialogResponse) =
   let
     widget = state.unwrapInternalWidget()
@@ -190,19 +154,20 @@ proc brew*(widget: Widget,
   let state = setupApp(AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
+    darkTheme: darkTheme,
     stylesheets: @stylesheets
   ))
   runMainloop(state)
 
-proc brew*(id: string, widget: Widget,
+proc brew*(id: string,
+           widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
+    darkTheme: darkTheme,
     stylesheets: @stylesheets
   )
   

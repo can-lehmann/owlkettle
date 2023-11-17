@@ -20,42 +20,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/[dataentries, playground, adw]
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  editing: bool = false
-  text: string = "Initial Text"
-  enableUndo: bool = true
-  alignment: 0.0..1.0 = 0.0
-  sensitive: bool = true
-  tooltip: string = ""
-  sizeRequest: tuple[x, y: int] = (-1, -1)
+  label: string = "_Button Text"
+  iconName: string = "go-home-symbolic"
+  useUnderline: bool = true
+  canShrink: bool = true
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
-      title = "Editable Label Example"
-      defaultSize = (400, 100)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+    Window:
+      defaultSize = (500, 150)
+      title = "ButtonContent Example"
       
-      Box(orient = OrientY, margin = 12, spacing = 6):
-        Label(text = "The editable label:") {.expand: false.}
-        EditableLabel {.expand: false.}:
-          text = app.text
-          editing = app.editing
-          enableUndo = app.enableUndo
-          alignment = app.alignment
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))) {.addRight.}
+      
+      Box:
+        orient = OrientY
+        margin = 12
+        spacing = 6
+        
+        Button {.hAlign: AlignCenter, vAlign: AlignCenter.}:
+          ButtonContent:
+            label = app.label
+            iconName = app.iconName
+            useUnderline = app.useUnderline
+            canShrink = app.canShrink
           
-          proc changed(newValue: string) =
-            app.text = newValue
-            echo "New Value: ", $newValue
-          
-          proc editStateChanged(newEditState: bool) =
-            app.editing = newEditState
-            echo "New Edit State: ", newEditState
+          proc clicked() =
+            echo "Button clicked"
+        
+        Label {.expand: false.}:
+          text = "Press Alt + B to activate the Button!"
 
 adw.brew(gui(App()))

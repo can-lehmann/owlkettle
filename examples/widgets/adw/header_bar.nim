@@ -20,52 +20,59 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
-  revealed: bool = false
+  centeringPolicy: CenteringPolicy = CenteringPolicyLoose
+  leftButtons: seq[WindowControlButton] = @[WindowControlIcon, WindowControlMenu]
+  rightButtons: seq[WindowControlButton] = @[WindowControlMinimize, WindowControlMaximize, WindowControlClose]
+  showRightButtons: bool = true
+  showLeftButtons: bool = true
+  showBackButton: bool = true
+  showTitle: bool = true
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
-  dummyText: string = "Some Data"
 
 method view(app: AppState): Widget =
+  let layout = (app.leftButtons, app.rightButtons)
   result = gui:
-    Window():
-      title = "ActionBar Example"
-      defaultSize = (400, 200)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu(ignoreFields = @["dummyText"], sizeRequest = (400, 300))) {.addRight.}
-        
-        Button(text = "Reset") {.addRight.}:
-          style = [ButtonFlat]
-          proc clicked() =
-            app.dummyText = "Some Data"
+    Window:
+      title = "AdwHeaderBar Example"
+      defaultSize = (600, 100)
+      iconName = "go-home-symbolic" # Used by WindowControlIcon
       
-      Box(orient = OrientY):
-        Button(text = app.dummyText):
-          style = [ButtonFlat]
-          proc clicked() = app.revealed = not app.revealed
-          
-        Separator() {.expand: false.}
-        ActionBar {.expand: false.}:
-          revealed = app.revealed
-          sensitive = app.sensitive
-          tooltip = app.tooltip
-          sizeRequest = app.sizeRequest
-          
-          Label(text = "Delete Dataset?")
-          Button(icon = "process-stop-symbolic") {.addEnd.}:
-            proc clicked() = 
-              echo "Keep Dataset"
-              app.revealed = false
-              
-          Button(icon = "user-trash-symbolic", style = [ButtonDestructive]) {.addEnd.}:
-            style = [ButtonDestructive]
-            proc clicked() =
-              echo "Delete Dataset"
-              app.dummyText = ""
-              app.revealed = false
+      AdwHeaderBar {.addTitlebar.}:
+        windowControls = layout
+        centeringPolicy = app.centeringPolicy
+        showLeftButtons = app.showLeftButtons
+        showRightButtons = app.showRightButtons
+        showBackButton = app.showBackButton
+        showTitle = app.showTitle
+        sensitive = app.sensitive
+        tooltip = app.tooltip
+        sizeRequest = app.sizeRequest
         
+        insert(app.toAutoFormMenu(sizeRequest = (400, 400))) {.addRight.}
+        
+        Button {.addLeft.}:
+          text = "1"
+          style = [ButtonFlat]
+          
+          proc clicked() =
+            echo "Clicked 1"
+        
+        Button {.addRight.}:
+          text = "2"
+          style = [ButtonFlat]
+          
+          proc clicked() =
+            echo "Clicked 2"
+        
+        if AdwVersion >= (1, 4):
+          Box {.addTitle.}:
+            Label(text = "Title Widget")
+            Icon(name = "go-home-symbolic") {.expand: false.}
+
 adw.brew(gui(App()))

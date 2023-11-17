@@ -227,7 +227,7 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    WindowSurface:
+    AdwWindow:
       Box:
         orient = OrientX
         

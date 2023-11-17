@@ -1,14 +1,13 @@
 # Libadwaita Widgets
 
 
-## WindowSurface
+## AdwWindow
 
 ```nim
-renderable WindowSurface of BaseWindow
+renderable AdwWindow of BaseWindow
 ```
 
 A Window that does not have a title bar.
-A WindowSurface is equivalent to an `Adw.Window`.
 
 ###### Fields
 
@@ -24,7 +23,7 @@ A WindowSurface is equivalent to an `Adw.Window`.
 ###### Example
 
 ```nim
-WindowSurface:
+AdwWindow:
   Box:
     orient = OrientX
     Box {.expand: false.}:
@@ -86,6 +85,21 @@ Avatar:
   size = 100
   showInitials = true
 ```
+
+
+## ButtonContent
+
+```nim
+renderable ButtonContent of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `label: string`
+- `iconName: string`
+- `useUnderline: bool` Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
+- `canShrink: bool` Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
 
 
 ## Clamp
@@ -262,7 +276,6 @@ renderable EntryRow of PreferencesRow
 ###### Fields
 
 - All fields from [PreferencesRow](#PreferencesRow)
-- `subtitle: string`
 - `suffixes: seq[AlignedChild[Widget]]`
 - `text: string`
 
@@ -276,6 +289,41 @@ renderable EntryRow of PreferencesRow
 - `addSuffix`
   - `hAlign = AlignFill`
   - `vAlign = AlignCenter`
+
+###### Example
+
+```nim
+EntryRow:
+  title = "Name"
+  text = app.name
+  proc changed(name: string) =
+    app.name = name
+
+```
+
+
+## PasswordEntryRow
+
+```nim
+renderable PasswordEntryRow of EntryRow
+```
+
+An `EntryRow` that hides the user input
+
+###### Fields
+
+- All fields from [EntryRow](#EntryRow)
+
+###### Example
+
+```nim
+PasswordEntryRow:
+  title = "Password"
+  text = app.password
+  proc changed(password: string) =
+    app.password = password
+
+```
 
 
 ## Flap
@@ -330,6 +378,42 @@ Flap:
       text = "Content ".repeat(10)
       wrap = true
 ```
+
+
+## AdwHeaderBar
+
+```nim
+renderable AdwHeaderBar of BaseWidget
+```
+
+Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `packLeft: seq[Widget]`
+- `packRight: seq[Widget]`
+- `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
+- `decorationLayout: Option[string] = none(string)`
+- `showRightButtons: bool = true` Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+- `showLeftButtons: bool = true` Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+- `titleWidget: Widget` A widget for the title. Replaces the title string, if there is one.
+- `showBackButton: bool = true`
+- `showTitle: bool = true` Determines whether to show or hide the title
+
+###### Setters
+
+- `windowControls: DecorationLayout`
+- `windowControls: Option[DecorationLayout]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addLeft` Adds a widget to the left side of the HeaderBar.
+
+- `addRight` Adds a widget to the right side of the HeaderBar.
+
+- `addTitle`
 
 
 ## SplitButton
@@ -398,5 +482,42 @@ renderable AboutWindow
 - `website: string`
 - `copyright: string`
 - `license: string`
+
+
+## SwitchRow
+
+```nim
+renderable SwitchRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `active: bool`
+
+###### Events
+
+- activated: `proc (active: bool)`
+
+
+## Banner
+
+```nim
+renderable Banner of BaseWidget
+```
+
+A rectangular Box taking up the entire vailable width with an optional button.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `buttonLabel: string` Label of the optional banner button. Button will only be added to the banner if this Label has a value.
+- `title: string`
+- `useMarkup: bool = true` Determines whether using Markup in title is allowed or not.
+- `revealed: bool = true` Determines whether the banner is shown.
+
+###### Events
+
+- clicked: `proc ()` Triggered by clicking the banner button
 
 

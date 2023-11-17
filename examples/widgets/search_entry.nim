@@ -75,8 +75,11 @@ method view(app: AppState): Widget =
           
       ScrolledWindow:
         ListBox:
-          selected = [app.selected].toHashSet()
           selectionMode = SelectionSingle
+          if app.selected < app.filteredItems.len:
+            selected = toHashSet([app.selected])
+          else:
+            selected = initHashSet[int]()
           
           proc select(rows: Hashset[int]) =
             for num in rows:
