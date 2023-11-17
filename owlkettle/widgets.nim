@@ -22,10 +22,10 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, sequtils, hashes, times, strutils, sugar, strformat]
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, cairo, widgetutils, common
+import widgetdef, cairo, widgetutils, common, guidsl
 import bindings/gtk
 
 customPragmas()
@@ -3615,6 +3615,224 @@ renderable MessageDialog of BuiltinDialog:
         text = "Ok"
         res = DialogAccept
 
+type TabPositionType* = enum
+  TabLeft,
+  TabRight,
+  TabTop,
+  TabBottom
+
+proc toGtk(pos: TabPositionType): GtkPositionType =
+  result = GtkPositionType(ord(pos))
+
+type NotebookTab[T] = object
+  tabWidget: T
+  menuWidget: T
+  widget: T
+  reorderable: bool
+  detachable: bool
+
+proc assignApp[T](tab: NotebookTab[T], app: Viewable) =
+  tab.tabWidget.assignApp(app)
+  tab.widget.assignApp(app)
+
+proc setNotebookTabSettings[T](notebook: GtkWidget, tabWidget: GtkWidget, tab: NotebookTab[T]) =
+  gtk_notebook_set_tab_detachable(notebook, tabWidget, tab.detachable.cbool)
+  gtk_notebook_set_tab_reorderable(notebook, tabWidget, tab.reorderable.cbool)
+
+proc updateNotebookChildren*(state: Renderable,
+                            notebookChildren: var seq[NotebookTab[WidgetState]],
+                            notebookUpdates: seq[NotebookTab[Widget]]) =
+  notebookUpdates.assignApp(state.app)
+  var it = 0
+  # Updates to existing Widgets
+  while it < notebookUpdates.len and it < notebookChildren.len:
+    let
+      notebookUpdate = notebookUpdates[it]
+      newWidget = notebookUpdate.widget
+      oldWidgetState = notebookChildren[it].widget
+      newWidgetState = newWidget.update(oldWidgetState)
+      
+    let hasNewWidget = not newWidgetState.isNil()
+    if hasNewWidget:
+      # Remove old Page
+      gtk_notebook_remove_page(state.internalWidget, it.cint)
+      # Add new Page
+      let newGtkWidget = newWidgetState.unwrapInternalWidget()
+      let labelGtkWidget = notebookUpdate.tabWidget.build().unwrapInternalWidget()
+      let menuGtkWidget = notebookUpdate.menuWidget.build().unwrapInternalWidget()
+      discard gtk_notebook_insert_page_menu(state.internalWidget, newGtkWidget, labelGtkWidget, menuGtkWidget, it.cint)
+      setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
+      
+      notebookChildren[it].widget = newWidgetState
+    else: # Update old Widget
+      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
+      setNotebookTabSettings(state.internalWidget, oldGtkWidget, notebookUpdate)
+
+    it += 1
+  
+  # Newly Added Widgets
+  while it < notebookUpdates.len:
+    let
+      notebookUpdate = notebookUpdates[it]
+      newWidget = notebookUpdate.widget
+      newWidgetState = newWidget.build()
+      newGtkWidget = newWidgetState.unwrapInternalWidget()
+      labelGtkWidget = notebookUpdate.tabWidget.build().unwrapInternalWidget()
+      menuGtkWidget = notebookUpdate.menuWidget.build().unwrapInternalWidget()
+    discard gtk_notebook_append_page_menu(state.internalWidget, newGtkWidget, labelGtkWidget, menuGtkWidget)
+    setNotebookTabSettings(state.internalWidget, newGtkWidget, notebookUpdate)
+    
+    notebookChildren.add(NotebookTab[WidgetState](
+      widget: newWidgetState,
+      tabWidget: notebookUpdate.tabWidget.build(),
+      menuWidget: notebookUpdate.menuWidget.build(),
+      reorderable: notebookUpdate.reorderable,
+      detachable: notebookUpdate.detachable
+    ))
+    it += 1
+  
+  # Newly Removed Widgets
+  while it < notebookChildren.len:
+    gtk_notebook_remove_page(state.internalWidget, it.cint)
+    discard notebookChildren.pop()
+
+type DirectionType* = enum
+  DirectionTabForward
+  DirectionTabBackward
+  DirectionUp
+  DirectionDown
+  DirectionLeft
+  DirectionRight
+  
+proc toGtk*(x: DirectionType): GtkDirectionType =
+  GtkDirectionType(ord(x))
+
+proc toOwl*(x: GtkDirectionType): DirectionType =
+  DirectionType(ord(x))
+
+renderable Notebook of BaseWidget:
+  pages: seq[NotebookTab[Widget]]
+  enablePopup: bool = true
+  groupName: string
+  scrollable: bool = true
+  showBorder: bool = true
+  showTabs: bool = true
+  tabPosition: TabPositionType = TabTop
+  currentPage: int = 0
+  
+  proc switchPage(newPageIndex: int)
+  proc pageAdded(newPageIndex: int)
+  proc pageRemoved(removedPageIndex: int)
+  proc pageReordered(newPageIndex: int)
+  # Currently not supported signals
+  # proc changeCurrentPage(newPageIndex: int): bool
+  # proc createWindow(groupName: string): Widget
+  # proc focusTab(tab: GtkWidget): bool
+  # proc moveFocusOut(direction: DirectionType)
+  # proc reorderTab(direction: DirectionType, p0: bool): bool
+  # proc selectPage(obj: bool): bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_notebook_new()
+    connectEvents:
+      proc switchPageCallback(
+        widget: GtkWidget,
+        page: GtkWidget,
+        pageIndex: cuint,
+        data: ptr EventObj[proc(x: int)]
+      ) {.cdecl.} =
+        NotebookState(data[].widget).currentPage = pageIndex.int
+        data[].callback(pageIndex.int)
+        data[].redraw()  
+      
+      
+      proc pageCallback(
+        widget: GtkWidget,
+        page: GtkWidget,
+        newPageIndex: cuint,
+        data: ptr EventObj[proc(x: int)]
+      ) {.cdecl.} =
+        data[].callback(newPageIndex.int)
+        data[].redraw()
+        
+      state.connect(state.switchPage, "switch-page", switchPageCallback)
+      state.connect(state.pageAdded, "page-added", pageCallback)
+      state.connect(state.pageRemoved, "page-removed", pageCallback)
+      state.connect(state.pageReordered, "page-reordered", pageCallback)
+    disconnectEvents:
+      disconnect(state.internalWidget, state.switchPage)
+      disconnect(state.internalWidget, state.pageAdded)
+      disconnect(state.internalWidget, state.pageRemoved)
+      disconnect(state.internalWidget, state.pageReordered)
+  
+  hooks pages:
+    (build, update):
+      state.updateNotebookChildren(state.pages, widget.valPages)
+  
+  hooks currentPage:
+    property:
+      gtk_notebook_set_current_page(state.internalWidget, state.currentPage.cint)
+  
+  hooks enablePopup:
+    property:
+      if state.enablePopup:
+        gtk_notebook_popup_enable(state.internalWidget)
+      else:
+        gtk_notebook_popup_disable(state.internalWidget)
+  
+  hooks groupName:
+    property:
+      gtk_notebook_set_group_name(state.internalWidget, state.groupName.cstring)
+      
+  hooks scrollable:
+    property:
+      gtk_notebook_set_scrollable(state.internalWidget, state.scrollable.cbool)
+      
+  hooks showBorder:
+    property:
+      gtk_notebook_set_show_border(state.internalWidget, state.showBorder.cbool)
+  
+  hooks showTabs:
+    property:
+      gtk_notebook_set_show_tabs(state.internalWidget, state.showTabs.cbool)
+      
+  hooks tabPosition:
+    property:
+      gtk_notebook_set_tab_pos(state.internalWidget, state.tabPosition.toGtk())
+  
+  adder add {.tabLabel: "", 
+              tabLabelWidget: nil.Widget,
+              menuLabel: "", 
+              menuLabelWidget: nil.Widget,
+              reorderable: true.}: 
+    let hasTabLabelWidget = tabLabel != "" or (not tabLabelWidget.isNil())
+    if not hasTabLabelWidget:
+      raise newException(ValueError, "A tab label is required for a notebook tab. Set either tabLabel or tabLabelWidget")
+    
+    let tabWidget: Widget = if tabLabelWidget.isNil():
+        gui(Label(text = tabLabel))
+      else:
+        tabLabelWidget
+    
+    let menuWidget: Widget = if not menuLabelWidget.isNil():
+        menuLabelWidget
+      elif menuLabel != "":
+        gui(Label(text = menuLabel))
+      else:
+        gui(Label(text = tabLabel))
+    
+    let tab = NotebookTab[Widget](
+      widget: child,
+      tabWidget: tabWidget,
+      menuWidget: menuWidget,
+      reorderable: reorderable,
+      detachable: false # Detaching is currently not supported
+    )
+  
+    widget.hasPages = true
+    widget.valPages.add(tab)
+  
 renderable AboutDialog of BaseWidget:
   programName: string
   logo: string
@@ -4337,3 +4555,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export Notebook
