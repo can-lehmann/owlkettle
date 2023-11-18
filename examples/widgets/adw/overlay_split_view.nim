@@ -39,11 +39,8 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
+    AdwWindow():
       defaultSize = (800, 600)
-      title = "Overlay Split View Example"
-      HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
 
       OverlaySplitView():
         collapsed = app.collapsed
@@ -60,10 +57,22 @@ method view(app: AppState): Widget =
         sensitive = app.sensitive
         sizeRequest = app.sizeRequest
         
-        Label(text = "I am the content of overlay Split view")
+        Box(orient = OrientY):
+          AdwHeaderBar {.expand: false.}:
+            insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+
+          Box(orient = OrientY, spacing = 18, margin = 12):
+            Label(text = "I am the content of overlay Split view") {.expand: false, hAlign: AlignCenter.}
+            Button(text = "Toggle Sidebar") {.expand: false, hAlign: AlignCenter.}:
+              proc clicked() =
+                app.showSidebar = not app.showSidebar
         
-        Box(orient = OrientY) {.addSidebar.}:
+        Box(orient = OrientY, spacing = 4) {.addSidebar.}:
+          AdwHeaderBar() {.expand: false.}:
+            Label(text = "Overlay Split View Example") {.addTitle.}
+
           for num in 0..4:
-            Button(text = $num)
+            Button(text = $num):
+              style = [ButtonFlat]
 
 adw.brew(gui(App()))
