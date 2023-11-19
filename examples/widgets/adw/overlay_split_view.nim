@@ -60,19 +60,27 @@ method view(app: AppState): Widget =
         Box(orient = OrientY):
           AdwHeaderBar {.expand: false.}:
             insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
-
+            
+            if not app.showSidebar:
+              Button() {.addLeft.}:
+                icon = "open-menu-symbolic"
+                proc clicked() =
+                  app.showSidebar = not app.showSidebar
+                  
           Box(orient = OrientY, spacing = 18, margin = 12):
             Label(text = "I am the content of overlay Split view") {.expand: false, hAlign: AlignCenter.}
-            Button(text = "Toggle Sidebar") {.expand: false, hAlign: AlignCenter.}:
-              proc clicked() =
-                app.showSidebar = not app.showSidebar
-        
+
         Box(orient = OrientY, spacing = 4) {.addSidebar.}:
           AdwHeaderBar() {.expand: false.}:
             Label(text = "Overlay Split View Example") {.addTitle.}
-
+            Button() {.addRight.}:
+              icon = "open-menu-symbolic"
+              style = @[ButtonFlat]
+              proc clicked() =
+                app.showSidebar = not app.showSidebar
+          
           for num in 0..4:
             Button(text = $num):
-              style = [ButtonFlat]
+              style = @[ButtonFlat]
 
 adw.brew(gui(App()))
