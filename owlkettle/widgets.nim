@@ -3836,7 +3836,8 @@ renderable StackPage:
   
   hooks widget:
     (build, update):
-      discard
+      echo "StackPageState: ", state.widget.isNil()
+      echo "StackPageWidget: ", widget.valWidget.isNil()
   
   hooks iconName:
     property:
@@ -3846,6 +3847,7 @@ renderable StackPage:
   hooks title:
     property:
       if not state.internalObject.isNil():
+        echo "Set the title"
         gtk_stack_page_set_title(state.internalObject, state.title.cstring)
       
   # hooks name:
@@ -3883,6 +3885,9 @@ proc updateStackPage(page: StackPageState) =
   gtk_stack_page_set_visible(page.internalObject, page.visible.cbool)
   gtk_stack_page_set_needs_attention(page.internalObject, page.needsAttention.cbool)
 
+proc assignApp[T](children: Table[string, T], app: Viewable) =
+  for name, widget in children:
+    widget.assignApp(app)
 
 proc updateChildren*(state: Renderable,
                      stackChildren: var Table[string, WidgetState],
@@ -3893,12 +3898,13 @@ proc updateChildren*(state: Renderable,
     for name, stackUpdate in stackUpdates:
       StackPage(stackUpdate).valWidget
   updates.assignApp(state.app)
+  stackUpdates.assignApp(state.app)
   let newPageNames = stackUpdates.keys.toSeq().toSet()
   let oldPageNames = stackChildren.keys.toSeq().toSet()
   let newAddedPageNames = newPageNames.difference(oldPageNames)
   let oldRemovedPageNames = oldPageNames.difference(newPageNames)
   let sharedPageNames = oldPageNames.difference(oldRemovedPageNames)
-  
+  echo "Update Stack Pages"
   var
     forceReadd = false
   for pageName in sharedPageNames:
@@ -3908,12 +3914,13 @@ proc updateChildren*(state: Renderable,
     
     let hasChanges = not newWidgetState.isNil()
     if hasChanges:
-      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
+      let oldGtkWidget = oldWidgetState.widget.unwrapInternalWidget()
       removeChild(state.internalWidget, oldGtkWidget)
       
-      let newGtkWidget = newWidgetState.unwrapInternalWidget()
+      let newGtkWidget = newWidgetState.widget.unwrapInternalWidget()
       let newPage: GtkStackPage = addChild(
-        state.internalWidget, newGtkWidget, 
+        state.internalWidget, 
+        newGtkWidget, 
         pageName.cstring, 
         newWidgetState.title.cstring
       )
@@ -3921,6 +3928,7 @@ proc updateChildren*(state: Renderable,
       newWidgetState.updateStackPage()
       stackChildren[pageName] = newWidgetState
       forceReadd = true
+      echo "Update for nil: ", newGtkWidget.isNil()
       
     elif forceReadd:
       let stackChild: StackPageState = StackPageState(stackChildren[pageName])
@@ -3931,7 +3939,8 @@ proc updateChildren*(state: Renderable,
       oldWidgetState.internalObject = newPage
       stackChildren[pageName] = oldWidgetState
       g_object_unref(pointer(currentGtkWidget))
-  
+      echo "Readd for nil: ", currentGtkWidget.isNil()
+
   for newPageName in newAddedPageNames:
     let newStackUpdate = StackPage(stackUpdates[newPageName])
     let newWidgetState = StackPageState(newStackUpdate.build())
@@ -3941,7 +3950,8 @@ proc updateChildren*(state: Renderable,
     newWidgetState.internalObject = newPage
     newWidgetState.updateStackPage()
     stackChildren[newPageName] = newWidgetState
-    
+    echo "Adding nil: ", newGtkWidget.isNil()
+
   for removedPageName in oldRemovedPageNames:
     let stackChild = StackPageState(stackChildren[removedPageName])
     let oldGtkWidget = stackChild.widget.unwrapInternalWidget()
