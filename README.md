@@ -45,7 +45,7 @@ You can install it by running:
 - `dnf install gtk4-devel libadwaita-devel` on Fedora
 - `apt install libgtk-4-dev libadwaita-1-dev` on Ubuntu
 - `pacman -S mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita` on Windows' MSYS2
-  - Make sure you have MSYS2 correctly set up! See [here](https://github.com/can-lehmann/owlkettle/discussions/144) for advice.
+  - [Checkout the installation docs](https://can-lehmann.github.io/owlkettle/docs/installation.html) for more information about the MSYS2 setup
 
 ```bash
 $ nimble install owlkettle@#head
