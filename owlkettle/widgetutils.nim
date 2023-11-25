@@ -61,6 +61,14 @@ proc connect*[T](renderable: Renderable,
     event.widget = renderable
     event.handler = g_signal_connect(renderable.internalWidget, name, eventCallback, event[].addr)
 
+proc connect*[T](adjustment: GtkAdjustment,
+                 event: Event[T],
+                 name: cstring,
+                 eventCallback: pointer) =
+  if not event.isNil:
+    event.widget = nil
+    event.handler = g_signal_connect(adjustment, name, eventCallback, event[].addr)
+
 proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
   if not event.isNil:
     assert event.handler > 0
@@ -68,6 +76,13 @@ proc disconnect*[T](widget: GtkWidget, event: Event[T]) =
     event.handler = 0
     event.widget = nil
 
+proc disconnect*[T](adj: GtkAdjustment, event: Event[T]) =
+  if not event.isNil:
+    assert event.handler > 0
+    g_signal_handler_disconnect(pointer(adj), event.handler)
+    event.handler = 0
+    event.widget = nil
+    
 proc updateStyle*[State, Widget](state: State, widget: Widget) {.inline.} =
   mixin classes
   if widget.hasPrivateStyle:

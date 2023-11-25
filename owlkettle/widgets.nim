@@ -3787,7 +3787,113 @@ renderable Scale of BaseWidget:
         echo "New value is ", newValue
         app.value = newValue
 
+proc newAdjustment*(
+  value = 0.0, 
+  lower = 0.0, 
+  upper = 0.0, 
+  stepIncrement = 0.0, 
+  pageIncrement = 0.0, 
+  pageSize: float = 0.0
+): GtkAdjustment =
+  gtk_adjustment_new(value.cdouble, lower.cdouble, upper.cdouble, stepIncrement.cdouble, pageIncrement.cdouble, pageSize.cdouble)
 
+proc value*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_value(adjustment).float
+proc lower*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_lower(adjustment).float
+proc upper*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_upper(adjustment).float
+proc stepIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_step_increment(adjustment).float
+proc pageIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_page_increment(adjustment).float
+proc pageSize*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_page_size(adjustment).float
+proc minimumIncrement*(adjustment: GtkAdjustment): float =
+  gtk_adjustment_get_minimum_increment(adjustment).float
+proc `value=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_value(adjustment, newValue.cdouble)
+proc `lower=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_lower(adjustment, newValue.cdouble)
+proc `upper=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_upper(adjustment, newValue.cdouble)
+proc `stepIncrement=`*(adjustment: GtkAdjustment, newValue: float) = 
+  gtk_adjustment_set_step_increment(adjustment, newValue.cdouble)
+proc `pageIncrement=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_page_increment(adjustment, newValue.cdouble)
+proc `pageSize=`*(adjustment: GtkAdjustment, newValue: float) =
+  gtk_adjustment_set_page_size(adjustment, newValue.cdouble)
+proc configure*(adjustment: GtkAdjustment, value: float, lower: float, upper: float, step_increment: float, page_increment: float, page_siz: float) =
+  gtk_adjustment_configure(adjustment, value.cdouble, lower.cdouble, upper.cdouble, step_increment.cdouble, page_increment.cdouble, page_siz.cdouble)
+
+# proc `valueChangedHandler=`*(adjustment: GtkAdjustment, handler: proc(newValue: float)) =
+#   proc valueChangedCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc (newValue: float)]) {.cdecl.} = 
+#     let event = unwrapSharedCell(data)
+#     event.callback(adjustment.value)
+
+#   let event = EventObj[proc(newValue: float)]()
+#   let data = allocSharedCell(event)
+#   data.callback = handler
+#   data.handler = g_signal_connect(adjustment, "value-changed".cstring, valueChangedCallback, data)
+
+# proc `adjustmentChangedHandler=`*(adjustment: GtkAdjustment, handler: proc()) =
+#   proc adjustmentChangedCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc()]) {.cdecl.} =
+#     let event = unwrapSharedCell(data)
+#     event.callback()
+
+#   let event = EventObj[proc()]()
+#   let data = allocSharedCell(event)
+#   data.callback = handler
+#   data.handler = g_signal_connect(adjustment, "changed".cstring, adjustmentChangedCallback, data)
+
+# TODO: Add hooks 
+
+proc `==`*(x, y: GtkAdjustment): bool = x.pointer == y.pointer
+
+renderable Scrollbar of BaseWidget:
+  ## A scrollbar widget whose properties can be customized via `GtkAdjustment`.
+  ## Use `newAdjustment` to create a GtkAdjustment.
+  ## `GtkAdjustment` has the following properties that can be assigned to:
+  ## - value: The position of the scrollbar within the upper and lower bounds. If e.g. value/upper = 0.5, the scrollbar will be at 50% height.
+  ## - lower: The lower bound for the value of the scrollbar. If `value` == `lower`, then the scrollbar is at the top of the page.
+  ## - upper: The upper bound for the value of the scrollbar. If `value` == `upper`, then the scrollbar is at the bottom of the page.
+  ## - stepIncrement
+  ## - pageIncrement
+  ## - pageSize: The size of the Scrollbar, also relative to the upper and lower bounds. If e.g. `pageSize` / (`upper`- `lower`) = 0.2, then the scrollbar will take up 20% of the total available height.
+  orient: Orient = OrientY
+  adjustment: GtkAdjustment = nil.GtkAdjustment
+  
+  proc scrolled(newValue: float)
+  proc adjustmentChanged()
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_scrollbar_new(state.orient.toGtk(), nil.GtkAdjustment)
+    connectEvents:
+      proc adjustmentCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc()]){.cdecl.} =
+        echo "CB triggered?"
+        data[].callback()
+        data[].redraw()
+      
+      proc scrollCallback(adjustment: GtkAdjustment, data: ptr EventObj[proc(newValue: float)]){.cdecl.} =
+        echo "CB triggered?"
+        data[].callback(adjustment.value)
+        data[].redraw()
+      
+      state.adjustment.connect(state.scrolled, "changed", adjustmentCallback)
+      state.adjustment.connect(state.adjustmentChanged, "changed", scrollCallback)
+    disconnectEvents:
+      state.adjustment.disconnect(state.scrolled)
+      state.adjustment.disconnect(state.adjustmentChanged)
+  
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+
+  hooks adjustment:
+    property:
+      gtk_scrollbar_set_adjustment(state.internalWidget, state.adjustment)
+  
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object
@@ -4336,4 +4442,5 @@ export EditableLabel
 export PasswordEntry
 export CenterBox
 export ListView
+export ScrollBar
 export ActionBar

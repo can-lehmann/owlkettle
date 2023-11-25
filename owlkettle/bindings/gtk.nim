@@ -764,6 +764,21 @@ proc gtk_adjustment_set_upper*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_step_increment*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_page_increment*(adjustment: GtkAdjustment, value: cdouble)
 proc gtk_adjustment_set_page_size*(adjustment: GtkAdjustment, value: cdouble)
+proc gtk_adjustment_clamp_page*(adjustment: GtkAdjustment, lower: cdouble, upper: cdouble)
+proc gtk_adjustment_configure*(adjustment: GtkAdjustment, value: cdouble, lower: cdouble, upper: cdouble, step_increment: cdouble, page_increment: cdouble, page_siz: cdouble)
+proc gtk_adjustment_get_lower*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_minimum_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_page_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_page_size*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_step_increment*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_upper*(adjustment: GtkAdjustment): cdouble
+proc gtk_adjustment_get_value*(adjustment: GtkAdjustment): cdouble
+
+
+# Gtk.Scrollbar
+proc gtk_scrollbar_new*(orientation: GtkOrientation, adjustment: GtkAdjustment): GtkWidget
+proc gtk_scrollbar_set_adjustment*(self: GtkWidget, adjustment: GtkAdjustment)
+proc gtk_scrollbar_get_adjustment*(self: GtkWidget): GtkAdjustment
 
 # Gtk.ScrolledWindow
 proc gtk_scrolled_window_new*(hAdjustment, vAdjustment: GtkAdjustment): GtkWidget
@@ -1262,6 +1277,9 @@ proc g_signal_connect*(app: GtkListItemFactory, signal: cstring, closure, data: 
 
 proc g_signal_connect*(app: GtkSelectionModel, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+
+proc g_signal_connect*(adj: GtkAdjustment, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(adj.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 {.pop.}
 
 template withCArgs(argc, argv, body: untyped) =
