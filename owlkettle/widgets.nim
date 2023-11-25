@@ -2028,11 +2028,11 @@ renderable PopoverMenu of BasePopover:
               newPage = pageWidget.update(page)
             if not newPage.isNil:
               gtk_stack_remove(stack, page.unwrapInternalWidget())
-              gtk_stack_add_named(stack, newPage.unwrapInternalWidget(), name.cstring)
+              discard gtk_stack_add_named(stack, newPage.unwrapInternalWidget(), name.cstring)
               state.pages[name] = newPage
           else:
             let page = pageWidget.build()
-            gtk_stack_add_named(stack, page.unwrapInternalWidget(), name.cstring)
+            discard gtk_stack_add_named(stack, page.unwrapInternalWidget(), name.cstring)
             state.pages[name] = page
   
   adder add {.name: "main".}:
@@ -3819,11 +3819,44 @@ proc toGtk*(x: StackTransitionType): GtkStackTransitionType =
 type StackChild[T] = object
   widget: T
   title: string
+  visible: bool
+  useUnderline: bool
+  needsAttention: bool
+  iconName: string
+
+proc updateStackPage[T](page: GtkStackPage, metaData: StackChild[T]) =
+  echo "Updating StackPage"
+  gtk_stack_page_set_icon_name(page, metaData.iconName.cstring)
+  gtk_stack_page_set_title(page, metaData.title.cstring)
+  gtk_stack_page_set_use_underline(page, metaData.useUnderline.cbool)
+  gtk_stack_page_set_visible(page, metaData.visible.cbool)
+  gtk_stack_page_set_needs_attention(page, metaData.needsAttention.cbool)
+
+renderable StackPage:
+  child: Widget
+  iconName: string
+  title: string
+  name: string
+  useUnderline: bool
+  visible: bool
+  needsAttention: bool
+  
+  hooks child:
+    (build, update):
+      echo "Do nothing"
+  
+  adder add: # TODO: Refactor this to not need name
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a StackPage. Use a Box widget to display multiple widgets in a StackPage")
+    
+    widget.hasChild = true
+    widget.valChild = child
+
 
 proc updateChildren*(state: Renderable,
                      stackChildren: var Table[string, StackChild[WidgetState]],
                      stackUpdates: Table[string, StackChild[Widget]],
-                     addChild: proc(widget, child: GtkWidget, name, title: cstring) {.cdecl, locker.},
+                     addChild: proc(widget, child: GtkWidget, name, title: cstring): GtkStackPage {.cdecl, locker.},
                      removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   let updates = collect(newSeq):
     for name, stackUpdate in stackUpdates:
@@ -3850,15 +3883,18 @@ proc updateChildren*(state: Renderable,
       removeChild(state.internalWidget, oldGtkWidget)
       
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      addChild(state.internalWidget, newGtkWidget, pageName.cstring, stackUpdate.title.cstring)
+      let newPage: GtkStackPage = addChild(state.internalWidget, newGtkWidget, pageName.cstring, stackUpdate.title.cstring)
+      newPage.updateStackPage(stackUpdate)
       stackChildren[pageName].widget = newWidgetState
       forceReadd = true
+      
     elif forceReadd:
       let stackChild = stackChildren[pageName]
       let currentGtkWidget = stackChild.widget.unwrapInternalWidget()
       g_object_ref(pointer(currentGtkWidget))
       removeChild(state.internalWidget, currentGtkWidget)
-      addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
+      let page = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
+      page.updateStackPage(stackUpdate)
       g_object_unref(pointer(currentGtkWidget))
   
   for newPageName in newAddedPageNames:
@@ -3866,10 +3902,15 @@ proc updateChildren*(state: Renderable,
       newStackUpdate = stackUpdates[newPageName]
       newWidgetState = newStackUpdate.widget.build()
       newGtkWidget = newWidgetState.unwrapInternalWidget()
-    addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackUpdate.title.cstring)
+    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackUpdate.title.cstring)
+    newPage.updateStackPage(newStackUpdate)
     let newStackChild = StackChild[WidgetState](
       widget: newWidgetState,
-      title: newStackUpdate.title
+      title: newStackUpdate.title,
+      visible: newStackUpdate.visible,
+      useUnderline: newStackUpdate.useUnderline,
+      needsAttention: newStackUpdate.needsAttention,
+      iconName: newStackUpdate.iconName
     )
     stackChildren[newPageName] = newStackChild
   
@@ -3929,17 +3970,38 @@ renderable Stack of BaseWidget:
         let visibleChild = state.pages[state.visibleChildName].widget.unwrapInternalWidget()
         gtk_stack_set_visible_child(state.internalWidget, visibleChild)
     
-  adder add {.title: "", name: "".}:
-    let hasTitle = title.len() > 0
-    let stackTitle = if hasTitle: title else: name
+  adder add:
+    let stackPage = StackPage(child)
+    let stackTitle = if stackPage.hasTitle: stackPage.valTitle else: stackPage.valName
     let stackChild = StackChild[Widget](
-      widget: child,
-      title: stackTitle
+      widget: stackPage.valChild,
+      title: stackTitle,
+      visible: stackPage.valVisible,
+      useUnderline: stackPage.valUseUnderline,
+      needsAttention: stackPage.valNeedsAttention,
+      iconName: stackPage.valIconName
     )
   
     widget.hasPages = true
-    widget.valPages[name] = stackChild
-      
+    widget.valPages[stackPage.valName] = stackChild
+
+renderable StackSwitcher of BaseWidget:
+  stack: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_switcher_new()
+  
+  hooks stack:
+    (build, update):
+      state.updateChild(state.stack, widget.valStack, gtk_stack_switcher_set_stack)
+
+  adder add:
+    if widget.hasStack:
+      raise newException(ValueError, "It is not possible to add multiple Stacks to a StackSwitcher.")
+    widget.hasStack = true
+    widget.valStack = child
+
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object
@@ -4489,4 +4551,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
-export Stack
+export Stack, StackPage, StackSwitcher

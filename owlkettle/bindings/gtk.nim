@@ -183,6 +183,7 @@ type
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
+  GtkStackPage* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -202,6 +203,7 @@ proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
+proc isNil*(obj: GtkStackPage): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -954,9 +956,9 @@ when GtkMinor >= 10:
 
 # Gtk.Stack
 proc gtk_stack_new*(): GtkWidget
-proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring)
+proc gtk_stack_add_named*(stack, child: GtkWidget, name: cstring): GtkStackPage
 proc gtk_stack_remove*(stack, child: GtkWidget)
-proc gtk_stack_add_titled*(stack, child: GtkWidget, name: cstring, title: cstring)
+proc gtk_stack_add_titled*(stack, child: GtkWidget, name: cstring, title: cstring): GtkStackPage
 proc gtk_stack_set_hhomogeneous*(stack: GtkWidget, hhomogeneous: cbool)
 proc gtk_stack_set_interpolate_size*(stack: GtkWidget, interpolate_size: cbool)
 proc gtk_stack_set_transition_duration*(stack: GtkWidget, duration: cuint)
@@ -964,6 +966,18 @@ proc gtk_stack_set_transition_type*(stack: GtkWidget, transition: GtkStackTransi
 proc gtk_stack_set_vhomogeneous*(stack: GtkWidget, vhomogeneous: cbool)
 proc gtk_stack_set_visible_child*(stack, child: GtkWidget)
 proc gtk_stack_set_visible_child_name*(stack: GtkWidget, name: cstring)
+
+# Gtk.StackPage
+proc gtk_stack_page_set_icon_name*(self: GtkStackPage, setting: cstring)
+proc gtk_stack_page_set_name*(self: GtkStackPage, setting: cstring)
+proc gtk_stack_page_set_needs_attention*(self: GtkStackPage, setting: cbool)
+proc gtk_stack_page_set_title*(self: GtkStackPage, setting: cstring)
+proc gtk_stack_page_set_use_underline*(self: GtkStackPage, setting: cbool)
+proc gtk_stack_page_set_visible*(self: GtkStackPage, visible: cbool)
+
+# Gtk.StackSwitcher
+proc gtk_stack_switcher_new*(): GtkWidget
+proc gtk_stack_switcher_set_stack*(switcher, stack: GtkWidget)
 
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
