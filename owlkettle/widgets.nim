@@ -3824,16 +3824,9 @@ type StackChild[T] = object
   needsAttention: bool
   iconName: string
 
-proc updateStackPage[T](page: GtkStackPage, metaData: StackChild[T]) =
-  echo "Updating StackPage"
-  gtk_stack_page_set_icon_name(page, metaData.iconName.cstring)
-  gtk_stack_page_set_title(page, metaData.title.cstring)
-  gtk_stack_page_set_use_underline(page, metaData.useUnderline.cbool)
-  gtk_stack_page_set_visible(page, metaData.visible.cbool)
-  gtk_stack_page_set_needs_attention(page, metaData.needsAttention.cbool)
-
 renderable StackPage:
-  child: Widget
+  widget: Widget
+  internalObject: GtkStackPage
   iconName: string
   title: string
   name: string
@@ -3841,28 +3834,65 @@ renderable StackPage:
   visible: bool
   needsAttention: bool
   
-  hooks child:
+  hooks widget:
     (build, update):
-      echo "Do nothing"
+      discard
   
+  hooks iconName:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_icon_name(state.internalObject, state.iconName.cstring)
+      
+  hooks title:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_title(state.internalObject, state.title.cstring)
+      
+  # hooks name:
+  #   property:
+  #     if not state.internalObject.isNil():
+  #       gtk_stack_page_set_title(state.internalObject, state.title.cstring)
+      
+  hooks useUnderline:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_use_underline(state.internalObject, state.useUnderline.cbool)
+      
+  hooks visible:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_visible(state.internalObject, state.visible.cbool)
+      
+  hooks needsAttention:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_needs_attention(state.internalObject, state.needsAttention.cbool)
+    
   adder add: # TODO: Refactor this to not need name
-    if widget.hasChild:
+    if widget.hasWidget:
       raise newException(ValueError, "Unable to add multiple children to a StackPage. Use a Box widget to display multiple widgets in a StackPage")
     
-    widget.hasChild = true
-    widget.valChild = child
+    widget.hasWidget = true
+    widget.valWidget = child
+
+proc updateStackPage(page: StackPageState) =
+  echo "Updating StackPage"
+  gtk_stack_page_set_icon_name(page.internalObject, page.iconName.cstring)
+  gtk_stack_page_set_title(page.internalObject, page.title.cstring)
+  gtk_stack_page_set_use_underline(page.internalObject, page.useUnderline.cbool)
+  gtk_stack_page_set_visible(page.internalObject, page.visible.cbool)
+  gtk_stack_page_set_needs_attention(page.internalObject, page.needsAttention.cbool)
 
 
 proc updateChildren*(state: Renderable,
-                     stackChildren: var Table[string, StackChild[WidgetState]],
-                     stackUpdates: Table[string, StackChild[Widget]],
+                     stackChildren: var Table[string, WidgetState],
+                     stackUpdates: Table[string, Widget],
                      addChild: proc(widget, child: GtkWidget, name, title: cstring): GtkStackPage {.cdecl, locker.},
                      removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
   let updates = collect(newSeq):
     for name, stackUpdate in stackUpdates:
-      stackUpdate.widget
+      StackPage(stackUpdate).valWidget
   updates.assignApp(state.app)
-  
   let newPageNames = stackUpdates.keys.toSeq().toSet()
   let oldPageNames = stackChildren.keys.toSeq().toSet()
   let newAddedPageNames = newPageNames.difference(oldPageNames)
@@ -3872,10 +3902,9 @@ proc updateChildren*(state: Renderable,
   var
     forceReadd = false
   for pageName in sharedPageNames:
-    let stackUpdate = stackUpdates[pageName]
-    let oldWidgetState = stackChildren[pageName].widget
-    let newWidget = stackUpdate.widget
-    let newWidgetState: WidgetState = newWidget.update(oldWidgetState)
+    let newWidget = stackUpdates[pageName]
+    let oldWidgetState = StackPageState(stackChildren[pageName])
+    let newWidgetState: StackPageState = newWidget.update(oldWidgetState).StackPageState
     
     let hasChanges = not newWidgetState.isNil()
     if hasChanges:
@@ -3883,46 +3912,45 @@ proc updateChildren*(state: Renderable,
       removeChild(state.internalWidget, oldGtkWidget)
       
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      let newPage: GtkStackPage = addChild(state.internalWidget, newGtkWidget, pageName.cstring, stackUpdate.title.cstring)
-      newPage.updateStackPage(stackUpdate)
-      stackChildren[pageName].widget = newWidgetState
+      let newPage: GtkStackPage = addChild(
+        state.internalWidget, newGtkWidget, 
+        pageName.cstring, 
+        newWidgetState.title.cstring
+      )
+      newWidgetState.internalObject = newPage
+      newWidgetState.updateStackPage()
+      stackChildren[pageName] = newWidgetState
       forceReadd = true
       
     elif forceReadd:
-      let stackChild = stackChildren[pageName]
+      let stackChild: StackPageState = StackPageState(stackChildren[pageName])
       let currentGtkWidget = stackChild.widget.unwrapInternalWidget()
       g_object_ref(pointer(currentGtkWidget))
       removeChild(state.internalWidget, currentGtkWidget)
-      let page = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
-      page.updateStackPage(stackUpdate)
+      let newPage: GtkStackPage = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
+      oldWidgetState.internalObject = newPage
+      stackChildren[pageName] = oldWidgetState
       g_object_unref(pointer(currentGtkWidget))
   
   for newPageName in newAddedPageNames:
-    let
-      newStackUpdate = stackUpdates[newPageName]
-      newWidgetState = newStackUpdate.widget.build()
-      newGtkWidget = newWidgetState.unwrapInternalWidget()
-    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackUpdate.title.cstring)
-    newPage.updateStackPage(newStackUpdate)
-    let newStackChild = StackChild[WidgetState](
-      widget: newWidgetState,
-      title: newStackUpdate.title,
-      visible: newStackUpdate.visible,
-      useUnderline: newStackUpdate.useUnderline,
-      needsAttention: newStackUpdate.needsAttention,
-      iconName: newStackUpdate.iconName
-    )
-    stackChildren[newPageName] = newStackChild
-  
+    let newStackUpdate = StackPage(stackUpdates[newPageName])
+    let newWidgetState = StackPageState(newStackUpdate.build())
+    newWidgetState.widget = newStackUpdate.valWidget.build()
+    let newGtkWidget = newWidgetState.widget.unwrapInternalWidget()
+    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newWidgetState.title.cstring)
+    newWidgetState.internalObject = newPage
+    newWidgetState.updateStackPage()
+    stackChildren[newPageName] = newWidgetState
+    
   for removedPageName in oldRemovedPageNames:
-    let stackChild = stackChildren[removedPageName]
+    let stackChild = StackPageState(stackChildren[removedPageName])
     let oldGtkWidget = stackChild.widget.unwrapInternalWidget()
     removeChild(state.internalWidget, oldGtkWidget)
     
     stackChildren.del(removedPageName)
 
 renderable Stack of BaseWidget:
-  pages: Table[string, StackChild[Widget]]
+  pages: Table[string, Widget]
   hhomogenous: bool = true
   interpolateSize: bool = true
   transitionDuration: uint = 500
@@ -3967,23 +3995,14 @@ renderable Stack of BaseWidget:
     property:
       let hasVisibleChild = state.pages.hasKey(state.visibleChildName)      
       if hasVisibleChild:
-        let visibleChild = state.pages[state.visibleChildName].widget.unwrapInternalWidget()
+        let pageState = state.pages[state.visibleChildName]
+        let visibleChild = StackPageState(pageState).widget.unwrapInternalWidget()
         gtk_stack_set_visible_child(state.internalWidget, visibleChild)
     
   adder add:
     let stackPage = StackPage(child)
-    let stackTitle = if stackPage.hasTitle: stackPage.valTitle else: stackPage.valName
-    let stackChild = StackChild[Widget](
-      widget: stackPage.valChild,
-      title: stackTitle,
-      visible: stackPage.valVisible,
-      useUnderline: stackPage.valUseUnderline,
-      needsAttention: stackPage.valNeedsAttention,
-      iconName: stackPage.valIconName
-    )
-  
     widget.hasPages = true
-    widget.valPages[stackPage.valName] = stackChild
+    widget.valPages[stackPage.valName] = stackPage
 
 renderable StackSwitcher of BaseWidget:
   stack: Widget
