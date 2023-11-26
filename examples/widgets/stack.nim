@@ -23,6 +23,26 @@
 import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
+type DummyPage = tuple[
+  name: string, 
+  title: string, 
+  text: string,
+  visible: bool,
+  useUnderline: bool,
+  needsAttention: bool,
+  iconName: string
+]
+
+let stackPages: seq[DummyPage] = (1..2).mapIt((
+  "Widget " & $it, 
+  "Title _" & $it, 
+  "I am stack page " & $it,
+  true,
+  true,
+  false,
+  ""
+))
+
 viewable App:
   hhomogenous: bool = true
   interpolateSize: bool = true
@@ -30,12 +50,39 @@ viewable App:
   transitionType: StackTransitionType = StackTransitionSlideUp
   vhomogenous: bool = true
   visibleChildName: string = "Widget 1"
-  labelChildren: seq[tuple[name: string, title: string, text: string]] = (1..3).mapIt(("Widget " & $it, "Title " & $it, "I am stack page " & $it))
+  pages: seq[DummyPage] = stackPages
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
+var counter = 0
 method view(app: AppState): Widget =
+  echo "View run #", counter
+  counter.inc
+  let stack = gui:
+    Stack():
+      hhomogenous = app.hhomogenous
+      interpolateSize = app.interpolateSize
+      transitionDuration = app.transitionDuration
+      transitionType = app.transitionType
+      vhomogenous = app.vhomogenous
+      visibleChildName = app.visibleChildName
+      sensitive = app.sensitive
+      tooltip = app.tooltip
+      sizeRequest = app.sizeRequest
+      
+      for page in app.pages:
+        StackPage():
+          name = page.name
+          title = page.title
+          iconName = page.iconName
+          visible = page.visible
+          useUnderline = page.useUnderline
+          needsAttention = page.needsAttention
+          
+          Box():
+            Label(text = page.text)
+
   result = gui:
     Window():
       title = "Stack Example"
@@ -43,24 +90,21 @@ method view(app: AppState): Widget =
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (700, 600))) {.addRight.}
       
-        for labelChild in app.labelChildren:
-          Button(text = labelChild.name) {.addRight.}:
+        for page in app.pages:
+          Button(text = page.name) {.addRight.}:
             style = [ButtonFlat]
             proc clicked() =
-              app.visibleChildName = labelChild.name
+              app.visibleChildName = page.name
+      
+      Box(orient = OrientY):
+        Label(text = app.pages[0].repr) {.expand: false.}
+        Label(text = app.pages[1].repr) {.expand: false.}
+          
+        StackSidebar():
+          insert(stack)
         
-      Stack():
-        hhomogenous = app.hhomogenous
-        interpolateSize = app.interpolateSize
-        transitionDuration = app.transitionDuration
-        transitionType = app.transitionType
-        vhomogenous = app.vhomogenous
-        visibleChildName = app.visibleChildName
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
+        insert(stack)
         
-        for labelChild in app.labelChildren:
-          Label(text = labelChild.text) {.name: labelChild.name, title: labelChild.title.}
+        
 
 adw.brew(gui(App()))

@@ -3897,7 +3897,6 @@ proc updateStackPage(page: auto) =
   gtk_stack_page_set_use_underline(page.internalObject, page.useUnderline.cbool)
   gtk_stack_page_set_visible(page.internalObject, page.visible.cbool)
   gtk_stack_page_set_needs_attention(page.internalObject, page.needsAttention.cbool)
-  echo "Set title to ", page.title
 
 proc assignApp[T](children: Table[string, T], app: Viewable) =
   for name, widget in children:
@@ -3959,6 +3958,7 @@ proc updateChildren*(state: Renderable,
       newStackState = StackPageState(newStackUpdate.build())
       newGtkWidget = newStackState.unwrapInternalWidget()
     let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackState.title.cstring)
+    newStackState.internalObject = newPage
     newStackState.updateStackPage()
     stackChildren[newPageName] = newStackState
   
@@ -3982,6 +3982,7 @@ renderable Stack of BaseWidget:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_stack_new()
+      echo "Stack State ", cast[uint64](state), " - Gtk: ", cast[uint64](state.internalWidget)
   
   hooks pages:
     (build, update):
@@ -4046,6 +4047,23 @@ renderable StackSwitcher of BaseWidget:
   adder add:
     if widget.hasStack:
       raise newException(ValueError, "It is not possible to add multiple Stacks to a StackSwitcher.")
+    widget.hasStack = true
+    widget.valStack = child
+
+renderable StackSidebar of BaseWidget:
+  stack: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_sidebar_new()
+  
+  hooks stack:
+    (build, update):
+      state.updateChild(state.stack, widget.valStack, gtk_stack_sidebar_set_stack)
+
+  adder add:
+    if widget.hasStack:
+      raise newException(ValueError, "It is not possible to add multiple Stacks to a StackSidebar.")
     widget.hasStack = true
     widget.valStack = child
 
@@ -4598,4 +4616,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
-export Stack, StackPage, StackSwitcher
+export Stack, StackPage, StackSwitcher, StackSidebar

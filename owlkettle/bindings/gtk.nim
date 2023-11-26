@@ -981,6 +981,10 @@ proc gtk_stack_page_set_visible*(self: GtkStackPage, visible: cbool)
 proc gtk_stack_switcher_new*(): GtkWidget
 proc gtk_stack_switcher_set_stack*(switcher, stack: GtkWidget)
 
+# Gtk.StackSidebar
+proc gtk_stack_sidebar_new*(): GtkWidget
+proc gtk_stack_sidebar_set_stack*(sidebar, stack: GtkWidget)
+
 # Gtk.MenuButton
 proc gtk_menu_button_new*(): GtkWidget
 proc gtk_menu_button_set_child*(button, child: GtkWidget)
