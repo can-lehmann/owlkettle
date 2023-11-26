@@ -22,6 +22,26 @@ $ nimble install owlkettle@#head
   pkg-config --libs gtk4
   ```
 
+### Properly setting up MSYS2 on Windows
+
+If you want to make sure you have the `pkg-config` in your system, 
+you need to install your MSYS2's environment toolchain.
+
+The `UCRT64` is the default environment you should use for any project, 
+but `CLANG` is the recommended one for Nim.
+
+Choose one of them:
+
+```bash
+$ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG
+$ pacman --sync --refresh --sysupgrade mingw-w64-ucrt-x86_64-toolchain   # UCRT
+```
+
+Moreover there is a discussion about this topic made by 
+[Michael Bradley](https://github.com/michaelsbradleyjr) and [RickBarretto](https://github.com/RickBarretto)
+where you can also discuss: 
+[How to properly set-up your MSYS2 #144](https://github.com/can-lehmann/owlkettle/discussions/144). 
+
 ## Known Incompatibilities
 
 - When using Nim 1.6.12 or 1.6.14 with ARC/ORC, the Nim code generator produces invalid C code.
