@@ -28,13 +28,13 @@ If you want to make sure you have the `pkg-config` in your system,
 you need to install your MSYS2's environment toolchain.
 
 The `UCRT64` is the default environment you should use for any project, 
-but `CLANG` is the recommended one for Nim.
+but `CLANG64` is the recommended one for Nim.
 
 Choose one of them:
 
 ```bash
-$ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG
-$ pacman --sync --refresh --sysupgrade mingw-w64-ucrt-x86_64-toolchain   # UCRT
+$ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG64
+$ pacman --sync --refresh --sysupgrade mingw-w64-ucrt-x86_64-toolchain   # UCRT64
 ```
 
 Moreover there is a discussion about this topic made by 
