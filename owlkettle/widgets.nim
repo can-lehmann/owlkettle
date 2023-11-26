@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
+import std/[unicode, os, sugar, sets, tables, options, asyncfutures, hashes, times, strutils, sequtils, strformat]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -2028,11 +2028,11 @@ renderable PopoverMenu of BasePopover:
               newPage = pageWidget.update(page)
             if not newPage.isNil:
               gtk_stack_remove(stack, page.unwrapInternalWidget())
-              gtk_stack_add_named(stack, newPage.unwrapInternalWidget(), name.cstring)
+              discard gtk_stack_add_named(stack, newPage.unwrapInternalWidget(), name.cstring)
               state.pages[name] = newPage
           else:
             let page = pageWidget.build()
-            gtk_stack_add_named(stack, page.unwrapInternalWidget(), name.cstring)
+            discard gtk_stack_add_named(stack, page.unwrapInternalWidget(), name.cstring)
             state.pages[name] = page
   
   adder add {.name: "main".}:
@@ -3788,6 +3788,273 @@ renderable Scale of BaseWidget:
         app.value = newValue
 
 
+type StackTransitionType* = enum
+  StackTransitionNone
+  StackTransitionCrossFade
+  StackTransitionSlideRight
+  StackTransitionSlideLeft
+  StackTransitionSlideUp
+  StackTransitionSlideDown
+  StackTransitionSlideLeftRight
+  StackTransitionSlideUpDown
+  StackTransitionOverUp
+  StackTransitionOverDown
+  StackTransitionOverLeft
+  StackTransitionOverRight
+  StackTransitionUnderUp
+  StackTransitionUnderDown
+  StackTransitionUnderLeft
+  StackTransitionUnderRight
+  StackTransitionOverUpDown
+  StackTransitionOverDownUp
+  StackTransitionOverLeftRight
+  StackTransitionOverRightLeft
+  StackTransitionRotateLeft
+  StackTransitionRotateRight
+  StackTransitionRotateLeftRight
+
+proc toGtk*(x: StackTransitionType): GtkStackTransitionType =
+  GtkStackTransitionType(ord(x))
+
+proc updateStackPage(page: auto)
+
+renderable StackPage:
+  widget: Widget
+  internalObject: GtkStackPage
+  iconName: string
+  title: string
+  name: string
+  useUnderline: bool
+  visible: bool
+  needsAttention: bool
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_box_new(
+        toGtk(OrientY),
+        0.cint
+      )
+  
+  hooks internalObject:
+    property:
+      if not state.internalObject.isNil():
+        updateStackPage(state)
+  
+  hooks widget:
+    (build, update):
+      state.updateChild(state.widget, widget.valWidget, gtk_box_append, gtk_box_remove)
+
+  hooks iconName:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_icon_name(state.internalObject, state.iconName.cstring)
+      
+  hooks title:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_title(state.internalObject, state.title.cstring)
+      
+  # hooks name:
+  #   property:
+  #     if not state.internalObject.isNil():
+  #       gtk_stack_page_set_title(state.internalObject, state.title.cstring)
+      
+  hooks useUnderline:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_use_underline(state.internalObject, state.useUnderline.cbool)
+      
+  hooks visible:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_visible(state.internalObject, state.visible.cbool)
+      
+  hooks needsAttention:
+    property:
+      if not state.internalObject.isNil():
+        gtk_stack_page_set_needs_attention(state.internalObject, state.needsAttention.cbool)
+    
+  adder add: # TODO: Refactor this to not need name
+    if widget.hasWidget:
+      raise newException(ValueError, "Unable to add multiple children to a StackPage. Use a Box widget to display multiple widgets in a StackPage")
+    
+    widget.hasWidget = true
+    widget.valWidget = child
+
+proc updateStackPage(page: auto) =
+  if page.internalObject.isNil():
+    return
+  if page.iconName.len() > 0:
+    gtk_stack_page_set_icon_name(page.internalObject, page.iconName.cstring)
+  else:
+    gtk_stack_page_set_icon_name(page.internalObject, nil.cstring)
+
+  gtk_stack_page_set_title(page.internalObject, page.title.cstring)
+  gtk_stack_page_set_use_underline(page.internalObject, page.useUnderline.cbool)
+  gtk_stack_page_set_visible(page.internalObject, page.visible.cbool)
+  gtk_stack_page_set_needs_attention(page.internalObject, page.needsAttention.cbool)
+
+proc assignApp[T](children: Table[string, T], app: Viewable) =
+  for name, widget in children:
+    widget.assignApp(app)
+
+proc hasChangesComparedTo(x: StackPage, y: StackPageState): bool =
+  x.valInternalObject.pointer != y.internalObject.pointer or x.valTitle != y.title or x.valVisible != y.visible or x.valUseUnderline != y.useUnderline or x.valNeedsAttention != y.needsAttention or x.valIconName != y.iconName
+
+var counter = 0
+
+proc updateChildren*(state: Renderable,
+                     stackChildren: var Table[string, WidgetState],
+                     stackUpdates: Table[string, Widget],
+                     addChild: proc(widget, child: GtkWidget, name, title: cstring): GtkStackPage {.cdecl, locker.},
+                     removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
+  stackUpdates.assignApp(state.app)
+  counter.inc
+  let newPageNames = stackUpdates.keys.toSeq().toSet()
+  let oldPageNames = stackChildren.keys.toSeq().toSet()
+  let newAddedPageNames = newPageNames.difference(oldPageNames)
+  let oldRemovedPageNames = oldPageNames.difference(newPageNames)
+  let sharedPageNames = oldPageNames.difference(oldRemovedPageNames)
+  var forceReadd = true
+  
+  for pageName in sharedPageNames:
+    let newWidget = StackPage(stackUpdates[pageName])
+    let oldWidgetState = StackPageState(stackChildren[pageName])
+    let newWidgetState: StackPageState = newWidget.update(oldWidgetState).StackPageState
+    
+    let hasChanges = not newWidgetState.isNil()
+    
+    if hasChanges:
+      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
+      removeChild(state.internalWidget, oldGtkWidget)
+      
+      let newGtkWidget = newWidgetState.unwrapInternalWidget()
+      let newPage: GtkStackPage = addChild(state.internalWidget, newGtkWidget, pageName.cstring, newWidget.valTitle.cstring)
+      StackPageState(stackChildren[pageName]).internalObject = newPage
+      StackPageState(stackChildren[pageName]).updateStackPage()
+      forceReadd = true
+      
+    elif forceReadd:
+      let currentGtkWidget = oldWidgetState.unwrapInternalWidget()
+      g_object_ref(pointer(currentGtkWidget))
+      removeChild(state.internalWidget, currentGtkWidget)
+      let page = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, oldWidgetState.title.cstring)
+      StackPageState(stackChildren[pageName]).internalObject = page
+      StackPageState(stackChildren[pageName]).updateStackPage()
+      g_object_unref(pointer(currentGtkWidget))
+
+  for newPageName in newAddedPageNames:
+    let
+      newStackUpdate = StackPage(stackUpdates[newPageName])
+      newStackState = StackPageState(newStackUpdate.build())
+      newGtkWidget = newStackState.unwrapInternalWidget()
+    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackState.title.cstring)
+    newStackState.internalObject = newPage
+    newStackState.updateStackPage()
+    stackChildren[newPageName] = newStackState
+  
+  for removedPageName in oldRemovedPageNames:
+    let stackChild = StackPageState(stackChildren[removedPageName])
+    let oldGtkWidget = stackChild.unwrapInternalWidget()
+    removeChild(state.internalWidget, oldGtkWidget)
+    
+    stackChildren.del(removedPageName)
+
+renderable Stack of BaseWidget:
+  pages: Table[string, Widget]
+  hhomogenous: bool = true
+  interpolateSize: bool = true
+  transitionDuration: uint = 500
+  transitionType: StackTransitionType = StackTransitionSlideUp
+  vhomogenous: bool = true
+  visibleChildName: string
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_new()
+  
+  hooks pages:
+    (build, update):
+      state.updateChildren(
+        state.pages,
+        widget.valPages,
+        gtk_stack_add_titled,
+        gtk_stack_remove
+      )
+  
+  hooks hhomogenous:
+    property:
+      gtk_stack_set_hhomogeneous(state.internalWidget, state.hhomogenous.cbool)
+  
+  hooks interpolateSize:
+    property:
+      gtk_stack_set_interpolate_size(state.internalWidget, state.interpolateSize.cbool)
+  
+  hooks transitionDuration:
+    property:
+      gtk_stack_set_transition_duration(state.internalWidget, state.transitionDuration.cuint)
+  
+  hooks transitionType:
+    property:
+      gtk_stack_set_transition_type(state.internalWidget, state.transitionType.toGtk())
+  
+  hooks vhomogenous:
+    property:
+      gtk_stack_set_vhomogeneous(state.internalWidget, state.vhomogenous.cbool)
+      
+  hooks visibleChildName:
+    property:
+      let hasVisibleChild = state.pages.hasKey(state.visibleChildName)      
+      if hasVisibleChild:
+        let pageState = StackPageState(state.pages[state.visibleChildName])
+        let pageWidget = pageState.unwrapInternalWidget()
+        gtk_stack_set_visible_child(state.internalWidget, pageWidget)
+
+  adder add:
+    if not (child of StackPage):
+      raise newException(ValueError, "You can only add StackPages widgets directly to Stack")
+    
+    let stackPage = StackPage(child)
+    if stackPage.valName in widget.valPages:
+      raise newException(ValueError, "Page \"" & stackPage.valName & "\" already exists")
+
+    widget.hasPages = true
+    widget.valPages[stackPage.valName] = stackPage
+
+renderable StackSwitcher of BaseWidget:
+  stack: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_switcher_new()
+  
+  hooks stack:
+    (build, update):
+      state.updateChild(state.stack, widget.valStack, gtk_stack_switcher_set_stack)
+
+  adder add:
+    if widget.hasStack:
+      raise newException(ValueError, "It is not possible to add multiple Stacks to a StackSwitcher.")
+    widget.hasStack = true
+    widget.valStack = child
+
+renderable StackSidebar of BaseWidget:
+  stack: Widget
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_stack_sidebar_new()
+  
+  hooks stack:
+    (build, update):
+      state.updateChild(state.stack, widget.valStack, gtk_stack_sidebar_set_stack)
+
+  adder add:
+    if widget.hasStack:
+      raise newException(ValueError, "It is not possible to add multiple Stacks to a StackSidebar.")
+    widget.hasStack = true
+    widget.valStack = child
+
 # See TODO at comment of PixbufObj regarding why we wrap GtkMediaStream with MediaStreamObj
 type 
   MediaStreamObj = object
@@ -4337,3 +4604,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export Stack, StackPage, StackSwitcher, StackSidebar
