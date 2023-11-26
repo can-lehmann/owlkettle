@@ -3842,12 +3842,8 @@ renderable StackPage:
   
   hooks widget:
     (build, update):
-      proc addChild(box, child: GtkWidget) {.cdecl.} =
-        gtk_widget_set_hexpand(child, 1)
-        gtk_box_append(box, child)
-      
-      state.updateChild(state.widget, widget.valWidget, addChild, gtk_box_remove)
-  
+      state.updateChild(state.widget, widget.valWidget, gtk_box_append, gtk_box_remove)
+
   hooks iconName:
     property:
       if not state.internalObject.isNil():
@@ -3919,11 +3915,9 @@ proc updateChildren*(state: Renderable,
   let newAddedPageNames = newPageNames.difference(oldPageNames)
   let oldRemovedPageNames = oldPageNames.difference(newPageNames)
   let sharedPageNames = oldPageNames.difference(oldRemovedPageNames)
-  echo "\n", counter, " - Remove | Add | Update Pages: ", oldRemovedPageNames, " | ", newAddedPageNames, " | ", sharedPageNames
-  var
-    forceReadd = true
+  var forceReadd = true
+  
   for pageName in sharedPageNames:
-    echo "Updating ", pageName
     let newWidget = StackPage(stackUpdates[pageName])
     let oldWidgetState = StackPageState(stackChildren[pageName])
     let newWidgetState: StackPageState = newWidget.update(oldWidgetState).StackPageState
@@ -3935,7 +3929,6 @@ proc updateChildren*(state: Renderable,
       removeChild(state.internalWidget, oldGtkWidget)
       
       let newGtkWidget = newWidgetState.unwrapInternalWidget()
-      echo "Adding with title ", newWidget.valTitle
       let newPage: GtkStackPage = addChild(state.internalWidget, newGtkWidget, pageName.cstring, newWidget.valTitle.cstring)
       StackPageState(stackChildren[pageName]).internalObject = newPage
       StackPageState(stackChildren[pageName]).updateStackPage()
@@ -3945,14 +3938,12 @@ proc updateChildren*(state: Renderable,
       let currentGtkWidget = oldWidgetState.unwrapInternalWidget()
       g_object_ref(pointer(currentGtkWidget))
       removeChild(state.internalWidget, currentGtkWidget)
-      echo "Readding with title ", oldWidgetState.title
       let page = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, oldWidgetState.title.cstring)
       StackPageState(stackChildren[pageName]).internalObject = page
       StackPageState(stackChildren[pageName]).updateStackPage()
       g_object_unref(pointer(currentGtkWidget))
 
   for newPageName in newAddedPageNames:
-    echo "Adding ", newPageName
     let
       newStackUpdate = StackPage(stackUpdates[newPageName])
       newStackState = StackPageState(newStackUpdate.build())
@@ -3963,7 +3954,6 @@ proc updateChildren*(state: Renderable,
     stackChildren[newPageName] = newStackState
   
   for removedPageName in oldRemovedPageNames:
-    echo "Removing ", removedPageName
     let stackChild = StackPageState(stackChildren[removedPageName])
     let oldGtkWidget = stackChild.unwrapInternalWidget()
     removeChild(state.internalWidget, oldGtkWidget)
@@ -3982,11 +3972,9 @@ renderable Stack of BaseWidget:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_stack_new()
-      echo "Stack State ", cast[uint64](state), " - Gtk: ", cast[uint64](state.internalWidget)
   
   hooks pages:
     (build, update):
-      echo "Updating StackPages"
       state.updateChildren(
         state.pages,
         widget.valPages,
@@ -4018,10 +4006,10 @@ renderable Stack of BaseWidget:
     property:
       let hasVisibleChild = state.pages.hasKey(state.visibleChildName)      
       if hasVisibleChild:
-        let pageState = state.pages[state.visibleChildName]
-        let visibleChild = StackPageState(pageState).widget.unwrapInternalWidget()
-        gtk_stack_set_visible_child(state.internalWidget, visibleChild)
-    
+        let pageState = StackPageState(state.pages[state.visibleChildName])
+        let pageWidget = pageState.unwrapInternalWidget()
+        gtk_stack_set_visible_child(state.internalWidget, pageWidget)
+
   adder add:
     if not (child of StackPage):
       raise newException(ValueError, "You can only add StackPages widgets directly to Stack")
