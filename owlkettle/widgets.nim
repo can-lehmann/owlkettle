@@ -3816,13 +3816,7 @@ type StackTransitionType* = enum
 proc toGtk*(x: StackTransitionType): GtkStackTransitionType =
   GtkStackTransitionType(ord(x))
 
-type StackChild[T] = object
-  widget: T
-  title: string
-  visible: bool
-  useUnderline: bool
-  needsAttention: bool
-  iconName: string
+proc updateStackPage(page: auto)
 
 renderable StackPage:
   widget: Widget
@@ -3834,10 +3828,25 @@ renderable StackPage:
   visible: bool
   needsAttention: bool
   
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_box_new(
+        toGtk(OrientY),
+        0.cint
+      )
+  
+  hooks internalObject:
+    property:
+      if not state.internalObject.isNil():
+        updateStackPage(state)
+  
   hooks widget:
     (build, update):
-      echo "StackPageState: ", state.widget.isNil()
-      echo "StackPageWidget: ", widget.valWidget.isNil()
+      proc addChild(box, child: GtkWidget) {.cdecl.} =
+        gtk_widget_set_hexpand(child, 1)
+        gtk_box_append(box, child)
+      
+      state.updateChild(state.widget, widget.valWidget, addChild, gtk_box_remove)
   
   hooks iconName:
     property:
@@ -3847,7 +3856,6 @@ renderable StackPage:
   hooks title:
     property:
       if not state.internalObject.isNil():
-        echo "Set the title"
         gtk_stack_page_set_title(state.internalObject, state.title.cstring)
       
   # hooks name:
@@ -3877,84 +3885,87 @@ renderable StackPage:
     widget.hasWidget = true
     widget.valWidget = child
 
-proc updateStackPage(page: StackPageState) =
-  echo "Updating StackPage"
-  gtk_stack_page_set_icon_name(page.internalObject, page.iconName.cstring)
+proc updateStackPage(page: auto) =
+  if page.internalObject.isNil():
+    return
+  if page.iconName.len() > 0:
+    gtk_stack_page_set_icon_name(page.internalObject, page.iconName.cstring)
+  else:
+    gtk_stack_page_set_icon_name(page.internalObject, nil.cstring)
+
   gtk_stack_page_set_title(page.internalObject, page.title.cstring)
   gtk_stack_page_set_use_underline(page.internalObject, page.useUnderline.cbool)
   gtk_stack_page_set_visible(page.internalObject, page.visible.cbool)
   gtk_stack_page_set_needs_attention(page.internalObject, page.needsAttention.cbool)
+  echo "Set title to ", page.title
 
 proc assignApp[T](children: Table[string, T], app: Viewable) =
   for name, widget in children:
     widget.assignApp(app)
+
+proc hasChangesComparedTo(x: StackPage, y: StackPageState): bool =
+  x.valInternalObject.pointer != y.internalObject.pointer or x.valTitle != y.title or x.valVisible != y.visible or x.valUseUnderline != y.useUnderline or x.valNeedsAttention != y.needsAttention or x.valIconName != y.iconName
+
+var counter = 0
 
 proc updateChildren*(state: Renderable,
                      stackChildren: var Table[string, WidgetState],
                      stackUpdates: Table[string, Widget],
                      addChild: proc(widget, child: GtkWidget, name, title: cstring): GtkStackPage {.cdecl, locker.},
                      removeChild: proc(widget, child: GtkWidget) {.cdecl, locker.}) =
-  let updates = collect(newSeq):
-    for name, stackUpdate in stackUpdates:
-      StackPage(stackUpdate).valWidget
-  updates.assignApp(state.app)
   stackUpdates.assignApp(state.app)
+  counter.inc
   let newPageNames = stackUpdates.keys.toSeq().toSet()
   let oldPageNames = stackChildren.keys.toSeq().toSet()
   let newAddedPageNames = newPageNames.difference(oldPageNames)
   let oldRemovedPageNames = oldPageNames.difference(newPageNames)
   let sharedPageNames = oldPageNames.difference(oldRemovedPageNames)
-  echo "Update Stack Pages"
+  echo "\n", counter, " - Remove | Add | Update Pages: ", oldRemovedPageNames, " | ", newAddedPageNames, " | ", sharedPageNames
   var
-    forceReadd = false
+    forceReadd = true
   for pageName in sharedPageNames:
-    let newWidget = stackUpdates[pageName]
+    echo "Updating ", pageName
+    let newWidget = StackPage(stackUpdates[pageName])
     let oldWidgetState = StackPageState(stackChildren[pageName])
     let newWidgetState: StackPageState = newWidget.update(oldWidgetState).StackPageState
     
     let hasChanges = not newWidgetState.isNil()
+    
     if hasChanges:
-      let oldGtkWidget = oldWidgetState.widget.unwrapInternalWidget()
+      let oldGtkWidget = oldWidgetState.unwrapInternalWidget()
       removeChild(state.internalWidget, oldGtkWidget)
       
-      let newGtkWidget = newWidgetState.widget.unwrapInternalWidget()
-      let newPage: GtkStackPage = addChild(
-        state.internalWidget, 
-        newGtkWidget, 
-        pageName.cstring, 
-        newWidgetState.title.cstring
-      )
-      newWidgetState.internalObject = newPage
-      newWidgetState.updateStackPage()
-      stackChildren[pageName] = newWidgetState
+      let newGtkWidget = newWidgetState.unwrapInternalWidget()
+      echo "Adding with title ", newWidget.valTitle
+      let newPage: GtkStackPage = addChild(state.internalWidget, newGtkWidget, pageName.cstring, newWidget.valTitle.cstring)
+      StackPageState(stackChildren[pageName]).internalObject = newPage
+      StackPageState(stackChildren[pageName]).updateStackPage()
       forceReadd = true
-      echo "Update for nil: ", newGtkWidget.isNil()
       
     elif forceReadd:
-      let stackChild: StackPageState = StackPageState(stackChildren[pageName])
-      let currentGtkWidget = stackChild.widget.unwrapInternalWidget()
+      let currentGtkWidget = oldWidgetState.unwrapInternalWidget()
       g_object_ref(pointer(currentGtkWidget))
       removeChild(state.internalWidget, currentGtkWidget)
-      let newPage: GtkStackPage = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, stackChild.title.cstring)
-      oldWidgetState.internalObject = newPage
-      stackChildren[pageName] = oldWidgetState
+      echo "Readding with title ", oldWidgetState.title
+      let page = addChild(state.internalWidget, currentGtkWidget, pageName.cstring, oldWidgetState.title.cstring)
+      StackPageState(stackChildren[pageName]).internalObject = page
+      StackPageState(stackChildren[pageName]).updateStackPage()
       g_object_unref(pointer(currentGtkWidget))
-      echo "Readd for nil: ", currentGtkWidget.isNil()
 
   for newPageName in newAddedPageNames:
-    let newStackUpdate = StackPage(stackUpdates[newPageName])
-    let newWidgetState = StackPageState(newStackUpdate.build())
-    newWidgetState.widget = newStackUpdate.valWidget.build()
-    let newGtkWidget = newWidgetState.widget.unwrapInternalWidget()
-    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newWidgetState.title.cstring)
-    newWidgetState.internalObject = newPage
-    newWidgetState.updateStackPage()
-    stackChildren[newPageName] = newWidgetState
-    echo "Adding nil: ", newGtkWidget.isNil()
-
+    echo "Adding ", newPageName
+    let
+      newStackUpdate = StackPage(stackUpdates[newPageName])
+      newStackState = StackPageState(newStackUpdate.build())
+      newGtkWidget = newStackState.unwrapInternalWidget()
+    let newPage = addChild(state.internalWidget, newGtkWidget, newPageName.cstring, newStackState.title.cstring)
+    newStackState.updateStackPage()
+    stackChildren[newPageName] = newStackState
+  
   for removedPageName in oldRemovedPageNames:
+    echo "Removing ", removedPageName
     let stackChild = StackPageState(stackChildren[removedPageName])
-    let oldGtkWidget = stackChild.widget.unwrapInternalWidget()
+    let oldGtkWidget = stackChild.unwrapInternalWidget()
     removeChild(state.internalWidget, oldGtkWidget)
     
     stackChildren.del(removedPageName)
@@ -3974,6 +3985,7 @@ renderable Stack of BaseWidget:
   
   hooks pages:
     (build, update):
+      echo "Updating StackPages"
       state.updateChildren(
         state.pages,
         widget.valPages,
@@ -4010,7 +4022,13 @@ renderable Stack of BaseWidget:
         gtk_stack_set_visible_child(state.internalWidget, visibleChild)
     
   adder add:
+    if not (child of StackPage):
+      raise newException(ValueError, "You can only add StackPages widgets directly to Stack")
+    
     let stackPage = StackPage(child)
+    if stackPage.valName in widget.valPages:
+      raise newException(ValueError, "Page \"" & stackPage.valName & "\" already exists")
+
     widget.hasPages = true
     widget.valPages[stackPage.valName] = stackPage
 

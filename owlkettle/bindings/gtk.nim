@@ -205,6 +205,8 @@ proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
 proc isNil*(obj: GtkStackPage): bool {.borrow.}
 
+proc `==`*(x, y: GtkStackPage): bool {.borrow.}
+
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
   proc `or`*(a, b: typ): typ {.borrow.}
