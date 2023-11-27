@@ -24,7 +24,7 @@ and the `pkg-config` as well.
 
 There are 2 noteworthy toolchain provided by the MSYS2:
 
-A) `CLANG64`: the recommended one for Nim:
+A) `CLANG64`: the recommended one for Nim
 
 ```bash
 $ pacman -Syu mingw-w64-clang-x86_64-toolchain
