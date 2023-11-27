@@ -22,7 +22,7 @@ that you can install from their [official website](https://www.msys2.org/).
 Then, you'll need to use a toolchain with essential binaries as compilers, linkers 
 and the `pkg-config` as well.
 
-There are 2 noteworthy toolchain provided by the MSYS2:
+There are 2 noteworthy toolchain provided by the MSYS2, choose one of them to install:
 
 A) `CLANG64`: the recommended one for Nim
 
