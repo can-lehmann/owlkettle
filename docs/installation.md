@@ -37,10 +37,8 @@ $ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG
 $ pacman --sync --refresh --sysupgrade mingw-w64-ucrt-x86_64-toolchain   # UCRT64
 ```
 
-Moreover there is a discussion about this topic made by 
-[Michael Bradley](https://github.com/michaelsbradleyjr) and [RickBarretto](https://github.com/RickBarretto)
-where you can also discuss: 
-[How to properly set-up your MSYS2 #144](https://github.com/can-lehmann/owlkettle/discussions/144). 
+Feel free to ask questions about the MSYS2 setup in [How to properly set-up your MSYS2 #144](https://github.com/can-lehmann/owlkettle/discussions/144). 
+
 
 ## Known Incompatibilities
 
