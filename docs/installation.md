@@ -34,8 +34,8 @@ B) UCRT64: the recommended one by default for most projects
 You can choose one of them by using these commands:
 
 ```bash
-$ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG64
-$ pacman --sync --refresh --sysupgrade mingw-w64-ucrt-x86_64-toolchain   # UCRT64
+$ pacman -Syu mingw-w64-clang-x86_64-toolchain  # CLANG64
+$ pacman -Syu mingw-w64-ucrt-x86_64-toolchain   # UCRT64
 ```
 
 Feel free to ask questions about the MSYS2 setup in [How to properly set-up your MSYS2 #144](https://github.com/can-lehmann/owlkettle/discussions/144). 
