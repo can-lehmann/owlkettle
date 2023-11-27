@@ -27,10 +27,11 @@ $ nimble install owlkettle@#head
 If you want to make sure you have the `pkg-config` in your system, 
 you need to install your MSYS2's environment toolchain.
 
-The `UCRT64` is the default environment you should use for any project, 
-but `CLANG64` is the recommended one for Nim.
+The 2 noteworthy toolchain provided by the MSYS2 are:
+A) CLANG64: the recommended one for Nim
+B) UCRT64: the recommended one by default for most projects
 
-Choose one of them:
+You can choose one of them by using these commands:
 
 ```bash
 $ pacman --sync --refresh --sysupgrade mingw-w64-clang-x86_64-toolchain  # CLANG64
