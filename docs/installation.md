@@ -23,30 +23,39 @@ that you can install from their [official website](https://www.msys2.org/).
 Then, you'll need to use a toolchain with essential binaries as compilers, linkers 
 and the `pkg-config` as well.
 
-There are 2 noteworthy toolchain provided by the MSYS2, choose one of them to install:
+There are some environments provided by the MSYS2,
+however the `CLANG64` is the recommended one 
+when working with Nim.
 
-A) `CLANG64`: the recommended one for Nim
+So, let's start by installing its toolchain first with:
 
 ```bash
 $ pacman -Syu mingw-w64-clang-x86_64-toolchain
 ```
 
-B) `UCRT64`: the recommended one by default for most projects
-
-```bash
-$ pacman -Syu mingw-w64-ucrt-x86_64-toolchain
-```
-
 Then add the GTK-4 and LibAdwaita to your environment.
 
-A) For `CLANG64`
 ```bash
 $ pacman -S mingw-w64-clang-x86_64-gtk4 mingw-w64-clang-x86_64-libadwaita
 ```
 
-B) For `UCRT64`
+### Other environments
+
+If you're a experienced MSYS2 user, 
+you can also install these packages 
+for other environments as the `MINGW64` and `UCRT64`.
+
+For the `MINGW64`:
 
 ```bash
+$ pacman -Syu mingw-w64-x86_64-toolchain
+$ pacman -S mingw-w64-x86_64-gtk4 mingw-w64-x86_64-libadwaita
+```
+
+For the `UCRT64`:
+
+```bash
+$ pacman -Syu mingw-w64-ucrt-x86_64-toolchain
 $ pacman -S mingw-w64-ucrt-x86_64-gtk4 mingw-w64-ucrt-x86_64-libadwaita
 ```
 
@@ -58,7 +67,6 @@ Feel free to ask questions about the MSYS2 setup in [How to properly set-up your
   ```bash
   pkg-config --libs gtk4
   ```
-
 
 ## Known Incompatibilities
 
