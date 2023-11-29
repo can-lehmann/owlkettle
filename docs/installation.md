@@ -5,6 +5,7 @@ Depending on your operating system, you can install GTK 4 using the following co
 
 - Fedora: `dnf install gtk4-devel libadwaita-devel`
 - Ubuntu: `apt install libgtk-4-dev libadwaita-1-dev`
+- Windows (MSYS2): See information bellow
 
 See [the GTK installation guide](https://www.gtk.org/docs/installations/) for more instructions.
 
