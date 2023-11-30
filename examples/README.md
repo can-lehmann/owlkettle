@@ -136,6 +136,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Center Box" src="../docs/assets/examples/center_box.png" width="922px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/column_view.nim">Column View</a></td>
+    <td><img alt="Column View" src="../docs/assets/examples/column_view.png" width="924px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/context_menu.nim">Context Menu</a></td>
     <td><img alt="Context Menu" src="../docs/assets/examples/context_menu.png" width="328px"></td>
   </tr>
@@ -166,6 +170,10 @@ The `widgets` directory contains examples for how to use different widgets.
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/grid.nim">Grid</a></td>
     <td><img alt="Grid" src="../docs/assets/examples/grid.png" width="998px"></td>
+  </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/list_view.nim">List View</a></td>
+    <td><img alt="List View" src="../docs/assets/examples/list_view.png" width="908px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/password_entry.nim">Password Entry</a></td>
