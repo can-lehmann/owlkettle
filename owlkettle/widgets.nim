@@ -4330,6 +4330,234 @@ renderable ListView of BaseWidget:
     property:
       gtk_list_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
 
+type ColumnViewColumn* = object
+  title*: string
+  visible*: bool
+  resizable*: bool
+  expand*: bool
+  fixedWidth*: int
+
+proc initColumnViewColumn*(title: string,
+                           visible: bool = true,
+                           resizable: bool = false,
+                           expand: bool = false,
+                           fixedWidth: int = -1): ColumnViewColumn =
+  result = ColumnViewColumn(
+    title: title,
+    visible: visible,
+    resizable: resizable,
+    expand: expand,
+    fixedWidth: fixedWidth
+  )
+
+renderable ColumnView of BaseWidget:
+  rows: int ## Number of rows
+  columns: seq[ColumnViewColumn]
+  
+  selectionMode: SelectionMode
+  selected: HashSet[int] ## Indices of the currently selected rows.
+  
+  showRowSeparators: bool = false
+  showColumnSeparators: bool = false
+  singleClickActivate: bool = false
+  enableRubberband: bool = false
+  reorderable: bool = false
+  
+  proc viewItem(row, column: int): Widget
+  proc select(rows: HashSet[int])
+  proc activate(index: int)
+  
+  type
+    CellState = object
+      widgetState: WidgetState
+      listItem: GtkWidget
+    
+    ColumnStateObj = object
+      index: int
+      widgetState {.cursor.}: ColumnViewState
+      gtk: GtkColumnViewColumn
+      factory: GtkListItemFactory
+      itemStates: Table[int, CellState]
+    
+    ColumnState = ref ColumnStateObj
+  
+  model {.private, onlyState.}: GListModel
+  selectionModel {.private, onlyState.}: GtkSelectionModel
+  columnStates {.private, onlyState.}: seq[ColumnState]
+  
+  hooks:
+    beforeBuild:
+      state.model = g_list_store_new(G_TYPE_OBJECT)
+      state.internalWidget = gtk_column_view_new(GtkSelectionModel(nil))
+    update:
+      for columnIndex, column in state.columnStates:
+        for rowIndex, itemState in column.itemStates.mpairs:
+          let updater = state.viewItem.callback(rowIndex, columnIndex)
+          updater.assignApp(state.app)
+          let newState = updater.update(itemState.widgetState)
+          if not newState.isNil:
+            gtk_list_item_set_child(itemState.listItem, newState.unwrapInternalWidget())
+            itemState.widgetState = newState
+    connectEvents:
+      proc activateCallback(widget: GtkWidget,
+                            position: cuint,
+                            data: ptr EventObj[proc(index: int)]) =
+        data[].callback(int(position))
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", activateCallback)
+      
+      proc selectionChangedCallback(selectionModel: GtkSelectionModel,
+                                    position: cuint,
+                                    count: cuint,
+                                    data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
+        let state = ColumnViewState(data[].widget)
+        for index in position..(position + count):
+          if bool(gtk_selection_model_is_selected(selectionModel, index)):
+            state.selected.incl(int(index))
+          else:
+            state.selected.excl(int(index))
+        data[].callback(state.selected)
+        data[].redraw()
+      
+      if not state.select.isNil:
+        state.select.widget = state
+        state.select.handler = g_signal_connect(
+          state.selectionModel,
+          "selection-changed",
+          selectionChangedCallback,
+          state.select[].addr
+        )
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      if not state.select.isNil:
+        assert state.select.handler > 0
+        g_signal_handler_disconnect(pointer(state.selectionModel), state.select.handler)
+        state.select.handler = 0
+        state.select.widget = nil
+  
+  hooks columns:
+    (build, update):
+      if widget.hasColumns:
+        state.columns = widget.valColumns
+        
+        proc bindCallback(factory: GtkListItemFactory,
+                          listItem: GtkWidget,
+                          stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let
+            index = int(gtk_list_item_get_position(listItem))
+            updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
+          updater.assignApp(stateObj[].widgetState.app)
+          let widgetState = updater.build()
+          stateObj[].itemStates[index] = CellState(
+            widgetState: widgetState,
+            listItem: listItem
+          )
+          gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+        
+        proc unbindCallback(factory: GtkListItemFactory,
+                            listItem: GtkWidget,
+                            stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let index = int(gtk_list_item_get_position(listItem))
+          stateObj[].itemStates.del(index)
+        
+        var it = 0
+        while it < state.columnStates.len and it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = state.columnStates[it]
+          gtk_column_view_column_set_title(columnState.gtk, column.title.cstring)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          
+          it += 1
+        
+        while it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = ColumnState(index: it, widgetState: state)
+          
+          columnState.factory = gtk_signal_list_item_factory_new()
+          discard g_signal_connect(columnState.factory, "bind", pointer(bindCallback), columnState[].addr)
+          discard g_signal_connect(columnState.factory, "unbind", pointer(unbindCallback), columnState[].addr)
+          
+          columnState.gtk = gtk_column_view_column_new(column.title.cstring, columnState.factory)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          gtk_column_view_append_column(state.internalWidget, columnState.gtk)
+          
+          state.columnStates.add(columnState)
+          it += 1
+        
+        while it < state.columnStates.len:
+          let columnState = state.columnStates.pop()
+          gtk_column_view_remove_column(state.internalWidget, columnState.gtk)
+  
+  # TODO: Custom List Model
+  hooks rows:
+    build:
+      for it in 0..<widget.valRows:
+        g_list_store_append(state.model, pointer(state.model))
+      state.rows = widget.valRows
+    update:
+      if widget.hasRows:
+        while state.rows < widget.valRows:
+          g_list_store_append(state.model, pointer(state.model))
+          state.rows += 1
+        
+        while state.rows > widget.valRows:
+          state.rows -= 1
+          g_list_store_remove(state.model, cuint(state.rows))
+  
+  hooks selectionMode:
+    property:
+      case state.selectionMode:
+        of SelectionNone:
+          state.selectionModel = gtk_no_selection_new(state.model)
+        of SelectionSingle:
+          state.selectionModel = gtk_single_selection_new(state.model)
+        of SelectionBrowse, SelectionMultiple:
+          state.selectionModel = gtk_multi_selection_new(state.model)
+      
+      state.selected.reset()
+      gtk_column_view_set_model(state.internalWidget, state.selectionModel)
+  
+  hooks selected:
+    (build, update):
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
+          gtk_selection_model_unselect_item(state.selectionModel, cuint(index))
+        for index in widget.valSelected - state.selected:
+          gtk_selection_model_select_item(
+            state.selectionModel,
+            cuint(index),
+            cbool(ord(false))
+          )
+        state.selected = widget.valSelected
+  
+  hooks showRowSeparators:
+    property:
+      gtk_column_view_set_show_row_separators(state.internalWidget, cbool(ord(state.showRowSeparators)))
+  
+  hooks showColumnSeparators:
+    property:
+      gtk_column_view_set_show_column_separators(state.internalWidget, cbool(ord(state.showColumnSeparators)))
+  
+  hooks singleClickActivate:
+    property:
+      gtk_column_view_set_single_click_activate(state.internalWidget, cbool(ord(state.singleClickActivate)))
+  
+  hooks enableRubberband:
+    property:
+      gtk_column_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
+  
+  hooks reorderable:
+    property:
+      gtk_column_view_set_reorderable(state.internalWidget, cbool(ord(state.reorderable)))
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
@@ -4355,3 +4583,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export ColumnView

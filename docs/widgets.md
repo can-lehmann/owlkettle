@@ -1698,3 +1698,29 @@ renderable ListView of BaseWidget
 - activate: `proc (index: int)`
 
 
+## ColumnView
+
+```nim
+renderable ColumnView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `rows: int` Number of rows
+- `columns: seq[ColumnViewColumn]`
+- `selectionMode: SelectionMode`
+- `selected: HashSet[int]` Indices of the currently selected rows.
+- `showRowSeparators: bool = false`
+- `showColumnSeparators: bool = false`
+- `singleClickActivate: bool = false`
+- `enableRubberband: bool = false`
+- `reorderable: bool = false`
+
+###### Events
+
+- viewItem: `proc (row, column: int): Widget`
+- select: `proc (rows: HashSet[int])`
+- activate: `proc (index: int)`
+
+

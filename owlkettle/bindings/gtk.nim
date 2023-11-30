@@ -158,6 +158,7 @@ type
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
+  GtkColumnViewColumn* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -177,6 +178,7 @@ proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
+proc isNil*(obj: GtkColumnViewColumn): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -1214,6 +1216,27 @@ proc gtk_list_view_set_factory*(widget: GtkWidget, factory: GtkListItemFactory)
 proc gtk_list_view_set_show_separators*(widget: GtkWidget, show: cbool)
 proc gtk_list_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
 proc gtk_list_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+
+# Gtk.ColumnView
+proc gtk_column_view_new*(model: GtkSelectionModel): GtkWidget
+proc gtk_column_view_set_model*(widget: GtkWidget, model: GtkSelectionModel)
+proc gtk_column_view_append_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_insert_column*(widget: GtkWidget, pos: cuint, column: GtkColumnViewColumn)
+proc gtk_column_view_remove_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_set_show_row_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_show_column_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_reorderable*(widget: GtkWidget, setting: cbool)
+
+# Gtk.ColumnViewColumn
+proc gtk_column_view_column_new*(title: cstring, factory: GtkListItemFactory): GtkColumnViewColumn
+proc gtk_column_view_column_set_title*(column: GtkColumnViewColumn, title: cstring)
+proc gtk_column_view_column_set_resizable*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_visible*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_expand*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_fixed_width*(column: GtkColumnViewColumn, width: cint)
+proc gtk_column_view_column_get_resizable*(column: GtkColumnViewColumn): cbool
 
 # Gio.ListStore
 proc g_list_store_new*(itemType: GType): GListModel
