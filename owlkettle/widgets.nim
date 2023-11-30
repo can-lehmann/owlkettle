@@ -212,6 +212,19 @@ renderable Box of BaseWidget:
         widget.valSpacing.cint
       )
   
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+      for child in state.children:
+        let childWidget = child.widget.unwrapInternalWidget()
+        case state.orient:
+          of OrientX:
+            gtk_widget_set_vexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+          of OrientY:
+            gtk_widget_set_hexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
+  
   hooks spacing:
     property:
       gtk_box_set_spacing(state.internalWidget, state.spacing.cint)
@@ -2263,6 +2276,11 @@ crossVersionDestructor(buffer, TextBufferObj):
   
   g_object_unref(pointer(buffer.gtk))
 
+proc `=sink`*(dest: var TextBufferObj; source: TextBufferObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+
 proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
@@ -2272,12 +2290,12 @@ proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   wasMoved(dest)
   if not isNil(source.gtk):
     g_object_ref(pointer(source.gtk))
-    
+  
   dest.gtk = source.gtk
 
 proc newTextBuffer*(): TextBuffer =
   result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
-  
+
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
@@ -3805,7 +3823,7 @@ proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
   `=destroy`(dest)
   wasMoved(dest)
   dest.gtk = source.gtk
-  
+
 proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
