@@ -71,6 +71,10 @@ type AppConfig* = object of RootObj
   darkTheme*: bool
   stylesheets*: seq[Stylesheet]
 
+type StartUpEvent* = proc(data: AppConfig)
+  
+type ShutDownEvent* = StartUpEvent
+
 proc setupApp*(config: AppConfig): WidgetState =
   if config.darkTheme:
     let settings = gtk_settings_get_default()

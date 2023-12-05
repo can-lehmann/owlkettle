@@ -149,6 +149,8 @@ proc closeWindow*(state: WidgetState) =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
   let state = setupApp(AppConfig(
@@ -163,6 +165,8 @@ proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,

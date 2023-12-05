@@ -951,6 +951,8 @@ proc setupApp(config: AdwAppConfig): WidgetState =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
   let state = setupApp(AdwAppConfig(
@@ -966,6 +968,8 @@ proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AdwAppConfig(
     widget: widget,
