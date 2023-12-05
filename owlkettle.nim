@@ -25,7 +25,7 @@ import owlkettle/bindings/gtk
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
-export Stylesheet, newStylesheet, loadStylesheet
+export Stylesheet, ApplicationEvent, newStylesheet, loadStylesheet
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let
@@ -149,30 +149,36 @@ proc closeWindow*(state: WidgetState) =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           startupEvents: openArray[StartUpEvent] = [],
-           shutdownEvents: openArray[ShutDownEvent] = [],
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
-  let state = setupApp(AppConfig(
+  let config = AppConfig(
     widget: widget,
     icons: @icons,
     darkTheme: darkTheme,
-    stylesheets: @stylesheets
-  ))
+    stylesheets: @stylesheets,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  let state = setupApp(config)
+  config.execStartupEvents(state)
   runMainloop(state)
 
 proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           startupEvents: openArray[StartUpEvent] = [],
-           shutdownEvents: openArray[ShutDownEvent] = [],
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,
     darkTheme: darkTheme,
-    stylesheets: @stylesheets
+    stylesheets: @stylesheets,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
   )
   
   proc activateCallback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
@@ -181,6 +187,8 @@ proc brew*(id: string,
       window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
+      
+    data[].execStartupEvents(state)
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
