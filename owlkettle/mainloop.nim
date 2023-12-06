@@ -78,7 +78,7 @@ type
     startupEvents*: seq[ApplicationEvent]
     shutdownEvents*: seq[ApplicationEvent]
   
-  ApplicationEvent* = proc(state: WidgetState) {.nimcall.}
+  ApplicationEvent* = proc(state: WidgetState) {.closure.}
   
 proc execStartupEvents*(context: AppContext) =
   for event in context.startupEvents:
