@@ -71,31 +71,22 @@ type
     icons*: seq[string]
     darkTheme*: bool
     stylesheets*: seq[Stylesheet]
-    startupEvents*: seq[StartUpEvent]
-    shutdownEvents*: seq[ShutDownEvent]
   
-  StartUpEvent* = proc(widget: Widget, state: WidgetState)
-  ShutDownEvent* = proc(widget: Widget)
+  AppContext* = object
+    config*: AppConfig
+    state*: WidgetState
+    startupEvents*: seq[ApplicationEvent]
+    shutdownEvents*: seq[ApplicationEvent]
   
-# proc registerEvents*(app: GApplication, config: AppConfig, state: WidgetState) =
-#   proc eventCallback(app: GApplication, data: ptr AppData) {.cdecl.} =
-#     data[].event(data[].config, data[].event)
+  ApplicationEvent* = proc(state: WidgetState) {.nimcall.}
   
-#   for event in config.startupEvents:
-#     let eventData = AppEventData(config: config, state: state, event: event)
-#     discard g_signal_connect(app, "startup", eventCallback, eventData.addr)
-
-#   for event in config.shutdownEvents:
-#     let eventData = AppEventData(config: config, state: state, event: event)
-#     discard g_signal_connect(app, "shutdown", eventCallback, eventData.addr)
-
-proc execStartupEvents*(config: AppConfig, state: WidgetState) =
-  for event in config.startupEvents:
-    event(config.widget, state)
+proc execStartupEvents*(context: AppContext) =
+  for event in context.startupEvents:
+    event(context.state)
     
-proc execShutdownEvents*(config: AppConfig) =
-  for event in config.shutdownEvents:
-    event(config.widget)
+proc execShutdownEvents*(context: AppContext) =
+  for event in context.shutdownEvents:
+    event(context.state)
 
 proc setupApp*(config: AppConfig): WidgetState =
   if config.darkTheme:

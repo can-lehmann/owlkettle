@@ -951,8 +951,8 @@ proc setupApp(config: AdwAppConfig): WidgetState =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
-           startupEvents: openArray[StartupEvent] = [],
-           shutdownEvents: openArray[ShutdownEvent] = [],
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
   let config = AdwAppConfig(
@@ -960,46 +960,58 @@ proc brew*(widget: Widget,
     icons: @icons,
     darkTheme: false,
     colorScheme: colorScheme,
-    stylesheets: @stylesheets,
+    stylesheets: @stylesheets
+  )
+  let state = setupApp(config)
+  
+  let context = AppContext(
+    config: config,
+    state: state,
     startupEvents: @startupEvents,
     shutdownEvents: @shutdownEvents
   )
-  let state = setupApp(config)
-  config.execStartupEvents(state)
+  
+  context.execStartupEvents()
   runMainloop(state)
-  config.execShutdownEvents()
+  context.execShutdownEvents()
 
 proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
-           startupEvents: openArray[StartupEvent] = [],
-           shutdownEvents: openArray[ShutdownEvent] = [],
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AdwAppConfig(
     widget: widget,
     icons: @icons,
     darkTheme: false,
     colorScheme: colorScheme,
-    stylesheets: @stylesheets,
+    stylesheets: @stylesheets
+  )
+  
+  var context = AppContext(
+    config: config,
     startupEvents: @startupEvents,
     shutdownEvents: @shutdownEvents
   )
   
-  proc activateCallback(app: GApplication, data: ptr AdwAppConfig) {.cdecl.} =
+  proc activateCallback(app: GApplication, data: ptr AppContext) {.cdecl.} =
     let
-      state = setupApp(data[])
+      state = setupApp(data[].config)
       window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
     
-    data[].execStartupEvents(state)
+    data[].state = state
+    data[].execStartupEvents()
 
   let app = adw_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  proc shutdownCallback(app: GApplication, data: ptr AppContext) {.cdecl.} =
+    data[].execShutdownEvents()
+  
+  discard g_signal_connect(app, "activate", activateCallback, context.addr)
+  discard g_signal_connect(app, "shutdown", shutdownCallback, context.addr)
   discard g_application_run(app)
-
-  config.execShutdownEvents()
-
