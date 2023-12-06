@@ -951,8 +951,8 @@ proc setupApp(config: AdwAppConfig): WidgetState =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
-           startupEvents: openArray[ApplicationEvent] = [],
-           shutdownEvents: openArray[ApplicationEvent] = [],
+           startupEvents: openArray[StartupEvent] = [],
+           shutdownEvents: openArray[ShutdownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
   let config = AdwAppConfig(
@@ -967,13 +967,14 @@ proc brew*(widget: Widget,
   let state = setupApp(config)
   config.execStartupEvents(state)
   runMainloop(state)
+  config.execShutdownEvents()
 
 proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
-           startupEvents: openArray[ApplicationEvent] = [],
-           shutdownEvents: openArray[ApplicationEvent] = [],
+           startupEvents: openArray[StartupEvent] = [],
+           shutdownEvents: openArray[ShutdownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AdwAppConfig(
     widget: widget,
@@ -999,4 +1000,6 @@ proc brew*(id: string,
   
   discard g_signal_connect(app, "activate", activateCallback, config.addr)
   discard g_application_run(app)
+
+  config.execShutdownEvents()
 

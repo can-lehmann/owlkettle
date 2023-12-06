@@ -71,10 +71,11 @@ type
     icons*: seq[string]
     darkTheme*: bool
     stylesheets*: seq[Stylesheet]
-    startupEvents*: seq[ApplicationEvent]
-    shutdownEvents*: seq[ApplicationEvent]
+    startupEvents*: seq[StartUpEvent]
+    shutdownEvents*: seq[ShutDownEvent]
   
-  ApplicationEvent* = proc(widget: Widget, state: WidgetState)
+  StartUpEvent* = proc(widget: Widget, state: WidgetState)
+  ShutDownEvent* = proc(widget: Widget)
   
 # proc registerEvents*(app: GApplication, config: AppConfig, state: WidgetState) =
 #   proc eventCallback(app: GApplication, data: ptr AppData) {.cdecl.} =
@@ -92,9 +93,9 @@ proc execStartupEvents*(config: AppConfig, state: WidgetState) =
   for event in config.startupEvents:
     event(config.widget, state)
     
-proc execShutdownEvents*(config: AppConfig, state: WidgetState) =
+proc execShutdownEvents*(config: AppConfig) =
   for event in config.shutdownEvents:
-    event(config.widget, state)
+    event(config.widget)
 
 proc setupApp*(config: AppConfig): WidgetState =
   if config.darkTheme:

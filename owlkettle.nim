@@ -25,7 +25,7 @@ import owlkettle/bindings/gtk
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
-export Stylesheet, ApplicationEvent, newStylesheet, loadStylesheet
+export Stylesheet, StartupEvent, ShutDownEvent, newStylesheet, loadStylesheet
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let
@@ -73,6 +73,7 @@ proc sendNotification*(id, title, body: string,
     g_notification_set_icon(notification, gIcon)
     g_object_unref(pointer(gIcon))
   
+  echo "I reach here"
   g_application_send_notification(app, id.cstring, notification)
 
 proc withdrawNotification*(id: string) =
@@ -149,8 +150,8 @@ proc closeWindow*(state: WidgetState) =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           startupEvents: openArray[ApplicationEvent] = [],
-           shutdownEvents: openArray[ApplicationEvent] = [],
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
   let config = AppConfig(
@@ -164,13 +165,14 @@ proc brew*(widget: Widget,
   let state = setupApp(config)
   config.execStartupEvents(state)
   runMainloop(state)
+  config.execShutdownEvents()
 
 proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
-           startupEvents: openArray[ApplicationEvent] = [],
-           shutdownEvents: openArray[ApplicationEvent] = [],
+           startupEvents: openArray[StartUpEvent] = [],
+           shutdownEvents: openArray[ShutDownEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
@@ -193,5 +195,9 @@ proc brew*(id: string,
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
+  proc shutdownCallback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
+  
   discard g_signal_connect(app, "activate", activateCallback, config.addr)
   discard g_application_run(app)
+
+  config.execShutdownEvents()
