@@ -72,8 +72,8 @@ type
     darkTheme*: bool
     stylesheets*: seq[Stylesheet]
   
-  AppContext* = object
-    config*: AppConfig
+  AppContext*[T: object] = object
+    config*: T
     state*: WidgetState
     startupEvents*: seq[ApplicationEvent]
     shutdownEvents*: seq[ApplicationEvent]

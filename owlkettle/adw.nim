@@ -964,7 +964,7 @@ proc brew*(widget: Widget,
   )
   let state = setupApp(config)
   
-  let context = AppContext(
+  let context = AppContext[AdwAppConfig](
     config: config,
     state: state,
     startupEvents: @startupEvents,
@@ -990,13 +990,13 @@ proc brew*(id: string,
     stylesheets: @stylesheets
   )
   
-  var context = AppContext(
+  var context = AppContext[AdwAppConfig](
     config: config,
     startupEvents: @startupEvents,
     shutdownEvents: @shutdownEvents
   )
   
-  proc activateCallback(app: GApplication, data: ptr AppContext) {.cdecl.} =
+  proc activateCallback(app: GApplication, data: ptr AppContext[AdwAppConfig]) {.cdecl.} =
     let
       state = setupApp(data[].config)
       window = state.unwrapRenderable().internalWidget
@@ -1009,7 +1009,7 @@ proc brew*(id: string,
   let app = adw_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  proc shutdownCallback(app: GApplication, data: ptr AppContext) {.cdecl.} =
+  proc shutdownCallback(app: GApplication, data: ptr AppContext[AdwAppConfig]) {.cdecl.} =
     data[].execShutdownEvents()
   
   discard g_signal_connect(app, "activate", activateCallback, context.addr)
