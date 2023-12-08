@@ -951,21 +951,36 @@ proc setupApp(config: AdwAppConfig): WidgetState =
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   adw_init()
-  let state = setupApp(AdwAppConfig(
+  let config = AdwAppConfig(
     widget: widget,
     icons: @icons,
     darkTheme: false,
     colorScheme: colorScheme,
     stylesheets: @stylesheets
-  ))
+  )
+  let state = setupApp(config)
+  
+  let context = AppContext[AdwAppConfig](
+    config: config,
+    state: state,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  
+  context.execStartupEvents()
   runMainloop(state)
+  context.execShutdownEvents()
 
 proc brew*(id: string,
            widget: Widget,
            icons: openArray[string] = [],
            colorScheme: ColorScheme = ColorSchemeDefault,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AdwAppConfig(
     widget: widget,
@@ -975,16 +990,28 @@ proc brew*(id: string,
     stylesheets: @stylesheets
   )
   
-  proc activateCallback(app: GApplication, data: ptr AdwAppConfig) {.cdecl.} =
+  var context = AppContext[AdwAppConfig](
+    config: config,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  
+  proc activateCallback(app: GApplication, data: ptr AppContext[AdwAppConfig]) {.cdecl.} =
     let
-      state = setupApp(data[])
+      state = setupApp(data[].config)
       window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
-  
+    
+    data[].state = state
+    data[].execStartupEvents()
+
   let app = adw_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  proc shutdownCallback(app: GApplication, data: ptr AppContext[AdwAppConfig]) {.cdecl.} =
+    data[].execShutdownEvents()
+  
+  discard g_signal_connect(app, "activate", activateCallback, context.addr)
+  discard g_signal_connect(app, "shutdown", shutdownCallback, context.addr)
   discard g_application_run(app)
-
