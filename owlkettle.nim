@@ -146,6 +146,12 @@ proc closeWindow*(state: WidgetState) =
     root = gtk_widget_get_root(widget)
   gtk_window_close(root)
 
+proc scheduleCloseWindow*(state: WidgetState) =
+  proc closeTask(): bool =
+    state.closeWindow()
+  
+  discard addGlobalIdleTask(closeTask)
+
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
