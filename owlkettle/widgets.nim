@@ -527,7 +527,7 @@ renderable EditableLabel of BaseWidget:
   text: string = ""
   editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   enableUndo: bool = true
-  alignment: 0.0..1.0 = 0.0
+  alignment: float = 0.0
   
   proc changed(text: string) ## Fired every time `text` changes.
   proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
@@ -1005,6 +1005,9 @@ proc toLayoutString*(layout: DecorationLayout): string =
   let leftButtons: string = layout.left.mapIt($it).join(",")
   let rightButtons: string = layout.right.mapIt($it).join(",")
   return fmt"{leftButtons}:{rightButtons}"
+
+const
+  HeaderBarFlat* = "flat".StyleClass
 
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
@@ -4042,6 +4045,32 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
+  
+  example:
+    Expander:
+      label = "Expander"
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      label = "Expander"
+      expanded = app.expanded
+      
+      proc activate(activated: bool) =
+        app.expanded = activated
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      Label {.addLabel.}:
+        text = "Widget Label"
+      
+      Label:
+        text = "Content"
 
 renderable PasswordEntry of BaseWidget:
   text: string
@@ -4093,8 +4122,8 @@ renderable PasswordEntry of BaseWidget:
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
-  
-  
+
+
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
@@ -4377,7 +4406,7 @@ renderable ColumnView of BaseWidget:
       widgetState {.cursor.}: ColumnViewState
       gtk: GtkColumnViewColumn
       factory: GtkListItemFactory
-      itemStates: Table[int, CellState]
+      cellStates: Table[int, CellState]
     
     ColumnState = ref ColumnStateObj
   
@@ -4391,7 +4420,7 @@ renderable ColumnView of BaseWidget:
       state.internalWidget = gtk_column_view_new(GtkSelectionModel(nil))
     update:
       for columnIndex, column in state.columnStates:
-        for rowIndex, itemState in column.itemStates.mpairs:
+        for rowIndex, itemState in column.cellStates.mpairs:
           let updater = state.viewItem.callback(rowIndex, columnIndex)
           updater.assignApp(state.app)
           let newState = updater.update(itemState.widgetState)
@@ -4449,7 +4478,7 @@ renderable ColumnView of BaseWidget:
             updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
           updater.assignApp(stateObj[].widgetState.app)
           let widgetState = updater.build()
-          stateObj[].itemStates[index] = CellState(
+          stateObj[].cellStates[index] = CellState(
             widgetState: widgetState,
             listItem: listItem
           )
@@ -4459,7 +4488,7 @@ renderable ColumnView of BaseWidget:
                             listItem: GtkWidget,
                             stateObj: ptr ColumnStateObj) {.cdecl.} =
           let index = int(gtk_list_item_get_position(listItem))
-          stateObj[].itemStates.del(index)
+          stateObj[].cellStates.del(index)
         
         var it = 0
         while it < state.columnStates.len and it < widget.valColumns.len:

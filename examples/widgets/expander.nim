@@ -31,24 +31,24 @@ viewable App:
   sensitive: bool = true
   sizeRequest: tuple[x, y: int] = (-1, -1) 
   tooltip: string = "" 
-  
 
 method view(app: AppState): Widget =
   result = gui:
     Window():
-      defaultSize = (800, 600)
+      defaultSize = (450, 250)
       title = "Expander Example"
+      
       HeaderBar {.addTitlebar.}:
+        style = [HeaderBarFlat]
         insert(app.toAutoFormMenu(sizeRequest = (400, 520))) {.addRight.}
-            
-      Box(orient = OrientY, spacing = 6, margin = 12):
-        Label():
-          useMarkup = true
-          text = """<span size="x-large" weight="bold"> Expander with String Label </span>"""
+      
+      Box:
+        orient = OrientY
+        spacing = 6
+        margin = 12
         
-        Expander():
+        Expander {.expand: false.}:
           label = app.label
-          expanded = app.expanded
           resizeTopLevel = app.resizeTopLevel
           useMarkup = app.useMarkup
           useUnderline = app.useUnderline
@@ -56,27 +56,19 @@ method view(app: AppState): Widget =
           sizeRequest = app.sizeRequest
           tooltip = app.tooltip
           
-          proc activate(activated: bool) =
-            app.expanded = activated
-          
-          Label(text = "I am a child widget inserted into the Expander")
-        
-        Separator() {.expand: false.}
-        
-        Label():
-          useMarkup = true
-          text = """<span size="x-large" weight="bold"> Expander with Widget Label </span>"""
-          
-        Expander():
           expanded = app.expanded
-          resizeTopLevel = app.resizeTopLevel
-          useMarkup = app.useMarkup
-          useUnderline = app.useUnderline
           
           proc activate(activated: bool) =
             app.expanded = activated
           
-          Label(text = "A Widget Label") {.addLabel.}
-          Label(text = "I am a child widget inserted into the Expander")
+          Label:
+            text = "I am a child widget inserted into the Expander"
+        
+        Expander {.expand: false.}:
+          Label {.addLabel.}:
+            text = "A Widget Label"
+          
+          Label:
+            text = "I am a child widget inserted into the Expander"
   
 adw.brew(gui(App()))

@@ -243,7 +243,7 @@ renderable EditableLabel of BaseWidget
 - `text: string = ""`
 - `editing: bool = false` Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
 - `enableUndo: bool = true`
-- `alignment: 0.0 .. 1.0 = 0.0`
+- `alignment: float = 0.0`
 
 ###### Events
 
@@ -948,10 +948,6 @@ A text editor with support for formatted text.
 - `acceptsTab: bool = true`
 - `indent: int = 0`
 
-###### Events
-
-- changed: `proc ()`
-
 
 ## ListBoxRow
 
@@ -1610,6 +1606,34 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
 - `addLabel`
+
+###### Example
+
+```nim
+Expander:
+  label = "Expander"
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  label = "Expander"
+  expanded = app.expanded
+  proc activate(activated: bool) =
+    app.expanded = activated
+
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  Label {.addLabel.}:
+    text = "Widget Label"
+  Label:
+    text = "Content"
+```
 
 
 ## PasswordEntry
