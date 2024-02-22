@@ -1,0 +1,102 @@
+# MIT License
+# 
+# Copyright (c) 2022 Can Joshua Lehmann
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import owlkettle
+import owlkettle/[playground, adw]
+import std/sugar
+
+viewable App:
+  title: string
+  buttonLabel: string = "Btn Label"
+  priority: ToastPriority = ToastPriorityNormal
+  timeout: int = 3
+  useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
+  
+  showToast: bool = false
+  toastCount: int = 1
+
+proc buildToast(state: AppState): Toast =
+  let dismissalHandler = proc(toast: Toast) = 
+    echo "Dismissed: ", toast.title
+    state.showToast = false
+  
+  let clickedHandler = proc() = echo "Click"
+  result = newToast(
+    title = state.title,
+    buttonLabel = state.buttonLabel,
+    priority = state.priority,
+    dismissalHandler = dismissalHandler,
+    timeout = state.timeout,
+    # clickedHandler = clickedHandler,# Comment in if you compile with -d:adwminor=2 or higher 
+    # useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
+  )
+  
+method view(app: AppState): Widget =
+  let toasts = collect(newSeq):
+    for num in 0..(app.toastCount - 1):
+      buildToast(app)
+
+  result = gui:
+    Window():
+      defaultSize = (800, 600)
+      title = "ToastOverlay Example"
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+      
+        Button() {.addRight.}:
+          style = [ButtonFlat]
+          text = "Urgent"
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityHigh
+            app.title = "Urgent Toast Title !!!"
+            app.toastCount = 1
+            
+        Button() {.addRight.}:
+          style = [ButtonFlat]
+          text = "Notify"
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityNormal
+            app.title = "Toast title"
+            app.toastCount = 1
+
+        Button() {.addRight.}:
+          style = [ButtonFlat]
+          text = "Notify*3"
+          proc clicked() = 
+            app.showToast = true
+            app.priority = ToastPriorityNormal
+            app.title = "Toast title"
+            app.toastCount = 3
+      
+      Box(orient = OrientY):
+        ToastOverlay():
+          if app.showToast and app.toastCount == 1:
+            toast = toasts[0]
+          elif app.showToast and app.toastCount > 1:
+            toasts = toasts
+            
+          Box():
+            Label(text = "A widget within Toast Overlay!")
+        
+adw.brew(gui(App()))

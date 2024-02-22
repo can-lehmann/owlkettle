@@ -24,8 +24,9 @@
 
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, widgets, mainloop, widgetutils
+import widgetdef, widgets, mainloop, widgetutils, common
 import ./bindings/[adw, gtk]
+import ../owlkettle
 import std/[strutils, sequtils, strformat, options, sugar]
 
 export adw.StyleManager
@@ -33,6 +34,8 @@ export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.ToastPriority
+export adw.isNil
 export adw.CenteringPolicy
 export adw.AdwVersion
 
@@ -867,6 +870,157 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   
   export AboutWindow
 
+## Adw.Toast
+type Toast* = ref object
+  title*: string
+  customTitle*: Widget
+  buttonLabel*: string
+  priority*: ToastPriority
+  timeout*: int
+  dismissalHandler: proc(toast: Toast)
+  clickedHandler: proc()
+  useMarkup: bool
+
+proc newToast*(
+  title: string,
+  buttonLabel: string = "", 
+  priority: ToastPriority = ToastPriorityNormal, 
+  dismissalHandler: proc(toast: Toast) = nil, 
+  clickedHandler: proc() = nil,
+  timeout: int = 5, 
+  useMarkup: bool = false,
+  customTitle: Widget = nil.Widget
+): Toast =
+  result = Toast(
+    title: title, 
+    buttonLabel: buttonLabel,
+    priority: priority,
+    timeout: timeout,
+    dismissalHandler: dismissalHandler
+  )
+  
+  when AdwVersion >= (1, 2):
+    result.clickedHandler = clickedHandler
+    result.customTitle = customTitle
+  else:
+    let isUsingCustomTitle = not customTitle.isNil()
+    if isUsingCustomTitle:
+      raise newException(LibraryError, "The customTitle field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+
+    let isUsingClickedHandler = not clickedHandler.isNil()
+    if isUsingClickedHandler:
+      raise newException(LibraryError, "The clickedHandler field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+      
+  when AdwVersion >= (1, 4):
+    result.useMarkup = useMarkup
+  else:
+    let isUsingUseMarkup = useMarkup == true
+    if isUsingUseMarkup:
+      raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
+
+proc toOwl(adwToast: AdwToast): Toast =
+  when AdwVersion >= (1, 4):
+    let useMarkup = adw_toast_get_use_markup(adwToast).bool
+  else:
+    let useMarkup = false
+  
+  result = newToast(
+    title = $adw_toast_get_title(adwToast),
+    buttonLabel = $adw_toast_get_button_label(adwToast),
+    priority = adw_toast_get_priority(adwToast),
+    timeout = adw_toast_get_timeout(adwToast).int,
+    useMarkup = useMarkup
+  )
+  
+proc toGtk(toast: Toast): AdwToast =
+  result = adw_toast_new(toast.title.cstring)
+  if toast.buttonLabel != "":
+    adw_toast_set_button_label(result, toast.buttonLabel.cstring)
+  adw_toast_set_priority(result, toast.priority)
+  let timeout: cuint = cuint(toast.timeout)
+  adw_toast_set_timeout(result, timeout)
+  
+  # Set Dismissal Handler
+  if not toast.dismissalHandler.isNil():
+    proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
+      let event = unwrapSharedCell(data)
+      let toast: Toast = dismissedToast.toOwl()
+      event.callback(toast)
+      # Disconnect event-handler after Toast was dismissed
+      g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+    
+    let event = EventObj[proc(toast: Toast)]()
+    let data = allocSharedCell(event)
+    data.callback = toast.dismissalHandler
+    data.handler = g_signal_connect(result, "dismissed".cstring, dismissalCallback, data)
+  
+  when AdwVersion >= (1, 2):
+    if not toast.customTitle.isNil():
+      let customTitleWidget = toast.customTitle.build().unwrapInternalWidget()
+      adw_toast_set_custom_title(result, customTitleWidget)
+
+    # Set Clicked Handler
+    if not toast.clickedHandler.isNil():
+      proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
+        let event = unwrapSharedCell(data)
+        event.callback()
+        # Disconnect event-handler after first click as that will dismisses the toast
+        g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+      
+      let event = EventObj[proc()]()
+      let data = allocSharedCell(event)
+      data.callback = toast.clickedHandler
+      data.handler = g_signal_connect(result, "button-clicked".cstring, clickCallback, data)
+
+  when AdwVersion >= (1, 4):
+    adw_toast_set_use_markup(result, toast.useMarkup.cbool)
+
+renderable ToastOverlay of BaseWidget:
+  ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
+  ## Use `newToast` to create a `Toast`.
+  ## `Toast` has the following properties that can be assigned to:
+  ## - actionName
+  ## - actionTarget
+  ## - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, the Toast will not contain a button.
+  ## - detailedActionName
+  ## - priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+  ## - timeout: The time in seconds after showing the toast after which it is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+  ## - title: The text to display in the toast. Gets hidden if customTitle is set.
+  ## - customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+  ## - dismissalHandler: An event-handler proc that gets called when this specific toast gets dismissed
+  ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
+
+  child: Widget
+  toasts: seq[Toast] ## The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a First-In-First-Out queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a Last-In-First-Out queue.
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_toast_overlay_new()
+  
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
+  
+  hooks toasts:
+    property:
+      for toast in state.toasts:
+        let adwToast: AdwToast = toast.toGtk()
+        adw_toast_overlay_add_toast(state.internalWidget, adwToast)
+  
+  setter toast: Toast
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
+    widget.hasChild = true
+    widget.valChild = child
+
+proc `hasToast=`*(overlay: ToastOverlay, has: bool) =
+  overlay.hasToasts = has
+
+proc `valToast=`*(overlay: ToastOverlay, toast: Toast) =
+  overlay.valToasts = @[toast]
+
 when AdwVersion >= (1, 4) or defined(owlkettleDocs):
   renderable SwitchRow of ActionRow:
     active: bool    
@@ -938,6 +1092,7 @@ when AdwVersion >= (1, 3) or defined(owlkettleDocs):
           adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
   export Banner
 
+export ToastOverlay, Toast
 export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage
 
 type AdwAppConfig = object of AppConfig
