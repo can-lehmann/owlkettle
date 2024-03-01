@@ -196,6 +196,19 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_website*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_license_type*(window: GtkWidget, value: GtkLicenseType)
+  proc adw_about_window_add_legal_section*(window: GtkWidget, title: cstring, copyright: cstring, license_type: GtkLicenseType, license: cstring)
+  proc adw_about_window_set_application_icon*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_release_notes*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_comments*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_debug_info*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_developers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_designers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_artists*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_documenters*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_add_credit_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_acknowledgement_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_link*(window: GtkWidget, title: cstring, url: cstring)
 
 when AdwVersion >= (1, 4):
   # Adw.SwitchRow

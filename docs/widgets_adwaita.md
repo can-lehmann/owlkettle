@@ -481,7 +481,37 @@ renderable AboutWindow
 - `issueUrl: string`
 - `website: string`
 - `copyright: string`
-- `license: string`
+- `license: string` Sets the license as a custom text if it can’t be set via licenseType (when set licenseType will be set to GTK_LICENSE_CUSTOM).
+- `licenseType: LicenseType` Sets the license for from a list of known license.
+- `legalSections: seq[LegalSection]` Adds an extra section to the Legal page. Extra sections will be displayed below the application’s own information. The parameters copyright, licenseType and license will be used to present the it the same way as AboutWindow:copyright, AboutWindow:licenseType and AboutWindow:license are for the application’s own information. See those properties for more details. This can be useful to attribute the application dependencies or data.
+- `applicationIcon: string`
+- `releaseNotes: string`
+- `comments: string`
+- `debugInfo: string`
+- `developers: seq[string]`
+- `designers: seq[string]`
+- `artists: seq[string]`
+- `documenters: seq[string]`
+- `credits: seq[(string, seq[string])]` Adds additional credit sections with customizable titles
+- `acknowledgements: seq[(string, seq[string])]` Adds acknowledgment sections with customizable titles
+- `links: seq[(string, string)]` Adds additionals links placed in the details section
+
+###### Example
+
+```nim
+AboutWindow:
+  applicationName = "My Application"
+  developerName = "Erika Mustermann"
+  version = "1.0.0"
+  applicationIcon = "application-x-executable"
+  supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
+  issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
+  website = "https://can-lehmann.github.io/owlkettle/README"
+  links = @{"Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html", "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"}
+  comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed.It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+  copyright = "Erika Mustermann"
+  licenseType = LICENSE_ARTISTIC
+```
 
 
 ## SwitchRow

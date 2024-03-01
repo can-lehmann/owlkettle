@@ -809,6 +809,37 @@ renderable StatusPage of BaseWidget:
     widget.hasPaintable = true
     widget.valPaintable = child
 
+
+type LicenseType* = enum
+  LICENSE_UNKNOWN = 0
+  LICENSE_CUSTOM = 1
+  LICENSE_GPL_2_0 = 2
+  LICENSE_GPL_3_0 = 3
+  LICENSE_LGPL_2_1 = 4
+  LICENSE_LGPL_3_0 = 5
+  LICENSE_BSD = 6
+  LICENSE_MIT_X11 = 7
+  LICENSE_ARTISTIC = 8
+  LICENSE_GPL_2_0_ONLY = 9
+  LICENSE_GPL_3_0_ONLY = 10
+  LICENSE_LGPL_2_1_ONLY = 11
+  LICENSE_LGPL_3_0_ONLY = 12
+  LICENSE_AGPL_3_0 = 13
+  LICENSE_AGPL_3_0_ONLY = 14
+  LICENSE_BSD_3 = 15
+  LICENSE_APACHE_2_0 = 16
+  LICENSE_MPL_2_0 = 17
+  LICENSE_0BSD = 18
+
+proc toGtk(license: LicenseType): GtkLicenseType =
+  result = GtkLicenseType(ord(license))
+
+type LegalSection* = object
+  title*: string
+  copyright*: Option[string]
+  licenseType*: LicenseType
+  license*: Option[string]
+
 when AdwVersion >= (1, 2) or defined(owlkettleDocs):
   renderable AboutWindow:
     applicationName: string
@@ -818,8 +849,20 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
     issueUrl: string
     website: string
     copyright: string
-    license: string
-    
+    license: string ## Sets the license as a custom text if it can’t be set via licenseType (when set licenseType will be set to GTK_LICENSE_CUSTOM).
+    licenseType: LicenseType ## Sets the license for from a list of known license.
+    legalSections: seq[LegalSection] ## Adds an extra section to the Legal page. Extra sections will be displayed below the application’s own information. The parameters copyright, licenseType and license will be used to present the it the same way as AboutWindow:copyright, AboutWindow:licenseType and AboutWindow:license are for the application’s own information. See those properties for more details. This can be useful to attribute the application dependencies or data.
+    applicationIcon: string
+    releaseNotes: string
+    comments: string
+    debugInfo: string
+    developers: seq[string]
+    designers: seq[string]
+    artists: seq[string]
+    documenters: seq[string]
+    credits: seq[(string, seq[string])] ## Adds additional credit sections with customizable titles
+    acknowledgements: seq[(string, seq[string])] ## Adds acknowledgment sections with customizable titles
+    links: seq[(string, string)] ## Adds additionals links placed in the details section
     hooks:
       beforeBuild:
         when AdwVersion >= (1, 2):
@@ -864,7 +907,125 @@ when AdwVersion >= (1, 2) or defined(owlkettleDocs):
       property:
         when AdwVersion >= (1, 2):
           adw_about_window_set_license(state.internalWidget, state.license.cstring)
-  
+
+    hooks licenseType:
+      property:
+        when AdwVersion >= (1, 2):
+          adw_about_window_set_license_type(state.internalWidget, state.licenseType.toGtk())
+
+    hooks legalSections:
+      build:
+        when AdwVersion >= (1, 2):
+          if widget.hasLegalSections:
+            state.legalSections = widget.valLegalSections
+            for section in state.legalSections:
+              var copyright: cstring
+              var license: cstring
+              if section.copyright.isSome:
+                copyright = section.copyright.get().cstring
+              if section.license.isSome:
+                license = section.license.get().cstring
+
+              adw_about_window_add_legal_section(
+                state.internalWidget,
+                section.title,
+                copyright,
+                section.licenseType.toGtk(),
+                license
+              )
+
+    hooks applicationIcon:
+      property:
+        when AdwVersion >= (1, 2):
+          adw_about_window_set_application_icon(state.internalWidget, state.applicationIcon.cstring)
+
+    hooks releaseNotes:
+      property:
+        when AdwVersion >= (1, 2):
+          adw_about_window_set_release_notes(state.internalWidget, state.releaseNotes.cstring)
+
+    hooks comments:
+      property:
+        when AdwVersion >= (1, 2):
+          adw_about_window_set_comments(state.internalWidget, state.comments.cstring)
+
+    hooks debugInfo:
+      property:
+        when AdwVersion >= (1, 2):
+          adw_about_window_set_debug_info(state.internalWidget, state.debugInfo.cstring)
+
+    hooks developers:
+      property:
+        when AdwVersion >= (1, 2):
+          let developers = allocCStringArray(state.developers)
+          defer: deallocCStringArray(developers)
+          adw_about_window_set_developers(state.internalWidget, developers)
+
+    hooks designers:
+      property:
+        when AdwVersion >= (1, 2):
+          let designers = allocCStringArray(state.designers)
+          defer: deallocCStringArray(designers)
+          adw_about_window_set_designers(state.internalWidget, designers)
+
+    hooks artists:
+      property:
+        when AdwVersion >= (1, 2):
+          let artists = allocCStringArray(state.artists)
+          defer: deallocCStringArray(artists)
+          adw_about_window_set_artists(state.internalWidget, artists)
+
+    hooks documenters:
+      property:
+        when AdwVersion >= (1, 2):
+          let documenters = allocCStringArray(state.documenters)
+          defer: deallocCStringArray(documenters)
+          adw_about_window_set_documenters(state.internalWidget, documenters)
+
+    hooks credits:
+      build:
+        when AdwVersion >= (1, 2):
+          if widget.hasCredits:
+            state.credits = widget.valCredits
+            for (sectionName, people) in state.credits:
+              let names = allocCStringArray(people)
+              defer: deallocCStringArray(names)
+              adw_about_window_add_credit_section(state.internalWidget, sectionName.cstring, names)
+
+    hooks acknowledgements:
+      build:
+        when AdwVersion >= (1, 2):
+          if widget.hasAcknowledgements:
+            state.acknowledgements = widget.valAcknowledgements
+            for (sectionName, people) in state.acknowledgements:
+              let names = allocCStringArray(people)
+              defer: deallocCStringArray(names)
+              adw_about_window_add_acknowledgement_section(state.internalWidget, sectionName.cstring, names)
+
+    hooks links:
+      build:
+        when AdwVersion >= (1, 2):
+          if widget.hasLinks:
+            state.links = widget.valLinks
+            for (title, url) in state.links:
+              adw_about_window_add_link(state.internalWidget, title.cstring, url.cstring)
+
+    example:
+      AboutWindow:
+        applicationName = "My Application"
+        developerName = "Erika Mustermann"
+        version = "1.0.0"
+        applicationIcon = "application-x-executable"
+        supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
+        issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
+        website = "https://can-lehmann.github.io/owlkettle/README"
+        links = @{
+          "Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html",
+          "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"
+        }
+        comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed.It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+        copyright = "Erika Mustermann"
+        licenseType = LICENSE_ARTISTIC
   export AboutWindow
 
 when AdwVersion >= (1, 4) or defined(owlkettleDocs):
