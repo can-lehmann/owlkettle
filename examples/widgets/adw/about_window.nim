@@ -64,11 +64,11 @@ method view(app: AppState): Widget =
                     ]
                 }
                 developers = @[
-                  "Edgar Allan Poe <edgar@poe.com>",
-                  "Erica Mustermann <erica@mustermann.com>",
-                  "John Doe <john@doe.com>"
-                  ]
-                designers  = @["Dee Signer https://dee.si.gner/portfolio"]
+                  "Edgar Allan Poe <edgar@example.com>",
+                  "Erica Mustermann <erica@example.com>",
+                  "John Doe <john@example.com>"
+                ]
+                designers  = @["Dee Signer https://example.com/portfolio"]
                 documenters = @["Dokju Mentar"]
                 debugInfo = "Please attach the logs from <some directory> when reporting errors."
                 copyright = "Erika Mustermann"
