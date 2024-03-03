@@ -30,7 +30,7 @@ method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "About Dialog Example"
-      defaultSize = (400, 200)
+      defaultSize = (800, 600)
       
       HeaderBar {.addTitlebar.}:
         Button {.addLeft.}:
@@ -50,7 +50,7 @@ method view(app: AppState): Widget =
                   "Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html",
                   "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"
                 }
-                comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed.It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+                comments = "Lorem Ipsum. Repellendus repudiandae sequi et eaque perferendis aspernatur illo rerum. Aut amet quod pariatur magnam maxime velit illum autem. Voluptatem reiciendis est ipsam natus incidunt esse nihil. Sint molestiae qui quia nulla enim est. Et dolores dolores aut. <b>Some bold text</b>."
                 credits = @{
                   "Shaders": @[
                     "Erika Mustermann",
@@ -72,27 +72,27 @@ method view(app: AppState): Widget =
                 documenters = @["Dokju Mentar"]
                 debugInfo = "Please attach the logs from <some directory> when reporting errors."
                 copyright = "Erika Mustermann"
-                licenseType = LICENSE_ARTISTIC # or set a custom license text via the `license` property
+                licenseType = LicenseArtistic # or set a custom license text via the `license` property
                 legalSections = @[
                   LegalSection(
                     title: "Copyright and a known license",
                     copyright: some("© 2022 Example"),
-                    licenseType: LICENSE_LGPL_2_1
+                    licenseType: LicenseLGPL_2_1
                   ),
                   LegalSection(
                     title: "Copyright and custom license",
                     copyright: some("© 2022 Example"),
-                    licenseType: LICENSE_CUSTOM,
+                    licenseType: LicenseCustom,
                     license: some("Custom license text")
                   ),
                   LegalSection(
                     title: "Copyright only",
                     copyright: some("© 2022 Example"),
-                    licenseType: LICENSE_UNKNOWN
+                    licenseType: LicenseUnknown
                   ),
                   LegalSection(
                     title: "Custom license only",
-                    licenseType: LICENSE_CUSTOM,
+                    licenseType: LicenseCustom,
                     license: some("Something completely custom here.")
                   )
                 ]

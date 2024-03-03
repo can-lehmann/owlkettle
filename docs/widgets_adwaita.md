@@ -481,20 +481,20 @@ renderable AboutWindow
 - `issueUrl: string`
 - `website: string`
 - `copyright: string`
-- `license: string` Sets the license as a custom text if it can’t be set via licenseType (when set licenseType will be set to GTK_LICENSE_CUSTOM).
+- `license: string` Sets the license as a custom text. Is this field is used instead of `licenseType`, latter has to be empty or `LicenseCustom`.
 - `licenseType: LicenseType` Sets the license for from a list of known license.
-- `legalSections: seq[LegalSection]` Adds an extra section to the Legal page. Extra sections will be displayed below the application’s own information. The parameters copyright, licenseType and license will be used to present the it the same way as AboutWindow:copyright, AboutWindow:licenseType and AboutWindow:license are for the application’s own information. See those properties for more details. This can be useful to attribute the application dependencies or data.
+- `legalSections: seq[LegalSection]` Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
 - `applicationIcon: string`
 - `releaseNotes: string`
 - `comments: string`
-- `debugInfo: string`
+- `debugInfo: string` Adds a "Troubleshooting" section. Use this field to provide instructions on how to acquire logs or other info you want users of your app to know about when reporting bugs or debugging.
 - `developers: seq[string]`
 - `designers: seq[string]`
 - `artists: seq[string]`
 - `documenters: seq[string]`
-- `credits: seq[(string, seq[string])]` Adds additional credit sections with customizable titles
-- `acknowledgements: seq[(string, seq[string])]` Adds acknowledgment sections with customizable titles
-- `links: seq[(string, string)]` Adds additionals links placed in the details section
+- `credits: seq[tuple[title: string, people: seq[string]]]` Adds additional credit sections with customizable titles
+- `acknowledgements: seq[tuple[title: string, people: seq[string]]]` Adds acknowledgment sections with customizable titles
+- `links: seq[tuple[title: string, url: string]]` Adds additionals links placed in the details section
 
 ###### Example
 
@@ -510,7 +510,7 @@ AboutWindow:
   links = @{"Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html", "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"}
   comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed.It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
   copyright = "Erika Mustermann"
-  licenseType = LICENSE_ARTISTIC
+  licenseType = LicenseArtistic
 ```
 
 
