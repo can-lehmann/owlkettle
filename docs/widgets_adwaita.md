@@ -481,7 +481,37 @@ renderable AboutWindow
 - `issueUrl: string`
 - `website: string`
 - `copyright: string`
-- `license: string`
+- `license: string` A custom license text. If this field is used instead of `licenseType`, `licenseType` has to be empty or `LicenseCustom`.
+- `licenseType: LicenseType` A license from the `LicenseType` enum.
+- `legalSections: seq[LegalSection]` Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
+- `applicationIcon: string`
+- `releaseNotes: string`
+- `comments: string`
+- `debugInfo: string` Adds a "Troubleshooting" section. Use this field to provide instructions on how to acquire logs or other info you want users of your app to know about when reporting bugs or debugging.
+- `developers: seq[string]`
+- `designers: seq[string]`
+- `artists: seq[string]`
+- `documenters: seq[string]`
+- `credits: seq[tuple[title: string, people: seq[string]]]` Additional credit sections with customizable titles
+- `acknowledgements: seq[tuple[title: string, people: seq[string]]]` Acknowledgment sections with customizable titles
+- `links: seq[tuple[title: string, url: string]]` Additional links placed in the details section
+
+###### Example
+
+```nim
+AboutWindow:
+  applicationName = "My Application"
+  developerName = "Erika Mustermann"
+  version = "1.0.0"
+  applicationIcon = "application-x-executable"
+  supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
+  issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
+  website = "https://can-lehmann.github.io/owlkettle/README"
+  links = @{"Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html", "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"}
+  comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed. It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+  copyright = "Erika Mustermann"
+  licenseType = LicenseMIT_X11
+```
 
 
 ## SwitchRow

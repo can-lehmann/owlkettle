@@ -221,6 +221,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <th>Image</th>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/about_window.nim">About Window</a></td>
+    <td><img alt="About Window" src="../docs/assets/examples/adw_about_window.png" width="509px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/banner.nim">Banner</a></td>
     <td><img alt="Banner" src="../docs/assets/examples/banner.png" width="522px"></td>
   </tr>
