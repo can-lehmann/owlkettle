@@ -481,8 +481,8 @@ renderable AboutWindow
 - `issueUrl: string`
 - `website: string`
 - `copyright: string`
-- `license: string` Sets the license as a custom text. Is this field is used instead of `licenseType`, latter has to be empty or `LicenseCustom`.
-- `licenseType: LicenseType` Sets the license for from a list of known license.
+- `license: string` A custom license text. If this field is used instead of `licenseType`, `licenseType` has to be empty or `LicenseCustom`.
+- `licenseType: LicenseType` A license from the `LicenseType` enum.
 - `legalSections: seq[LegalSection]` Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
 - `applicationIcon: string`
 - `releaseNotes: string`
@@ -492,9 +492,9 @@ renderable AboutWindow
 - `designers: seq[string]`
 - `artists: seq[string]`
 - `documenters: seq[string]`
-- `credits: seq[tuple[title: string, people: seq[string]]]` Adds additional credit sections with customizable titles
-- `acknowledgements: seq[tuple[title: string, people: seq[string]]]` Adds acknowledgment sections with customizable titles
-- `links: seq[tuple[title: string, url: string]]` Adds additionals links placed in the details section
+- `credits: seq[tuple[title: string, people: seq[string]]]` Additional credit sections with customizable titles
+- `acknowledgements: seq[tuple[title: string, people: seq[string]]]` Acknowledgment sections with customizable titles
+- `links: seq[tuple[title: string, url: string]]` Additional links placed in the details section
 
 ###### Example
 
@@ -508,9 +508,9 @@ AboutWindow:
   issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
   website = "https://can-lehmann.github.io/owlkettle/README"
   links = @{"Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html", "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"}
-  comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed.It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+  comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed. It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
   copyright = "Erika Mustermann"
-  licenseType = LicenseArtistic
+  licenseType = LicenseMIT_X11
 ```
 
 

@@ -36,6 +36,7 @@ method view(app: AppState): Widget =
         Button {.addLeft.}:
           text = "About"
           style = [ButtonSuggested]
+          
           proc clicked() =
             discard app.open: gui:
               AboutWindow:
@@ -61,7 +62,7 @@ method view(app: AppState): Widget =
                 acknowledgements = @{
                   "Special thanks to": @[
                     "My cat", "The Owlkettle Project https://github.com/can-lehmann/owlkettle"
-                    ]
+                  ]
                 }
                 developers = @[
                   "Edgar Allan Poe <edgar@example.com>",
@@ -72,7 +73,7 @@ method view(app: AppState): Widget =
                 documenters = @["Dokju Mentar"]
                 debugInfo = "Please attach the logs from <some directory> when reporting errors."
                 copyright = "Erika Mustermann"
-                licenseType = LicenseArtistic # or set a custom license text via the `license` property
+                licenseType = LicenseMIT_X11 # or set a custom license text via the `license` property
                 legalSections = @[
                   LegalSection(
                     title: "Copyright and a known license",
