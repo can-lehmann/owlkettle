@@ -22,7 +22,7 @@
 
 # Default widgets
 
-import std/[unicode, os, sets, tables, options, asyncfutures, hashes, times]
+import std/[unicode, os, sets, tables, options, asyncfutures, strutils, sequtils, sugar, strformat, hashes, times]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, cairo, widgetutils, common
@@ -31,6 +31,13 @@ import bindings/gtk
 customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
+
+type PackType* = enum
+  PackStart
+  PackEnd
+
+proc toGtk*(packType: PackType): GtkPackType =
+  result = GtkPackType(ord(packType))
 
 type 
   Margin* = object
@@ -211,6 +218,19 @@ renderable Box of BaseWidget:
         toGtk(widget.valOrient),
         widget.valSpacing.cint
       )
+  
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+      for child in state.children:
+        let childWidget = child.widget.unwrapInternalWidget()
+        case state.orient:
+          of OrientX:
+            gtk_widget_set_vexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+          of OrientY:
+            gtk_widget_set_hexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
   
   hooks spacing:
     property:
@@ -514,7 +534,7 @@ renderable EditableLabel of BaseWidget:
   text: string = ""
   editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   enableUndo: bool = true
-  alignment: 0.0..1.0 = 0.0
+  alignment: float = 0.0
   
   proc changed(text: string) ## Fired every time `text` changes.
   proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
@@ -979,11 +999,32 @@ proc updateChild*(state: Renderable,
       child.expand = updater.expand
       gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
 
+type WindowControlButton* = enum
+  WindowControlMinimize = "minimize"
+  WindowControlMaximize = "maximize"
+  WindowControlClose = "close"
+  WindowControlIcon = "icon"
+  WindowControlMenu = "menu"
+
+type DecorationLayout* = tuple[left: seq[WindowControlButton], right: seq[WindowControlButton]]
+
+proc toLayoutString*(layout: DecorationLayout): string =
+  let leftButtons: string = layout.left.mapIt($it).join(",")
+  let rightButtons: string = layout.right.mapIt($it).join(",")
+  return fmt"{leftButtons}:{rightButtons}"
+
+const
+  HeaderBarFlat* = "flat".StyleClass
+
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
+  decorationLayout: Option[string] = none(string)
   left: seq[Widget]
   right: seq[Widget]
+  
+  setter windowControls: DecorationLayout
+  setter windowControls: Option[DecorationLayout]
   
   hooks:
     beforeBuild:
@@ -993,6 +1034,13 @@ renderable HeaderBar of BaseWidget:
     property:
       gtk_header_bar_set_show_title_buttons(state.internalWidget, cbool(ord(state.showTitleButtons)))
   
+  hooks decorationLayout:
+    property:
+      if state.decorationLayout.isSome():
+        gtk_header_bar_set_decoration_layout(state.internalWidget, state.decorationLayout.get().cstring)
+      else:
+        gtk_header_bar_set_decoration_layout(state.internalWidget, nil)
+
   hooks left:
     (build, update):
       state.updateChildren(
@@ -1055,6 +1103,16 @@ renderable HeaderBar of BaseWidget:
         Button {.addRight.}:
           icon = "open-menu-symbolic"
 
+proc `hasWindowControls=`*(widget: Headerbar, has: bool) =
+  widget.hasDecorationLayout = true
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
+  widget.valDecorationLayout = some(buttons.toLayoutString())
+
+proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
+  let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
+  widget.valDecorationLayout = decorationLayout
+  
 renderable ScrolledWindow of BaseWidget:
   child: Widget
   
@@ -2228,6 +2286,11 @@ crossVersionDestructor(buffer, TextBufferObj):
   
   g_object_unref(pointer(buffer.gtk))
 
+proc `=sink`*(dest: var TextBufferObj; source: TextBufferObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+
 proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
@@ -2237,12 +2300,12 @@ proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   wasMoved(dest)
   if not isNil(source.gtk):
     g_object_ref(pointer(source.gtk))
-    
+  
   dest.gtk = source.gtk
 
 proc newTextBuffer*(): TextBuffer =
   result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
-  
+
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
@@ -3407,6 +3470,43 @@ renderable BuiltinDialog of BaseWidget:
   
   adder addButton
 
+proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
+  let
+    state = widget.build()
+    dialogState = state.unwrapRenderable()
+    window = app.unwrapInternalWidget()
+    dialog = state.unwrapInternalWidget()
+  gtk_window_set_transient_for(dialog, window)
+  gtk_window_set_modal(dialog, cbool(bool(true)))
+  gtk_window_present(dialog)
+  
+  proc destroyDialog(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
+    closed[] = true
+  
+  var closed = false
+  discard g_signal_connect(dialog, "destroy", destroyDialog , closed.addr)
+  
+  if dialogState of DialogState or dialogState of BuiltinDialogState:
+    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
+      res[] = responseId
+    
+    var res = low(cint)
+    discard g_signal_connect(dialog, "response", response, res.addr)
+    while res == low(cint):
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    if not closed:
+      gtk_window_destroy(dialog)
+    result = (toDialogResponse(res), state)
+  else:
+    while not closed:
+      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
+    
+    state.read()
+    result = (DialogResponse(), state)
+
+
 proc addButton*(dialog: BuiltinDialog, button: DialogButton) =
   dialog.hasButtons = true
   dialog.valButtons.add(button)
@@ -3733,7 +3833,7 @@ proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
   `=destroy`(dest)
   wasMoved(dest)
   dest.gtk = source.gtk
-  
+
 proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
@@ -3967,6 +4067,32 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
+  
+  example:
+    Expander:
+      label = "Expander"
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      label = "Expander"
+      expanded = app.expanded
+      
+      proc activate(activated: bool) =
+        app.expanded = activated
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      Label {.addLabel.}:
+        text = "Widget Label"
+      
+      Label:
+        text = "Content"
 
 renderable PasswordEntry of BaseWidget:
   text: string
@@ -4018,8 +4144,8 @@ renderable PasswordEntry of BaseWidget:
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
-  
-  
+
+
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
@@ -4255,6 +4381,234 @@ renderable ListView of BaseWidget:
     property:
       gtk_list_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
 
+type ColumnViewColumn* = object
+  title*: string
+  visible*: bool
+  resizable*: bool
+  expand*: bool
+  fixedWidth*: int
+
+proc initColumnViewColumn*(title: string,
+                           visible: bool = true,
+                           resizable: bool = false,
+                           expand: bool = false,
+                           fixedWidth: int = -1): ColumnViewColumn =
+  result = ColumnViewColumn(
+    title: title,
+    visible: visible,
+    resizable: resizable,
+    expand: expand,
+    fixedWidth: fixedWidth
+  )
+
+renderable ColumnView of BaseWidget:
+  rows: int ## Number of rows
+  columns: seq[ColumnViewColumn]
+  
+  selectionMode: SelectionMode
+  selected: HashSet[int] ## Indices of the currently selected rows.
+  
+  showRowSeparators: bool = false
+  showColumnSeparators: bool = false
+  singleClickActivate: bool = false
+  enableRubberband: bool = false
+  reorderable: bool = false
+  
+  proc viewItem(row, column: int): Widget
+  proc select(rows: HashSet[int])
+  proc activate(index: int)
+  
+  type
+    CellState = object
+      widgetState: WidgetState
+      listItem: GtkWidget
+    
+    ColumnStateObj = object
+      index: int
+      widgetState {.cursor.}: ColumnViewState
+      gtk: GtkColumnViewColumn
+      factory: GtkListItemFactory
+      cellStates: Table[int, CellState]
+    
+    ColumnState = ref ColumnStateObj
+  
+  model {.private, onlyState.}: GListModel
+  selectionModel {.private, onlyState.}: GtkSelectionModel
+  columnStates {.private, onlyState.}: seq[ColumnState]
+  
+  hooks:
+    beforeBuild:
+      state.model = g_list_store_new(G_TYPE_OBJECT)
+      state.internalWidget = gtk_column_view_new(GtkSelectionModel(nil))
+    update:
+      for columnIndex, column in state.columnStates:
+        for rowIndex, itemState in column.cellStates.mpairs:
+          let updater = state.viewItem.callback(rowIndex, columnIndex)
+          updater.assignApp(state.app)
+          let newState = updater.update(itemState.widgetState)
+          if not newState.isNil:
+            gtk_list_item_set_child(itemState.listItem, newState.unwrapInternalWidget())
+            itemState.widgetState = newState
+    connectEvents:
+      proc activateCallback(widget: GtkWidget,
+                            position: cuint,
+                            data: ptr EventObj[proc(index: int)]) =
+        data[].callback(int(position))
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", activateCallback)
+      
+      proc selectionChangedCallback(selectionModel: GtkSelectionModel,
+                                    position: cuint,
+                                    count: cuint,
+                                    data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
+        let state = ColumnViewState(data[].widget)
+        for index in position..(position + count):
+          if bool(gtk_selection_model_is_selected(selectionModel, index)):
+            state.selected.incl(int(index))
+          else:
+            state.selected.excl(int(index))
+        data[].callback(state.selected)
+        data[].redraw()
+      
+      if not state.select.isNil:
+        state.select.widget = state
+        state.select.handler = g_signal_connect(
+          state.selectionModel,
+          "selection-changed",
+          selectionChangedCallback,
+          state.select[].addr
+        )
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      if not state.select.isNil:
+        assert state.select.handler > 0
+        g_signal_handler_disconnect(pointer(state.selectionModel), state.select.handler)
+        state.select.handler = 0
+        state.select.widget = nil
+  
+  hooks columns:
+    (build, update):
+      if widget.hasColumns:
+        state.columns = widget.valColumns
+        
+        proc bindCallback(factory: GtkListItemFactory,
+                          listItem: GtkWidget,
+                          stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let
+            index = int(gtk_list_item_get_position(listItem))
+            updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
+          updater.assignApp(stateObj[].widgetState.app)
+          let widgetState = updater.build()
+          stateObj[].cellStates[index] = CellState(
+            widgetState: widgetState,
+            listItem: listItem
+          )
+          gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+        
+        proc unbindCallback(factory: GtkListItemFactory,
+                            listItem: GtkWidget,
+                            stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let index = int(gtk_list_item_get_position(listItem))
+          stateObj[].cellStates.del(index)
+        
+        var it = 0
+        while it < state.columnStates.len and it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = state.columnStates[it]
+          gtk_column_view_column_set_title(columnState.gtk, column.title.cstring)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          
+          it += 1
+        
+        while it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = ColumnState(index: it, widgetState: state)
+          
+          columnState.factory = gtk_signal_list_item_factory_new()
+          discard g_signal_connect(columnState.factory, "bind", pointer(bindCallback), columnState[].addr)
+          discard g_signal_connect(columnState.factory, "unbind", pointer(unbindCallback), columnState[].addr)
+          
+          columnState.gtk = gtk_column_view_column_new(column.title.cstring, columnState.factory)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          gtk_column_view_append_column(state.internalWidget, columnState.gtk)
+          
+          state.columnStates.add(columnState)
+          it += 1
+        
+        while it < state.columnStates.len:
+          let columnState = state.columnStates.pop()
+          gtk_column_view_remove_column(state.internalWidget, columnState.gtk)
+  
+  # TODO: Custom List Model
+  hooks rows:
+    build:
+      for it in 0..<widget.valRows:
+        g_list_store_append(state.model, pointer(state.model))
+      state.rows = widget.valRows
+    update:
+      if widget.hasRows:
+        while state.rows < widget.valRows:
+          g_list_store_append(state.model, pointer(state.model))
+          state.rows += 1
+        
+        while state.rows > widget.valRows:
+          state.rows -= 1
+          g_list_store_remove(state.model, cuint(state.rows))
+  
+  hooks selectionMode:
+    property:
+      case state.selectionMode:
+        of SelectionNone:
+          state.selectionModel = gtk_no_selection_new(state.model)
+        of SelectionSingle:
+          state.selectionModel = gtk_single_selection_new(state.model)
+        of SelectionBrowse, SelectionMultiple:
+          state.selectionModel = gtk_multi_selection_new(state.model)
+      
+      state.selected.reset()
+      gtk_column_view_set_model(state.internalWidget, state.selectionModel)
+  
+  hooks selected:
+    (build, update):
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
+          gtk_selection_model_unselect_item(state.selectionModel, cuint(index))
+        for index in widget.valSelected - state.selected:
+          gtk_selection_model_select_item(
+            state.selectionModel,
+            cuint(index),
+            cbool(ord(false))
+          )
+        state.selected = widget.valSelected
+  
+  hooks showRowSeparators:
+    property:
+      gtk_column_view_set_show_row_separators(state.internalWidget, cbool(ord(state.showRowSeparators)))
+  
+  hooks showColumnSeparators:
+    property:
+      gtk_column_view_set_show_column_separators(state.internalWidget, cbool(ord(state.showColumnSeparators)))
+  
+  hooks singleClickActivate:
+    property:
+      gtk_column_view_set_single_click_activate(state.internalWidget, cbool(ord(state.singleClickActivate)))
+  
+  hooks enableRubberband:
+    property:
+      gtk_column_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
+  
+  hooks reorderable:
+    property:
+      gtk_column_view_set_reorderable(state.internalWidget, cbool(ord(state.reorderable)))
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
@@ -4280,3 +4634,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export ColumnView

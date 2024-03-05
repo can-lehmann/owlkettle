@@ -65,11 +65,28 @@ proc loadStylesheet*(path: string, priority: int = DEFAULT_PRIORITY): Stylesheet
     raise newException(IOError, $error[].message)
   result = Stylesheet(provider: provider, priority: priority)
 
-type AppConfig* = object
-  widget*: Widget
-  icons*: seq[string]
-  darkTheme*: bool
-  stylesheets*: seq[Stylesheet]
+type 
+  AppConfig* = object of RootObj
+    widget*: Widget
+    icons*: seq[string]
+    darkTheme*: bool
+    stylesheets*: seq[Stylesheet]
+  
+  AppContext*[T: object] = object
+    config*: T
+    state*: WidgetState
+    startupEvents*: seq[ApplicationEvent]
+    shutdownEvents*: seq[ApplicationEvent]
+  
+  ApplicationEvent* = proc(state: WidgetState) {.closure.}
+  
+proc execStartupEvents*(context: AppContext) =
+  for event in context.startupEvents:
+    event(context.state)
+    
+proc execShutdownEvents*(context: AppContext) =
+  for event in context.shutdownEvents:
+    event(context.state)
 
 proc setupApp*(config: AppConfig): WidgetState =
   if config.darkTheme:

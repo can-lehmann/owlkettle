@@ -25,7 +25,7 @@ import owlkettle/bindings/gtk
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
-export Stylesheet, newStylesheet, loadStylesheet
+export Stylesheet, ApplicationEvent, newStylesheet, loadStylesheet
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let
@@ -134,42 +134,6 @@ proc remove*(event: EventDescriptor) =
   if g_source_remove(cuint(event)) == 0:
     raise newException(IoError, "Unable to remove " & $event)
 
-proc open*(app: Viewable, widget: Widget): tuple[res: DialogResponse, state: WidgetState] =
-  let
-    state = widget.build()
-    dialogState = state.unwrapRenderable()
-    window = app.unwrapInternalWidget()
-    dialog = state.unwrapInternalWidget()
-  gtk_window_set_transient_for(dialog, window)
-  gtk_window_set_modal(dialog, cbool(bool(true)))
-  gtk_window_present(dialog)
-  
-  proc destroy(dialog: GtkWidget, closed: ptr bool) {.cdecl.} =
-    closed[] = true
-  
-  var closed = false
-  discard g_signal_connect(dialog, "destroy", destroy, closed.addr)
-  
-  if dialogState of DialogState or dialogState of BuiltinDialogState:
-    proc response(dialog: GtkWidget, responseId: cint, res: ptr cint) {.cdecl.} =
-      res[] = responseId
-    
-    var res = low(cint)
-    discard g_signal_connect(dialog, "response", response, res.addr)
-    while res == low(cint):
-      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
-    
-    state.read()
-    if not closed:
-      gtk_window_destroy(dialog)
-    result = (toDialogResponse(res), state)
-  else:
-    while not closed:
-      discard g_main_context_iteration(nil.GMainContext, cbool(ord(true)))
-    
-    state.read()
-    result = (DialogResponse(), state)
-
 proc respond*(state: WidgetState, response: DialogResponse) =
   let
     widget = state.unwrapInternalWidget()
@@ -182,39 +146,74 @@ proc closeWindow*(state: WidgetState) =
     root = gtk_widget_get_root(widget)
   gtk_window_close(root)
 
+proc scheduleCloseWindow*(state: WidgetState) =
+  proc closeTask(): bool =
+    state.closeWindow()
+  
+  discard addGlobalIdleTask(closeTask)
+
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
-  let state = setupApp(AppConfig(
+  let config = AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
+    darkTheme: darkTheme,
     stylesheets: @stylesheets
-  ))
+  )
+  
+  let state = setupApp(config)
+  
+  var context = AppContext[AppConfig](
+    config: config,
+    state: state,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  context.execStartupEvents()
   runMainloop(state)
+  context.execShutdownEvents()
 
-proc brew*(id: string, widget: Widget,
+proc brew*(id: string,
+           widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   var config = AppConfig(
     widget: widget,
     icons: @icons,
-    dark_theme: darkTheme,
-    stylesheets: @stylesheets
+    darkTheme: darkTheme,
+    stylesheets: @stylesheets,
   )
   
-  proc activateCallback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
+  var context = AppContext[AppConfig](
+    config: config,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  
+  proc activateCallback(app: GApplication, data: ptr AppContext[AppConfig]) {.cdecl.} =
     let
-      state = setupApp(data[])
+      state = setupApp(data[].config)
       window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
+    
+    data[].state = state
+    data[].execStartupEvents()
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  proc shutdownCallback(app: GApplication, data: ptr AppContext[AppConfig]) {.cdecl.} =
+    data[].execShutdownEvents()
+
+  discard g_signal_connect(app, "activate", activateCallback, context.addr)
+  discard g_signal_connect(app, "shutdown", shutdownCallback, context.addr)
   discard g_application_run(app)

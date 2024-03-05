@@ -22,9 +22,25 @@
 
 # Utility functions
 
-import std/[macros]
+import std/[macros, algorithm]
 
 proc isName*(node: NimNode): bool = node.kind in {nnkIdent, nnkSym}
+
+proc parseQualifiedName(node: NimNode): tuple[success: bool, name: seq[string]] =
+  var cur = node
+  while cur.kind == nnkDotExpr:
+    if not cur[1].isName:
+      return
+    result.name.add(cur[1].strVal)
+    cur = cur[0]
+  
+  if cur.isName:
+    result.success = true
+    result.name.add(cur.strVal)
+    result.name.reverse()
+
+proc isQualifiedName*(node: NimNode): bool = node.parseQualifiedName().success
+proc qualifiedName*(node: NimNode): seq[string] = node.parseQualifiedName().name
 
 proc unwrapName*(node: NimNode): NimNode =
   result = node
@@ -58,6 +74,16 @@ proc newDotExpr*(node, field: NimNode, lineInfo: NimNode): NimNode =
 
 proc newDotExpr*(node: NimNode, field: string, lineInfo: NimNode = nil): NimNode =
   result = newDotExpr(node, ident(field))
+  if not lineInfo.isNil:
+    result.copyLineInfo(lineInfo)
+    result[1].copyLineInfo(lineInfo)
+
+proc newQualifiedIdent*(name: seq[string], lineInfo: NimNode = nil): NimNode =
+  result = ident(name[0])
+  if not lineInfo.isNil:
+    result.copyLineInfo(lineInfo)
+  for it in 1..<name.len:
+    result = newDotExpr(result, name[it], lineInfo)
 
 proc newAssignment*(lhs, rhs, lineInfo: NimNode): NimNode =
   result = newAssignment(lhs, rhs)
@@ -91,8 +117,8 @@ template customPragmas*() =
 template crossVersionDestructor*(name: untyped, typ: typedesc, body: untyped) =
   ## Defines a =destroy to work for both nim 2 and nim 1.6.X
   when NimMajor >= 2:
-    proc `=destroy`(name: typ) =
+    proc `=destroy`*(name: typ) =
       body
   else:
-    proc `=destroy`(name: var typ) =
+    proc `=destroy`*(name: var typ) =
       body

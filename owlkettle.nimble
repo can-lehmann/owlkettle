@@ -5,7 +5,7 @@ license = "MIT"
 
 requires "nim >= 1.6.0"
 
-import std/strutils
+import std/[strformat, strutils]
 
 proc findExamples(path: string): seq[string] =
   for file in listFiles(path):
@@ -15,10 +15,30 @@ proc findExamples(path: string): seq[string] =
     result.add(findExamples(dir))
 
 task examples, "Build examples":
+  when defined(github):
+    # Can not compile because they rely on an adwaita version higher than available in test-image of CI pipeline
+    let uncompileable: seq[string] = @[
+      "widgets/adw/banner.nim",
+      "widgets/adw/entry_row.nim",
+      "widgets/adw/switch_row.nim",
+      "widgets/adw/overlay_split_view.nim",
+      "widgets/adw/button_content.nim",
+      "widgets/adw/about_window.nim"
+    ]
+    let adwaitaFlag = ""
+  else:
+    let uncompileable: seq[string] = @[] # You should be able to run any example locally assuming you have an up-to-date system.
+    let adwaitaFlag = "-d:adwminor=4"
+  
   withDir "examples":
     for file in findExamples("."):
+      if file in uncompileable:
+        continue
+        
+      let compileCommand = fmt"nim c --hints:off --path:.. --verbosity:0 {adwaitaFlag} {file}" 
       echo "INFO: Compile " & file
-      exec "nim c --hints:off --path:.. --verbosity:0 " & file
+      echo compileCommand
+      exec compileCommand
       echo "INFO: OK"
       echo "================================================================================"
 

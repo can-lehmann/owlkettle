@@ -44,29 +44,30 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "Scale Example"
-      defaultSize = (800, 600)
+      defaultSize = (800, 150)
       HeaderBar() {.addTitlebar.}:
         insert(app.toAutoFormMenu()) {.addRight.}
       
-      Scale:
-        min = app.min
-        max = app.max
-        value = app.value
-        marks = app.marks
-        inverted = app.inverted
-        showValue = app.showValue
-        stepSize = app.stepSize
-        pageSize = app.pageSize
-        orient = app.orient
-        showFillLevel = app.showFillLevel
-        precision = app.precision
-        valuePosition = app.valuePosition
-        sensitive = app.sensitive
-        tooltip = app.tooltip
-        sizeRequest = app.sizeRequest
-        
-        proc valueChanged(newValue: float64) =
-          app.value = newValue
-          echo "New value from Scale is ", $newValue
+      Box(orient = OrientY):
+        Scale {.expand: false.}:
+          min = app.min
+          max = app.max
+          value = app.value
+          marks = app.marks
+          inverted = app.inverted
+          showValue = app.showValue
+          stepSize = app.stepSize
+          pageSize = app.pageSize
+          orient = app.orient
+          showFillLevel = app.showFillLevel
+          precision = app.precision
+          valuePosition = app.valuePosition
+          sensitive = app.sensitive
+          tooltip = app.tooltip
+          sizeRequest = app.sizeRequest
+          
+          proc valueChanged(newValue: float64) =
+            app.value = newValue
+            echo "New value from Scale is ", $newValue
 
 adw.brew(gui(App()))

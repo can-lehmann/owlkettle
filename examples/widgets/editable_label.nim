@@ -20,28 +20,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import std/[sequtils]
 import owlkettle, owlkettle/[dataentries, playground, adw]
 
 viewable App:
   editing: bool = false
-  text: string = "Initial Text"
+  text: string = "Click to edit text"
   enableUndo: bool = true
-  alignment: 0.0..1.0 = 0.0
+  alignment: float = 0.0
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
+    Window:
       title = "Editable Label Example"
       defaultSize = (400, 100)
-      HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
       
-      Box(orient = OrientY, margin = 12, spacing = 6):
-        Label(text = "The editable label:") {.expand: false.}
+      HeaderBar {.addTitlebar.}:
+        style = [HeaderBarFlat]
+        insert(app.toAutoFormMenu(sizeRequest=(400, 450))) {.addRight.}
+      
+      Box:
+        orient = OrientY
+        margin = 12
+        spacing = 6
+        
         EditableLabel {.expand: false.}:
           text = app.text
           editing = app.editing

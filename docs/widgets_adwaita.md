@@ -1,14 +1,13 @@
 # Libadwaita Widgets
 
 
-## WindowSurface
+## AdwWindow
 
 ```nim
-renderable WindowSurface of BaseWindow
+renderable AdwWindow of BaseWindow
 ```
 
 A Window that does not have a title bar.
-A WindowSurface is equivalent to an `Adw.Window`.
 
 ###### Fields
 
@@ -24,7 +23,7 @@ A WindowSurface is equivalent to an `Adw.Window`.
 ###### Example
 
 ```nim
-WindowSurface:
+AdwWindow:
   Box:
     orient = OrientX
     Box {.expand: false.}:
@@ -88,6 +87,21 @@ Avatar:
 ```
 
 
+## ButtonContent
+
+```nim
+renderable ButtonContent of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `label: string`
+- `iconName: string`
+- `useUnderline: bool` Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
+- `canShrink: bool` Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+
+
 ## Clamp
 
 ```nim
@@ -149,6 +163,28 @@ PreferencesGroup:
 ```
 
 
+## PreferencesPage
+
+```nim
+renderable PreferencesPage of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `preferences: seq[Widget]`
+- `iconName: string`
+- `name: string`
+- `title: string`
+- `useUnderline: bool`
+- `description: string`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+
 ## PreferencesRow
 
 ```nim
@@ -202,6 +238,15 @@ renderable ExpanderRow of PreferencesRow
 - `subtitle: string`
 - `actions: seq[AlignedChild[Widget]]`
 - `rows: seq[AlignedChild[Widget]]`
+- `expanded: bool = false`
+- `enableExpansion: bool = true`
+- `showEnableSwitch: bool = false`
+- `titleLines: int` Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+- `subtitleLines: int` Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+
+###### Events
+
+- expand: `proc (newExpandState: bool)` Triggered when row gets expanded
 
 ###### Adders
 
@@ -262,7 +307,6 @@ renderable EntryRow of PreferencesRow
 ###### Fields
 
 - All fields from [PreferencesRow](#PreferencesRow)
-- `subtitle: string`
 - `suffixes: seq[AlignedChild[Widget]]`
 - `text: string`
 
@@ -276,6 +320,41 @@ renderable EntryRow of PreferencesRow
 - `addSuffix`
   - `hAlign = AlignFill`
   - `vAlign = AlignCenter`
+
+###### Example
+
+```nim
+EntryRow:
+  title = "Name"
+  text = app.name
+  proc changed(name: string) =
+    app.name = name
+
+```
+
+
+## PasswordEntryRow
+
+```nim
+renderable PasswordEntryRow of EntryRow
+```
+
+An `EntryRow` that hides the user input
+
+###### Fields
+
+- All fields from [EntryRow](#EntryRow)
+
+###### Example
+
+```nim
+PasswordEntryRow:
+  title = "Password"
+  text = app.password
+  proc changed(password: string) =
+    app.password = password
+
+```
 
 
 ## Flap
@@ -330,6 +409,75 @@ Flap:
       text = "Content ".repeat(10)
       wrap = true
 ```
+
+
+## OverlaySplitView
+
+```nim
+renderable OverlaySplitView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `content: Widget`
+- `sidebar: Widget`
+- `collapsed: bool = false`
+- `enableHideGesture: bool = true`
+- `enableShowGesture: bool = true`
+- `maxSidebarWidth: float = 280.0`
+- `minSidebarWidth: float = 180.0`
+- `pinSidebar: bool = false`
+- `showSidebar: bool = true`
+- `sidebarPosition: PackType = PackStart`
+- `widthFraction: float = 0.25`
+- `widthUnit: LengthUnit = LengthScaleIndependent`
+
+###### Events
+
+- toggle: `proc (shown: bool)`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addSidebar`
+
+
+## AdwHeaderBar
+
+```nim
+renderable AdwHeaderBar of BaseWidget
+```
+
+Adwaita Headerbar that combines GTK Headerbar and WindowControls.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `packLeft: seq[Widget]`
+- `packRight: seq[Widget]`
+- `centeringPolicy: CenteringPolicy = CenteringPolicyLoose`
+- `decorationLayout: Option[string] = none(string)`
+- `showRightButtons: bool = true` Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
+- `showLeftButtons: bool = true` Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
+- `titleWidget: Widget` A widget for the title. Replaces the title string, if there is one.
+- `showBackButton: bool = true`
+- `showTitle: bool = true` Determines whether to show or hide the title
+
+###### Setters
+
+- `windowControls: DecorationLayout`
+- `windowControls: Option[DecorationLayout]`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `addLeft` Adds a widget to the left side of the HeaderBar.
+
+- `addRight` Adds a widget to the right side of the HeaderBar.
+
+- `addTitle`
 
 
 ## SplitButton
@@ -397,6 +545,73 @@ renderable AboutWindow
 - `issueUrl: string`
 - `website: string`
 - `copyright: string`
-- `license: string`
+- `license: string` A custom license text. If this field is used instead of `licenseType`, `licenseType` has to be empty or `LicenseCustom`.
+- `licenseType: LicenseType` A license from the `LicenseType` enum.
+- `legalSections: seq[LegalSection]` Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
+- `applicationIcon: string`
+- `releaseNotes: string`
+- `comments: string`
+- `debugInfo: string` Adds a "Troubleshooting" section. Use this field to provide instructions on how to acquire logs or other info you want users of your app to know about when reporting bugs or debugging.
+- `developers: seq[string]`
+- `designers: seq[string]`
+- `artists: seq[string]`
+- `documenters: seq[string]`
+- `credits: seq[tuple[title: string, people: seq[string]]]` Additional credit sections with customizable titles
+- `acknowledgements: seq[tuple[title: string, people: seq[string]]]` Acknowledgment sections with customizable titles
+- `links: seq[tuple[title: string, url: string]]` Additional links placed in the details section
+
+###### Example
+
+```nim
+AboutWindow:
+  applicationName = "My Application"
+  developerName = "Erika Mustermann"
+  version = "1.0.0"
+  applicationIcon = "application-x-executable"
+  supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
+  issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
+  website = "https://can-lehmann.github.io/owlkettle/README"
+  links = @{"Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html", "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html"}
+  comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed. It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+  copyright = "Erika Mustermann"
+  licenseType = LicenseMIT_X11
+```
+
+
+## SwitchRow
+
+```nim
+renderable SwitchRow of ActionRow
+```
+
+###### Fields
+
+- All fields from [ActionRow](#ActionRow)
+- `active: bool`
+
+###### Events
+
+- activated: `proc (active: bool)`
+
+
+## Banner
+
+```nim
+renderable Banner of BaseWidget
+```
+
+A rectangular Box taking up the entire vailable width with an optional button.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `buttonLabel: string` Label of the optional banner button. Button will only be added to the banner if this Label has a value.
+- `title: string`
+- `useMarkup: bool = true` Determines whether using Markup in title is allowed or not.
+- `revealed: bool = true` Determines whether the banner is shown.
+
+###### Events
+
+- clicked: `proc ()` Triggered by clicking the banner button
 
 

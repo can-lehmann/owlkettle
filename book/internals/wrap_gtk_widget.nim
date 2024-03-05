@@ -1,19 +1,18 @@
 import nimib, nimibook
 
 nbInit(theme = useNimibook)
-nbText: """
-## *Wrapping GTK widgets*
+nbText: """# Wrapping GTK widgets
 This is a small guide on how you can wrap and contribute widgets from GTK to Owlkettle!
 
-### *Best Practices*
+## Best Practices
 When wrapping GTK widgets, keep in mind the best practices and coding conventions of Owlkettle as defined by [CONTRIBUTING.md](https://can-lehmann.github.io/owlkettle/CONTRIBUTING.md).
 As a piece of general advice, prefer to stick as close to the original GTK widget as possible.
 
-### *Find the GTK widget docs*
+## Find the GTK widget docs
 First find the docs belonging to the GTK widget so you know what it can do and what you need to wrap.
 Generally searches on the [GTK documentation](https://docs.gtk.org/gtk4/) or a web search with `GTK widget docs <widgetname>` should do it.
 
-### *Setup*
+## Setup
 Next let us create the type for the widget and an example application for it.
 
 Go to `owlkettle/widgets.nim` and add your type as `renderable <GtkWidgetName> of BaseWidget: discard`.
@@ -63,7 +62,7 @@ nbCode:
     brew(gui(App()))
 
 nbText: """
-### *Wrap GTK functions*
+## Wrap GTK functions
 Now we can look over the GTK docs we found earlier and look for the GTK functions needed.
 
 Add them to gtk.nim to the section for their class, marked by comments of `# GTK.<ClassName>`.
@@ -77,7 +76,7 @@ Keep the following things in mind:
 
 For examples of constructor functions, look for procs with the `_new` suffix in [GTK.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/gtk.nim).
 
-### *Add Initialization to the Widget*
+## Add Initialization to the Widget
 Next we need to tell Owlkettle create the GTK widget during the construction of the Owlkettle widget.
 This is done as part of Owlkettle's `beforeBuild` hook.
 
@@ -87,7 +86,7 @@ If the constructor requires parameters, add fields with their values to your wid
 
 For examples, see the [beforeBuild docs](https://can-lehmann.github.io/owlkettle/book/internals/hooks/before_build_hook.html) or search for `beforeBuild:` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
-### *See your example in action!*
+## See your example in action!
 Once you're at this step you should be able to compile your example and see your widget in action!
 Run it with `nim r --path:. ./examples/path/to/your/example.nim` from the base dir of your Owlkettle repository clone.
 
@@ -97,7 +96,7 @@ Use your example to manually test your widget as you add features to it in the l
 For a short example, look at Owlkettle's [counter-example](https://github.com/can-lehmann/owlkettle/blob/main/examples/counter.nim).
 
 
-### *Add fields to the Widget*
+## Add fields to the Widget
 The next step is adding fields to your widget.
 Owlkettle fields usually map to the GTK widget's properties.
 
@@ -114,11 +113,11 @@ Follow and repeat the following steps to add a field:
 - Run your example application to check whether the added field works.
 
 
-### *Add Signal Event Listeners*
+## Add Signal Event Listeners
 Now we can enable the Owlkettle widget to react to GTK signals!
 Note that this section is irrelevant if the widget or its parent do not provide any signals.
 
-##### 1) Add the proc signature of signal-handler procs under the widget fields. 
+#### 1) Add the proc signature of signal-handler procs under the widget fields. 
 First we need to define the signal-handlers that will be executed when a signal gets fired. 
 They act as intermediary between GTK and Owlkettle, translating the GTK signal into an Owlkettle event.
 After the event was handled, the signal-handler triggers a rerender.
@@ -132,7 +131,7 @@ Use existing signal-handlers as a guide.
 
 For examples of signatures for signal-handler procs, go to [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) and look for proc signatures in between widget fields and hook definitions.
 
-##### 2) Add a `connectEvents` hook to the widget type in `widgets.nim`
+#### 2) Add a `connectEvents` hook to the widget type in `widgets.nim`
 When the Owlkettle widget gets created, it needs to register its signal-handler procs with the GTK widget.
 Only then can GTK trigger their execution when a signal occurs and have Owlkettle fire an Owlkettle event in response.
 
@@ -151,15 +150,15 @@ For examples that use the default eventCallback, search for `, eventCallback` in
 
 For examples that use custom eventCallbacks, enable regex search in your IDE and search for `connectEvents:\n.*?proc` in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim).
 
-##### 3) Add a disconnectEvents hook to the widget type in `widgets.nim`
+#### 3) Add a disconnectEvents hook to the widget type in `widgets.nim`
 Finally you need to create a `disconnectEvents` hook. 
 It should call the `disconnect` procedure for each event callback of the widget like this:
 `state.internalWidget.disconnect(state.<eventName>)`.
 
-### *Add and update documentation*
+## Add and update documentation
 Once you are satisfied with your widget, it's time to add a bit more documentation.
 
-##### 1) Add documentation and examples
+#### 1) Add documentation and examples
 Add doc comments to fields and event callbacks to explain what they do.
 
 Further you can add examples using Owlkettle's `example` macro to demonstrate usage of the widget.
@@ -168,7 +167,7 @@ These will get automatically added to `widget.md`.
 For examples that use the `example` macro, use the existing widgets in [widgets.nim](https://github.com/can-lehmann/owlkettle/blob/main/owlkettle/widgets.nim) as a guide.
 
 
-##### 2) Update widgets.md and examples/README.md
+#### 2) Update widgets.md and examples/README.md
 Once that is done, run `nimble genDocs` to add your new widgets, doc comments, and examples to widgets.md, the main documentation file for widgets. 
 Once finished, commit the updated widgets.md.
 

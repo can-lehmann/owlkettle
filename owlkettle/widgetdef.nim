@@ -36,7 +36,7 @@ type
     app*: Viewable
   
   Viewable* = ref object of WidgetState
-    viewed: WidgetState
+    viewed*: WidgetState
   
   Renderable* = ref object of WidgetState
     internalWidget*: GtkWidget
@@ -238,6 +238,8 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
         def.doc &= child.strVal & "\n"
       of nnkProcDef:
         assert child.name.isName
+        if child.body.kind != nnkEmpty:
+          error("Event definitions may not have a procedure body", child)
         def.events.add(EventDef(
           name: child.name.strVal,
           signature: child.params,

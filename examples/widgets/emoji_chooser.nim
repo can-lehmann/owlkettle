@@ -24,28 +24,49 @@ import owlkettle, owlkettle/[adw, playground]
 
 viewable App:
   sensitive: bool = true
-  sizeRequest: tuple[x, y: int] = (-1, -1) 
+  sizeRequest: tuple[x, y: int] = (-1, 300) 
   tooltip: string = "" 
   
+  emoji: string = "😀️"
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
-      defaultSize = (800, 600)
+    Window:
+      defaultSize = (450, 350)
       title = "Emoji Chooser Example"
+      
       HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))) {.addRight.}
+        style = [HeaderBarFlat]
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250), ignoreFields = @["emoji"])) {.addRight.}
+      
+      Box:
+        margin = 12
         
-        MenuButton() {.addRight.}:
-          icon = "open-menu"
-          style = [ButtonFlat]
+        Box {.hAlign: AlignCenter, vAlign: AlignCenter.}:
+          orient = OrientY
+          spacing = 6
           
-          EmojiChooser:
-            sensitive = app.sensitive
-            sizeRequest = app.sizeRequest
-            tooltip = app.tooltip
+          Label {.expand: false.}:
+            text = app.emoji
+            style = [StyleClass("emoji-preview")]
+          
+          MenuButton {.expand: false.}:
+            text = "Choose"
+            style = [ButtonSuggested]
             
-            proc emojiPicked(newEmoji: string) =
-              echo "New Emoji: ", newEmoji
+            EmojiChooser:
+              sensitive = app.sensitive
+              sizeRequest = app.sizeRequest
+              tooltip = app.tooltip
+              
+              proc emojiPicked(newEmoji: string) =
+                echo "New Emoji: ", newEmoji
+                app.emoji = newEmoji
   
-adw.brew(gui(App()))
+adw.brew(gui(App()),
+  stylesheets=[newStylesheet("""
+    .emoji-preview {
+      font-size: 100px;
+    }
+  """)]
+)
