@@ -22,6 +22,9 @@ examples/widgets/progress_bar
 examples/widgets/action_bar
 examples/widgets/search_entry
 examples/widgets/center_box
+examples/widgets/editable_label
+examples/widgets/video
+examples/widgets/column_view
 examples/widgets/adw/window_title
 examples/widgets/adw/preferences_group
 examples/widgets/adw/flap
@@ -31,6 +34,7 @@ examples/widgets/adw/entry_row
 examples/widgets/adw/header_bar
 examples/widgets/adw/button_content
 examples/widgets/adw/banner
+examples/widgets/adw/about_window
 examples/dialogs/file_dialog
 examples/dialogs/message_dialog
 examples/dialogs/about_dialog

@@ -25,7 +25,7 @@
 import ./gtk
 
 const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
-const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwinor=X`. Defaults to 0.
+const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwminor=X`. Defaults to 0.
 const AdwVersion* = (AdwMajor, AdwMinor)
 
 {.passl: "-ladwaita-1".}
@@ -218,6 +218,19 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_website*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_license_type*(window: GtkWidget, value: GtkLicenseType)
+  proc adw_about_window_add_legal_section*(window: GtkWidget, title: cstring, copyright: cstring, license_type: GtkLicenseType, license: cstring)
+  proc adw_about_window_set_application_icon*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_release_notes*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_comments*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_debug_info*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_developers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_designers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_artists*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_documenters*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_add_credit_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_acknowledgement_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_link*(window: GtkWidget, title: cstring, url: cstring)
 
 when AdwVersion >= (1, 4):
   # Adw.SwitchRow

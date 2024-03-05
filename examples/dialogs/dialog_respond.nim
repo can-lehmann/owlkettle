@@ -59,7 +59,7 @@ method view(dialog: MyDialogState): Widget =
           text = "Close"
           
           proc clicked() =
-            dialog.closeWindow()
+            dialog.scheduleCloseWindow()
 
 viewable App:
   discard
