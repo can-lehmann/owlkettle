@@ -29,8 +29,8 @@ viewable App:
   description: string = "An example of a Preferences Page"
   useUnderline: bool = false
   
-  likeLevel: string 
-  reasonForLikingExample: string
+  likeLevel: int
+  reason: string
   
   likeOptions: seq[string] = @["A bit", "A lot", "very much", "Fantastic!",  "I love it!"]
 
@@ -41,7 +41,7 @@ method view(app: AppState): Widget =
       title = "Preferences Page Example"
       
       HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))) {.addRight.}
 
       PreferencesPage:
         iconName = app.iconName
@@ -51,25 +51,27 @@ method view(app: AppState): Widget =
         useUnderline = app.useUnderline
         
         PreferencesGroup:
-          title = "First group setting"
-          description = "Figuring out how cool this example is"
+          title = "First Preferences Group"
+          description = "Description"
 
           ComboRow:
             title = "How much do you like this example?"
             items = app.likeOptions
+            selected = app.likeLevel
             
             proc select(selectedIndex: int) =
-              app.likeLevel = app.likeOptions[selectedIndex]
+              app.likeLevel = selectedIndex
         
         PreferencesGroup:
-          title = "Second group settings"
-          description = "Justifying why this example is so cool"
-
-          EntryRow:
-            title = "This example is so cool because:"
-            text = app.reasonForLikingExample
+          title = "Second Preferences Group"
+          
+          ActionRow:
+            title = "Why do you like the example?"
             
-            proc changed(newText: string) =
-              app.reasonForLikingExample = newText
-        
+            Entry {.addSuffix.}:
+              text = app.reason
+              
+              proc changed(text: string) =
+                app.reason = text
+
 adw.brew(gui(App()))
