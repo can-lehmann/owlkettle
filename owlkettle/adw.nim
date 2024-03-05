@@ -33,6 +33,7 @@ export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.LengthUnit
 export adw.CenteringPolicy
 export adw.AdwVersion
 
@@ -613,6 +614,127 @@ proc `hasSwipe=`*(flap: Flap, has: bool) =
 proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
+
+when AdwVersion >= (1, 4) or defined(owlkettleDocs):
+  renderable OverlaySplitView of BaseWidget:
+    content: Widget
+    sidebar: Widget
+    collapsed: bool = false
+    enableHideGesture: bool = true
+    enableShowGesture: bool = true
+    maxSidebarWidth: float = 280.0
+    minSidebarWidth: float = 180.0
+    pinSidebar: bool = false
+    showSidebar: bool = true
+    sidebarPosition: PackType = PackStart
+    widthFraction: float = 0.25
+    widthUnit: LengthUnit = LengthScaleIndependent
+    
+    proc toggle(shown: bool)
+    
+    hooks:
+      beforeBuild:
+        when AdwVersion >= (1, 4):
+          state.internalWidget = adw_overlay_split_view_new()
+      connectEvents:
+        when AdwVersion >= (1, 4):
+          proc toggleCallback(widget: GtkWidget,
+                              spec: pointer,
+                              data: ptr EventObj[proc (show: bool)]) {.cdecl.} =
+            let
+              showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
+              state = OverlaySplitViewState(data[].widget)
+            if showSidebar != state.showSidebar:
+              state.showSidebar = showSidebar
+              data[].callback(showSidebar)
+              data[].redraw()
+          
+          state.connect(state.toggle, "notify::show-sidebar", toggleCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 4):
+          state.internalWidget.disconnect(state.toggle)
+    
+    hooks content:
+      (build, update):
+        when AdwVersion >= (1, 4):
+          state.updateChild(
+            state.content,
+            widget.valContent,
+            adw_overlay_split_view_set_content
+          )
+    
+    hooks sidebar:
+      (build, update):
+        when AdwVersion >= (1, 4):
+          state.updateChild(
+            state.sidebar,
+            widget.valSidebar,
+            adw_overlay_split_view_set_sidebar
+          )
+    
+    hooks collapsed:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_collapsed(state.internalWidget, state.collapsed.cbool)
+
+    hooks enableHideGesture:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_enable_hide_gesture(state.internalWidget, state.enableHideGesture.cbool)
+
+    hooks enableShowGesture:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_enable_show_gesture(state.internalWidget, state.enableShowGesture.cbool)
+
+    hooks maxSidebarWidth:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_max_sidebar_width(state.internalWidget, state.maxSidebarWidth.cdouble)
+
+    hooks minSidebarWidth:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_min_sidebar_width(state.internalWidget, state.minSidebarWidth.cdouble)
+
+    hooks pinSidebar:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_pin_sidebar(state.internalWidget, state.pinSidebar.cbool)
+
+    hooks showSidebar:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_show_sidebar(state.internalWidget, state.showSidebar.cbool)
+
+    hooks sidebarPosition:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_sidebar_position(state.internalWidget, state.sidebarPosition.toGtk())
+
+    hooks widthFraction:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_sidebar_width_fraction(state.internalWidget, state.widthFraction.cdouble)
+
+    hooks widthUnit:
+      property:
+        when AdwVersion >= (1, 4):
+          adw_overlay_split_view_set_sidebar_width_unit(state.internalWidget, state.widthUnit)
+
+    adder add:
+      if widget.hasContent:
+        raise newException(ValueError, "Unable to add multiple children to a OverlaySplitView. Use a Box widget to display multiple widgets!")
+      widget.hasContent = true
+      widget.valContent = child
+    
+    adder addSidebar:
+      if widget.hasSidebar:
+        raise newException(ValueError, "Unable to add multiple sidebars to a OverlaySplitView. Use a Box widget to display multiple widgets!")
+      widget.hasSidebar = true
+      widget.valSidebar = child
+  
+  export OverlaySplitView
 
 renderable AdwHeaderBar of BaseWidget:
   ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
