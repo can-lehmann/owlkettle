@@ -1587,11 +1587,6 @@ renderable MediaControls of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `mediaStream: MediaStream`
 
-###### Setters
-
-- `fileName: string`
-- `file: GFile`
-
 
 ## Expander
 
