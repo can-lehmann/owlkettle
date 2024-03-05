@@ -21,7 +21,6 @@ task examples, "Build examples":
       "widgets/adw/banner.nim",
       "widgets/adw/entry_row.nim",
       "widgets/adw/switch_row.nim",
-      "widgets/adw/preferences_page.nim",
       "widgets/adw/overlay_split_view.nim",
       "widgets/adw/button_content.nim",
       "widgets/adw/about_window.nim"
