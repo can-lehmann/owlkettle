@@ -33,16 +33,17 @@ viewable App:
   reasonForLikingExample: string
   
   likeOptions: seq[string] = @["A bit", "A lot", "very much", "Fantastic!",  "I love it!"]
-  
+
 method view(app: AppState): Widget =
   result = gui:
-    Window():
+    Window:
       defaultSize = (800, 600)
       title = "Preferences Page Example"
+      
       HeaderBar {.addTitlebar.}:
         insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
 
-      PreferencesPage():
+      PreferencesPage:
         iconName = app.iconName
         title = app.title
         name = app.name
@@ -53,7 +54,7 @@ method view(app: AppState): Widget =
           title = "First group setting"
           description = "Figuring out how cool this example is"
 
-          ComboRow():
+          ComboRow:
             title = "How much do you like this example?"
             items = app.likeOptions
             
@@ -64,7 +65,7 @@ method view(app: AppState): Widget =
           title = "Second group settings"
           description = "Justifying why this example is so cool"
 
-          EntryRow():
+          EntryRow:
             title = "This example is so cool because:"
             text = app.reasonForLikingExample
             

@@ -289,8 +289,6 @@ renderable PreferencesPage of BaseWidget:
     property:
       when AdwVersion >= (1, 4):
         adw_preferences_page_set_description(state.internalWidget, state.description.cstring)
-      else:
-        raise newException(LibraryError, "Compile for Adwaita version 1.4 or higher with -d:adwMinor=4 to enable the description field for PreferencesPage.")
   
   adder add:
     widget.valPreferences.add(child)

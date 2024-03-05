@@ -27,6 +27,7 @@ examples/widgets/video
 examples/widgets/column_view
 examples/widgets/adw/window_title
 examples/widgets/adw/preferences_group
+examples/widgets/adw/preferences_page
 examples/widgets/adw/flap
 examples/widgets/adw/expander_row
 examples/widgets/adw/combo_row
