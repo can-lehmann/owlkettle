@@ -630,10 +630,29 @@ when AdwVersion >= (1, 4) or defined(owlkettleDocs):
     widthFraction: float = 0.25
     widthUnit: LengthUnit = LengthScaleIndependent
     
+    proc toggle(shown: bool)
+    
     hooks:
       beforeBuild:
         when AdwVersion >= (1, 4):
           state.internalWidget = adw_overlay_split_view_new()
+      connectEvents:
+        when AdwVersion >= (1, 4):
+          proc toggleCallback(widget: GtkWidget,
+                              spec: pointer,
+                              data: ptr EventObj[proc (show: bool)]) {.cdecl.} =
+            let
+              showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
+              state = OverlaySplitViewState(data[].widget)
+            if showSidebar != state.showSidebar:
+              state.showSidebar = showSidebar
+              data[].callback(showSidebar)
+              data[].redraw()
+          
+          state.connect(state.toggle, "notify::show-sidebar", toggleCallback)
+      disconnectEvents:
+        when AdwVersion >= (1, 4):
+          state.internalWidget.disconnect(state.toggle)
     
     hooks content:
       (build, update):
@@ -643,7 +662,7 @@ when AdwVersion >= (1, 4) or defined(owlkettleDocs):
             widget.valContent,
             adw_overlay_split_view_set_content
           )
-      
+    
     hooks sidebar:
       (build, update):
         when AdwVersion >= (1, 4):
@@ -652,7 +671,7 @@ when AdwVersion >= (1, 4) or defined(owlkettleDocs):
             widget.valSidebar,
             adw_overlay_split_view_set_sidebar
           )
-      
+    
     hooks collapsed:
       property:
         when AdwVersion >= (1, 4):

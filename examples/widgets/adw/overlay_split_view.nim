@@ -57,6 +57,10 @@ method view(app: AppState): Widget =
         sensitive = app.sensitive
         sizeRequest = app.sizeRequest
         
+        proc toggle(shown: bool) =
+          echo shown
+          app.showSidebar = shown
+        
         Box:
           orient = OrientY
           

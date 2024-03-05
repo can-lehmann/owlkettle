@@ -166,6 +166,7 @@ proc adw_flap_get_folded*(flap: GtkWidget): cbool
 when AdwVersion >= (1, 4):
   # Adw.OverlaySplitView
   proc adw_overlay_split_view_new*(): GtkWidget
+  proc adw_overlay_split_view_get_show_sidebar*(self: GtkWidget): cbool
   proc adw_overlay_split_view_set_collapsed*(self: GtkWidget, collapsed: cbool)
   proc adw_overlay_split_view_set_content*(self, content: GtkWidget)
   proc adw_overlay_split_view_set_enable_hide_gesture*(self: GtkWidget, enable_hide_gesture: cbool)

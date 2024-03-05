@@ -402,6 +402,10 @@ renderable OverlaySplitView of BaseWidget
 - `widthFraction: float = 0.25`
 - `widthUnit: LengthUnit = LengthScaleIndependent`
 
+###### Events
+
+- toggle: `proc (shown: bool)`
+
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
