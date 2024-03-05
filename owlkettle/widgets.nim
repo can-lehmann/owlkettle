@@ -2265,14 +2265,18 @@ type
     underline*: Option[UnderlineKind]
     style*: Option[CairoFontSlant]
   
-  # Wrapper for the GtkTextBuffer pointer to work with destructors of nim's ARC/ORC
-  # Todo: As of 16.09.2023 it is mildly buggy to try and to `TextBuffer = distinct GtkTextBuffer` and
-  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
-  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
-  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
-  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
+  TextBufferEventObj = object
+    callback: proc(isUserChange: bool)
+    buffer {.cursor.}: TextBuffer
+    handler: culong
+    isUserChange: bool
+  
+  TextBufferEvent = ref TextBufferEventObj
+  
   TextBufferObj = object
     gtk: GtkTextBuffer
+    events: HashSet[TextBufferEvent]
+    isUserChange: bool
   
   TextBuffer* = ref TextBufferObj
   
@@ -2304,7 +2308,37 @@ proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   dest.gtk = source.gtk
 
 proc newTextBuffer*(): TextBuffer =
-  result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
+  result = TextBuffer(
+    gtk: gtk_text_buffer_new(nil.GtkTextTagTable),
+    isUserChange: true
+  )
+
+proc `==`*(a, b: TextBufferEvent): bool =
+  result = a[].addr == b[].addr
+
+proc hash*(event: TextBufferEvent): Hash =
+  result = hash(event[].addr)
+
+proc connectChanged*(buffer: TextBuffer, callback: proc(isUserChange: bool)): TextBufferEvent =
+  result = TextBufferEvent(callback: callback, buffer: buffer)
+  buffer.events.incl(result)
+  
+  proc changedCallback(widget: GtkWidget, event: ptr TextBufferEventObj) {.cdecl.} =
+    event[].callback(event[].buffer.isUserChange)
+  
+  result.handler = g_signal_connect(
+    pointer(buffer.gtk),
+    "changed",
+    changedCallback,
+    result[].addr
+  )
+
+proc disconnect*(event: TextBufferEvent) =
+  assert event.handler > 0
+  g_signal_handler_disconnect(pointer(event.buffer.gtk), event.handler)
+  event.buffer.events.excl(event)
+  event.handler = 0
+  event.buffer = nil
 
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
@@ -2340,6 +2374,13 @@ proc unregisterTag*(buffer: TextBuffer, tag: TextTag) =
 proc unregisterTag*(buffer: TextBuffer, name: string) =
   buffer.unregisterTag(buffer.lookupTag(name))
 
+template withUserChange(buffer: TextBuffer, value: bool, body: untyped) =
+  block:
+    let old = buffer.isUserChange
+    defer: buffer.isUserChange = old
+    buffer.isUserChange = value
+    body
+
 {.push inline.}
 proc lineCount*(buffer: TextBuffer): int =
   result = int(gtk_text_buffer_get_line_count(buffer.gtk))
@@ -2360,7 +2401,8 @@ proc iterAtOffset*(buffer: TextBuffer, offset: int): TextIter =
   gtk_text_buffer_get_iter_at_offset(buffer.gtk, result.addr, offset.cint)
 
 proc `text=`*(buffer: TextBuffer, text: string) =
-  gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
+  buffer.withUserChange(false):
+    gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
 
 proc text*(buffer: TextBuffer, start, stop: TextIter, hiddenChars: bool = true): string =
   result = $gtk_text_buffer_get_text(
@@ -2391,12 +2433,14 @@ proc select*(buffer: TextBuffer, insert, other: TextIter) =
   gtk_text_buffer_select_range(buffer.gtk, insert.unsafeAddr, other.unsafeAddr)
 
 proc delete*(buffer: TextBuffer, a, b: TextIter) =
-  gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
+  buffer.withUserChange(false):
+    gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
 
 proc delete*(buffer: TextBuffer, slice: TextSlice) = buffer.delete(slice.a, slice.b)
 
 proc insert*(buffer: TextBuffer, iter: TextIter, text: string) =
-  gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
+  buffer.withUserChange(false):
+    gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
 
 proc applyTag*(buffer: TextBuffer, name: string, a, b: TextIter) =
   gtk_text_buffer_apply_tag_by_name(buffer.gtk, name.cstring, a.unsafeAddr, b.unsafeAddr)
@@ -2497,18 +2541,9 @@ renderable TextView of BaseWidget:
   acceptsTab: bool = true
   indent: int = 0
   
-  proc changed()
-  
   hooks:
     beforeBuild:
       state.internalWidget = gtk_text_view_new()
-    connectEvents:
-      if not state.changed.isNil:
-        state.changed.handler = g_signal_connect(
-          GtkWidget(state.buffer.gtk), "changed", eventCallback, state.changed[].addr
-        )
-    disconnectEvents:
-      GtkWidget(state.buffer.gtk).disconnect(state.changed)
   
   hooks monospace:
     property:

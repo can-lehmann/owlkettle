@@ -1298,6 +1298,9 @@ proc g_value_new*(icon: GIcon): GValue =
   discard g_value_init(result.addr, g_type_from_name("GIcon"))
   g_value_set_object(result.addr, pointer(icon))
 
+proc g_signal_connect*(obj: pointer, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(obj, signal, closure, data, nil, G_CONNECT_AFTER)
+
 proc g_signal_connect*(widget: GtkEventController, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 

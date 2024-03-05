@@ -948,10 +948,6 @@ A text editor with support for formatted text.
 - `acceptsTab: bool = true`
 - `indent: int = 0`
 
-###### Events
-
-- changed: `proc ()`
-
 
 ## ListBoxRow
 
