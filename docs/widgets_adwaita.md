@@ -163,6 +163,28 @@ PreferencesGroup:
 ```
 
 
+## PreferencesPage
+
+```nim
+renderable PreferencesPage of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `preferences: seq[Widget]`
+- `iconName: string`
+- `name: string`
+- `title: string`
+- `useUnderline: bool`
+- `description: string`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+
 ## PreferencesRow
 
 ```nim

@@ -116,6 +116,21 @@ proc adw_preferences_group_set_title*(group: GtkWidget, title: cstring)
 proc adw_preferences_row_new*(): GtkWidget
 proc adw_preferences_row_set_title*(row: GtkWidget, title: cstring)
 
+# Adw.PreferencesPage
+proc adw_preferences_page_new*(): GtkWidget
+proc adw_preferences_page_add*(self: GtkWidget, group: GtkWidget)
+proc adw_preferences_page_remove*(self: GtkWidget, group: GtkWidget)
+proc adw_preferences_page_set_icon_name*(self: GtkWidget, icon_name: cstring)
+proc adw_preferences_page_set_name*(self: GtkWidget, name: cstring)
+proc adw_preferences_page_set_title*(self: GtkWidget, title: cstring)
+proc adw_preferences_page_set_use_underline*(self: GtkWidget, use_underline: cbool)
+
+when AdwVersion >= (1, 3):
+  proc adw_preferences_page_scroll_to_top*(self: GtkWidget)
+
+when AdwVersion >= (1, 4):
+  proc adw_preferences_page_set_description*(self: GtkWidget, description: cstring)
+
 # Adw.ActionRow
 proc adw_action_row_new*(): GtkWidget
 proc adw_action_row_set_subtitle*(row: GtkWidget, subtitle: cstring)
