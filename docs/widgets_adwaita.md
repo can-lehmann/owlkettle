@@ -216,6 +216,15 @@ renderable ExpanderRow of PreferencesRow
 - `subtitle: string`
 - `actions: seq[AlignedChild[Widget]]`
 - `rows: seq[AlignedChild[Widget]]`
+- `expanded: bool = false`
+- `enableExpansion: bool = true`
+- `showEnableSwitch: bool = false`
+- `titleLines: int` Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+- `subtitleLines: int` Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+
+###### Events
+
+- expand: `proc (newExpandState: bool)` Triggered when row gets expanded
 
 ###### Adders
 

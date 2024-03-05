@@ -298,19 +298,47 @@ renderable ExpanderRow of PreferencesRow:
   subtitle: string
   actions: seq[AlignedChild[Widget]]
   rows: seq[AlignedChild[Widget]]
+  expanded: bool = false
+  enableExpansion: bool = true
+  showEnableSwitch: bool = false
+  titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  
+  proc expand(newExpandState: bool) ## Triggered when row gets expanded
   
   hooks:
     beforeBuild:
       state.internalWidget = adw_expander_row_new()
-  
+    connectEvents:
+      proc expandCallback(
+        widget: GtkWidget,
+        pspec: pointer,
+        data: ptr EventObj[proc (isExpanded: bool)]
+      ) {.cdecl.} =
+        let isExpanded = bool(adw_expander_row_get_expanded(widget))
+        
+        let state = ExpanderRowState(data[].widget)
+        state.expanded = isExpanded
+        data[].callback(isExpanded)
+        data[].redraw()
+        
+      state.connect(state.expand, "notify::expanded", expandCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.expand)
+
   hooks subtitle:
     property:
       adw_expander_row_set_subtitle(state.internalWidget, state.subtitle.cstring)
   
   hooks actions:
     (build, update):
+      const rowAdder = when AdwVersion >= (1, 4):
+          adw_expander_row_add_suffix
+        else:
+          adw_expander_row_add_action
+      
       state.updateAlignedChildren(state.actions, widget.valActions,
-        adw_expander_row_add_action,
+        rowAdder,
         adw_expander_row_remove
       )
   
@@ -321,6 +349,28 @@ renderable ExpanderRow of PreferencesRow:
         adw_expander_row_remove
       )
   
+  hooks expanded:
+    property:
+      adw_expander_row_set_expanded(state.internalWidget, state.expanded.cbool)
+      
+  hooks enableExpansion:
+    property:
+      adw_expander_row_set_enable_expansion(state.internalWidget, state.enableExpansion.cbool)
+        
+  hooks showEnableSwitch:
+    property:
+      adw_expander_row_set_show_enable_switch(state.internalWidget, state.showEnableSwitch.cbool)
+      
+  hooks titleLines:
+    property:
+      when AdwVersion >= (1, 3):
+        adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
+
+  hooks subtitleLines:
+    property:
+      when AdwVersion >= (1, 3):
+        adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
+
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
     widget.valActions.add(AlignedChild[Widget](
