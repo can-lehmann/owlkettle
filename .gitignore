@@ -22,6 +22,7 @@ examples/widgets/progress_bar
 examples/widgets/action_bar
 examples/widgets/search_entry
 examples/widgets/center_box
+examples/widgets/video
 examples/widgets/adw/window_title
 examples/widgets/adw/preferences_group
 examples/widgets/adw/flap

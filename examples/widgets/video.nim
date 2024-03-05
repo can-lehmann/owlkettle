@@ -32,9 +32,11 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
+  const seekTime = 5 * 1000000
+  
   result = gui:
     Window():
-      defaultSize = (1000, 800)
+      defaultSize = (1000, 600)
       title = "Video Example"
       
       HeaderBar() {.addTitlebar.}:
@@ -47,12 +49,22 @@ method view(app: AppState): Widget =
           sizeRequest = (400, 400)
         )) {.addRight.}
         
+        MenuButton {.addRight.}:
+          icon = "view-more-symbolic"
+          style = [ButtonFlat]
+          sensitive = not app.mediaStream.isNil
+          
+          PopoverMenu:
+            MediaControls:
+              margin = 10
+              sizeRequest = (300, -1)
+              mediaStream = app.mediaStream
+        
         Button {.addRight.}:
           icon = "media-seek-forward-symbolic"
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
           proc clicked() =
-            const seekTime = 5 * 1000000
             app.mediaStream.seekRelative(seekTime)
         
         Button {.addRight.}:
@@ -73,10 +85,9 @@ method view(app: AppState): Widget =
           icon = "media-seek-backward-symbolic"
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
-          proc clicked() = 
-            const seekTime = 5 * 1000000
-            app.mediaStream.seekRelative(-1 * seekTime)
-
+          proc clicked() =
+            app.mediaStream.seekRelative(-seekTime)
+        
         Button {.addLeft.}:
           text = "Open"
           style = [ButtonSuggested]
@@ -113,19 +124,10 @@ method view(app: AppState): Widget =
       
       Box(orient = OrientY):
         if not app.mediaStream.isNil():
-          Video {.expand: false.}:
+          Video:
             mediaStream = app.mediaStream
             autoplay = app.autoplay
             loop = app.loop
-            sensitive = app.sensitive
-            tooltip = app.tooltip
-            sizeRequest = app.sizeRequest
-          
-          Separator() {.expand: false.}
-          
-          Label(text = "Media Controls for Media Stream") {.expand: true.}
-          MediaControls {.expand: false.}:
-            mediaStream = app.mediaStream
             sensitive = app.sensitive
             tooltip = app.tooltip
             sizeRequest = app.sizeRequest
