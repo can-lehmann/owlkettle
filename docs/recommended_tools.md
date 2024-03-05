@@ -1,6 +1,6 @@
 # Recommended Development Tools
 
-A list of tools to help with developing owlkettle/gtk4 applications.
+A list of tools to help with developing owlkettle and GTK4 applications.
 
 ## Inspecting your application's CSS, layout and more
 

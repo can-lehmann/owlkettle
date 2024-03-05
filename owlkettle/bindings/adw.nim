@@ -25,7 +25,7 @@
 import ./gtk
 
 const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
-const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwinor=X`. Defaults to 0.
+const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwminor=X`. Defaults to 0.
 const AdwVersion* = (AdwMajor, AdwMinor)
 
 {.passl: "-ladwaita-1".}
@@ -57,6 +57,12 @@ type
     FlapTransitionOver
     FlapTransitionUnder
     FlapTransitionSlide
+  
+  LengthUnit* = enum
+    LengthPixel
+    LengthPoint
+    LengthScaleIndependent
+  
 
 {.push importc, cdecl.}
 # Adw
@@ -136,10 +142,22 @@ proc adw_action_row_set_activatable_widget*(row, child: GtkWidget)
 # Adw.ExpanderRow
 proc adw_expander_row_new*(): GtkWidget
 proc adw_expander_row_set_subtitle*(row: GtkWidget, subtitle: cstring)
-proc adw_expander_row_add_action*(row, child: GtkWidget)
 proc adw_expander_row_add_prefix*(row, child: GtkWidget)
 proc adw_expander_row_add_row*(expanderRow, row: GtkWidget)
 proc adw_expander_row_remove*(row, child: GtkWidget)
+proc adw_expander_row_set_enable_expansion*(self: GtkWidget, enable_expansion: cbool)
+proc adw_expander_row_set_expanded*(self: GtkWidget, expanded: cbool)
+proc adw_expander_row_set_show_enable_switch*(self: GtkWidget, show_enable_switch: cbool)
+proc adw_expander_row_get_expanded*(self: GtkWidget): cbool
+
+when AdwVersion >= (1, 3):
+  proc adw_expander_row_set_subtitle_lines*(self: GtkWidget, subtitle_lines: cint)
+  proc adw_expander_row_set_title_lines*(self: GtkWidget, title_lines: cint)
+
+when AdwVersion >= (1, 4):
+  proc adw_expander_row_add_suffix*(row, child: GtkWidget)
+else:
+  proc adw_expander_row_add_action*(row, child: GtkWidget)
 
 # Adw.ComboRow
 proc adw_combo_row_new*(): GtkWidget
@@ -172,6 +190,23 @@ proc adw_flap_set_swipe_to_close*(flap: GtkWidget, swipe: cbool)
 proc adw_flap_get_reveal_flap*(flap: GtkWidget): cbool
 proc adw_flap_get_folded*(flap: GtkWidget): cbool
 
+when AdwVersion >= (1, 4):
+  # Adw.OverlaySplitView
+  proc adw_overlay_split_view_new*(): GtkWidget
+  proc adw_overlay_split_view_get_show_sidebar*(self: GtkWidget): cbool
+  proc adw_overlay_split_view_set_collapsed*(self: GtkWidget, collapsed: cbool)
+  proc adw_overlay_split_view_set_content*(self, content: GtkWidget)
+  proc adw_overlay_split_view_set_enable_hide_gesture*(self: GtkWidget, enable_hide_gesture: cbool)
+  proc adw_overlay_split_view_set_enable_show_gesture*(self: GtkWidget, enable_show_gesture: cbool)
+  proc adw_overlay_split_view_set_max_sidebar_width*(self: GtkWidget, width: cdouble)
+  proc adw_overlay_split_view_set_min_sidebar_width*(self: GtkWidget, width: cdouble)
+  proc adw_overlay_split_view_set_pin_sidebar*(self: GtkWidget, pin_sidebar: cbool)
+  proc adw_overlay_split_view_set_show_sidebar*(self: GtkWidget, show_sidebar: cbool)
+  proc adw_overlay_split_view_set_sidebar*(self, sidebar: GtkWidget)
+  proc adw_overlay_split_view_set_sidebar_position*(self: GtkWidget, position: GtkPackType)
+  proc adw_overlay_split_view_set_sidebar_width_fraction*(self: GtkWidget, fraction: cdouble)
+  proc adw_overlay_split_view_set_sidebar_width_unit*(self: GtkWidget, unit: LengthUnit)
+  
 # Adw.SplitButton
 proc adw_split_button_new*(): GtkWidget
 proc adw_split_button_set_child*(button, child: GtkWidget)
@@ -211,6 +246,19 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_website*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_license_type*(window: GtkWidget, value: GtkLicenseType)
+  proc adw_about_window_add_legal_section*(window: GtkWidget, title: cstring, copyright: cstring, license_type: GtkLicenseType, license: cstring)
+  proc adw_about_window_set_application_icon*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_release_notes*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_comments*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_debug_info*(window: GtkWidget, value: cstring)
+  proc adw_about_window_set_developers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_designers*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_artists*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_set_documenters*(window: GtkWidget, value: cstringArray)
+  proc adw_about_window_add_credit_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_acknowledgement_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_link*(window: GtkWidget, title: cstring, url: cstring)
 
 when AdwVersion >= (1, 4):
   # Adw.SwitchRow

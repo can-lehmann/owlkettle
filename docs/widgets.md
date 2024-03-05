@@ -243,7 +243,7 @@ renderable EditableLabel of BaseWidget
 - `text: string = ""`
 - `editing: bool = false` Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
 - `enableUndo: bool = true`
-- `alignment: 0.0 .. 1.0 = 0.0`
+- `alignment: float = 0.0`
 
 ###### Events
 
@@ -1611,6 +1611,34 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - `add`
 - `addLabel`
 
+###### Example
+
+```nim
+Expander:
+  label = "Expander"
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  label = "Expander"
+  expanded = app.expanded
+  proc activate(activated: bool) =
+    app.expanded = activated
+
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  Label {.addLabel.}:
+    text = "Widget Label"
+  Label:
+    text = "Content"
+```
+
 
 ## PasswordEntry
 
@@ -1694,6 +1722,32 @@ renderable ListView of BaseWidget
 ###### Events
 
 - viewItem: `proc (index: int): Widget`
+- select: `proc (rows: HashSet[int])`
+- activate: `proc (index: int)`
+
+
+## ColumnView
+
+```nim
+renderable ColumnView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `rows: int` Number of rows
+- `columns: seq[ColumnViewColumn]`
+- `selectionMode: SelectionMode`
+- `selected: HashSet[int]` Indices of the currently selected rows.
+- `showRowSeparators: bool = false`
+- `showColumnSeparators: bool = false`
+- `singleClickActivate: bool = false`
+- `enableRubberband: bool = false`
+- `reorderable: bool = false`
+
+###### Events
+
+- viewItem: `proc (row, column: int): Widget`
 - select: `proc (rows: HashSet[int])`
 - activate: `proc (index: int)`
 

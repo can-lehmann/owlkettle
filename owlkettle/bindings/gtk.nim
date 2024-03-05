@@ -129,7 +129,28 @@ type
   GtkLevelBarMode* = enum
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
-  
+
+  GtkLicenseType* = enum
+    GTK_LICENSE_UNKNOWN = 0
+    GTK_LICENSE_CUSTOM = 1
+    GTK_LICENSE_GPL_2_0 = 2
+    GTK_LICENSE_GPL_3_0 = 3
+    GTK_LICENSE_LGPL_2_1 = 4
+    GTK_LICENSE_LGPL_3_0 = 5
+    GTK_LICENSE_BSD = 6
+    GTK_LICENSE_MIT_X11 = 7
+    GTK_LICENSE_ARTISTIC = 8
+    GTK_LICENSE_GPL_2_0_ONLY = 9
+    GTK_LICENSE_GPL_3_0_ONLY = 10
+    GTK_LICENSE_LGPL_2_1_ONLY = 11
+    GTK_LICENSE_LGPL_3_0_ONLY = 12
+    GTK_LICENSE_AGPL_3_0 = 13
+    GTK_LICENSE_AGPL_3_0_ONLY = 14
+    GTK_LICENSE_BSD_3 = 15
+    GTK_LICENSE_APACHE_2_0 = 16
+    GTK_LICENSE_MPL_2_0 = 17
+    GTK_LICENSE_0BSD = 18
+
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -158,6 +179,7 @@ type
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
+  GtkColumnViewColumn* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -177,6 +199,7 @@ proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
+proc isNil*(obj: GtkColumnViewColumn): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -627,6 +650,8 @@ proc gtk_widget_set_margin_start*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_margin_end*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_hexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
+proc gtk_widget_set_hexpand_set*(widget: GtkWidget, isSet: cbool)
+proc gtk_widget_set_vexpand_set*(widget: GtkWidget, isSet: cbool)
 proc gtk_widget_set_halign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_set_valign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
@@ -1212,6 +1237,27 @@ proc gtk_list_view_set_factory*(widget: GtkWidget, factory: GtkListItemFactory)
 proc gtk_list_view_set_show_separators*(widget: GtkWidget, show: cbool)
 proc gtk_list_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
 proc gtk_list_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+
+# Gtk.ColumnView
+proc gtk_column_view_new*(model: GtkSelectionModel): GtkWidget
+proc gtk_column_view_set_model*(widget: GtkWidget, model: GtkSelectionModel)
+proc gtk_column_view_append_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_insert_column*(widget: GtkWidget, pos: cuint, column: GtkColumnViewColumn)
+proc gtk_column_view_remove_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_set_show_row_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_show_column_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_reorderable*(widget: GtkWidget, setting: cbool)
+
+# Gtk.ColumnViewColumn
+proc gtk_column_view_column_new*(title: cstring, factory: GtkListItemFactory): GtkColumnViewColumn
+proc gtk_column_view_column_set_title*(column: GtkColumnViewColumn, title: cstring)
+proc gtk_column_view_column_set_resizable*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_visible*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_expand*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_fixed_width*(column: GtkColumnViewColumn, width: cint)
+proc gtk_column_view_column_get_resizable*(column: GtkColumnViewColumn): cbool
 
 # Gio.ListStore
 proc g_list_store_new*(itemType: GType): GListModel
