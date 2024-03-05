@@ -632,6 +632,10 @@ proc gtk_video_set_loop*(self: GtkWidget, loop: cbool)
 proc gtk_video_set_media_stream*(self: GtkWidget, stream: GtkMediaStream)
 proc gtk_video_set_resource*(self: GtkWidget, resource_path: cstring)
 
+# Gtk.MediaControls
+proc gtk_media_controls_new*(stream: GtkMediaStream): GtkWidget
+proc gtk_media_controls_set_media_stream*(controls: GtkWidget, stream: GtkMediaStream)
+
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
 proc gtk_widget_hide*(widget: GtkWidget)

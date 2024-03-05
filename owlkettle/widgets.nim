@@ -3967,6 +3967,21 @@ renderable Video of BaseWidget:
     property:
       gtk_video_set_loop(state.internalWidget, state.loop.cbool)
 
+renderable MediaControls of BaseWidget:
+  mediaStream: MediaStream
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_media_controls_new(nil.GtkMediaStream)
+  
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_media_controls_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_media_controls_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+
 proc `hasFileName=`*(widget: Video, has: bool) =
   widget.hasMediaStream = has
 
@@ -4610,8 +4625,8 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export Video, MediaControls
 export SearchEntry
-export Video
 export ProgressBar
 export EmojiChooser
 export EditableLabel

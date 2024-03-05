@@ -32,6 +32,8 @@ viewable App:
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
+  const seekTime = 5 * 1000000
+  
   result = gui:
     Window():
       defaultSize = (1000, 600)
@@ -47,12 +49,23 @@ method view(app: AppState): Widget =
           sizeRequest = (400, 400)
         )) {.addRight.}
         
+        MenuButton {.addRight.}:
+          icon = "view-more-symbolic"
+          style = [ButtonFlat]
+          sensitive = not app.mediaStream.isNil
+          
+          PopoverMenu:
+            MediaControls:
+              margin = 10
+              sizeRequest = (300, -1)
+              mediaStream = app.mediaStream
+        
         Button {.addRight.}:
           icon = "media-seek-forward-symbolic"
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
           proc clicked() =
-            app.mediaStream.seekRelative(5 * 1000000)
+            app.mediaStream.seekRelative(seekTime)
         
         Button {.addRight.}:
           icon = "media-playback-pause"
@@ -72,9 +85,9 @@ method view(app: AppState): Widget =
           icon = "media-seek-backward-symbolic"
           style = [ButtonFlat]
           sensitive = not app.mediaStream.isNil
-          proc clicked() = 
-            app.mediaStream.seekRelative(-5 * 1000000)
-
+          proc clicked() =
+            app.mediaStream.seekRelative(-seekTime)
+        
         Button {.addLeft.}:
           text = "Open"
           style = [ButtonSuggested]
@@ -94,7 +107,7 @@ method view(app: AppState): Widget =
                   style = [ButtonSuggested]
             
             if res.kind == DialogAccept:
-              let path = FileChooserDialogState(state).filename
+              let path = FileChooserDialogState(state).filenames[0]
               app.filename = path
               try:
                 app.mediaStream = newMediaStream(path)
