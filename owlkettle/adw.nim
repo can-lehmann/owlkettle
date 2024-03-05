@@ -691,7 +691,7 @@ when AdwVersion >= (1, 4) or defined(owlkettleDocs):
     hooks sidebarPosition:
       property:
         when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_sidebar_position(state.internalWidget, state.sidebarPosition.toGtk(GtkPackType))
+          adw_overlay_split_view_set_sidebar_position(state.internalWidget, state.sidebarPosition.toGtk())
 
     hooks widthFraction:
       property:
@@ -714,7 +714,7 @@ when AdwVersion >= (1, 4) or defined(owlkettleDocs):
         raise newException(ValueError, "Unable to add multiple sidebars to a OverlaySplitView. Use a Box widget to display multiple widgets!")
       widget.hasSidebar = true
       widget.valSidebar = child
-      
+  
   export OverlaySplitView
 
 renderable AdwHeaderBar of BaseWidget:

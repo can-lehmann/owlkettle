@@ -35,9 +35,9 @@ when defined(owlkettleDocs) and isMainModule:
 type PackType* = enum
   PackStart
   PackEnd
-  
-proc toGtk*[INPUT: enum, OUTPUT](x: INPUT, typ: typedesc[OUTPUT]): OUTPUT =
-  OUTPUT(ord(x))
+
+proc toGtk*(packType: PackType): GtkPackType =
+  result = GtkPackType(ord(packType))
 
 type 
   Margin* = object

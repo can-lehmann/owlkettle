@@ -401,6 +401,14 @@ renderable OverlaySplitView of BaseWidget
 - `sidebarPosition: PackType = PackStart`
 - `widthFraction: float = 0.25`
 - `widthUnit: LengthUnit = LengthScaleIndependent`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addSidebar`
+
+
 ## AdwHeaderBar
 
 ```nim
@@ -430,8 +438,6 @@ Adwaita Headerbar that combines GTK Headerbar and WindowControls.
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
-- `add`
-- `addSidebar`
 - `addLeft` Adds a widget to the left side of the HeaderBar.
 
 - `addRight` Adds a widget to the right side of the HeaderBar.

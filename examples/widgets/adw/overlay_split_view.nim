@@ -26,8 +26,8 @@ viewable App:
   collapsed: bool = false
   enableHideGesture: bool = true
   enableShowGesture: bool = true
-  maxSidebarWidth: float = 280.0
-  minSidebarWidth: float = 180.0
+  maxSidebarWidth: float = 300.0
+  minSidebarWidth: float = 250.0
   pinSidebar: bool = false
   showSidebar: bool = true
   sidebarPosition: PackType = PackStart
@@ -39,10 +39,10 @@ viewable App:
 
 method view(app: AppState): Widget =
   result = gui:
-    AdwWindow():
-      defaultSize = (800, 600)
+    AdwWindow:
+      defaultSize = (600, 400)
 
-      OverlaySplitView():
+      OverlaySplitView:
         collapsed = app.collapsed
         enableHideGesture = app.enableHideGesture
         enableShowGesture = app.enableShowGesture
@@ -57,30 +57,37 @@ method view(app: AppState): Widget =
         sensitive = app.sensitive
         sizeRequest = app.sizeRequest
         
-        Box(orient = OrientY):
+        Box:
+          orient = OrientY
+          
           AdwHeaderBar {.expand: false.}:
-            insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+            style = HeaderBarFlat
             
-            if not app.showSidebar:
-              Button() {.addLeft.}:
-                icon = "open-menu-symbolic"
-                proc clicked() =
-                  app.showSidebar = not app.showSidebar
-                  
-          Box(orient = OrientY, spacing = 18, margin = 12):
-            Label(text = "I am the content of overlay Split view") {.expand: false, hAlign: AlignCenter.}
-
-        Box(orient = OrientY, spacing = 4) {.addSidebar.}:
-          AdwHeaderBar() {.expand: false.}:
-            Label(text = "Overlay Split View Example") {.addTitle.}
-            Button() {.addRight.}:
-              icon = "open-menu-symbolic"
-              style = @[ButtonFlat]
+            insert(app.toAutoFormMenu(sizeRequest = (400, 500))){.addRight.}
+            
+            Button {.addLeft.}:
+              icon = "sidebar-show-symbolic"
+              style = ButtonFlat
+              
               proc clicked() =
                 app.showSidebar = not app.showSidebar
           
-          for num in 0..4:
-            Button(text = $num):
-              style = @[ButtonFlat]
+          Label:
+            text = "Content"
+            style = LabelTitle2
+        
+        Box {.addSidebar.}:
+          orient = OrientY
+          spacing = 4
+          
+          AdwHeaderBar {.expand: false.}:
+            style = HeaderBarFlat
+            
+            WindowTitle {.addTitle.}:
+              title = "Overlay Split View Example"
+          
+          Label:
+            text = "Sidebar"
+            style = LabelTitle2
 
 adw.brew(gui(App()))
