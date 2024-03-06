@@ -48,7 +48,7 @@ You can install it by running:
   - [Checkout the installation docs](https://can-lehmann.github.io/owlkettle/docs/installation.html) for more information about the MSYS2 setup
 
 ```bash
-$ nimble install owlkettle@#head
+$ nimble install owlkettle
 ```
 
 Check out [the installation guide](https://can-lehmann.github.io/owlkettle/docs/installation.html) for further instructions.

@@ -1,4 +1,4 @@
-# Migrating from Owlkettle 2.x.x to 3.0.0 (devel)
+# Migrating from Owlkettle 2.x.x to 3.0.0
 
 ## Breaking Changes
 
