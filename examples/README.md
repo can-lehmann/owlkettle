@@ -125,15 +125,15 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/action_bar.nim">Action Bar</a></td>
-    <td><img alt="Action Bar" src="../docs/assets/examples/action_bar.png" width="522px"></td>
+    <td><img alt="Action Bar" src="../docs/assets/examples/action_bar.png" width="480px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/calendar.nim">Calendar</a></td>
-    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="622px"></td>
+    <td><img alt="Calendar" src="../docs/assets/examples/calendar.png" width="580px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/center_box.nim">Center Box</a></td>
-    <td><img alt="Center Box" src="../docs/assets/examples/center_box.png" width="922px"></td>
+    <td><img alt="Center Box" src="../docs/assets/examples/center_box.png" width="580px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/column_view.nim">Column View</a></td>
@@ -153,15 +153,15 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/editable_label.nim">Editable Label</a></td>
-    <td><img alt="Editable Label" src="../docs/assets/examples/editable_label.png" width="522px"></td>
+    <td><img alt="Editable Label" src="../docs/assets/examples/editable_label.png" width="480px"></td>
   </tr>  
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/emoji_chooser.nim">Emoji Chooser</a></td>
-    <td><img alt="Emoji Chooser" src="../docs/assets/examples/emoji_chooser.png" width="477px"></td>
+    <td><img alt="Emoji Chooser" src="../docs/assets/examples/emoji_chooser.png" width="434px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/expander.nim">Expander</a></td>
-    <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="922px"></td>
+    <td><img alt="Expander" src="../docs/assets/examples/expander.png" width="530px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/fixed.nim">Fixed</a></td>
@@ -177,7 +177,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/password_entry.nim">Password Entry</a></td>
-    <td><img alt="Password Entry" src="../docs/assets/examples/password_entry.png" width="522px"></td>
+    <td><img alt="Password Entry" src="../docs/assets/examples/password_entry.png" width="480px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/picture.nim">Picture</a></td>
@@ -189,7 +189,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/progress_bar.nim">Progress Bar</a></td>
-    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="922px"></td>
+    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="290px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>
@@ -197,7 +197,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/scale.nim">Scale</a></td>
-    <td><img alt="Scale Widget" src="../docs/assets/examples/scale.png" width="922px"></td>
+    <td><img alt="Scale Widget" src="../docs/assets/examples/scale.png" width="843px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/search_entry.nim">Search Entry</a></td>
@@ -222,19 +222,19 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/about_window.nim">About Window</a></td>
-    <td><img alt="About Window" src="../docs/assets/examples/adw_about_window.png" width="509px"></td>
+    <td><img alt="About Window" src="../docs/assets/examples/adw_about_window.png" width="680px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/banner.nim">Banner</a></td>
-    <td><img alt="Banner" src="../docs/assets/examples/banner.png" width="522px"></td>
+    <td><img alt="Banner" src="../docs/assets/examples/banner.png" width="480px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/button_content.nim">Button Content</a></td>
-    <td><img alt="Button Content" src="../docs/assets/examples/button_content.png" width="622px"></td>
+    <td><img alt="Button Content" src="../docs/assets/examples/button_content.png" width="580px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/header_bar.nim">Header Bar</a></td>
-    <td><img alt="Header Bar" src="../docs/assets/examples/adw_header_bar.png" width="722px"></td>
+    <td><img alt="Header Bar" src="../docs/assets/examples/adw_header_bar.png" width="680px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/combo_row.nim">Combo Row</a></td>
@@ -262,7 +262,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/preferences_page.nim">Preferences Page</a></td>
-    <td><img alt="Preferences Page" src="../docs/assets/examples/preferences_page.png" width="721px"></td>
+    <td><img alt="Preferences Page" src="../docs/assets/examples/preferences_page.png" width="922px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/status_page.nim">Status Page</a></td>
@@ -270,7 +270,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/switch_row.nim">Switch Row</a></td>
-    <td><img alt="Switch Row" src="../docs/assets/examples/switch_row.png" width="522px"></td>
+    <td><img alt="Switch Row" src="../docs/assets/examples/switch_row.png" width="480px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/window_title.nim">Window Title</a></td>
