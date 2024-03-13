@@ -43,6 +43,7 @@ var book = initBookWithToc:
   section("Migration", "book/migration.md"):
     entry("1.x.x to 2.0.0", "../docs/migrating_1_to_2.md")
     entry("2.x.x to 3.0.0", "../docs/migrating_2_to_3.md")
+    entry("3.x.x to 4.0.0 (devel)", "../docs/migrating_3_to_4.md")
   
   section("Contributing", "CONTRIBUTING.md"):
     entry("Wrapping GTK widgets", "book/internals/wrap_gtk_widget.nim")
