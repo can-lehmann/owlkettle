@@ -1,6 +1,11 @@
 # Libadwaita Widgets
 
 
+Some widgets are only available when linking against later libadwaita versions.
+Set the target libadwaita version by passing `-d:adwminor=<Minor Version>`.
+
+
+
 ## AdwWindow
 
 ```nim
@@ -304,6 +309,8 @@ ComboRow:
 renderable EntryRow of PreferencesRow
 ```
 
+Since: `AdwVersion >= (1, 2)`
+
 ###### Fields
 
 - All fields from [PreferencesRow](#PreferencesRow)
@@ -340,6 +347,8 @@ renderable PasswordEntryRow of EntryRow
 ```
 
 An `EntryRow` that hides the user input
+
+Since: `AdwVersion >= (1, 2)`
 
 ###### Fields
 
@@ -416,6 +425,8 @@ Flap:
 ```nim
 renderable OverlaySplitView of BaseWidget
 ```
+
+Since: `AdwVersion >= (1, 4)`
 
 ###### Fields
 
@@ -536,6 +547,8 @@ renderable StatusPage of BaseWidget
 renderable AboutWindow
 ```
 
+Since: `AdwVersion >= (1, 2)`
+
 ###### Fields
 
 - `applicationName: string`
@@ -584,6 +597,8 @@ AboutWindow:
 renderable SwitchRow of ActionRow
 ```
 
+Since: `AdwVersion >= (1, 4)`
+
 ###### Fields
 
 - All fields from [ActionRow](#ActionRow)
@@ -601,6 +616,8 @@ renderable Banner of BaseWidget
 ```
 
 A rectangular Box taking up the entire vailable width with an optional button.
+
+Since: `AdwVersion >= (1, 3)`
 
 ###### Fields
 

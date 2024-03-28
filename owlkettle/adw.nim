@@ -39,6 +39,9 @@ export adw.AdwVersion
 
 when defined(owlkettleDocs) and isMainModule:
   echo "# Libadwaita Widgets\n\n"
+  echo "Some widgets are only available when linking against later libadwaita versions."
+  echo "Set the target libadwaita version by passing `-d:adwminor=<Minor Version>`."
+  echo "\n\n"
 
 renderable AdwWindow of BaseWindow:
   ## A Window that does not have a title bar.
@@ -482,76 +485,71 @@ renderable ComboRow of ActionRow:
       proc select(item: int) =
         app.selected = item
 
-when AdwVersion >= (1, 2) or defined(owlkettleDocs):
-  renderable EntryRow of PreferencesRow:
-    suffixes: seq[AlignedChild[Widget]]
-    text: string
-    
-    proc changed(text: string)
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 2):
-          state.internalWidget = adw_entry_row_new()
-        else:
-          raise newException(ValueError, "Compile for Adwaita version 1.2 or higher with -d:adwMinor=2 to enable the EntryRow widget.")
-      connectEvents:
-        proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
-          let text = $gtk_editable_get_text(widget)
-          EntryRowState(data[].widget).text = text
-          data[].callback(text)
-          data[].redraw()
-        
-        state.connect(state.changed, "changed", changedCallback)
-      disconnectEvents:
-        state.internalWidget.disconnect(state.changed)
-    
-    hooks suffixes:
-      (build, update):
-        when AdwVersion >= (1, 2):
-          state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
-            adw_entry_row_add_suffix,
-            adw_entry_row_remove
-          )
-    
-    hooks text:
-      property:
-        gtk_editable_set_text(state.internalWidget, state.text.cstring)
-      read:
-        state.text = $gtk_editable_get_text(state.internalWidget)
+renderable EntryRow {.since: AdwVersion >= (1, 2).} of PreferencesRow:
+  suffixes: seq[AlignedChild[Widget]]
+  text: string
   
-    adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
-      widget.hasSuffixes = true
-      widget.valSuffixes.add(AlignedChild[Widget](
-        widget: child,
-        hAlign: hAlign,
-        vAlign: vAlign
-      ))
-    
-    example:
-      EntryRow:
-        title = "Name"
-        text = app.name
-        
-        proc changed(name: string) =
-          app.name = name
+  proc changed(text: string)
   
-  renderable PasswordEntryRow of EntryRow:
-    ## An `EntryRow` that hides the user input
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 2):
-          state.internalWidget = adw_password_entry_row_new()
-    
-    example:
-      PasswordEntryRow:
-        title = "Password"
-        text = app.password
-        
-        proc changed(password: string) =
-          app.password = password
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_entry_row_new()
+    connectEvents:
+      proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
+        let text = $gtk_editable_get_text(widget)
+        EntryRowState(data[].widget).text = text
+        data[].callback(text)
+        data[].redraw()
+      
+      state.connect(state.changed, "changed", changedCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.changed)
   
+  hooks suffixes:
+    (build, update):
+      state.updateAlignedChildren(state.suffixes, widget.valSuffixes,
+        adw_entry_row_add_suffix,
+        adw_entry_row_remove
+      )
+  
+  hooks text:
+    property:
+      gtk_editable_set_text(state.internalWidget, state.text.cstring)
+    read:
+      state.text = $gtk_editable_get_text(state.internalWidget)
+
+  adder addSuffix {.hAlign: AlignFill, vAlign: AlignCenter.}:
+    widget.hasSuffixes = true
+    widget.valSuffixes.add(AlignedChild[Widget](
+      widget: child,
+      hAlign: hAlign,
+      vAlign: vAlign
+    ))
+  
+  example:
+    EntryRow:
+      title = "Name"
+      text = app.name
+      
+      proc changed(name: string) =
+        app.name = name
+
+renderable PasswordEntryRow {.since: AdwVersion >= (1, 2).} of EntryRow:
+  ## An `EntryRow` that hides the user input
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_password_entry_row_new()
+  
+  example:
+    PasswordEntryRow:
+      title = "Password"
+      text = app.password
+      
+      proc changed(password: string) =
+        app.password = password
+
+when AdwVersion >= (1, 2):
   export EntryRow, PasswordEntryRow
 
 type FlapChild[T] = object
@@ -708,125 +706,110 @@ proc `valSwipe=`*(flap: Flap, swipe: bool) =
   flap.valSwipeToOpen = swipe
   flap.valSwipeToClose = swipe
 
-when AdwVersion >= (1, 4) or defined(owlkettleDocs):
-  renderable OverlaySplitView of BaseWidget:
-    content: Widget
-    sidebar: Widget
-    collapsed: bool = false
-    enableHideGesture: bool = true
-    enableShowGesture: bool = true
-    maxSidebarWidth: float = 280.0
-    minSidebarWidth: float = 180.0
-    pinSidebar: bool = false
-    showSidebar: bool = true
-    sidebarPosition: PackType = PackStart
-    widthFraction: float = 0.25
-    widthUnit: LengthUnit = LengthScaleIndependent
-    
-    proc toggle(shown: bool)
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 4):
-          state.internalWidget = adw_overlay_split_view_new()
-      connectEvents:
-        when AdwVersion >= (1, 4):
-          proc toggleCallback(widget: GtkWidget,
-                              spec: pointer,
-                              data: ptr EventObj[proc (show: bool)]) {.cdecl.} =
-            let
-              showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
-              state = OverlaySplitViewState(data[].widget)
-            if showSidebar != state.showSidebar:
-              state.showSidebar = showSidebar
-              data[].callback(showSidebar)
-              data[].redraw()
-          
-          state.connect(state.toggle, "notify::show-sidebar", toggleCallback)
-      disconnectEvents:
-        when AdwVersion >= (1, 4):
-          state.internalWidget.disconnect(state.toggle)
-    
-    hooks content:
-      (build, update):
-        when AdwVersion >= (1, 4):
-          state.updateChild(
-            state.content,
-            widget.valContent,
-            adw_overlay_split_view_set_content
-          )
-    
-    hooks sidebar:
-      (build, update):
-        when AdwVersion >= (1, 4):
-          state.updateChild(
-            state.sidebar,
-            widget.valSidebar,
-            adw_overlay_split_view_set_sidebar
-          )
-    
-    hooks collapsed:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_collapsed(state.internalWidget, state.collapsed.cbool)
-
-    hooks enableHideGesture:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_enable_hide_gesture(state.internalWidget, state.enableHideGesture.cbool)
-
-    hooks enableShowGesture:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_enable_show_gesture(state.internalWidget, state.enableShowGesture.cbool)
-
-    hooks maxSidebarWidth:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_max_sidebar_width(state.internalWidget, state.maxSidebarWidth.cdouble)
-
-    hooks minSidebarWidth:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_min_sidebar_width(state.internalWidget, state.minSidebarWidth.cdouble)
-
-    hooks pinSidebar:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_pin_sidebar(state.internalWidget, state.pinSidebar.cbool)
-
-    hooks showSidebar:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_show_sidebar(state.internalWidget, state.showSidebar.cbool)
-
-    hooks sidebarPosition:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_sidebar_position(state.internalWidget, state.sidebarPosition.toGtk())
-
-    hooks widthFraction:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_sidebar_width_fraction(state.internalWidget, state.widthFraction.cdouble)
-
-    hooks widthUnit:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_overlay_split_view_set_sidebar_width_unit(state.internalWidget, state.widthUnit)
-
-    adder add:
-      if widget.hasContent:
-        raise newException(ValueError, "Unable to add multiple children to a OverlaySplitView. Use a Box widget to display multiple widgets!")
-      widget.hasContent = true
-      widget.valContent = child
-    
-    adder addSidebar:
-      if widget.hasSidebar:
-        raise newException(ValueError, "Unable to add multiple sidebars to a OverlaySplitView. Use a Box widget to display multiple widgets!")
-      widget.hasSidebar = true
-      widget.valSidebar = child
+renderable OverlaySplitView {.since: AdwVersion >= (1, 4).} of BaseWidget:
+  content: Widget
+  sidebar: Widget
+  collapsed: bool = false
+  enableHideGesture: bool = true
+  enableShowGesture: bool = true
+  maxSidebarWidth: float = 280.0
+  minSidebarWidth: float = 180.0
+  pinSidebar: bool = false
+  showSidebar: bool = true
+  sidebarPosition: PackType = PackStart
+  widthFraction: float = 0.25
+  widthUnit: LengthUnit = LengthScaleIndependent
   
+  proc toggle(shown: bool)
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_overlay_split_view_new()
+    connectEvents:
+      proc toggleCallback(widget: GtkWidget,
+                          spec: pointer,
+                          data: ptr EventObj[proc (show: bool)]) {.cdecl.} =
+        let
+          showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
+          state = OverlaySplitViewState(data[].widget)
+        if showSidebar != state.showSidebar:
+          state.showSidebar = showSidebar
+          data[].callback(showSidebar)
+          data[].redraw()
+      
+      state.connect(state.toggle, "notify::show-sidebar", toggleCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.toggle)
+  
+  hooks content:
+    (build, update):
+      state.updateChild(
+        state.content,
+        widget.valContent,
+        adw_overlay_split_view_set_content
+      )
+  
+  hooks sidebar:
+    (build, update):
+      state.updateChild(
+        state.sidebar,
+        widget.valSidebar,
+        adw_overlay_split_view_set_sidebar
+      )
+  
+  hooks collapsed:
+    property:
+      adw_overlay_split_view_set_collapsed(state.internalWidget, state.collapsed.cbool)
+
+  hooks enableHideGesture:
+    property:
+      adw_overlay_split_view_set_enable_hide_gesture(state.internalWidget, state.enableHideGesture.cbool)
+
+  hooks enableShowGesture:
+    property:
+      adw_overlay_split_view_set_enable_show_gesture(state.internalWidget, state.enableShowGesture.cbool)
+
+  hooks maxSidebarWidth:
+    property:
+      adw_overlay_split_view_set_max_sidebar_width(state.internalWidget, state.maxSidebarWidth.cdouble)
+
+  hooks minSidebarWidth:
+    property:
+      adw_overlay_split_view_set_min_sidebar_width(state.internalWidget, state.minSidebarWidth.cdouble)
+
+  hooks pinSidebar:
+    property:
+      adw_overlay_split_view_set_pin_sidebar(state.internalWidget, state.pinSidebar.cbool)
+
+  hooks showSidebar:
+    property:
+      adw_overlay_split_view_set_show_sidebar(state.internalWidget, state.showSidebar.cbool)
+
+  hooks sidebarPosition:
+    property:
+      adw_overlay_split_view_set_sidebar_position(state.internalWidget, state.sidebarPosition.toGtk())
+
+  hooks widthFraction:
+    property:
+      adw_overlay_split_view_set_sidebar_width_fraction(state.internalWidget, state.widthFraction.cdouble)
+
+  hooks widthUnit:
+    property:
+      adw_overlay_split_view_set_sidebar_width_unit(state.internalWidget, state.widthUnit)
+
+  adder add:
+    if widget.hasContent:
+      raise newException(ValueError, "Unable to add multiple children to a OverlaySplitView. Use a Box widget to display multiple widgets!")
+    widget.hasContent = true
+    widget.valContent = child
+  
+  adder addSidebar:
+    if widget.hasSidebar:
+      raise newException(ValueError, "Unable to add multiple sidebars to a OverlaySplitView. Use a Box widget to display multiple widgets!")
+    widget.hasSidebar = true
+    widget.valSidebar = child
+
+when AdwVersion >= (1, 4):
   export OverlaySplitView
 
 renderable AdwHeaderBar of BaseWidget:
@@ -1053,265 +1036,233 @@ type LegalSection* = object
   licenseType*: LicenseType
   license*: Option[string]
 
-when AdwVersion >= (1, 2) or defined(owlkettleDocs):
-  renderable AboutWindow:
-    applicationName: string
-    developerName: string
-    version: string
-    supportUrl: string
-    issueUrl: string
-    website: string
-    copyright: string
-    license: string ## A custom license text. If this field is used instead of `licenseType`, `licenseType` has to be empty or `LicenseCustom`.
-    licenseType: LicenseType ## A license from the `LicenseType` enum.
-    legalSections: seq[LegalSection] ## Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
-    applicationIcon: string
-    releaseNotes: string
-    comments: string
-    debugInfo: string ## Adds a "Troubleshooting" section. Use this field to provide instructions on how to acquire logs or other info you want users of your app to know about when reporting bugs or debugging.
-    developers: seq[string]
-    designers: seq[string]
-    artists: seq[string]
-    documenters: seq[string]
-    credits: seq[tuple[title: string, people: seq[string]]] ## Additional credit sections with customizable titles
-    acknowledgements: seq[tuple[title: string, people: seq[string]]] ## Acknowledgment sections with customizable titles
-    links: seq[tuple[title: string, url: string]] ## Additional links placed in the details section
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 2):
-          state.internalWidget = adw_about_window_new()
-    
-    hooks applicationName:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
-
-    hooks developerName:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
-
-    hooks version:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_version(state.internalWidget, state.version.cstring)
-
-    hooks supportUrl:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
-
-    hooks issueUrl:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
-    
-    hooks website:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_website(state.internalWidget, state.website.cstring)
-
-    hooks copyright:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
-
-    hooks license:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_license(state.internalWidget, state.license.cstring)
-
-    hooks licenseType:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_license_type(state.internalWidget, state.licenseType.toGtk())
-
-    hooks legalSections:
-      build:
-        when AdwVersion >= (1, 2):
-          if widget.hasLegalSections:
-            state.legalSections = widget.valLegalSections
-            for section in state.legalSections:
-              var copyright: cstring
-              var license: cstring
-              if section.copyright.isSome:
-                copyright = section.copyright.get().cstring
-              if section.license.isSome:
-                license = section.license.get().cstring
-
-              adw_about_window_add_legal_section(
-                state.internalWidget,
-                section.title,
-                copyright,
-                section.licenseType.toGtk(),
-                license
-              )
-
-    hooks applicationIcon:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_application_icon(state.internalWidget, state.applicationIcon.cstring)
-
-    hooks releaseNotes:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_release_notes(state.internalWidget, state.releaseNotes.cstring)
-
-    hooks comments:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_comments(state.internalWidget, state.comments.cstring)
-
-    hooks debugInfo:
-      property:
-        when AdwVersion >= (1, 2):
-          adw_about_window_set_debug_info(state.internalWidget, state.debugInfo.cstring)
-
-    hooks developers:
-      property:
-        when AdwVersion >= (1, 2):
-          let developers = allocCStringArray(state.developers)
-          defer: deallocCStringArray(developers)
-          adw_about_window_set_developers(state.internalWidget, developers)
-
-    hooks designers:
-      property:
-        when AdwVersion >= (1, 2):
-          let designers = allocCStringArray(state.designers)
-          defer: deallocCStringArray(designers)
-          adw_about_window_set_designers(state.internalWidget, designers)
-
-    hooks artists:
-      property:
-        when AdwVersion >= (1, 2):
-          let artists = allocCStringArray(state.artists)
-          defer: deallocCStringArray(artists)
-          adw_about_window_set_artists(state.internalWidget, artists)
-
-    hooks documenters:
-      property:
-        when AdwVersion >= (1, 2):
-          let documenters = allocCStringArray(state.documenters)
-          defer: deallocCStringArray(documenters)
-          adw_about_window_set_documenters(state.internalWidget, documenters)
-
-    hooks credits:
-      build:
-        when AdwVersion >= (1, 2):
-          if widget.hasCredits:
-            state.credits = widget.valCredits
-            for (title, people) in state.credits:
-              let names = allocCStringArray(people)
-              defer: deallocCStringArray(names)
-              adw_about_window_add_credit_section(state.internalWidget, title.cstring, names)
-
-    hooks acknowledgements:
-      build:
-        when AdwVersion >= (1, 2):
-          if widget.hasAcknowledgements:
-            state.acknowledgements = widget.valAcknowledgements
-            for (title, people) in state.acknowledgements:
-              let names = allocCStringArray(people)
-              defer: deallocCStringArray(names)
-              adw_about_window_add_acknowledgement_section(state.internalWidget, title.cstring, names)
-
-    hooks links:
-      build:
-        when AdwVersion >= (1, 2):
-          if widget.hasLinks:
-            state.links = widget.valLinks
-            for (title, url) in state.links:
-              adw_about_window_add_link(state.internalWidget, title.cstring, url.cstring)
-
-    example:
-      AboutWindow:
-        applicationName = "My Application"
-        developerName = "Erika Mustermann"
-        version = "1.0.0"
-        applicationIcon = "application-x-executable"
-        supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
-        issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
-        website = "https://can-lehmann.github.io/owlkettle/README"
-        links = @{
-          "Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html",
-          "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html",
-        }
-        comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed. It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
-        copyright = "Erika Mustermann"
-        licenseType = LicenseMIT_X11
+renderable AboutWindow {.since: AdwVersion >= (1, 2).}:
+  applicationName: string
+  developerName: string
+  version: string
+  supportUrl: string
+  issueUrl: string
+  website: string
+  copyright: string
+  license: string ## A custom license text. If this field is used instead of `licenseType`, `licenseType` has to be empty or `LicenseCustom`.
+  licenseType: LicenseType ## A license from the `LicenseType` enum.
+  legalSections: seq[LegalSection] ## Adds extra sections to the "Legal" page. You can use these sections for dependency package attributions etc.
+  applicationIcon: string
+  releaseNotes: string
+  comments: string
+  debugInfo: string ## Adds a "Troubleshooting" section. Use this field to provide instructions on how to acquire logs or other info you want users of your app to know about when reporting bugs or debugging.
+  developers: seq[string]
+  designers: seq[string]
+  artists: seq[string]
+  documenters: seq[string]
+  credits: seq[tuple[title: string, people: seq[string]]] ## Additional credit sections with customizable titles
+  acknowledgements: seq[tuple[title: string, people: seq[string]]] ## Acknowledgment sections with customizable titles
+  links: seq[tuple[title: string, url: string]] ## Additional links placed in the details section
   
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_about_window_new()
+  
+  hooks applicationName:
+    property:
+      adw_about_window_set_application_name(state.internalWidget, state.applicationName.cstring)
+
+  hooks developerName:
+    property:
+      adw_about_window_set_developer_name(state.internalWidget, state.developerName.cstring)
+
+  hooks version:
+    property:
+      adw_about_window_set_version(state.internalWidget, state.version.cstring)
+
+  hooks supportUrl:
+    property:
+      adw_about_window_set_support_url(state.internalWidget, state.supportUrl.cstring)
+
+  hooks issueUrl:
+    property:
+      adw_about_window_set_issue_url(state.internalWidget, state.issueUrl.cstring)
+  
+  hooks website:
+    property:
+      adw_about_window_set_website(state.internalWidget, state.website.cstring)
+
+  hooks copyright:
+    property:
+      adw_about_window_set_copyright(state.internalWidget, state.copyright.cstring)
+
+  hooks license:
+    property:
+      adw_about_window_set_license(state.internalWidget, state.license.cstring)
+
+  hooks licenseType:
+    property:
+      adw_about_window_set_license_type(state.internalWidget, state.licenseType.toGtk())
+
+  hooks legalSections:
+    build:
+      if widget.hasLegalSections:
+        state.legalSections = widget.valLegalSections
+        for section in state.legalSections:
+          var copyright: cstring
+          var license: cstring
+          if section.copyright.isSome:
+            copyright = section.copyright.get().cstring
+          if section.license.isSome:
+            license = section.license.get().cstring
+
+          adw_about_window_add_legal_section(
+            state.internalWidget,
+            section.title,
+            copyright,
+            section.licenseType.toGtk(),
+            license
+          )
+
+  hooks applicationIcon:
+    property:
+      adw_about_window_set_application_icon(state.internalWidget, state.applicationIcon.cstring)
+
+  hooks releaseNotes:
+    property:
+      adw_about_window_set_release_notes(state.internalWidget, state.releaseNotes.cstring)
+
+  hooks comments:
+    property:
+      adw_about_window_set_comments(state.internalWidget, state.comments.cstring)
+
+  hooks debugInfo:
+    property:
+      adw_about_window_set_debug_info(state.internalWidget, state.debugInfo.cstring)
+
+  hooks developers:
+    property:
+      let developers = allocCStringArray(state.developers)
+      defer: deallocCStringArray(developers)
+      adw_about_window_set_developers(state.internalWidget, developers)
+
+  hooks designers:
+    property:
+      let designers = allocCStringArray(state.designers)
+      defer: deallocCStringArray(designers)
+      adw_about_window_set_designers(state.internalWidget, designers)
+
+  hooks artists:
+    property:
+      let artists = allocCStringArray(state.artists)
+      defer: deallocCStringArray(artists)
+      adw_about_window_set_artists(state.internalWidget, artists)
+
+  hooks documenters:
+    property:
+      let documenters = allocCStringArray(state.documenters)
+      defer: deallocCStringArray(documenters)
+      adw_about_window_set_documenters(state.internalWidget, documenters)
+
+  hooks credits:
+    build:
+      if widget.hasCredits:
+        state.credits = widget.valCredits
+        for (title, people) in state.credits:
+          let names = allocCStringArray(people)
+          defer: deallocCStringArray(names)
+          adw_about_window_add_credit_section(state.internalWidget, title.cstring, names)
+
+  hooks acknowledgements:
+    build:
+      if widget.hasAcknowledgements:
+        state.acknowledgements = widget.valAcknowledgements
+        for (title, people) in state.acknowledgements:
+          let names = allocCStringArray(people)
+          defer: deallocCStringArray(names)
+          adw_about_window_add_acknowledgement_section(state.internalWidget, title.cstring, names)
+
+  hooks links:
+    build:
+      if widget.hasLinks:
+        state.links = widget.valLinks
+        for (title, url) in state.links:
+          adw_about_window_add_link(state.internalWidget, title.cstring, url.cstring)
+
+  example:
+    AboutWindow:
+      applicationName = "My Application"
+      developerName = "Erika Mustermann"
+      version = "1.0.0"
+      applicationIcon = "application-x-executable"
+      supportUrl = "https://github.com/can-lehmann/owlkettle/discussions"
+      issueUrl = "https://github.com/can-lehmann/owlkettle/issues"
+      website = "https://can-lehmann.github.io/owlkettle/README"
+      links = @{
+        "Tutorial": "https://can-lehmann.github.io/owlkettle/docs/tutorial.html",
+        "Installation": "https://can-lehmann.github.io/owlkettle/docs/installation.html",
+      }
+      comments = """My Application demonstrates the use of the Adwaita AboutWindow. Comments will be shown on the Details page, above links. <i>Unlike</i> GtkAboutDialog comments, this string can be long and detailed. It can also contain <a href='https://docs.gtk.org/Pango/pango_markup.html'>links</a> and <b>Pango markup</b>."""
+      copyright = "Erika Mustermann"
+      licenseType = LicenseMIT_X11
+
+when AdwVersion >= (1, 2):
   export AboutWindow
 
-when AdwVersion >= (1, 4) or defined(owlkettleDocs):
-  renderable SwitchRow of ActionRow:
-    active: bool    
-    
-    proc activated(active: bool)
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 4):
-          state.internalWidget = adw_switch_row_new()
-      connectEvents:
-        when AdwVersion >= (1, 4):
-          proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
-            let active: bool = adw_switch_row_get_active(widget).bool
-            SwitchRowState(data[].widget).active = active
-            data[].callback(active)
-            data[].redraw()
-            
-          state.connect(state.activated, "activated", activatedCallback)
-      disconnectEvents:
-        when AdwVersion >= (1, 4):
-          state.internalWidget.disconnect(state.activated)
-    
-    hooks active:
-      property:
-        when AdwVersion >= (1, 4):
-          adw_switch_row_set_active(state.internalWidget, state.active.cbool)
-    
+renderable SwitchRow {.since: AdwVersion >= (1, 4).} of ActionRow:
+  active: bool
+  
+  proc activated(active: bool)
+  
+  hooks:
+    beforeBuild:
+        state.internalWidget = adw_switch_row_new()
+    connectEvents:
+      proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
+        let active: bool = adw_switch_row_get_active(widget).bool
+        SwitchRowState(data[].widget).active = active
+        data[].callback(active)
+        data[].redraw()
+        
+      state.connect(state.activated, "activated", activatedCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activated)
+  
+  hooks active:
+    property:
+      adw_switch_row_set_active(state.internalWidget, state.active.cbool)
+
+when AdwVersion >= (1, 4):
   export SwitchRow
+
+renderable Banner {.since: AdwVersion >= (1, 3).} of BaseWidget:
+  ## A rectangular Box taking up the entire vailable width with an optional button.
+  buttonLabel: string ## Label of the optional banner button. Button will only be added to the banner if this Label has a value.
+  title: string
+  useMarkup: bool = true ## Determines whether using Markup in title is allowed or not.
+  revealed: bool = true ## Determines whether the banner is shown.
   
-when AdwVersion >= (1, 3) or defined(owlkettleDocs):
-  renderable Banner of BaseWidget:
-    ## A rectangular Box taking up the entire vailable width with an optional button.
-    buttonLabel: string ## Label of the optional banner button. Button will only be added to the banner if this Label has a value.
-    title: string
-    useMarkup: bool = true ## Determines whether using Markup in title is allowed or not.
-    revealed: bool = true ## Determines whether the banner is shown.
-    
-    proc clicked() ## Triggered by clicking the banner button
-    
-    hooks:
-      beforeBuild:
-        when AdwVersion >= (1, 3):
-          state.internalWidget = adw_banner_new("".cstring)
-      connectEvents:
-        when AdwVersion >= (1, 3):
-          state.connect(state.clicked, "button-clicked", eventCallback)
-      disconnectEvents:
-        when AdwVersion >= (1, 3):
-          state.internalWidget.disconnect(state.clicked)
-    hooks buttonLabel:
-      property:
-        when AdwVersion >= (1, 3):
-          adw_banner_set_button_label(state.internalWidget, state.buttonLabel.cstring)
-    
-    hooks title:
-      property:
-        when AdwVersion >= (1, 3):
-          adw_banner_set_title(state.internalWidget, state.title.cstring)
-    
-    hooks useMarkup:
-      property:
-        when AdwVersion >= (1, 3):
-          adw_banner_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+  proc clicked() ## Triggered by clicking the banner button
   
-    hooks revealed:
-      property:
-        when AdwVersion >= (1, 3):
-          adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_banner_new("".cstring)
+    connectEvents:
+      state.connect(state.clicked, "button-clicked", eventCallback)
+    disconnectEvents:
+      state.internalWidget.disconnect(state.clicked)
+  hooks buttonLabel:
+    property:
+      adw_banner_set_button_label(state.internalWidget, state.buttonLabel.cstring)
+  
+  hooks title:
+    property:
+      adw_banner_set_title(state.internalWidget, state.title.cstring)
+  
+  hooks useMarkup:
+    property:
+      adw_banner_set_use_markup(state.internalWidget, state.useMarkup.cbool)
+
+  hooks revealed:
+    property:
+      adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
+
+when AdwVersion >= (1, 3):
   export Banner
 
 export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage

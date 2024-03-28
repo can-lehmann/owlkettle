@@ -163,9 +163,17 @@ proc stateBase(def: WidgetDef): NimNode =
   else:
     result = ident(def.base & "State")
 
+proc parsePragma(pragma: NimNode, def: var WidgetDef) =
+  for child in pragma:
+    if child.kind == nnkExprColonExpr and
+       child[0].eqIdent("since"):
+      def.since = child[1]
+    else:
+      error("Invalid widget pragma " & child.repr, pragma)
+
 proc parseName(name: NimNode, def: var WidgetDef) =
   template invalidName() =
-    error(name.repr & " is not a valid widget name")
+    error(name.repr & " is not a valid widget name", name)
   
   case name.kind:
     of nnkIdent, nnkSym:
@@ -174,10 +182,13 @@ proc parseName(name: NimNode, def: var WidgetDef) =
       if name[0].eqIdent("of"):
         name[1].parseName(def)
         if not name[2].isName:
-          error("Expected identifier after of in widget name, but got " & $name[2].kind)
+          error("Expected identifier after of in widget name, but got " & $name[2].kind, name)
         def.base = name[2].strVal
       else:
         invalidName()
+    of nnkPragmaExpr:
+      name[0].parseName(def)
+      name[1].parsePragma(def)
     else: invalidName()
 
 proc parseHookKind(name: string): HookKind =
@@ -215,7 +226,7 @@ proc extractDocComment(node: NimNode): string =
     newline = str.len - 1
   result = str[(pos + 2)..newline].strip()
 
-proc parseFieldPragmas(node: NimNode): tuple[modifiers: set[FieldModifier], since: NimNode] =
+proc parseFieldPragma(node: NimNode): tuple[modifiers: set[FieldModifier], since: NimNode] =
   case node.kind:
     of nnkPragma:
       for child in node:
@@ -233,7 +244,7 @@ proc parseFieldPragmas(node: NimNode): tuple[modifiers: set[FieldModifier], sinc
             error("Invalid field modifier " & node.repr, node)
     else:
       for child in node:
-        let (modifiers, since) = child.parseFieldPragmas()
+        let (modifiers, since) = child.parseFieldPragma()
         result.modifiers = result.modifiers + modifiers
         result.since = result.since or since
 
@@ -312,7 +323,7 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           child[^1].expectKind(nnkStmtList)
           let
             name = child[0].unwrapName()
-            (modifiers, since) = child[0].parseFieldPragmas()
+            (modifiers, since) = child[0].parseFieldPragma()
           var field = Field(
             name: name.strVal,
             modifiers: modifiers,
@@ -661,6 +672,9 @@ proc formatReference(widget: WidgetDef): string =
   if widget.doc.len > 0:
     result &= widget.doc.strip()
     result &= "\n\n"
+  if not widget.since.isNil:
+    result &= "Since: `" & widget.since.repr & "`"
+    result &= "\n\n"
   if widget.fields.len > 0 or widget.base.len > 0:
     result &= "###### Fields\n\n"
     if widget.base.len > 0:
@@ -767,6 +781,13 @@ proc gen(widget: WidgetDef): NimNode =
     widget.genRead(),
     widget.genAdders()
   ])
+  if not widget.since.isNil:
+    result = newStmtList(newTree(nnkWhenStmt, [
+      newTree(nnkElifBranch, [
+        widget.since, result
+      ])
+    ]))
+  
   when defined(owlkettleDocs):
     result.add(widget.genDocs())
 
