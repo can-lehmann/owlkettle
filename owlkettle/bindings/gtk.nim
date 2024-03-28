@@ -836,7 +836,7 @@ proc gtk_image_set_from_pixbuf*(image: GtkWidget, pixbuf: GdkPixbuf)
 # Gtk.Picture
 proc gtk_picture_new*(): GtkWidget
 proc gtk_picture_set_pixbuf*(picture: GtkWidget, pixbuf: GdkPixbuf)
-when defined(gtk48):
+when GtkMinor >= 8:
   proc gtk_picture_set_content_fit*(picture: GtkWidget, fit: GtkContentFit)
 else:
   proc gtk_picture_set_keep_aspect_ratio*(picture: GtkWidget, keep: cbool)

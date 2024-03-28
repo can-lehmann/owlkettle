@@ -351,7 +351,7 @@ renderable CenterBox of BaseWidget:
   centerWidget: Widget
   endWidget: Widget
   baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  shrinkCenterLast {.since: GtkMinor >= 12.}: bool = false
   orient: Orient = OrientX
   
   hooks:
@@ -376,8 +376,7 @@ renderable CenterBox of BaseWidget:
 
   hooks shrinkCenterLast:
     property:
-      when GtkMinor >= 12:
-        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+      gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
 
   hooks orient:
     property:
@@ -875,7 +874,10 @@ renderable Picture of BaseWidget:
   
   hooks pixbuf:
     property:
-      gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
+      if state.pixbuf.isNil:
+        gtk_picture_set_pixbuf(state.internalWidget, GdkPixbuf(nil))
+      else:
+        gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
   
   hooks contentFit:
     property:
@@ -2193,8 +2195,8 @@ renderable ModelButton of BaseWidget:
 renderable SearchEntry of BaseWidget:
   text: string
   # child: GtkWidget # This is currently not supported
-  searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
-  placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
+  searchDelay {.since: GtkMinor >= 8.}: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted.
+  placeholderText {.since: GtkMinor >= 10.}: string = "Search"
   
   proc activate() ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
   proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
@@ -2239,18 +2241,12 @@ renderable SearchEntry of BaseWidget:
   
   hooks searchDelay:
     property:
-      when GtkMinor >= 8:
-        gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
-      else:
-        discard
+      gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
 
   hooks placeholderText:
     property:
-      when GtkMinor >= 10:
-        gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
-      else:
-        discard
-    
+      gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
+
 renderable Separator of BaseWidget:
   ## A separator line.
   

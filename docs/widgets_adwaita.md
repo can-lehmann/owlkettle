@@ -99,7 +99,7 @@ renderable ButtonContent of BaseWidget
 - `label: string`
 - `iconName: string`
 - `useUnderline: bool` Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
-- `canShrink: bool` Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+- `canShrink: bool` Defines whether the ButtonContent can be smaller than the size of its contents. Since: `AdwVersion >= (1, 4)`
 
 
 ## Clamp
@@ -177,7 +177,7 @@ renderable PreferencesPage of BaseWidget
 - `name: string`
 - `title: string`
 - `useUnderline: bool`
-- `description: string`
+- `description: string` Since: `AdwVersion >= (1, 4)`
 
 ###### Adders
 
@@ -241,8 +241,8 @@ renderable ExpanderRow of PreferencesRow
 - `expanded: bool = false`
 - `enableExpansion: bool = true`
 - `showEnableSwitch: bool = false`
-- `titleLines: int` Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
-- `subtitleLines: int` Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+- `titleLines: int` Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Since: `AdwVersion >= (1, 3)`
+- `subtitleLines: int` Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Since: `AdwVersion >= (1, 3)`
 
 ###### Events
 
@@ -462,8 +462,8 @@ Adwaita Headerbar that combines GTK Headerbar and WindowControls.
 - `showRightButtons: bool = true` Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
 - `showLeftButtons: bool = true` Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
 - `titleWidget: Widget` A widget for the title. Replaces the title string, if there is one.
-- `showBackButton: bool = true`
-- `showTitle: bool = true` Determines whether to show or hide the title
+- `showBackButton: bool = true` Since: `AdwVersion >= (1, 4)`
+- `showTitle: bool = true` Determines whether to show or hide the title Since: `AdwVersion >= (1, 4)`
 
 ###### Setters
 

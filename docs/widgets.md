@@ -142,7 +142,7 @@ renderable CenterBox of BaseWidget
 - `centerWidget: Widget`
 - `endWidget: Widget`
 - `baselinePosition: BaselinePosition = BaselineCenter`
-- `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+- `shrinkCenterLast: bool = false` Since: `GtkMinor >= 12`
 - `orient: Orient = OrientX`
 
 ###### Adders
@@ -904,8 +904,8 @@ renderable SearchEntry of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
-- `placeholderText: string = "Search"` Only available when compiling for gtk 4.10
+- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Since: `GtkMinor >= 8`
+- `placeholderText: string = "Search"` Since: `GtkMinor >= 10`
 
 ###### Events
 

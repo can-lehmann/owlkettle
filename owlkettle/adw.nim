@@ -144,7 +144,7 @@ renderable ButtonContent of BaseWidget:
   label: string
   iconName: string
   useUnderline: bool ## Defines whether you can use `_` on part of the label to make the button accessible via hotkey. If you prefix a character of the label text with `_` it will hide the `_` and activate the button if you press ALT + the key of the character. E.g. `_Button Text` will trigger the button when pressing `ALT + B`.
-  canShrink: bool ## Defines whether the ButtonContent can be smaller than the size of its contents. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  canShrink {.since: AdwVersion >= (1, 4).}: bool ## Defines whether the ButtonContent can be smaller than the size of its contents.
   
   hooks:
     beforeBuild:
@@ -164,8 +164,7 @@ renderable ButtonContent of BaseWidget:
   
   hooks canShrink:
     property:
-      when AdwVersion >= (1, 4):
-        adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
+      adw_button_content_set_can_shrink(state.internalWidget, state.canShrink.cbool)
 
 renderable Clamp of BaseWidget:
   maximumSize: int ## Maximum width of the content
@@ -254,7 +253,7 @@ renderable PreferencesPage of BaseWidget:
   name: string
   title: string
   useUnderline: bool
-  description: string
+  description {.since: AdwVersion >= (1, 4).}: string
   
   hooks:
     beforeBuild:
@@ -287,8 +286,7 @@ renderable PreferencesPage of BaseWidget:
       
   hooks description:
     property:
-      when AdwVersion >= (1, 4):
-        adw_preferences_page_set_description(state.internalWidget, state.description.cstring)
+      adw_preferences_page_set_description(state.internalWidget, state.description.cstring)
   
   adder add:
     widget.valPreferences.add(child)
@@ -347,8 +345,8 @@ renderable ExpanderRow of PreferencesRow:
   expanded: bool = false
   enableExpansion: bool = true
   showEnableSwitch: bool = false
-  titleLines: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
-  subtitleLines: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. Only available for adwaita version 1.3 or higher. Does nothing if set when compiled for lower adwaita versions.
+  titleLines {.since: AdwVersion >= (1, 3).}: int ## Determines how many lines of text from the title are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text. 
+  subtitleLines {.since: AdwVersion >= (1, 3).}: int  ## Determines how many lines of text from the subtitle are shown before it ellipsizes the text. Defaults to 0 which means it never elipsizes and instead adds new lines to show the full text.
   
   proc expand(newExpandState: bool) ## Triggered when row gets expanded
   
@@ -378,7 +376,8 @@ renderable ExpanderRow of PreferencesRow:
   
   hooks actions:
     (build, update):
-      const rowAdder = when AdwVersion >= (1, 4):
+      const rowAdder =
+        when AdwVersion >= (1, 4):
           adw_expander_row_add_suffix
         else:
           adw_expander_row_add_action
@@ -409,13 +408,11 @@ renderable ExpanderRow of PreferencesRow:
       
   hooks titleLines:
     property:
-      when AdwVersion >= (1, 3):
-        adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
+      adw_expander_row_set_title_lines(state.internalWidget, state.titleLines.cint)
 
   hooks subtitleLines:
     property:
-      when AdwVersion >= (1, 3):
-        adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
+      adw_expander_row_set_subtitle_lines(state.internalWidget, state.subtitleLines.cint)
 
   adder addAction {.hAlign: AlignFill, vAlign: AlignCenter.}:
     widget.hasActions = true
@@ -841,8 +838,8 @@ renderable AdwHeaderBar of BaseWidget:
   showRightButtons: bool = true ## Determines whether the buttons in `rightButtons` are shown. Does not affect Widgets in `packRight`.
   showLeftButtons: bool = true ## Determines whether the buttons in `leftButtons` are shown. Does not affect Widgets in `packLeft`.
   titleWidget: Widget ## A widget for the title. Replaces the title string, if there is one.
-  showBackButton: bool = true
-  showTitle: bool = true ## Determines whether to show or hide the title
+  showBackButton {.since: AdwVersion >= (1, 4).}: bool = true
+  showTitle {.since: AdwVersion >= (1, 4).}: bool = true ## Determines whether to show or hide the title
   
   setter windowControls: DecorationLayout
   setter windowControls: Option[DecorationLayout]
@@ -898,13 +895,11 @@ renderable AdwHeaderBar of BaseWidget:
   
   hooks showBackButton:
     property:
-      when AdwVersion >= (1, 4):
-        adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
+      adw_header_bar_set_show_back_button(state.internalWidget, state.showBackButton.cbool)
   
   hooks showTitle:
     property:
-      when AdwVersion >= (1, 4):
-        adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
+      adw_header_bar_set_show_title(state.internalWidget, state.showTitle.cbool)
   
   adder addLeft:
     ## Adds a widget to the left side of the HeaderBar.
