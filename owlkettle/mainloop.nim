@@ -58,11 +58,8 @@ proc newStylesheet*(css: string, priority: int = DEFAULT_PRIORITY): Stylesheet =
 
 proc loadStylesheet*(path: string, priority: int = DEFAULT_PRIORITY): Stylesheet =
   ## Loads a CSS stylesheet from the given path
-  var error: GError
   let provider = gtk_css_provider_new()
-  discard gtk_css_provider_load_from_path(provider, path.cstring, error.addr)
-  if not error.isNil:
-    raise newException(IOError, $error[].message)
+  gtk_css_provider_load_from_path(provider, path.cstring)
   result = Stylesheet(provider: provider, priority: priority)
 
 type 

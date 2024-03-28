@@ -689,6 +689,7 @@ proc loadPixbuf*(path: string): Pixbuf =
   let pixbuf = gdk_pixbuf_new_from_file(path.cstring, error.addr)
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
   
   result = newPixbuf(pixbuf)
@@ -706,6 +707,7 @@ proc loadPixbuf*(path: string,
   )
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
   
   result = newPixbuf(pixbuf)
@@ -716,6 +718,7 @@ proc openInputStream(path: string): GInputStream =
   result = g_file_read(file, nil, error.addr)
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
 
 proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.cdecl.} =
@@ -727,6 +730,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
     future.complete(newPixbuf(pixbuf))
   else:
     let message = $error[].message
+    g_error_free(error)
     future.fail(newException(IoError, "Unable to load pixbuf: " & message))
   
   if not stream.isNil:
@@ -734,6 +738,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
     discard g_input_stream_close(GInputStream(stream), nil, error.addr)
     if not error.isNil:
       let message = $error[].message
+      g_error_free(error)
       raise newException(IoError, "Unable to close stream: " & message)
     g_object_unref(stream)
 
@@ -851,6 +856,7 @@ proc save*(pixbuf: Pixbuf,
   )
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to save pixbuf: " & message)
 
 type ContentFit* = enum
@@ -2145,8 +2151,12 @@ renderable ModelButton of BaseWidget:
       g_object_set_property(state.internalWidget.pointer, "iconic", value.addr)
       g_value_unset(value.addr)
       if state.icon.len > 0:
-        var err: GError
-        let icon = g_icon_new_for_string(state.icon.cstring, err.addr)
+        var error = GError(nil)
+        let icon = g_icon_new_for_string(state.icon.cstring, error.addr)
+        if not error.isNil:
+          let message = $error[].message
+          g_error_free(error)
+          raise newException(IoError, "Unable to load icon: " & message)
         var value = g_value_new(icon)
         g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
         g_value_unset(value.addr)

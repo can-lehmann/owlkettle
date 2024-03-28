@@ -69,6 +69,7 @@ proc sendNotification*(id, title, body: string,
     var err = GError(nil)
     let gIcon = g_icon_new_for_string(icon.cstring, err.addr)
     if not err.isNil:
+      g_error_free(err)
       raise newException(IoError, "Icon \"" & icon & "\" is unknown")
     g_notification_set_icon(notification, gIcon)
     g_object_unref(pointer(gIcon))
