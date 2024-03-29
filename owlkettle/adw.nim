@@ -24,7 +24,7 @@
 
 when defined(nimPreviewSlimSystem):
   import std/assertions
-import widgetdef, widgets, mainloop, widgetutils
+import widgetdef, widgets, mainloop, widgetutils, common
 import ./bindings/[adw, gtk]
 import std/[strutils, sequtils, strformat, options, sugar]
 
@@ -1267,12 +1267,28 @@ when AdwVersion >= (1, 3):
 
 export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage
 
+proc defaultStyleManager*(): StyleManager =
+  result = adw_style_manager_get_default()
+
+proc colorScheme*(styleManager: StyleManager): ColorScheme =
+  result = adw_style_manager_get_color_scheme(styleManager)
+
+proc `colorScheme=`*(styleManager: StyleManager, colorScheme: ColorScheme) =
+  adw_style_manager_set_color_scheme(styleManager, colorScheme)
+
+proc dark*(styleManager: StyleManager): bool =
+  result = bool(adw_style_manager_get_dark(styleManager))
+
+proc highContrast*(styleManager: StyleManager): bool =
+  result = bool(adw_style_manager_get_high_contrast(styleManager))
+
 type AdwAppConfig = object of AppConfig
   colorScheme: ColorScheme
 
 proc setupApp(config: AdwAppConfig): WidgetState =
   let styleManager = adw_style_manager_get_default()
   adw_style_manager_set_color_scheme(styleManager, config.colorScheme)
+  
   result = setupApp(AppConfig(config))
 
 proc brew*(widget: Widget,

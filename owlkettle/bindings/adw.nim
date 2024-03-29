@@ -62,7 +62,8 @@ type
     LengthPixel
     LengthPoint
     LengthScaleIndependent
-  
+
+proc isNil*(manager: StyleManager): bool {.borrow.}
 
 {.push importc, cdecl.}
 # Adw
@@ -74,6 +75,9 @@ proc adw_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 # Adw.StyleManager
 proc adw_style_manager_get_default*(): StyleManager
 proc adw_style_manager_set_color_scheme*(manager: StyleManager, colorScheme: ColorScheme)
+proc adw_style_manager_get_color_scheme*(manager: StyleManager): ColorScheme
+proc adw_style_manager_get_dark*(manager: StyleManager): cbool
+proc adw_style_manager_get_high_contrast*(manager: StyleManager): cbool
 
 # Adw.Window
 proc adw_window_new*(): GtkWidget
