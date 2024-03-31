@@ -150,7 +150,13 @@ type
     GTK_LICENSE_APACHE_2_0 = 16
     GTK_LICENSE_MPL_2_0 = 17
     GTK_LICENSE_0BSD = 18
-
+  
+  GtkWrapMode* = enum
+    GTK_WRAP_NONE
+    GTK_WRAP_CHAR
+    GTK_WRAP_WORD
+    GTK_WRAP_WORD_CHAR
+  
   GtkTextIter* = object
     a, b: pointer
     c, d, e, f, g, h: cint
@@ -976,6 +982,7 @@ proc gtk_separator_new*(orient: GtkOrientation): GtkWidget
 proc gtk_text_buffer_new*(tagTable: GtkTextTagTable): GtkTextBuffer
 proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_char_count*(buffer: GtkTextBuffer): cint
+proc gtk_text_buffer_set_modified*(buffer: GtkTextBuffer, modified: cbool)
 proc gtk_text_buffer_get_modified*(buffer: GtkTextBuffer): cbool
 proc gtk_text_buffer_get_can_redo*(buffer: GtkTextBuffer): cbool
 proc gtk_text_buffer_get_can_undo*(buffer: GtkTextBuffer): cbool
@@ -1045,6 +1052,11 @@ proc gtk_text_view_set_cursor_visible*(textView: GtkWidget, isVisible: cbool)
 proc gtk_text_view_set_editable*(textView: GtkWidget, editable: cbool)
 proc gtk_text_view_set_accepts_tab*(textView: GtkWidget, acceptsTab: cbool)
 proc gtk_text_view_set_indent*(textView: GtkWidget, indent: cint)
+proc gtk_text_view_set_top_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_bottom_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_left_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_right_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_wrap_mode*(textView: GtkWidget, mode: GtkWrapMode)
 
 # Gtk.ListBox
 proc gtk_list_box_new*(): GtkWidget

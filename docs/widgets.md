@@ -947,6 +947,8 @@ A text editor with support for formatted text.
 - `editable: bool = true`
 - `acceptsTab: bool = true`
 - `indent: int = 0`
+- `wrapMode: WrapMode = WrapNone`
+- `textMargin: Margin`
 
 
 ## ListBoxRow

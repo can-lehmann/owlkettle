@@ -2263,6 +2263,8 @@ type
   
   TagStyle* = object
     background*: Option[string]
+    paragraphBackground*: Option[string]
+    backgroundFullHeight*: Option[bool]
     foreground*: Option[string]
     family*: Option[string]
     size*: Option[int]
@@ -2365,8 +2367,13 @@ proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
   result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)
   for attr, value in fieldPairs(style):
     if value.isSome:
+      let name = case attr:
+        of "paragraphBackground": "paragraph-background"
+        of "backgroundFullHeight": "background-full-height"
+        else: attr
+      
       var gvalue = g_value_new(get(value))
-      g_object_set_property(result.pointer, attr.cstring, gvalue.addr)
+      g_object_set_property(result.pointer, name.cstring, gvalue.addr)
       g_value_unset(gvalue.addr)
 
 proc lookupTag*(buffer: TextBuffer, name: string): TextTag =
@@ -2424,6 +2431,9 @@ proc text*(buffer: TextBuffer, hiddenChars: bool = true): string =
 proc isModified*(buffer: TextBuffer): bool =
   result = gtk_text_buffer_get_modified(buffer.gtk) != 0
 
+proc `isModified=`*(buffer: TextBuffer, modified: bool) =
+  gtk_text_buffer_set_modified(buffer.gtk, cbool(modified))
+
 proc hasSelection*(buffer: TextBuffer): bool =
   result = gtk_text_buffer_get_has_selection(buffer.gtk) != 0
 
@@ -2465,6 +2475,9 @@ proc removeAllTags*(buffer: TextBuffer, a, b: TextIter) =
 
 proc removeAllTags*(buffer: TextBuffer, slice: TextSlice) =
   buffer.removeAllTags(slice.a, slice.b)
+
+proc removeAllTags*(buffer: TextBuffer) =
+  buffer.removeAllTags(buffer.startIter, buffer.endIter)
 
 proc canRedo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_redo(buffer.gtk) != 0)
 proc canUndo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_undo(buffer.gtk) != 0)
@@ -2537,6 +2550,15 @@ proc `line=`*(iter: TextIter, val: int) = gtk_text_iter_set_line(iter.unsafeAddr
 proc `lineOffset=`*(iter: TextIter, val: int) = gtk_text_iter_set_line_offset(iter.unsafeAddr, cint(val))
 {.pop.}
 
+type
+  WrapMode* = enum
+    WrapNone
+    WrapChar
+    WrapWord
+    WrapWordChar
+
+proc toGtk(mode: WrapMode): GtkWrapMode = GtkWrapMode(ord(mode))
+
 renderable TextView of BaseWidget:
   ## A text editor with support for formatted text.
   
@@ -2546,6 +2568,8 @@ renderable TextView of BaseWidget:
   editable: bool = true
   acceptsTab: bool = true
   indent: int = 0
+  wrapMode: WrapMode = WrapNone
+  textMargin: Margin
   
   hooks:
     beforeBuild:
@@ -2570,6 +2594,17 @@ renderable TextView of BaseWidget:
   hooks indent:
     property:
       gtk_text_view_set_indent(state.internalWidget, cint(state.indent))
+  
+  hooks wrapMode:
+    property:
+      gtk_text_view_set_wrap_mode(state.internalWidget, toGtk(state.wrapMode))
+  
+  hooks textMargin:
+    property:
+      gtk_text_view_set_top_margin(state.internalWidget, cint(state.textMargin.top))
+      gtk_text_view_set_bottom_margin(state.internalWidget, cint(state.textMargin.bottom))
+      gtk_text_view_set_left_margin(state.internalWidget, cint(state.textMargin.left))
+      gtk_text_view_set_right_margin(state.internalWidget, cint(state.textMargin.right))
   
   hooks buffer:
     property:
