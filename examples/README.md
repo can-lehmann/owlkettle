@@ -211,6 +211,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/video.nim">Video</a></td>
     <td><img alt="Video" src="../docs/assets/examples/video.png" width="1115px"></td>
   </tr>
+  <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/scrolled_window.nim">Scrolled Window</a></td>
+    <td><img alt="Scrolled Window" src="../docs/assets/examples/scrolled_window.png" width="210px"></td>
+  </tr>
 </table>
 
 ### adwaita

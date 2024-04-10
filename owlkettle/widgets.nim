@@ -1120,14 +1120,35 @@ proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
 proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
   let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
   widget.valDecorationLayout = decorationLayout
-  
+
+type Edge* = enum
+  Left
+  Right
+  Top
+  Bottom
+
 renderable ScrolledWindow of BaseWidget:
+  proc edgeOvershot(pos: Edge)
+  proc edgeReached(pos: Edge)
+
   child: Widget
-  
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_scrolled_window_new(nil.GtkAdjustment, nil.GtkAdjustment)
-  
+    connectEvents:
+
+      proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(pos: Edge)]) =
+        data.callback(Edge pos)
+        data[].redraw()
+
+      state.connect(state.edgeReached, "edge-reached", edgeCallback)
+      state.connect(state.edgeOvershot, "edge-overshot", edgeCallback)
+
+    disconnectEvents:
+      state.internalWidget.disconnect(state.edgeReached)
+      state.internalWidget.disconnect(state.edgeOvershot)
+
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_scrolled_window_set_child)
@@ -4711,3 +4732,4 @@ export CenterBox
 export ListView
 export ActionBar
 export ColumnView
+export GtkPositionType
