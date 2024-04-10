@@ -189,7 +189,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/progress_bar.nim">Progress Bar</a></td>
-    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="290px"></td>
+    <td><img alt="Progress Bar" src="../docs/assets/examples/progress_bar.png" width="622px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/radio_group.nim">Radio Group</a></td>
@@ -250,7 +250,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/expander_row.nim">Expander Row</a></td>
-    <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="922px"></td>
+    <td><img alt="Expander Row" src="../docs/assets/examples/expander_row.png" width="719px"></td>
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/flap.nim">Flap</a></td>
