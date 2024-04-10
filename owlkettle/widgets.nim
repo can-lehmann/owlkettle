@@ -1122,10 +1122,10 @@ proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout])
   widget.valDecorationLayout = decorationLayout
 
 type Edge* = enum
-  Left
-  Right
-  Top
-  Bottom
+  EdgeLeft
+  EdgeRight
+  EdgeTop
+  EdgeBottom
 
 renderable ScrolledWindow of BaseWidget:
   proc edgeOvershot(pos: Edge)
@@ -1139,7 +1139,7 @@ renderable ScrolledWindow of BaseWidget:
     connectEvents:
 
       proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(pos: Edge)]) =
-        data.callback(Edge pos)
+        data.callback(Edge(pos))
         data[].redraw()
 
       state.connect(state.edgeReached, "edge-reached", edgeCallback)
@@ -4732,4 +4732,3 @@ export CenterBox
 export ListView
 export ActionBar
 export ColumnView
-export GtkPositionType

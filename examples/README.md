@@ -213,7 +213,7 @@ The `widgets` directory contains examples for how to use different widgets.
   </tr>
   <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/scrolled_window.nim">Scrolled Window</a></td>
-    <td><img alt="Scrolled Window" src="../docs/assets/examples/scrolled_window.png" width="210px"></td>
+    <td><img alt="Scrolled Window" src="../docs/assets/examples/scrolled_window.png" width="428px"></td>
   </tr>
 </table>
 

@@ -23,20 +23,24 @@
 import owlkettle
 
 viewable App:
-  toDraw: int = 10
+  toDraw: int = 20
 
 method view*(app: AppState): Widget =
   gui:
     Window:
-      defaultSize = (200, 80)
+      title = "Scrolled Window Example"
+      defaultSize = (400, 300)
+      
       ScrolledWindow:
         proc edgeOvershot(pos: Edge) =
-          case pos
-          of Top:
-            dec app.toDraw
-          of Bottom:
-            inc app.toDraw
-          else: discard
+          case pos:
+            of EdgeTop:
+              if app.toDraw > 20:
+                app.toDraw -= 10
+            of EdgeBottom:
+              app.toDraw += 10
+            else: discard
+        
         Box:
           orient = OrientY
           for i in 0..<app.toDraw:
