@@ -410,6 +410,11 @@ renderable ScrolledWindow of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
 
+###### Events
+
+- edgeOvershot: `proc (edge: Edge)` Called when the usuer attempts to scroll past limits of the scrollbar
+- edgeReached: `proc (edge: Edge)` Called when the user reaches the limits of the scrollbar
+
 ###### Adders
 
 - All adders from [BaseWidget](#BaseWidget)
