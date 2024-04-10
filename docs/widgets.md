@@ -202,12 +202,12 @@ if `useMarkup` is enabled.
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `text: string` The text of the Label to render
-- `xAlign: float = 0.5`
-- `yAlign: float = 0.5`
+- `text: string` Text displayed by the label
+- `xAlign: float = 0.5` Horizontal alignment of the text within the widget
+- `yAlign: float = 0.5` Vertical alignment of the text within the widget
 - `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
-- `wrap: bool = false` Enables/Disable wrapping of text.
-- `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup or not.
+- `wrap: bool = false` Enables/Disable wrapping of text
+- `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup
 
 ###### Example
 
@@ -412,7 +412,7 @@ renderable ScrolledWindow of BaseWidget
 
 ###### Events
 
-- edgeOvershot: `proc (edge: Edge)` Called when the usuer attempts to scroll past limits of the scrollbar
+- edgeOvershot: `proc (edge: Edge)` Called when the user attempts to scroll past limits of the scrollbar
 - edgeReached: `proc (edge: Edge)` Called when the user reaches the limits of the scrollbar
 
 ###### Adders
@@ -1002,11 +1002,11 @@ renderable ListBox of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
 - `selectionMode: SelectionMode`
-- `selected: HashSet[int]` Indices of the currently selected items.
+- `selected: HashSet[int]` Indices of the currently selected rows
 
 ###### Events
 
-- select: `proc (rows: HashSet[int])`
+- select: `proc (rows: HashSet[int])` Called when the selection changed. `rows` contains the indices of the newly selected rows.
 
 ###### Adders
 
@@ -1124,7 +1124,7 @@ A drop down that allows the user to select an item from a list of items.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `items: seq[string]`
-- `selected: int` Index of the currently selected item.
+- `selected: int` Index of the currently selected item
 - `enableSearch: bool`
 - `showArrow: bool = true`
 
@@ -1156,10 +1156,10 @@ A grid layout.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `children: seq[GridChild[Widget]]`
-- `rowSpacing: int` Spacing between the rows of the grid.
-- `columnSpacing: int` Spacing between the columns of the grid.
-- `rowHomogeneous: bool`
-- `columnHomogeneous: bool`
+- `rowSpacing: int` Spacing between the rows of the grid
+- `columnSpacing: int` Spacing between the columns of the grid
+- `rowHomogeneous: bool` Whether all rows should have the same width
+- `columnHomogeneous: bool` Whether all columns should have the same height
 
 ###### Setters
 
@@ -1603,15 +1603,15 @@ renderable MediaControls of BaseWidget
 renderable Expander of BaseWidget
 ```
 
-Container that shows or hides its child depending on whether it is expanded/collapsed
+Container that shows or hides its child depending on whether it is expanded/collapsed.
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `label: string` Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
-- `labelWidget: Widget` Sets the clickable header of the Expander. Overwrites `label` if provided.
-- `expanded: bool = false` Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
-- `child: Widget` Determines the body of the Expander.
+- `label: string` The clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+- `labelWidget: Widget` The clickable header of the Expander. Overwrites `label` if provided.
+- `expanded: bool = false` Determines whether the body of the Expander is shown
+- `child: Widget` Determines the body of the Expander
 - `resizeToplevel: bool = false`
 - `useMarkup: bool = false`
 - `useUnderline: bool = false`
@@ -1753,7 +1753,7 @@ renderable ColumnView of BaseWidget
 - `rows: int` Number of rows
 - `columns: seq[ColumnViewColumn]`
 - `selectionMode: SelectionMode`
-- `selected: HashSet[int]` Indices of the currently selected rows.
+- `selected: HashSet[int]` Indices of the currently selected rows
 - `showRowSeparators: bool = false`
 - `showColumnSeparators: bool = false`
 - `singleClickActivate: bool = false`

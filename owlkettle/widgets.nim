@@ -475,12 +475,13 @@ renderable Label of BaseWidget:
   ## The default widget to display text.
   ## Supports rendering [Pango Markup](https://docs.gtk.org/Pango/pango_markup.html#pango-markup) 
   ## if `useMarkup` is enabled.
-  text: string ## The text of the Label to render
-  xAlign: float = 0.5
-  yAlign: float = 0.5
+
+  text: string ## Text displayed by the label
+  xAlign: float = 0.5 ## Horizontal alignment of the text within the widget
+  yAlign: float = 0.5 ## Vertical alignment of the text within the widget
   ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
-  wrap: bool = false ## Enables/Disable wrapping of text.
-  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
+  wrap: bool = false ## Enables/Disable wrapping of text
+  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup
 
   hooks:
     beforeBuild:
@@ -1128,8 +1129,8 @@ type Edge* = enum
   EdgeBottom
 
 renderable ScrolledWindow of BaseWidget:
-  proc edgeOvershot(pos: Edge)
-  proc edgeReached(pos: Edge)
+  proc edgeOvershot(edge: Edge) ## Called when the user attempts to scroll past limits of the scrollbar
+  proc edgeReached(edge: Edge) ## Called when the user reaches the limits of the scrollbar
 
   child: Widget
 
@@ -1138,7 +1139,7 @@ renderable ScrolledWindow of BaseWidget:
       state.internalWidget = gtk_scrolled_window_new(nil.GtkAdjustment, nil.GtkAdjustment)
     connectEvents:
 
-      proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(pos: Edge)]) =
+      proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(edge: Edge)]) =
         data.callback(Edge(pos))
         data[].redraw()
 
@@ -2675,9 +2676,9 @@ type SelectionMode* = enum
 renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
-  selected: HashSet[int] ## Indices of the currently selected items.
+  selected: HashSet[int] ## Indices of the currently selected rows
 
-  proc select(rows: HashSet[int])
+  proc select(rows: HashSet[int]) ## Called when the selection changed. `rows` contains the indices of the newly selected rows.
   
   hooks:
     beforeBuild:
@@ -2880,7 +2881,7 @@ renderable DropDown of BaseWidget:
   ## A drop down that allows the user to select an item from a list of items.
   
   items: seq[string]
-  selected: int ## Index of the currently selected item.
+  selected: int ## Index of the currently selected item
   enableSearch: bool
   showArrow: bool = true
   
@@ -2968,10 +2969,10 @@ renderable Grid of BaseWidget:
   ## A grid layout.
   
   children: seq[GridChild[Widget]]
-  rowSpacing: int ## Spacing between the rows of the grid.
-  columnSpacing: int ## Spacing between the columns of the grid.
-  rowHomogeneous: bool
-  columnHomogeneous: bool
+  rowSpacing: int ## Spacing between the rows of the grid
+  columnSpacing: int ## Spacing between the columns of the grid
+  rowHomogeneous: bool ## Whether all rows should have the same width
+  columnHomogeneous: bool ## Whether all columns should have the same height
   
   hooks:
     beforeBuild:
@@ -3810,6 +3811,7 @@ type ScaleMark* = object
 
 renderable Scale of BaseWidget:
   ## A slider for choosing a numeric value within a range.
+  
   min: float = 0 ## Lower end of the range displayed by the scale
   max: float = 100 ## Upper end of the range displayed by the scale
   value: float = 0 ## The value the Scale widget displays. Remember to update it via your `valueChanged` proc to reflect the new value on the Scale widget.
@@ -4093,11 +4095,12 @@ proc `valFile=`*(widget: Video, file: GFile) =
   widget.valMediaStream = newMediaStream(file)
 
 renderable Expander of BaseWidget:
-  ## Container that shows or hides its child depending on whether it is expanded/collapsed 
-  label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
-  labelWidget: Widget ## Sets the clickable header of the Expander. Overwrites `label` if provided.
-  expanded: bool = false ## Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
-  child: Widget ## Determines the body of the Expander.
+  ## Container that shows or hides its child depending on whether it is expanded/collapsed.
+  
+  label: string ## The clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+  labelWidget: Widget ## The clickable header of the Expander. Overwrites `label` if provided.
+  expanded: bool = false ## Determines whether the body of the Expander is shown
+  child: Widget ## Determines the body of the Expander
   resizeToplevel: bool = false
   useMarkup: bool = false
   useUnderline: bool = false
@@ -4245,6 +4248,7 @@ renderable PasswordEntry of BaseWidget:
 
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
+  
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
   fraction: float = 0.0 ## Determines how much the ProgressBar is filled. Must be between 0.0 and 1.0. 
   inverted: bool = false
@@ -4503,7 +4507,7 @@ renderable ColumnView of BaseWidget:
   columns: seq[ColumnViewColumn]
   
   selectionMode: SelectionMode
-  selected: HashSet[int] ## Indices of the currently selected rows.
+  selected: HashSet[int] ## Indices of the currently selected rows
   
   showRowSeparators: bool = false
   showColumnSeparators: bool = false
