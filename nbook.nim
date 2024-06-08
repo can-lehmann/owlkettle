@@ -18,6 +18,7 @@ var book = initBookWithToc:
 
   section("Guides", "book/guides.md"):
     entry("Application Architecture", "guides/application_architecture.nim")
+    entry("gui Macro", "guides/gui_macro.nim")
     entry("Recommended Tools", "../docs/recommended_tools.md")
 
   section("Internals", "book/internals.nim"):
