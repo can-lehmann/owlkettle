@@ -808,6 +808,8 @@ proc gtk_scrolled_window_new*(hAdjustment, vAdjustment: GtkAdjustment): GtkWidge
 proc gtk_scrolled_window_get_hadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_set_child*(window, child: GtkWidget)
+proc gtk_scrolled_window_set_propagate_natural_width*(window: GtkWidget, prop: cbool)
+proc gtk_scrolled_window_set_propagate_natural_height*(window: GtkWidget, prop: cbool)
 
 # Gtk.Range
 proc gtk_range_get_value*(widget: GtkWidget): cdouble

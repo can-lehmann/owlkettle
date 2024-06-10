@@ -1133,6 +1133,9 @@ renderable ScrolledWindow of BaseWidget:
   proc edgeReached(edge: Edge) ## Called when the user reaches the limits of the scrollbar
 
   child: Widget
+  
+  propagateNaturalWidth: bool = false
+  propagateNaturalHeight: bool = false
 
   hooks:
     beforeBuild:
@@ -1153,6 +1156,14 @@ renderable ScrolledWindow of BaseWidget:
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_scrolled_window_set_child)
+  
+  hooks propagateNaturalWidth:
+    property:
+      gtk_scrolled_window_set_propagate_natural_width(state.internalWidget, cbool(ord(state.propagateNaturalWidth)))
+  
+  hooks propagateNaturalHeight:
+    property:
+      gtk_scrolled_window_set_propagate_natural_height(state.internalWidget, cbool(ord(state.propagateNaturalHeight)))
   
   adder add:
     if widget.hasChild:

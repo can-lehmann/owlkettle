@@ -409,6 +409,8 @@ renderable ScrolledWindow of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
+- `propagateNaturalWidth: bool = false`
+- `propagateNaturalHeight: bool = false`
 
 ###### Events
 
