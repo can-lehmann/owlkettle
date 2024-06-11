@@ -32,6 +32,13 @@ customPragmas()
 when defined(owlkettleDocs) and isMainModule:
   echo "# Widgets"
 
+type PackType* = enum
+  PackStart
+  PackEnd
+
+proc toGtk*(packType: PackType): GtkPackType =
+  result = GtkPackType(ord(packType))
+
 type 
   Margin* = object
     top*, bottom*, left*, right*: int
@@ -212,6 +219,19 @@ renderable Box of BaseWidget:
         widget.valSpacing.cint
       )
   
+  hooks orient:
+    property:
+      gtk_orientable_set_orientation(state.internalWidget, state.orient.toGtk())
+      for child in state.children:
+        let childWidget = child.widget.unwrapInternalWidget()
+        case state.orient:
+          of OrientX:
+            gtk_widget_set_vexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_hexpand(childWidget, child.expand.ord.cbool)
+          of OrientY:
+            gtk_widget_set_hexpand_set(childWidget, cbool(ord(false)))
+            gtk_widget_set_vexpand(childWidget, child.expand.ord.cbool)
+  
   hooks spacing:
     property:
       gtk_box_set_spacing(state.internalWidget, state.spacing.cint)
@@ -331,7 +351,7 @@ renderable CenterBox of BaseWidget:
   centerWidget: Widget
   endWidget: Widget
   baselinePosition: BaselinePosition = BaselineCenter
-  shrinkCenterLast: bool = false ## Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+  shrinkCenterLast {.since: GtkMinor >= 12.}: bool = false
   orient: Orient = OrientX
   
   hooks:
@@ -356,8 +376,7 @@ renderable CenterBox of BaseWidget:
 
   hooks shrinkCenterLast:
     property:
-      when GtkMinor >= 12:
-        gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
+      gtk_center_box_set_shrink_center_last(state.internalWidget, state.shrinkCenterLast.cbool)
 
   hooks orient:
     property:
@@ -456,12 +475,13 @@ renderable Label of BaseWidget:
   ## The default widget to display text.
   ## Supports rendering [Pango Markup](https://docs.gtk.org/Pango/pango_markup.html#pango-markup) 
   ## if `useMarkup` is enabled.
-  text: string ## The text of the Label to render
-  xAlign: float = 0.5
-  yAlign: float = 0.5
+
+  text: string ## Text displayed by the label
+  xAlign: float = 0.5 ## Horizontal alignment of the text within the widget
+  yAlign: float = 0.5 ## Vertical alignment of the text within the widget
   ellipsize: EllipsizeMode ## Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
-  wrap: bool = false ## Enables/Disable wrapping of text.
-  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup or not.
+  wrap: bool = false ## Enables/Disable wrapping of text
+  useMarkup: bool = false ## Determines whether to interpret the given text as Pango Markup
 
   hooks:
     beforeBuild:
@@ -514,7 +534,7 @@ renderable EditableLabel of BaseWidget:
   text: string = ""
   editing: bool = false ## Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
   enableUndo: bool = true
-  alignment: 0.0..1.0 = 0.0
+  alignment: float = 0.0
   
   proc changed(text: string) ## Fired every time `text` changes.
   proc editStateChanged(newEditState: bool) ## Fired every time `editing` changes.
@@ -669,6 +689,7 @@ proc loadPixbuf*(path: string): Pixbuf =
   let pixbuf = gdk_pixbuf_new_from_file(path.cstring, error.addr)
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
   
   result = newPixbuf(pixbuf)
@@ -686,6 +707,7 @@ proc loadPixbuf*(path: string,
   )
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
   
   result = newPixbuf(pixbuf)
@@ -696,6 +718,7 @@ proc openInputStream(path: string): GInputStream =
   result = g_file_read(file, nil, error.addr)
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to load pixbuf: " & message)
 
 proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.cdecl.} =
@@ -707,6 +730,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
     future.complete(newPixbuf(pixbuf))
   else:
     let message = $error[].message
+    g_error_free(error)
     future.fail(newException(IoError, "Unable to load pixbuf: " & message))
   
   if not stream.isNil:
@@ -714,6 +738,7 @@ proc handlePixbufReady(stream: pointer, result: GAsyncResult, data: pointer) {.c
     discard g_input_stream_close(GInputStream(stream), nil, error.addr)
     if not error.isNil:
       let message = $error[].message
+      g_error_free(error)
       raise newException(IoError, "Unable to close stream: " & message)
     g_object_unref(stream)
 
@@ -831,6 +856,7 @@ proc save*(pixbuf: Pixbuf,
   )
   if not error.isNil:
     let message = $error[].message
+    g_error_free(error)
     raise newException(IoError, "Unable to save pixbuf: " & message)
 
 type ContentFit* = enum
@@ -849,7 +875,10 @@ renderable Picture of BaseWidget:
   
   hooks pixbuf:
     property:
-      gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
+      if state.pixbuf.isNil:
+        gtk_picture_set_pixbuf(state.internalWidget, GdkPixbuf(nil))
+      else:
+        gtk_picture_set_pixbuf(state.internalWidget, state.pixbuf.gdk)
   
   hooks contentFit:
     property:
@@ -993,6 +1022,9 @@ proc toLayoutString*(layout: DecorationLayout): string =
   let rightButtons: string = layout.right.mapIt($it).join(",")
   return fmt"{leftButtons}:{rightButtons}"
 
+const
+  HeaderBarFlat* = "flat".StyleClass
+
 renderable HeaderBar of BaseWidget:
   title: BoxChild[Widget]
   showTitleButtons: bool = true
@@ -1089,17 +1121,49 @@ proc `valWindowControls=`*(widget: Headerbar, buttons: DecorationLayout) =
 proc `valWindowControls=`*(widget: Headerbar, buttons: Option[DecorationLayout]) =
   let decorationLayout: Option[string] = buttons.map(controls => controls.toLayoutString())
   widget.valDecorationLayout = decorationLayout
-  
+
+type Edge* = enum
+  EdgeLeft
+  EdgeRight
+  EdgeTop
+  EdgeBottom
+
 renderable ScrolledWindow of BaseWidget:
+  proc edgeOvershot(edge: Edge) ## Called when the user attempts to scroll past limits of the scrollbar
+  proc edgeReached(edge: Edge) ## Called when the user reaches the limits of the scrollbar
+
   child: Widget
   
+  propagateNaturalWidth: bool = false
+  propagateNaturalHeight: bool = false
+
   hooks:
     beforeBuild:
       state.internalWidget = gtk_scrolled_window_new(nil.GtkAdjustment, nil.GtkAdjustment)
-  
+    connectEvents:
+
+      proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(edge: Edge)]) =
+        data.callback(Edge(pos))
+        data[].redraw()
+
+      state.connect(state.edgeReached, "edge-reached", edgeCallback)
+      state.connect(state.edgeOvershot, "edge-overshot", edgeCallback)
+
+    disconnectEvents:
+      state.internalWidget.disconnect(state.edgeReached)
+      state.internalWidget.disconnect(state.edgeOvershot)
+
   hooks child:
     (build, update):
       state.updateChild(state.child, widget.valChild, gtk_scrolled_window_set_child)
+  
+  hooks propagateNaturalWidth:
+    property:
+      gtk_scrolled_window_set_propagate_natural_width(state.internalWidget, cbool(ord(state.propagateNaturalWidth)))
+  
+  hooks propagateNaturalHeight:
+    property:
+      gtk_scrolled_window_set_propagate_natural_height(state.internalWidget, cbool(ord(state.propagateNaturalHeight)))
   
   adder add:
     if widget.hasChild:
@@ -2122,8 +2186,12 @@ renderable ModelButton of BaseWidget:
       g_object_set_property(state.internalWidget.pointer, "iconic", value.addr)
       g_value_unset(value.addr)
       if state.icon.len > 0:
-        var err: GError
-        let icon = g_icon_new_for_string(state.icon.cstring, err.addr)
+        var error = GError(nil)
+        let icon = g_icon_new_for_string(state.icon.cstring, error.addr)
+        if not error.isNil:
+          let message = $error[].message
+          g_error_free(error)
+          raise newException(IoError, "Unable to load icon: " & message)
         var value = g_value_new(icon)
         g_object_set_property(state.internalWidget.pointer, "icon", value.addr)
         g_value_unset(value.addr)
@@ -2160,8 +2228,8 @@ renderable ModelButton of BaseWidget:
 renderable SearchEntry of BaseWidget:
   text: string
   # child: GtkWidget # This is currently not supported
-  searchDelay: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
-  placeholderText: string = "Search" ## Only available when compiling for gtk 4.10
+  searchDelay {.since: GtkMinor >= 8.}: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted.
+  placeholderText {.since: GtkMinor >= 10.}: string = "Search"
   
   proc activate() ## Triggered when the user "activated" the search e.g. by hitting "enter" key while SearchEntry is in focus.
   proc nextMatch() ## Triggered when the user hits the "next entry" keybinding while the search entry is in focus, which is Ctrl-g by default. 
@@ -2206,18 +2274,12 @@ renderable SearchEntry of BaseWidget:
   
   hooks searchDelay:
     property:
-      when GtkMinor >= 8:
-        gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
-      else:
-        discard
+      gtk_search_entry_set_search_delay(state.internalWidget, state.searchDelay.cuint)
 
   hooks placeholderText:
     property:
-      when GtkMinor >= 10:
-        gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
-      else:
-        discard
-    
+      gtk_search_entry_set_placeholder_text(state.internalWidget, state.placeholderText.cstring)
+
 renderable Separator of BaseWidget:
   ## A separator line.
   
@@ -2234,6 +2296,8 @@ type
   
   TagStyle* = object
     background*: Option[string]
+    paragraphBackground*: Option[string]
+    backgroundFullHeight*: Option[bool]
     foreground*: Option[string]
     family*: Option[string]
     size*: Option[int]
@@ -2242,14 +2306,18 @@ type
     underline*: Option[UnderlineKind]
     style*: Option[CairoFontSlant]
   
-  # Wrapper for the GtkTextBuffer pointer to work with destructors of nim's ARC/ORC
-  # Todo: As of 16.09.2023 it is mildly buggy to try and to `TextBuffer = distinct GtkTextBuffer` and
-  # have destructors act on that new type directly. It was doable as shown in Ticket #75 and Github PR #81
-  # But required a =sink hook for no understandable reason *and* seemed risky due to bugs likely making it unstable.
-  # The pointer wrapped by intermediate type used as ref-type via an alias approach seems more stable for now.
-  # Re-evaluate this in Match 2024 to see whether we can remove the wrapper obj.
+  TextBufferEventObj = object
+    callback: proc(isUserChange: bool)
+    buffer {.cursor.}: TextBuffer
+    handler: culong
+    isUserChange: bool
+  
+  TextBufferEvent = ref TextBufferEventObj
+  
   TextBufferObj = object
     gtk: GtkTextBuffer
+    events: HashSet[TextBufferEvent]
+    isUserChange: bool
   
   TextBuffer* = ref TextBufferObj
   
@@ -2263,6 +2331,11 @@ crossVersionDestructor(buffer, TextBufferObj):
   
   g_object_unref(pointer(buffer.gtk))
 
+proc `=sink`*(dest: var TextBufferObj; source: TextBufferObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.gtk = source.gtk
+
 proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
@@ -2272,12 +2345,42 @@ proc `=copy`*(dest: var TextBufferObj, source: TextBufferObj) =
   wasMoved(dest)
   if not isNil(source.gtk):
     g_object_ref(pointer(source.gtk))
-    
+  
   dest.gtk = source.gtk
 
 proc newTextBuffer*(): TextBuffer =
-  result = TextBuffer(gtk: gtk_text_buffer_new(nil.GtkTextTagTable))
+  result = TextBuffer(
+    gtk: gtk_text_buffer_new(nil.GtkTextTagTable),
+    isUserChange: true
+  )
+
+proc `==`*(a, b: TextBufferEvent): bool =
+  result = a[].addr == b[].addr
+
+proc hash*(event: TextBufferEvent): Hash =
+  result = hash(event[].addr)
+
+proc connectChanged*(buffer: TextBuffer, callback: proc(isUserChange: bool)): TextBufferEvent =
+  result = TextBufferEvent(callback: callback, buffer: buffer)
+  buffer.events.incl(result)
   
+  proc changedCallback(widget: GtkWidget, event: ptr TextBufferEventObj) {.cdecl.} =
+    event[].callback(event[].buffer.isUserChange)
+  
+  result.handler = g_signal_connect(
+    pointer(buffer.gtk),
+    "changed",
+    changedCallback,
+    result[].addr
+  )
+
+proc disconnect*(event: TextBufferEvent) =
+  assert event.handler > 0
+  g_signal_handler_disconnect(pointer(event.buffer.gtk), event.handler)
+  event.buffer.events.excl(event)
+  event.handler = 0
+  event.buffer = nil
+
 {.push hint[Name]: off.}
 proc g_value_new(value: UnderlineKind): GValue =
   discard g_value_init(result.addr, G_TYPE_INT)
@@ -2297,8 +2400,13 @@ proc registerTag*(buffer: TextBuffer, name: string, style: TagStyle): TextTag =
   result = gtk_text_buffer_create_tag(buffer.gtk, name.cstring, nil)
   for attr, value in fieldPairs(style):
     if value.isSome:
+      let name = case attr:
+        of "paragraphBackground": "paragraph-background"
+        of "backgroundFullHeight": "background-full-height"
+        else: attr
+      
       var gvalue = g_value_new(get(value))
-      g_object_set_property(result.pointer, attr.cstring, gvalue.addr)
+      g_object_set_property(result.pointer, name.cstring, gvalue.addr)
       g_value_unset(gvalue.addr)
 
 proc lookupTag*(buffer: TextBuffer, name: string): TextTag =
@@ -2311,6 +2419,13 @@ proc unregisterTag*(buffer: TextBuffer, tag: TextTag) =
 
 proc unregisterTag*(buffer: TextBuffer, name: string) =
   buffer.unregisterTag(buffer.lookupTag(name))
+
+template withUserChange(buffer: TextBuffer, value: bool, body: untyped) =
+  block:
+    let old = buffer.isUserChange
+    defer: buffer.isUserChange = old
+    buffer.isUserChange = value
+    body
 
 {.push inline.}
 proc lineCount*(buffer: TextBuffer): int =
@@ -2332,7 +2447,8 @@ proc iterAtOffset*(buffer: TextBuffer, offset: int): TextIter =
   gtk_text_buffer_get_iter_at_offset(buffer.gtk, result.addr, offset.cint)
 
 proc `text=`*(buffer: TextBuffer, text: string) =
-  gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
+  buffer.withUserChange(false):
+    gtk_text_buffer_set_text(buffer.gtk, text.cstring, text.len.cint)
 
 proc text*(buffer: TextBuffer, start, stop: TextIter, hiddenChars: bool = true): string =
   result = $gtk_text_buffer_get_text(
@@ -2347,6 +2463,9 @@ proc text*(buffer: TextBuffer, hiddenChars: bool = true): string =
 
 proc isModified*(buffer: TextBuffer): bool =
   result = gtk_text_buffer_get_modified(buffer.gtk) != 0
+
+proc `isModified=`*(buffer: TextBuffer, modified: bool) =
+  gtk_text_buffer_set_modified(buffer.gtk, cbool(modified))
 
 proc hasSelection*(buffer: TextBuffer): bool =
   result = gtk_text_buffer_get_has_selection(buffer.gtk) != 0
@@ -2363,12 +2482,14 @@ proc select*(buffer: TextBuffer, insert, other: TextIter) =
   gtk_text_buffer_select_range(buffer.gtk, insert.unsafeAddr, other.unsafeAddr)
 
 proc delete*(buffer: TextBuffer, a, b: TextIter) =
-  gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
+  buffer.withUserChange(false):
+    gtk_text_buffer_delete(buffer.gtk, a.unsafeAddr, b.unsafeAddr)
 
 proc delete*(buffer: TextBuffer, slice: TextSlice) = buffer.delete(slice.a, slice.b)
 
 proc insert*(buffer: TextBuffer, iter: TextIter, text: string) =
-  gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
+  buffer.withUserChange(false):
+    gtk_text_buffer_insert(buffer.gtk, iter.unsafeAddr, cstring(text), cint(text.len))
 
 proc applyTag*(buffer: TextBuffer, name: string, a, b: TextIter) =
   gtk_text_buffer_apply_tag_by_name(buffer.gtk, name.cstring, a.unsafeAddr, b.unsafeAddr)
@@ -2387,6 +2508,9 @@ proc removeAllTags*(buffer: TextBuffer, a, b: TextIter) =
 
 proc removeAllTags*(buffer: TextBuffer, slice: TextSlice) =
   buffer.removeAllTags(slice.a, slice.b)
+
+proc removeAllTags*(buffer: TextBuffer) =
+  buffer.removeAllTags(buffer.startIter, buffer.endIter)
 
 proc canRedo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_redo(buffer.gtk) != 0)
 proc canUndo*(buffer: TextBuffer): bool = bool(gtk_text_buffer_get_can_undo(buffer.gtk) != 0)
@@ -2459,6 +2583,15 @@ proc `line=`*(iter: TextIter, val: int) = gtk_text_iter_set_line(iter.unsafeAddr
 proc `lineOffset=`*(iter: TextIter, val: int) = gtk_text_iter_set_line_offset(iter.unsafeAddr, cint(val))
 {.pop.}
 
+type
+  WrapMode* = enum
+    WrapNone
+    WrapChar
+    WrapWord
+    WrapWordChar
+
+proc toGtk(mode: WrapMode): GtkWrapMode = GtkWrapMode(ord(mode))
+
 renderable TextView of BaseWidget:
   ## A text editor with support for formatted text.
   
@@ -2468,19 +2601,12 @@ renderable TextView of BaseWidget:
   editable: bool = true
   acceptsTab: bool = true
   indent: int = 0
-  
-  proc changed()
+  wrapMode: WrapMode = WrapNone
+  textMargin: Margin
   
   hooks:
     beforeBuild:
       state.internalWidget = gtk_text_view_new()
-    connectEvents:
-      if not state.changed.isNil:
-        state.changed.handler = g_signal_connect(
-          GtkWidget(state.buffer.gtk), "changed", eventCallback, state.changed[].addr
-        )
-    disconnectEvents:
-      GtkWidget(state.buffer.gtk).disconnect(state.changed)
   
   hooks monospace:
     property:
@@ -2501,6 +2627,17 @@ renderable TextView of BaseWidget:
   hooks indent:
     property:
       gtk_text_view_set_indent(state.internalWidget, cint(state.indent))
+  
+  hooks wrapMode:
+    property:
+      gtk_text_view_set_wrap_mode(state.internalWidget, toGtk(state.wrapMode))
+  
+  hooks textMargin:
+    property:
+      gtk_text_view_set_top_margin(state.internalWidget, cint(state.textMargin.top))
+      gtk_text_view_set_bottom_margin(state.internalWidget, cint(state.textMargin.bottom))
+      gtk_text_view_set_left_margin(state.internalWidget, cint(state.textMargin.left))
+      gtk_text_view_set_right_margin(state.internalWidget, cint(state.textMargin.right))
   
   hooks buffer:
     property:
@@ -2550,9 +2687,9 @@ type SelectionMode* = enum
 renderable ListBox of BaseWidget:
   rows: seq[Widget]
   selectionMode: SelectionMode
-  selected: HashSet[int] ## Indices of the currently selected items.
+  selected: HashSet[int] ## Indices of the currently selected rows
 
-  proc select(rows: HashSet[int])
+  proc select(rows: HashSet[int]) ## Called when the selection changed. `rows` contains the indices of the newly selected rows.
   
   hooks:
     beforeBuild:
@@ -2620,10 +2757,7 @@ renderable ListBox of BaseWidget:
     widget.valRows.add(child)
   
   adder add:
-    if child of ListBoxRow:
-      widget.addRow(ListBoxRow(child))
-    else:
-      widget.addRow(ListBoxRow(hasChild: true, valChild: child))
+    widget.addRow(ListBoxRow(hasChild: true, valChild: child))
   
   example:
     ListBox:
@@ -2755,7 +2889,7 @@ renderable DropDown of BaseWidget:
   ## A drop down that allows the user to select an item from a list of items.
   
   items: seq[string]
-  selected: int ## Index of the currently selected item.
+  selected: int ## Index of the currently selected item
   enableSearch: bool
   showArrow: bool = true
   
@@ -2843,10 +2977,10 @@ renderable Grid of BaseWidget:
   ## A grid layout.
   
   children: seq[GridChild[Widget]]
-  rowSpacing: int ## Spacing between the rows of the grid.
-  columnSpacing: int ## Spacing between the columns of the grid.
-  rowHomogeneous: bool
-  columnHomogeneous: bool
+  rowSpacing: int ## Spacing between the rows of the grid
+  columnSpacing: int ## Spacing between the columns of the grid
+  rowHomogeneous: bool ## Whether all rows should have the same width
+  columnHomogeneous: bool ## Whether all columns should have the same height
   
   hooks:
     beforeBuild:
@@ -3685,6 +3819,7 @@ type ScaleMark* = object
 
 renderable Scale of BaseWidget:
   ## A slider for choosing a numeric value within a range.
+  
   min: float = 0 ## Lower end of the range displayed by the scale
   max: float = 100 ## Upper end of the range displayed by the scale
   value: float = 0 ## The value the Scale widget displays. Remember to update it via your `valueChanged` proc to reflect the new value on the Scale widget.
@@ -3805,7 +3940,7 @@ proc `=sink`(dest: var MediaStreamObj; source: MediaStreamObj) =
   `=destroy`(dest)
   wasMoved(dest)
   dest.gtk = source.gtk
-  
+
 proc `=copy`*(dest: var MediaStreamObj, source: MediaStreamObj) =
   let areSameObject = pointer(source.gtk) == pointer(dest.gtk)
   if areSameObject:
@@ -3939,6 +4074,21 @@ renderable Video of BaseWidget:
     property:
       gtk_video_set_loop(state.internalWidget, state.loop.cbool)
 
+renderable MediaControls of BaseWidget:
+  mediaStream: MediaStream
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = gtk_media_controls_new(nil.GtkMediaStream)
+  
+  hooks mediaStream:
+    property:
+      if isNil(state.mediaStream):
+        gtk_media_controls_set_media_stream(state.internalWidget, GtkMediaStream(nil))
+      else:
+        gtk_media_controls_set_media_stream(state.internalWidget, state.mediaStream.gtk)
+  
+
 proc `hasFileName=`*(widget: Video, has: bool) =
   widget.hasMediaStream = has
 
@@ -3953,11 +4103,12 @@ proc `valFile=`*(widget: Video, file: GFile) =
   widget.valMediaStream = newMediaStream(file)
 
 renderable Expander of BaseWidget:
-  ## Container that shows or hides its child depending on whether it is expanded/collapsed 
-  label: string ## Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
-  labelWidget: Widget ## Sets the clickable header of the Expander. Overwrites `label` if provided.
-  expanded: bool = false ## Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
-  child: Widget ## Determines the body of the Expander.
+  ## Container that shows or hides its child depending on whether it is expanded/collapsed.
+  
+  label: string ## The clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+  labelWidget: Widget ## The clickable header of the Expander. Overwrites `label` if provided.
+  expanded: bool = false ## Determines whether the body of the Expander is shown
+  child: Widget ## Determines the body of the Expander
   resizeToplevel: bool = false
   useMarkup: bool = false
   useUnderline: bool = false
@@ -4024,6 +4175,32 @@ renderable Expander of BaseWidget:
     
     widget.hasLabelWidget = true
     widget.valLabelWidget = child
+  
+  example:
+    Expander:
+      label = "Expander"
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      label = "Expander"
+      expanded = app.expanded
+      
+      proc activate(activated: bool) =
+        app.expanded = activated
+      
+      Label:
+        text = "Content"
+  
+  example:
+    Expander:
+      Label {.addLabel.}:
+        text = "Widget Label"
+      
+      Label:
+        text = "Content"
 
 renderable PasswordEntry of BaseWidget:
   text: string
@@ -4075,10 +4252,11 @@ renderable PasswordEntry of BaseWidget:
   hooks showPeekIcon:
     property:
       gtk_password_entry_set_show_peek_icon(state.internalWidget, state.showPeekIcon.cbool)
-  
-  
+
+
 renderable ProgressBar of BaseWidget:
   ## A progress bar widget to show progress being made on a long-lasting task
+  
   ellipsize: EllipsizeMode = EllipsizeEnd ## Determines how the `text` gets ellipsized if `showText = true` and `text` overflows.
   fraction: float = 0.0 ## Determines how much the ProgressBar is filled. Must be between 0.0 and 1.0. 
   inverted: bool = false
@@ -4312,6 +4490,234 @@ renderable ListView of BaseWidget:
     property:
       gtk_list_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
 
+type ColumnViewColumn* = object
+  title*: string
+  visible*: bool
+  resizable*: bool
+  expand*: bool
+  fixedWidth*: int
+
+proc initColumnViewColumn*(title: string,
+                           visible: bool = true,
+                           resizable: bool = false,
+                           expand: bool = false,
+                           fixedWidth: int = -1): ColumnViewColumn =
+  result = ColumnViewColumn(
+    title: title,
+    visible: visible,
+    resizable: resizable,
+    expand: expand,
+    fixedWidth: fixedWidth
+  )
+
+renderable ColumnView of BaseWidget:
+  rows: int ## Number of rows
+  columns: seq[ColumnViewColumn]
+  
+  selectionMode: SelectionMode
+  selected: HashSet[int] ## Indices of the currently selected rows
+  
+  showRowSeparators: bool = false
+  showColumnSeparators: bool = false
+  singleClickActivate: bool = false
+  enableRubberband: bool = false
+  reorderable: bool = false
+  
+  proc viewItem(row, column: int): Widget
+  proc select(rows: HashSet[int])
+  proc activate(index: int)
+  
+  type
+    CellState = object
+      widgetState: WidgetState
+      listItem: GtkWidget
+    
+    ColumnStateObj = object
+      index: int
+      widgetState {.cursor.}: ColumnViewState
+      gtk: GtkColumnViewColumn
+      factory: GtkListItemFactory
+      cellStates: Table[int, CellState]
+    
+    ColumnState = ref ColumnStateObj
+  
+  model {.private, onlyState.}: GListModel
+  selectionModel {.private, onlyState.}: GtkSelectionModel
+  columnStates {.private, onlyState.}: seq[ColumnState]
+  
+  hooks:
+    beforeBuild:
+      state.model = g_list_store_new(G_TYPE_OBJECT)
+      state.internalWidget = gtk_column_view_new(GtkSelectionModel(nil))
+    update:
+      for columnIndex, column in state.columnStates:
+        for rowIndex, itemState in column.cellStates.mpairs:
+          let updater = state.viewItem.callback(rowIndex, columnIndex)
+          updater.assignApp(state.app)
+          let newState = updater.update(itemState.widgetState)
+          if not newState.isNil:
+            gtk_list_item_set_child(itemState.listItem, newState.unwrapInternalWidget())
+            itemState.widgetState = newState
+    connectEvents:
+      proc activateCallback(widget: GtkWidget,
+                            position: cuint,
+                            data: ptr EventObj[proc(index: int)]) =
+        data[].callback(int(position))
+        data[].redraw()
+      
+      state.connect(state.activate, "activate", activateCallback)
+      
+      proc selectionChangedCallback(selectionModel: GtkSelectionModel,
+                                    position: cuint,
+                                    count: cuint,
+                                    data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
+        let state = ColumnViewState(data[].widget)
+        for index in position..(position + count):
+          if bool(gtk_selection_model_is_selected(selectionModel, index)):
+            state.selected.incl(int(index))
+          else:
+            state.selected.excl(int(index))
+        data[].callback(state.selected)
+        data[].redraw()
+      
+      if not state.select.isNil:
+        state.select.widget = state
+        state.select.handler = g_signal_connect(
+          state.selectionModel,
+          "selection-changed",
+          selectionChangedCallback,
+          state.select[].addr
+        )
+    disconnectEvents:
+      state.internalWidget.disconnect(state.activate)
+      if not state.select.isNil:
+        assert state.select.handler > 0
+        g_signal_handler_disconnect(pointer(state.selectionModel), state.select.handler)
+        state.select.handler = 0
+        state.select.widget = nil
+  
+  hooks columns:
+    (build, update):
+      if widget.hasColumns:
+        state.columns = widget.valColumns
+        
+        proc bindCallback(factory: GtkListItemFactory,
+                          listItem: GtkWidget,
+                          stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let
+            index = int(gtk_list_item_get_position(listItem))
+            updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
+          updater.assignApp(stateObj[].widgetState.app)
+          let widgetState = updater.build()
+          stateObj[].cellStates[index] = CellState(
+            widgetState: widgetState,
+            listItem: listItem
+          )
+          gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+        
+        proc unbindCallback(factory: GtkListItemFactory,
+                            listItem: GtkWidget,
+                            stateObj: ptr ColumnStateObj) {.cdecl.} =
+          let index = int(gtk_list_item_get_position(listItem))
+          stateObj[].cellStates.del(index)
+        
+        var it = 0
+        while it < state.columnStates.len and it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = state.columnStates[it]
+          gtk_column_view_column_set_title(columnState.gtk, column.title.cstring)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          
+          it += 1
+        
+        while it < widget.valColumns.len:
+          let
+            column = widget.valColumns[it]
+            columnState = ColumnState(index: it, widgetState: state)
+          
+          columnState.factory = gtk_signal_list_item_factory_new()
+          discard g_signal_connect(columnState.factory, "bind", pointer(bindCallback), columnState[].addr)
+          discard g_signal_connect(columnState.factory, "unbind", pointer(unbindCallback), columnState[].addr)
+          
+          columnState.gtk = gtk_column_view_column_new(column.title.cstring, columnState.factory)
+          gtk_column_view_column_set_visible(columnState.gtk, cbool(ord(column.visible)))
+          gtk_column_view_column_set_resizable(columnState.gtk, cbool(ord(column.resizable)))
+          gtk_column_view_column_set_expand(columnState.gtk, cbool(ord(column.expand)))
+          gtk_column_view_column_set_fixed_width(columnState.gtk, cint(column.fixedWidth))
+          gtk_column_view_append_column(state.internalWidget, columnState.gtk)
+          
+          state.columnStates.add(columnState)
+          it += 1
+        
+        while it < state.columnStates.len:
+          let columnState = state.columnStates.pop()
+          gtk_column_view_remove_column(state.internalWidget, columnState.gtk)
+  
+  # TODO: Custom List Model
+  hooks rows:
+    build:
+      for it in 0..<widget.valRows:
+        g_list_store_append(state.model, pointer(state.model))
+      state.rows = widget.valRows
+    update:
+      if widget.hasRows:
+        while state.rows < widget.valRows:
+          g_list_store_append(state.model, pointer(state.model))
+          state.rows += 1
+        
+        while state.rows > widget.valRows:
+          state.rows -= 1
+          g_list_store_remove(state.model, cuint(state.rows))
+  
+  hooks selectionMode:
+    property:
+      case state.selectionMode:
+        of SelectionNone:
+          state.selectionModel = gtk_no_selection_new(state.model)
+        of SelectionSingle:
+          state.selectionModel = gtk_single_selection_new(state.model)
+        of SelectionBrowse, SelectionMultiple:
+          state.selectionModel = gtk_multi_selection_new(state.model)
+      
+      state.selected.reset()
+      gtk_column_view_set_model(state.internalWidget, state.selectionModel)
+  
+  hooks selected:
+    (build, update):
+      if widget.hasSelected:
+        for index in state.selected - widget.valSelected:
+          gtk_selection_model_unselect_item(state.selectionModel, cuint(index))
+        for index in widget.valSelected - state.selected:
+          gtk_selection_model_select_item(
+            state.selectionModel,
+            cuint(index),
+            cbool(ord(false))
+          )
+        state.selected = widget.valSelected
+  
+  hooks showRowSeparators:
+    property:
+      gtk_column_view_set_show_row_separators(state.internalWidget, cbool(ord(state.showRowSeparators)))
+  
+  hooks showColumnSeparators:
+    property:
+      gtk_column_view_set_show_column_separators(state.internalWidget, cbool(ord(state.showColumnSeparators)))
+  
+  hooks singleClickActivate:
+    property:
+      gtk_column_view_set_single_click_activate(state.internalWidget, cbool(ord(state.singleClickActivate)))
+  
+  hooks enableRubberband:
+    property:
+      gtk_column_view_set_enable_rubberband(state.internalWidget, cbool(ord(state.enableRubberband)))
+  
+  hooks reorderable:
+    property:
+      gtk_column_view_set_reorderable(state.internalWidget, cbool(ord(state.reorderable)))
 
 export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
 export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
@@ -4328,8 +4734,8 @@ export AboutDialog, AboutDialogState
 export buildState, updateState, assignAppEvents
 export Scale
 export Expander
+export Video, MediaControls
 export SearchEntry
-export Video
 export ProgressBar
 export EmojiChooser
 export EditableLabel
@@ -4337,3 +4743,4 @@ export PasswordEntry
 export CenterBox
 export ListView
 export ActionBar
+export ColumnView

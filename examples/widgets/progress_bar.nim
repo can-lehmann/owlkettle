@@ -28,8 +28,8 @@ viewable App:
   fraction: float = 0.3
   inverted: bool = false
   pulseStep: float = 0.1
-  showText: bool = false
-  text: string = ""
+  showText: bool = true
+  text: string = "Progress"
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
@@ -38,29 +38,33 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "ProgressBar Example"
-      defaultSize = (800, 600)
-      HeaderBar() {.addTitlebar.}:
+      defaultSize = (500, 200)
+      
+      HeaderBar {.addTitlebar.}:
+        style = [HeaderBarFlat]
         insert(app.toAutoFormMenu()) {.addRight.}
       
-        Button() {.addRight.}:
+        Button() {.addLeft.}:
           text = "+"
           style = [ButtonFlat]
           
           proc clicked() =
-            if app.fraction + 0.05 <= 1.0:
-              app.fraction += 0.05
+            app.fraction += 0.05
+            app.fraction = min(app.fraction, 1.0)
           
-        Button() {.addRight.}:
+        Button() {.addLeft.}:
           text = "-"
           style = [ButtonFlat]
           
           proc clicked() =
-            if app.fraction - 0.05 > 0.0:
-              app.fraction -= 0.05
-          
-      Box(orient = OrientY):
-        Label(text = "Progress Bar: ")
-        ProgressBar():
+            app.fraction -= 0.05
+            app.fraction = max(app.fraction, 0.0)
+      
+      Box:
+        orient = OrientY
+        margin = 12
+        
+        ProgressBar {.vAlign: AlignCenter.}:
           ellipsize = app.ellipsize
           fraction = app.fraction
           inverted = app.inverted

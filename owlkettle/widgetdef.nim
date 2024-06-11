@@ -36,7 +36,7 @@ type
     app*: Viewable
   
   Viewable* = ref object of WidgetState
-    viewed: WidgetState
+    viewed*: WidgetState
   
   Renderable* = ref object of WidgetState
     internalWidget*: GtkWidget
@@ -100,6 +100,7 @@ type
     default: NimNode
     hooks: array[HookKind, NimNode]
     modifiers: set[FieldModifier]
+    since: NimNode
     lineInfo: NimNode
     doc: string
   
@@ -124,6 +125,7 @@ type
     name: string
     kind: WidgetKind
     base: string
+    since: NimNode
     events: seq[EventDef]
     fields: seq[Field]
     hooks: array[HookKind, seq[NimNode]]
@@ -161,9 +163,17 @@ proc stateBase(def: WidgetDef): NimNode =
   else:
     result = ident(def.base & "State")
 
+proc parsePragma(pragma: NimNode, def: var WidgetDef) =
+  for child in pragma:
+    if child.kind == nnkExprColonExpr and
+       child[0].eqIdent("since"):
+      def.since = child[1]
+    else:
+      error("Invalid widget pragma " & child.repr, pragma)
+
 proc parseName(name: NimNode, def: var WidgetDef) =
   template invalidName() =
-    error(name.repr & " is not a valid widget name")
+    error(name.repr & " is not a valid widget name", name)
   
   case name.kind:
     of nnkIdent, nnkSym:
@@ -172,10 +182,13 @@ proc parseName(name: NimNode, def: var WidgetDef) =
       if name[0].eqIdent("of"):
         name[1].parseName(def)
         if not name[2].isName:
-          error("Expected identifier after of in widget name, but got " & $name[2].kind)
+          error("Expected identifier after of in widget name, but got " & $name[2].kind, name)
         def.base = name[2].strVal
       else:
         invalidName()
+    of nnkPragmaExpr:
+      name[0].parseName(def)
+      name[1].parsePragma(def)
     else: invalidName()
 
 proc parseHookKind(name: string): HookKind =
@@ -213,21 +226,27 @@ proc extractDocComment(node: NimNode): string =
     newline = str.len - 1
   result = str[(pos + 2)..newline].strip()
 
-proc parseFieldModifiers(node: NimNode): set[FieldModifier] =
+proc parseFieldPragma(node: NimNode): tuple[modifiers: set[FieldModifier], since: NimNode] =
   case node.kind:
     of nnkPragma:
       for child in node:
-        var foundModifier = false
-        for modifier in low(FieldModifier)..high(FieldModifier):
-          if child.eqIdent($modifier):
-            result.incl(modifier)
-            foundModifier = true
-            break
-        if not foundModifier:
-          error("Invalid field modifier " & node.repr, node)
+        if child.kind == nnkExprColonExpr and
+           child[0].eqIdent("since"):
+          result.since = child[1]
+        else:
+          var foundModifier = false
+          for modifier in low(FieldModifier)..high(FieldModifier):
+            if child.eqIdent($modifier):
+              result.modifiers.incl(modifier)
+              foundModifier = true
+              break
+          if not foundModifier:
+            error("Invalid field modifier " & node.repr, node)
     else:
       for child in node:
-        result = result + child.parseFieldModifiers()
+        let (modifiers, since) = child.parseFieldPragma()
+        result.modifiers = result.modifiers + modifiers
+        result.since = result.since or since
 
 proc parseBody(body: NimNode, def: var WidgetDef) =
   assert def.fields.len == 0
@@ -238,6 +257,8 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
         def.doc &= child.strVal & "\n"
       of nnkProcDef:
         assert child.name.isName
+        if child.body.kind != nnkEmpty:
+          error("Event definitions may not have a procedure body", child)
         def.events.add(EventDef(
           name: child.name.strVal,
           signature: child.params,
@@ -300,11 +321,14 @@ proc parseBody(body: NimNode, def: var WidgetDef) =
           def.adders.add(adder)
         else:
           child[^1].expectKind(nnkStmtList)
-          let name = child[0].unwrapName()
+          let
+            name = child[0].unwrapName()
+            (modifiers, since) = child[0].parseFieldPragma()
           var field = Field(
             name: name.strVal,
-            modifiers: child[0].parseFieldModifiers(),
+            modifiers: modifiers,
             lineInfo: name,
+            since: since,
             doc: child[1].extractDocComment()
           )
           case child[1][0].kind:
@@ -412,8 +436,10 @@ proc genBuildState(def: WidgetDef): NimNode =
   for field in def.fields:
     if field.isOnlyState:
       continue
+    
+    let buildField = newStmtList()
     if not field.hooks[HookBuild].isNil:
-      result.add(newBlockStmt(field.hooks[HookBuild].copyNimTree()))
+      buildField.add(newBlockStmt(field.hooks[HookBuild].copyNimTree()))
     else:
       var cond = newTree(nnkIfStmt, [
         newTree(nnkElifBranch, [
@@ -429,14 +455,25 @@ proc genBuildState(def: WidgetDef): NimNode =
           newDotExpr(state, field.name),
           field.default
         ))))
-      result.add(cond)
+      buildField.add(cond)
       if not field.hooks[HookProperty].isNil:
-        result.add(newBlockStmt(field.hooks[HookProperty].copyNimTree()))
+        buildField.add(newBlockStmt(field.hooks[HookProperty].copyNimTree()))
+    
+    if field.since.isNil:
+      result.add(buildField)
+    else:
+      result.add(newTree(nnkWhenStmt, [
+        newTree(nnkElifBranch, [
+          field.since.copyNimTree(), buildField
+        ])
+      ]))
+  
   for event in def.events:
     result.add(newAssignment(
       newDotExpr(state, event.name),
       newDotExpr(widget, event.name)
     ))
+  
   for body in def.hooks[HookConnectEvents]:
     result.add(newBlockStmt(body.copyNimTree()))
   
@@ -493,11 +530,14 @@ proc genUpdateState(def: WidgetDef): NimNode =
   
   for hook in def.hooks[HookDisconnectEvents]:
     result.add(hook.copyNimTree())
+  
   for field in def.fields:
     if field.isOnlyState:
       continue
+    
+    let updateField = newStmtList()
     if not field.hooks[HookUpdate].isNil:
-      result.add(newBlockStmt(field.hooks[HookUpdate]))
+      updateField.add(newBlockStmt(field.hooks[HookUpdate]))
     else:
       let update = newStmtList(newAssignment(
         newDotExpr(state, field.name),
@@ -513,16 +553,28 @@ proc genUpdateState(def: WidgetDef): NimNode =
             newDotExpr(widget, field.value)
           ])
         ])
-      result.add(newTree(nnkIfStmt, newTree(nnkElifBranch, [
+      updateField.add(newTree(nnkIfStmt, newTree(nnkElifBranch, [
         cond, update
       ])))
+    
+    if field.since.isNil:
+      result.add(updateField)
+    else:
+      result.add(newTree(nnkWhenStmt, [
+        newTree(nnkElifBranch, [
+          field.since.copyNimTree(), updateField
+        ])
+      ]))
+  
   for event in def.events:
     result.add(newAssignment(
       newDotExpr(state, event.name),
       newDotExpr(widget, event.name)
     ))
+  
   for hook in def.hooks[HookUpdate]:
     result.add(newBlockStmt(hook.copyNimTree()))
+  
   for hook in def.hooks[HookConnectEvents]:
     result.add(newBlockStmt(hook.copyNimTree()))
   
@@ -620,30 +672,37 @@ proc formatReference(widget: WidgetDef): string =
   if widget.doc.len > 0:
     result &= widget.doc.strip()
     result &= "\n\n"
+  if not widget.since.isNil:
+    result &= "Since: `" & widget.since.repr & "`"
+    result &= "\n\n"
   if widget.fields.len > 0 or widget.base.len > 0:
     result &= "###### Fields\n\n"
     if widget.base.len > 0:
       result &= "- All fields from [" & widget.base & "](#" & widget.base & ")\n"
     for field in widget.fields:
-      if FieldPrivate in field.modifiers:
+      if field.isPrivate:
         continue
       result &= "- `" & field.name
-      if field.modifiers.len > 0:
-        result &= " {."
-        var isFirst = true
-        for modifier in field.modifiers:
-          if isFirst:
-            isFirst = false
-          else:
-            result &= ", "
-          result &= $modifier
-        result &= ".}"
       result &= ": " & field.typ.repr
       if not field.default.isNil:
         result &= " = " & field.default.repr
       result &= "`"
       if field.doc.len > 0:
         result &= " " & field.doc
+      
+      if field.modifiers.len > 0 or not field.since.isNil:
+        result &= " "
+        var pragmas: seq[string] = @[]
+        if not field.since.isNil:
+          pragmas.add("Since: `" & field.since.repr & "`")
+        for modifier in field.modifiers:
+          pragmas.add("`" & $modifier & "`")
+        
+        for it, pragma in pragmas:
+          if it != 0:
+            result &= ", "
+          result &= pragma
+      
       result &= "\n"
     result &= "\n"
   if widget.setters.len > 0:
@@ -722,6 +781,13 @@ proc gen(widget: WidgetDef): NimNode =
     widget.genRead(),
     widget.genAdders()
   ])
+  if not widget.since.isNil:
+    result = newStmtList(newTree(nnkWhenStmt, [
+      newTree(nnkElifBranch, [
+        widget.since, result
+      ])
+    ]))
+  
   when defined(owlkettleDocs):
     result.add(widget.genDocs())
 
