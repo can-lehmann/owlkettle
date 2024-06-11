@@ -57,7 +57,7 @@ block:
 nbText: """
 ## Control Flow
 
-You can use `if` and `case` statements to conditionally show and hide different widgets.
+You can use `if`, `when` and `case` statements to conditionally show and hide different widgets.
 """
 
 block:
@@ -71,7 +71,7 @@ block:
           UserPage()
 
 nbText: """
-`if` and `case` can also be used on fields:
+`if`, `when` and `case` can also be used on fields:
 """
 
 block:

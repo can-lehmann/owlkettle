@@ -29,8 +29,8 @@ import common, widgetdef
 
 type
   NodeKind = enum
-    NodeWidget, NodeAttribute, NodeEvent,
-    NodeBlock, NodeFor, NodeIf, NodeCase,
+    NodeWidget, NodeField, NodeEvent,
+    NodeBlock, NodeFor, NodeIf, NodeWhen, NodeCase,
     NodeInsert, NodeLet
   
   Adder = object
@@ -45,7 +45,7 @@ type
       of NodeWidget:
         widget: seq[string]
         adder: Adder
-      of NodeAttribute:
+      of NodeField:
         name: string
         value: NimNode
       of NodeEvent:
@@ -54,7 +54,7 @@ type
       of NodeFor:
         vars: seq[NimNode]
         iter: NimNode
-      of NodeIf:
+      of NodeIf, NodeWhen:
         branches: seq[(NimNode, Node)]
         otherwise: Node
       of NodeCase:
@@ -111,7 +111,7 @@ proc parseGui(node: NimNode): Node =
           result.children.add(child.parseGui())
     of nnkAsgn, nnkExprEqExpr:
       assert node[0].isName
-      result = Node(kind: NodeAttribute,
+      result = Node(kind: NodeField,
         name: node[0].strVal,
         value: node[1],
         lineInfo: node
@@ -129,8 +129,11 @@ proc parseGui(node: NimNode): Node =
         result.vars.add(node[it])
       result.iter = node[^2]
       result.children.add(node[^1].parseGui())
-    of nnkIfStmt:
-      result = Node(kind: NodeIf)
+    of nnkIfStmt, nnkWhenStmt:
+      if node.kind == nnkWhenStmt:
+        result = Node(kind: NodeWhen)
+      else:
+        result = Node(kind: NodeIf)
       for child in node:
         case child.kind:
           of nnkElifBranch:
@@ -224,7 +227,7 @@ proc gen(node: Node, stmts, parent: NimNode) =
           error("The top-level widget in a gui tree may not have an adder", node.lineInfo)
         body.add(name)
       stmts.add(newTree(nnkBlockStmt, newEmptyNode(), body))
-    of NodeAttribute:
+    of NodeField:
       stmts.add(newAssignment(
         newDotExpr(parent, "has" & capitalizeAscii(node.name)),
         newLit(true),
@@ -261,8 +264,11 @@ proc gen(node: Node, stmts, parent: NimNode) =
           )
         )
       ]))
-    of NodeIf:
-      var stmt = newTree(nnkIfStmt)
+    of NodeIf, NodeWhen:
+      var kind = nnkIfStmt
+      if node.kind == NodeWhen:
+        kind = nnkWhenStmt
+      let stmt = newTree(kind)
       for (cond, body) in node.branches:
         var bodyStmts = newStmtList()
         body.gen(bodyStmts, parent)
