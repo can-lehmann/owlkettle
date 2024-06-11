@@ -63,12 +63,12 @@ type
     LengthPoint
     LengthScaleIndependent
 
-proc isNil*(manager: StyleManager): bool {.borrow.}
-
   ToolbarStyle* = enum
     ToolbarFlat
     ToolbarRaised
     ToolbarRaisedBorder
+
+proc isNil*(manager: StyleManager): bool {.borrow.}
 
 {.push importc, cdecl.}
 # Adw
