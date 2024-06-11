@@ -33,6 +33,7 @@ export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.ToolbarStyle
 export adw.LengthUnit
 export adw.CenteringPolicy
 export adw.AdwVersion
@@ -1005,6 +1006,87 @@ renderable StatusPage of BaseWidget:
     widget.hasPaintable = true
     widget.valPaintable = child
 
+renderable ToolbarView {.since: AdwVersion >= (1, 4).} of BaseWidget:
+  content: Widget
+  bottomBars: seq[Widget]
+  topBars: seq[Widget]
+  bottomBarStyle: ToolbarStyle = ToolbarFlat
+  extendContentToBottomEdge: bool = false
+  extendContentToTopEdge: bool = false
+  revealBottomBars: bool = true
+  revealTopBars: bool = true
+  topBarStyle: ToolbarStyle = ToolbarFlat
+  
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_toolbar_view_new()
+  
+  hooks content:
+    (build, update):
+      state.updateChild(
+        state.content,
+        widget.valContent,
+        adw_toolbar_view_set_content
+      )
+  
+  hooks bottomBars:
+    (build, update):
+      state.updateChildren(
+        state.bottomBars,
+        widget.valBottomBars,
+        adw_toolbar_view_add_bottom_bar,
+        adw_toolbar_view_remove
+      )
+  
+  hooks topBars:
+    (build, update):
+      state.updateChildren(
+        state.topBars,
+        widget.valTopBars,
+        adw_toolbar_view_add_top_bar,
+        adw_toolbar_view_remove
+      )
+    
+  hooks bottomBarStyle:
+    property:
+      adw_toolbar_view_set_bottom_bar_style(state.internalWidget, state.bottomBarStyle)
+  
+  hooks extendContentToBottomEdge:
+    property:
+      adw_toolbar_view_set_extend_content_to_bottom_edge(state.internalWidget, state.extendContentToBottomEdge.cbool)
+  
+  hooks extendContentToTopEdge:
+    property:
+      adw_toolbar_view_set_extend_content_to_top_edge(state.internalWidget, state.extendContentToTopEdge.cbool)
+  
+  hooks revealBottomBars:
+    property:
+      adw_toolbar_view_set_reveal_bottom_bars(state.internalWidget, state.revealBottomBars.cbool)
+      
+  hooks revealTopBars:
+    property:
+      adw_toolbar_view_set_reveal_top_bars(state.internalWidget, state.revealTopBars.cbool)
+      
+  hooks topBarStyle:
+    property:
+      adw_toolbar_view_set_top_bar_style(state.internalWidget, state.topBarStyle)
+  
+  adder add:
+    if widget.hasContent:
+      raise newException(ValueError, "Unable to add multiple children to a ToolbarView. Use a Box widget to display multiple widgets!")
+    widget.hasContent = true
+    widget.valContent = child
+  
+  adder addBottom:
+    widget.hasBottomBars = true
+    widget.valBottomBars.add(child)
+  
+  adder addTop:
+    widget.hasTopBars = true
+    widget.valTopBars.add(child)
+
+when AdwVersion >= (1, 4):
+  export ToolbarView
 
 type LicenseType* = enum
   LicenseUnknown = 0

@@ -541,6 +541,35 @@ renderable StatusPage of BaseWidget
 - `addPaintable`
 
 
+## ToolbarView
+
+```nim
+renderable ToolbarView of BaseWidget
+```
+
+Since: `AdwVersion >= (1, 4)`
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `content: Widget`
+- `bottomBars: seq[Widget]`
+- `topBars: seq[Widget]`
+- `bottomBarStyle: ToolbarStyle = ToolbarFlat`
+- `extendContentToBottomEdge: bool = false`
+- `extendContentToTopEdge: bool = false`
+- `revealBottomBars: bool = true`
+- `revealTopBars: bool = true`
+- `topBarStyle: ToolbarStyle = ToolbarFlat`
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+- `addBottom`
+- `addTop`
+
+
 ## AboutWindow
 
 ```nim
