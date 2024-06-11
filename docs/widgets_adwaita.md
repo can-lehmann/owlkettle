@@ -547,6 +547,8 @@ renderable StatusPage of BaseWidget
 renderable ToolbarView of BaseWidget
 ```
 
+Since: `AdwVersion >= (1, 4)`
+
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
