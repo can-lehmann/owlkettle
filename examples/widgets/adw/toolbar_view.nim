@@ -23,25 +23,26 @@
 import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  bottomBarStyle: ToolbarStyle = ToolbarFlat
-  extendContentToBottomEdge: bool = false
-  extendContentToTopEdge: bool = false
+  bottomBarStyle: ToolbarStyle = ToolbarRaisedBorder
+  extendContentToBottomEdge: bool = true
+  extendContentToTopEdge: bool = true
   revealBottomBars: bool = true
   revealTopBars: bool = true
-  topBarStyle: ToolbarStyle = ToolbarFlat
+  topBarStyle: ToolbarStyle = ToolbarRaisedBorder
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
 
 method view(app: AppState): Widget =
   result = gui:
-    Window():
-      defaultSize = (800, 600)
+    Window:
       title = "Toolbar View Example"
-      HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+      defaultSize = (500, 300)
 
-      ToolbarView():
+      HeaderBar {.addTitlebar.}:
+        insert(app.toAutoFormMenu(sizeRequest = (400, 250))) {.addRight.}
+
+      ToolbarView:
         bottomBarStyle = app.bottomBarStyle
         extendContentToBottomEdge = app.extendContentToBottomEdge
         extendContentToTopEdge = app.extendContentToTopEdge
@@ -52,31 +53,33 @@ method view(app: AppState): Widget =
         tooltip = app.tooltip
         sizeRequest = app.sizeRequest
         
-        Box():
-          Label(text = "I am a child of a Toolbar View")
-          Icon(name = "face-cool-symbolic")
+        Box:
+          Box {.hAlign: AlignCenter, vAlign: AlignCenter.}:
+            orient = OrientY
+            spacing = 12
+            
+            Label(text = "I am a child of a Toolbar View")
+  
+            Button:
+              text = "Toggle Top"
+              proc clicked() =
+                app.revealTopBars = not app.revealTopBars
+            
+            Button:
+              text = "Toggle Bottom"
+              proc clicked() =
+                app.revealBottomBars = not app.revealBottomBars
         
-        ActionBar() {.addTop.}:
+        ActionBar {.addTop.}:
           revealed = true
-          Label(text = "Top bar")
-          Button(text = "Toggle Top") {.addStart.}:
-            proc clicked() =
-              app.revealTopBars = not app.revealTopBars
           
-          Button(text = "Toggle Bottom"){.addEnd.}:
-            proc clicked() =
-              app.revealBottomBars = not app.revealBottomBars
-        
-        ActionBar() {.addBottom.}:
+          Label:
+            text = "Top bar"
+
+        ActionBar {.addBottom.}:
           revealed = true
-          Label(text = "Bottom Bar")
-          Button(text = "Toggle Bottom") {.addStart.}:
-            proc clicked() =
-              app.revealBottomBars = not app.revealBottomBars
-          
-          Button(text = "Toggle Top"){.addEnd.}:
-            proc clicked() =
-              app.revealTopBars = not app.revealTopBars
-              
+
+          Label:
+            text = "Bottom Bar"
 
 adw.brew(gui(App()))
