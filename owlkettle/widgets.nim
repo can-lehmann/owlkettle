@@ -2757,10 +2757,7 @@ renderable ListBox of BaseWidget:
     widget.valRows.add(child)
   
   adder add:
-    if child of ListBoxRow:
-      widget.addRow(ListBoxRow(child))
-    else:
-      widget.addRow(ListBoxRow(hasChild: true, valChild: child))
+    widget.addRow(ListBoxRow(hasChild: true, valChild: child))
   
   example:
     ListBox:
