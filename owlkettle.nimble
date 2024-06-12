@@ -1,4 +1,4 @@
-version = "2.2.0"
+version = "3.0.0"
 author = "Can Joshua Lehmann"
 description = "A declarative user interface framework based on GTK"
 license = "MIT"
@@ -21,7 +21,10 @@ task examples, "Build examples":
       "widgets/adw/banner.nim",
       "widgets/adw/entry_row.nim",
       "widgets/adw/switch_row.nim",
-      "widgets/adw/button_content.nim"
+      "widgets/adw/toolbar_view.nim",
+      "widgets/adw/overlay_split_view.nim",
+      "widgets/adw/button_content.nim",
+      "widgets/adw/about_window.nim"
     ]
     let adwaitaFlag = ""
   else:

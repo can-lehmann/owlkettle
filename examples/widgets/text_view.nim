@@ -110,11 +110,19 @@ method view(app: AppState): Widget =
           sensitive = app.sensitive
           tooltip = app.tooltip
           sizeRequest = app.sizeRequest
-          proc changed() = discard
-        
-let buffer = newTextBuffer()
-discard buffer.registerTag("marker", TagStyle(
-  background: some("#ffff77"),
-  weight: some(700)
-))
-adw.brew(gui(App(buffer = buffer)))
+
+proc main() =
+  # TODO: Not using a main function causes memory management issues. Probably a Nim ARC/ORC problem.
+  let buffer = newTextBuffer()
+  discard buffer.registerTag("marker", TagStyle(
+    background: some("#ffff77"),
+    weight: some(700)
+  ))
+  let event = buffer.connectChanged(
+    proc(isUserChange: bool) =
+      echo "[", isUserChange, "] ", buffer.text
+  )
+  adw.brew(gui(App(buffer = buffer)))
+
+when isMainModule:
+  main()

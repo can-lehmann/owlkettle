@@ -16,6 +16,11 @@ var book = initBookWithToc:
   #entry("Migrating", "docs/migrating_1_to_2.md")
   #entry("Cross Compiling", "docs/cross_compiling.md")
 
+  section("Guides", "book/guides.md"):
+    entry("Application Architecture", "guides/application_architecture.nim")
+    entry("gui Macro", "guides/gui_macro.nim")
+    entry("Recommended Tools", "../docs/recommended_tools.md")
+
   section("Internals", "book/internals.nim"):
     entry("Custom Widgets", "internals/custom_widgets.nim")
 
@@ -35,12 +40,11 @@ var book = initBookWithToc:
       entry("Read Hook", "hooks/read_hook.nim")
 
     entry("Setters", "internals/setters.nim")
-
-  entry("Tooling", "docs/recommended_tools.md")
   
   section("Migration", "book/migration.md"):
     entry("1.x.x to 2.0.0", "../docs/migrating_1_to_2.md")
-    entry("2.x.x to 3.0.0 (devel)", "../docs/migrating_2_to_3.md")
+    entry("2.x.x to 3.0.0", "../docs/migrating_2_to_3.md")
+    entry("3.x.x to 4.0.0 (devel)", "../docs/migrating_3_to_4.md")
   
   section("Contributing", "CONTRIBUTING.md"):
     entry("Wrapping GTK widgets", "book/internals/wrap_gtk_widget.nim")

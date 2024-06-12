@@ -129,6 +129,33 @@ type
   GtkLevelBarMode* = enum
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
+
+  GtkLicenseType* = enum
+    GTK_LICENSE_UNKNOWN = 0
+    GTK_LICENSE_CUSTOM = 1
+    GTK_LICENSE_GPL_2_0 = 2
+    GTK_LICENSE_GPL_3_0 = 3
+    GTK_LICENSE_LGPL_2_1 = 4
+    GTK_LICENSE_LGPL_3_0 = 5
+    GTK_LICENSE_BSD = 6
+    GTK_LICENSE_MIT_X11 = 7
+    GTK_LICENSE_ARTISTIC = 8
+    GTK_LICENSE_GPL_2_0_ONLY = 9
+    GTK_LICENSE_GPL_3_0_ONLY = 10
+    GTK_LICENSE_LGPL_2_1_ONLY = 11
+    GTK_LICENSE_LGPL_3_0_ONLY = 12
+    GTK_LICENSE_AGPL_3_0 = 13
+    GTK_LICENSE_AGPL_3_0_ONLY = 14
+    GTK_LICENSE_BSD_3 = 15
+    GTK_LICENSE_APACHE_2_0 = 16
+    GTK_LICENSE_MPL_2_0 = 17
+    GTK_LICENSE_0BSD = 18
+  
+  GtkWrapMode* = enum
+    GTK_WRAP_NONE
+    GTK_WRAP_CHAR
+    GTK_WRAP_WORD
+    GTK_WRAP_WORD_CHAR
   
   GtkTextIter* = object
     a, b: pointer
@@ -158,6 +185,7 @@ type
   GtkMediaStream* = distinct pointer
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
+  GtkColumnViewColumn* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -177,6 +205,7 @@ proc isNil*(obj: GtkParamSpec): bool {.borrow.}
 proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
+proc isNil*(obj: GtkColumnViewColumn): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -416,6 +445,9 @@ proc `=sink`*(dest: var OwnedGtkString; source: OwnedGtkString) =
 proc `$`*(cStr: OwnedGtkString): string = $(cStr.cstring)
 
 {.push importc, cdecl.}
+# GLib.Error
+proc g_error_free*(error: GError)
+
 # GLib.Source
 proc g_source_remove*(id: cuint): cbool
 
@@ -609,6 +641,10 @@ proc gtk_video_set_loop*(self: GtkWidget, loop: cbool)
 proc gtk_video_set_media_stream*(self: GtkWidget, stream: GtkMediaStream)
 proc gtk_video_set_resource*(self: GtkWidget, resource_path: cstring)
 
+# Gtk.MediaControls
+proc gtk_media_controls_new*(stream: GtkMediaStream): GtkWidget
+proc gtk_media_controls_set_media_stream*(controls: GtkWidget, stream: GtkMediaStream)
+
 # Gtk.Widget
 proc gtk_widget_show*(widget: GtkWidget)
 proc gtk_widget_hide*(widget: GtkWidget)
@@ -627,6 +663,8 @@ proc gtk_widget_set_margin_start*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_margin_end*(widget: GtkWidget, margin: cint)
 proc gtk_widget_set_hexpand*(widget: GtkWidget, expand: cbool)
 proc gtk_widget_set_vexpand*(widget: GtkWidget, expand: cbool)
+proc gtk_widget_set_hexpand_set*(widget: GtkWidget, isSet: cbool)
+proc gtk_widget_set_vexpand_set*(widget: GtkWidget, isSet: cbool)
 proc gtk_widget_set_halign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_set_valign*(widget: GtkWidget, align: GtkAlign)
 proc gtk_widget_add_controller*(widget: GtkWidget, cont: GtkEventController)
@@ -643,7 +681,7 @@ proc gtk_widget_measure*(widget: GtkWidget, orient: GtkOrientation, size: cint, 
 
 # Gtk.CssProvider
 proc gtk_css_provider_new*(): GtkCssProvider
-proc gtk_css_provider_load_from_path*(cssProvider: GtkCssProvider, path: cstring, error: ptr GError): cbool
+proc gtk_css_provider_load_from_path*(cssProvider: GtkCssProvider, path: cstring)
 proc gtk_css_provider_load_from_data*(cssProvider: GtkCssProvider, data: cstring, length: csize_t)
 
 # Gtk.StyleContext
@@ -770,6 +808,8 @@ proc gtk_scrolled_window_new*(hAdjustment, vAdjustment: GtkAdjustment): GtkWidge
 proc gtk_scrolled_window_get_hadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_get_vadjustment*(window: GtkWidget): GtkAdjustment
 proc gtk_scrolled_window_set_child*(window, child: GtkWidget)
+proc gtk_scrolled_window_set_propagate_natural_width*(window: GtkWidget, prop: cbool)
+proc gtk_scrolled_window_set_propagate_natural_height*(window: GtkWidget, prop: cbool)
 
 # Gtk.Range
 proc gtk_range_get_value*(widget: GtkWidget): cdouble
@@ -804,7 +844,7 @@ proc gtk_image_set_from_pixbuf*(image: GtkWidget, pixbuf: GdkPixbuf)
 # Gtk.Picture
 proc gtk_picture_new*(): GtkWidget
 proc gtk_picture_set_pixbuf*(picture: GtkWidget, pixbuf: GdkPixbuf)
-when defined(gtk48):
+when GtkMinor >= 8:
   proc gtk_picture_set_content_fit*(picture: GtkWidget, fit: GtkContentFit)
 else:
   proc gtk_picture_set_keep_aspect_ratio*(picture: GtkWidget, keep: cbool)
@@ -944,6 +984,7 @@ proc gtk_separator_new*(orient: GtkOrientation): GtkWidget
 proc gtk_text_buffer_new*(tagTable: GtkTextTagTable): GtkTextBuffer
 proc gtk_text_buffer_get_line_count*(buffer: GtkTextBuffer): cint
 proc gtk_text_buffer_get_char_count*(buffer: GtkTextBuffer): cint
+proc gtk_text_buffer_set_modified*(buffer: GtkTextBuffer, modified: cbool)
 proc gtk_text_buffer_get_modified*(buffer: GtkTextBuffer): cbool
 proc gtk_text_buffer_get_can_redo*(buffer: GtkTextBuffer): cbool
 proc gtk_text_buffer_get_can_undo*(buffer: GtkTextBuffer): cbool
@@ -1013,6 +1054,11 @@ proc gtk_text_view_set_cursor_visible*(textView: GtkWidget, isVisible: cbool)
 proc gtk_text_view_set_editable*(textView: GtkWidget, editable: cbool)
 proc gtk_text_view_set_accepts_tab*(textView: GtkWidget, acceptsTab: cbool)
 proc gtk_text_view_set_indent*(textView: GtkWidget, indent: cint)
+proc gtk_text_view_set_top_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_bottom_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_left_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_right_margin*(textView: GtkWidget, margin: cint)
+proc gtk_text_view_set_wrap_mode*(textView: GtkWidget, mode: GtkWrapMode)
 
 # Gtk.ListBox
 proc gtk_list_box_new*(): GtkWidget
@@ -1213,6 +1259,27 @@ proc gtk_list_view_set_show_separators*(widget: GtkWidget, show: cbool)
 proc gtk_list_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
 proc gtk_list_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
 
+# Gtk.ColumnView
+proc gtk_column_view_new*(model: GtkSelectionModel): GtkWidget
+proc gtk_column_view_set_model*(widget: GtkWidget, model: GtkSelectionModel)
+proc gtk_column_view_append_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_insert_column*(widget: GtkWidget, pos: cuint, column: GtkColumnViewColumn)
+proc gtk_column_view_remove_column*(widget: GtkWidget, column: GtkColumnViewColumn)
+proc gtk_column_view_set_show_row_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_show_column_separators*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_single_click_activate*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_enable_rubberband*(widget: GtkWidget, setting: cbool)
+proc gtk_column_view_set_reorderable*(widget: GtkWidget, setting: cbool)
+
+# Gtk.ColumnViewColumn
+proc gtk_column_view_column_new*(title: cstring, factory: GtkListItemFactory): GtkColumnViewColumn
+proc gtk_column_view_column_set_title*(column: GtkColumnViewColumn, title: cstring)
+proc gtk_column_view_column_set_resizable*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_visible*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_expand*(column: GtkColumnViewColumn, setting: cbool)
+proc gtk_column_view_column_set_fixed_width*(column: GtkColumnViewColumn, width: cint)
+proc gtk_column_view_column_get_resizable*(column: GtkColumnViewColumn): cbool
+
 # Gio.ListStore
 proc g_list_store_new*(itemType: GType): GListModel
 proc g_list_store_append*(model: GListModel, item: pointer)
@@ -1248,6 +1315,9 @@ proc g_value_new*(icon: GIcon): GValue =
   discard g_value_init(result.addr, g_type_from_name("GIcon"))
   g_value_set_object(result.addr, pointer(icon))
 
+proc g_signal_connect*(obj: pointer, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(obj, signal, closure, data, nil, G_CONNECT_AFTER)
+
 proc g_signal_connect*(widget: GtkEventController, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(widget.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
@@ -1263,8 +1333,6 @@ proc g_signal_connect*(app: GtkListItemFactory, signal: cstring, closure, data: 
 proc g_signal_connect*(app: GtkSelectionModel, signal: cstring, closure, data: pointer): culong =
   result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
-proc g_signal_connect*(app: pointer, signal: cstring, closure, data: pointer): culong =
-    result = g_signal_connect_data(app, signal, closure, data, nil, G_CONNECT_AFTER)
 {.pop.}
 
 template withCArgs(argc, argv, body: untyped) =

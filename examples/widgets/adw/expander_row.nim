@@ -20,15 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import owlkettle, owlkettle/adw
+import owlkettle, owlkettle/[playground, adw]
 
 viewable App:
-  discard
+  subtitle: string = "a very long subtitle that benefits from expander row showing multiple lines for the subtitle by quite a bit and will be elipsized once the end of that line is reached. Some more text to demonstrate it elipsizing."
+  enableExpansion: bool = true
+  expanded1: bool = false
+  expanded2: bool = false
+  showEnableSwitch: bool = false
+  titleLines: int = 0
+  subtitleLines: int = 2
 
 method view(app: AppState): Widget =
   result = gui:
     Window:
       title = "Expander Row Example"
+      HeaderBar() {.addTitlebar.}:
+        insert(app.toAutoFormMenu()) {.addRight.}
       
       Clamp:
         maximumSize = 500
@@ -39,6 +47,16 @@ method view(app: AppState): Widget =
           
           ExpanderRow:
             title = "Expander Row"
+            subtitle = app.subtitle
+            enableExpansion = app.enableExpansion
+            showEnableSwitch = app.showEnableSwitch
+            titleLines = app.titleLines
+            expanded = app.expanded1
+            subtitleLines = app.subtitleLines
+            
+            proc expand(hasExpanded: bool) =
+              echo "Expanding First Expander: ", hasExpanded
+              app.expanded1 = hasExpanded
             
             for it in 0..<3:
               ActionRow {.addRow.}:
@@ -47,7 +65,16 @@ method view(app: AppState): Widget =
           ExpanderRow:
             title = "Expander Row"
             subtitle = "with actions"
+            enableExpansion = app.enableExpansion
+            showEnableSwitch = app.showEnableSwitch
+            titleLines = app.titleLines
+            subtitleLines = app.subtitleLines
+            expanded = app.expanded2
             
+            proc expand(hasExpanded: bool) =
+              echo "Expanding Second Expander: ", hasExpanded
+              app.expanded2 = hasExpanded
+              
             Button {.addAction.}:
               text = "Action"
             

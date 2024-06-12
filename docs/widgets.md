@@ -142,7 +142,7 @@ renderable CenterBox of BaseWidget
 - `centerWidget: Widget`
 - `endWidget: Widget`
 - `baselinePosition: BaselinePosition = BaselineCenter`
-- `shrinkCenterLast: bool = false` Requires GTK 4.12 or higher to work. Compile with `-d:gtkminor=12` to enable it
+- `shrinkCenterLast: bool = false` Since: `GtkMinor >= 12`
 - `orient: Orient = OrientX`
 
 ###### Adders
@@ -202,12 +202,12 @@ if `useMarkup` is enabled.
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `text: string` The text of the Label to render
-- `xAlign: float = 0.5`
-- `yAlign: float = 0.5`
+- `text: string` Text displayed by the label
+- `xAlign: float = 0.5` Horizontal alignment of the text within the widget
+- `yAlign: float = 0.5` Vertical alignment of the text within the widget
 - `ellipsize: EllipsizeMode` Determines whether to ellipsise the text in case space is insufficient to render all of it. May be one of `EllipsizeNone`, `EllipsizeStart`, `EllipsizeMiddle` or `EllipsizeEnd`
-- `wrap: bool = false` Enables/Disable wrapping of text.
-- `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup or not.
+- `wrap: bool = false` Enables/Disable wrapping of text
+- `useMarkup: bool = false` Determines whether to interpret the given text as Pango Markup
 
 ###### Example
 
@@ -243,7 +243,7 @@ renderable EditableLabel of BaseWidget
 - `text: string = ""`
 - `editing: bool = false` Determines whether the edit view (editing = false) or the "read" view (editing = true) is being shown
 - `enableUndo: bool = true`
-- `alignment: 0.0 .. 1.0 = 0.0`
+- `alignment: float = 0.0`
 
 ###### Events
 
@@ -409,6 +409,13 @@ renderable ScrolledWindow of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
+- `propagateNaturalWidth: bool = false`
+- `propagateNaturalHeight: bool = false`
+
+###### Events
+
+- edgeOvershot: `proc (edge: Edge)` Called when the user attempts to scroll past limits of the scrollbar
+- edgeReached: `proc (edge: Edge)` Called when the user reaches the limits of the scrollbar
 
 ###### Adders
 
@@ -904,8 +911,8 @@ renderable SearchEntry of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
-- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Only available when compiling for gtk 4.8
-- `placeholderText: string = "Search"` Only available when compiling for gtk 4.10
+- `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Since: `GtkMinor >= 8`
+- `placeholderText: string = "Search"` Since: `GtkMinor >= 10`
 
 ###### Events
 
@@ -947,10 +954,8 @@ A text editor with support for formatted text.
 - `editable: bool = true`
 - `acceptsTab: bool = true`
 - `indent: int = 0`
-
-###### Events
-
-- changed: `proc ()`
+- `wrapMode: WrapMode = WrapNone`
+- `textMargin: Margin`
 
 
 ## ListBoxRow
@@ -999,11 +1004,11 @@ renderable ListBox of BaseWidget
 - All fields from [BaseWidget](#BaseWidget)
 - `rows: seq[Widget]`
 - `selectionMode: SelectionMode`
-- `selected: HashSet[int]` Indices of the currently selected items.
+- `selected: HashSet[int]` Indices of the currently selected rows
 
 ###### Events
 
-- select: `proc (rows: HashSet[int])`
+- select: `proc (rows: HashSet[int])` Called when the selection changed. `rows` contains the indices of the newly selected rows.
 
 ###### Adders
 
@@ -1121,7 +1126,7 @@ A drop down that allows the user to select an item from a list of items.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `items: seq[string]`
-- `selected: int` Index of the currently selected item.
+- `selected: int` Index of the currently selected item
 - `enableSearch: bool`
 - `showArrow: bool = true`
 
@@ -1153,10 +1158,10 @@ A grid layout.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `children: seq[GridChild[Widget]]`
-- `rowSpacing: int` Spacing between the rows of the grid.
-- `columnSpacing: int` Spacing between the columns of the grid.
-- `rowHomogeneous: bool`
-- `columnHomogeneous: bool`
+- `rowSpacing: int` Spacing between the rows of the grid
+- `columnSpacing: int` Spacing between the columns of the grid
+- `rowHomogeneous: bool` Whether all rows should have the same width
+- `columnHomogeneous: bool` Whether all columns should have the same height
 
 ###### Setters
 
@@ -1582,21 +1587,33 @@ renderable Video of BaseWidget
 - `file: GFile`
 
 
+## MediaControls
+
+```nim
+renderable MediaControls of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `mediaStream: MediaStream`
+
+
 ## Expander
 
 ```nim
 renderable Expander of BaseWidget
 ```
 
-Container that shows or hides its child depending on whether it is expanded/collapsed
+Container that shows or hides its child depending on whether it is expanded/collapsed.
 
 ###### Fields
 
 - All fields from [BaseWidget](#BaseWidget)
-- `label: string` Sets the clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
-- `labelWidget: Widget` Sets the clickable header of the Expander. Overwrites `label` if provided.
-- `expanded: bool = false` Determines whether the Expander body is shown (expanded = true) or not (expanded = false)
-- `child: Widget` Determines the body of the Expander.
+- `label: string` The clickable header of the Expander. Overwritten by `labelWidget` if it is provided via adder.
+- `labelWidget: Widget` The clickable header of the Expander. Overwrites `label` if provided.
+- `expanded: bool = false` Determines whether the body of the Expander is shown
+- `child: Widget` Determines the body of the Expander
 - `resizeToplevel: bool = false`
 - `useMarkup: bool = false`
 - `useUnderline: bool = false`
@@ -1610,6 +1627,34 @@ Container that shows or hides its child depending on whether it is expanded/coll
 - All adders from [BaseWidget](#BaseWidget)
 - `add`
 - `addLabel`
+
+###### Example
+
+```nim
+Expander:
+  label = "Expander"
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  label = "Expander"
+  expanded = app.expanded
+  proc activate(activated: bool) =
+    app.expanded = activated
+
+  Label:
+    text = "Content"
+```
+
+```nim
+Expander:
+  Label {.addLabel.}:
+    text = "Widget Label"
+  Label:
+    text = "Content"
+```
 
 
 ## PasswordEntry
@@ -1694,6 +1739,32 @@ renderable ListView of BaseWidget
 ###### Events
 
 - viewItem: `proc (index: int): Widget`
+- select: `proc (rows: HashSet[int])`
+- activate: `proc (index: int)`
+
+
+## ColumnView
+
+```nim
+renderable ColumnView of BaseWidget
+```
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `rows: int` Number of rows
+- `columns: seq[ColumnViewColumn]`
+- `selectionMode: SelectionMode`
+- `selected: HashSet[int]` Indices of the currently selected rows
+- `showRowSeparators: bool = false`
+- `showColumnSeparators: bool = false`
+- `singleClickActivate: bool = false`
+- `enableRubberband: bool = false`
+- `reorderable: bool = false`
+
+###### Events
+
+- viewItem: `proc (row, column: int): Widget`
 - select: `proc (rows: HashSet[int])`
 - activate: `proc (index: int)`
 

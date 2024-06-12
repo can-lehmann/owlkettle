@@ -17,7 +17,7 @@ type TodoItem = object
 
 viewable App:
   todos: seq[TodoItem]
-  new_item: string
+  newItem: string
 ```
 
 Next we need to define the `view` method of the application.
@@ -59,11 +59,11 @@ Window:
     Frame:
       ScrolledWindow:
         ListBox:
-          selection_mode = SelectionNone
+          selectionMode = SelectionNone
           for it, todo in app.todos:
             Label:
               text = todo.text
-              x_align = 0
+              xAlign = 0
 ```
 
 <img alt="The application displays the placeholder items" src="assets/tutorial/todo_2.png" width="428px">
@@ -75,7 +75,7 @@ In this case, we update the current state of the `TodoItem`.
 ```diff
  ...
  ListBox:
-   selection_mode = SelectionNone
+   selectionMode = SelectionNone
    for it, todo in app.todos:
 +    Box:
 +      spacing = 6
@@ -85,7 +85,7 @@ In this case, we update the current state of the `TodoItem`.
 +          app.todos[it].done = state
        Label:
          text = todo.text
-         x_align = 0
+         xAlign = 0
 ```
 
 <img alt="Items can be marked as done" src="assets/tutorial/todo_3.png" width="428px">
@@ -99,15 +99,15 @@ Window:
   Box(orient = OrientY, spacing = 6, margin = 12):
     Box(orient = OrientX, spacing = 6) {.expand: false.}:
       Entry:
-        text = app.new_item
-        proc changed(new_item: string) =
-          app.new_item = new_item
+        text = app.newItem
+        proc changed(newItem: string) =
+          app.newItem = newItem
       Button {.expand: false.}:
         icon = "list-add-symbolic"
         style = [ButtonSuggested]
         proc clicked() =
-          app.todos.add(TodoItem(text: app.new_item))
-          app.new_item = ""
+          app.todos.add(TodoItem(text: app.newItem))
+          app.newItem = ""
     
     Frame:
       ScrolledWindow:
@@ -121,8 +121,8 @@ Finally we add a `HeaderBar` and a menu which contains a button used to delete a
 ```nim
 Window:
   ...
-  HeaderBar {.add_titlebar.}:  
-    MenuButton {.add_right.}:
+  HeaderBar {.addTitlebar.}:
+    MenuButton {.addRight.}:
       icon = "open-menu-symbolic"
       Popover:
         Box(orient=OrientY, spacing=6, margin=6):
@@ -130,7 +130,7 @@ Window:
             icon = "user-trash-symbolic"
             style = [ButtonDestructive]
             proc clicked() =
-              app.todos = app.todos.filter_it(not it.done)
+              app.todos = app.todos.filterIt(not it.done)
   Box:
     ...
 ```

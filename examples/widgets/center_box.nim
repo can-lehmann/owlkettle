@@ -38,11 +38,14 @@ method view(app: AppState): Widget =
   result = gui:
     Window():
       title = "Center Box Example"
-      defaultSize = (800, 600)
+      defaultSize = (500, 200)
+      
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu()) {.addRight.}
+        insert(app.toAutoFormMenu(sizeRequest = (400, 600))) {.addRight.}
       
       CenterBox:
+        margin = 12
+        
         baselinePosition = app.baselinePosition
         shrinkCenterLast = app.shrinkCenterLast
         sensitive = app.sensitive

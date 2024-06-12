@@ -25,7 +25,7 @@ import owlkettle/bindings/gtk
 export widgetdef except build_bin, update_bin
 export widgets, guidsl
 export Align
-export Stylesheet, newStylesheet, loadStylesheet
+export Stylesheet, ApplicationEvent, newStylesheet, loadStylesheet
 
 proc writeClipboard*(state: WidgetState, text: string) =
   let
@@ -69,6 +69,7 @@ proc sendNotification*(id, title, body: string,
     var err = GError(nil)
     let gIcon = g_icon_new_for_string(icon.cstring, err.addr)
     if not err.isNil:
+      g_error_free(err)
       raise newException(IoError, "Icon \"" & icon & "\" is unknown")
     g_notification_set_icon(notification, gIcon)
     g_object_unref(pointer(gIcon))
@@ -146,40 +147,74 @@ proc closeWindow*(state: WidgetState) =
     root = gtk_widget_get_root(widget)
   gtk_window_close(root)
 
+proc scheduleCloseWindow*(state: WidgetState) =
+  proc closeTask(): bool =
+    state.closeWindow()
+  
+  discard addGlobalIdleTask(closeTask)
+
 proc brew*(widget: Widget,
            icons: openArray[string] = [],
            darkTheme: bool = false,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
            stylesheets: openArray[Stylesheet] = []) =
   gtk_init()
-  let state = setupApp(AppConfig(
-    widget: widget,
-    icons: @icons,
-    darkTheme: darkTheme,
-    stylesheets: @stylesheets
-  ))
-  runMainloop(state)
-
-proc brew*(id: string,
-           widget: Widget,
-           icons: openArray[string] = [],
-           darkTheme: bool = false,
-           stylesheets: openArray[Stylesheet] = []) =
-  var config = AppConfig(
+  let config = AppConfig(
     widget: widget,
     icons: @icons,
     darkTheme: darkTheme,
     stylesheets: @stylesheets
   )
   
-  proc activateCallback(app: GApplication, data: ptr AppConfig) {.cdecl.} =
+  let state = setupApp(config)
+  
+  var context = AppContext[AppConfig](
+    config: config,
+    state: state,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  context.execStartupEvents()
+  runMainloop(state)
+  context.execShutdownEvents()
+
+proc brew*(id: string,
+           widget: Widget,
+           icons: openArray[string] = [],
+           darkTheme: bool = false,
+           startupEvents: openArray[ApplicationEvent] = [],
+           shutdownEvents: openArray[ApplicationEvent] = [],
+           stylesheets: openArray[Stylesheet] = []) =
+  var config = AppConfig(
+    widget: widget,
+    icons: @icons,
+    darkTheme: darkTheme,
+    stylesheets: @stylesheets,
+  )
+  
+  var context = AppContext[AppConfig](
+    config: config,
+    startupEvents: @startupEvents,
+    shutdownEvents: @shutdownEvents
+  )
+  
+  proc activateCallback(app: GApplication, data: ptr AppContext[AppConfig]) {.cdecl.} =
     let
-      state = setupApp(data[])
+      state = setupApp(data[].config)
       window = state.unwrapRenderable().internalWidget
     gtk_window_present(window)
     gtk_application_add_window(app, window)
+    
+    data[].state = state
+    data[].execStartupEvents()
   
   let app = gtk_application_new(id.cstring, G_APPLICATION_FLAGS_NONE)
   defer: g_object_unref(app.pointer)
   
-  discard g_signal_connect(app, "activate", activateCallback, config.addr)
+  proc shutdownCallback(app: GApplication, data: ptr AppContext[AppConfig]) {.cdecl.} =
+    data[].execShutdownEvents()
+
+  discard g_signal_connect(app, "activate", activateCallback, context.addr)
+  discard g_signal_connect(app, "shutdown", shutdownCallback, context.addr)
   discard g_application_run(app)
