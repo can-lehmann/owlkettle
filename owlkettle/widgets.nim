@@ -446,8 +446,9 @@ renderable EmojiChooser of BaseWidget:
     
     connectEvents:
       proc emojiPickedCallback(widget: GtkWidget, pickedEmoji: cstring, data: ptr EventObj[proc (emoji: string)]) {.cdecl.} =
-        data[].callback($pickedEmoji)
-        data[].redraw()
+        logExceptions:
+          data[].callback($pickedEmoji)
+          data[].redraw()
     
       state.connect(state.emojiPicked, "emoji-picked", emojiPickedCallback)
       
@@ -544,16 +545,18 @@ renderable EditableLabel of BaseWidget:
       state.internalWidget = gtk_editable_label_new("".cstring)
     connectEvents:
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
-        let text = $gtk_editable_get_text(widget)
-        EditableLabelState(data[].widget).text = text
-        data[].callback(text)
-        data[].redraw()
+        logExceptions:
+          let text = $gtk_editable_get_text(widget)
+          EditableLabelState(data[].widget).text = text
+          data[].callback(text)
+          data[].redraw()
       
       proc editedCallback(widget: GtkWidget, pspec: GtkParamSpec, data: ptr EventObj[proc (newEditState: bool)]){.cdecl.} =
-        let isEditing = gtk_editable_label_get_editing(widget).bool
-        EditableLabelState(data[].widget).editing = isEditing
-        data[].callback(isEditing)
-        data[].redraw()
+        logExceptions:
+          let isEditing = gtk_editable_label_get_editing(widget).bool
+          EditableLabelState(data[].widget).editing = isEditing
+          data[].callback(isEditing)
+          data[].redraw()
         
       state.connect(state.changed, "changed", changedCallback)
       state.connect(state.editStateChanged, "notify::editing", editedCallback)
@@ -1143,8 +1146,9 @@ renderable ScrolledWindow of BaseWidget:
     connectEvents:
 
       proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(edge: Edge)]) =
-        data.callback(Edge(pos))
-        data[].redraw()
+        logExceptions:
+          data.callback(Edge(pos))
+          data[].redraw()
 
       state.connect(state.edgeReached, "edge-reached", edgeCallback)
       state.connect(state.edgeOvershot, "edge-overshot", edgeCallback)
@@ -1193,10 +1197,11 @@ renderable Entry of BaseWidget:
       state.internalWidget = gtk_entry_new()
     connectEvents:
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
-        let text = $gtk_editable_get_text(widget)
-        EntryState(data[].widget).text = text
-        data[].callback(text)
-        data[].redraw()
+        logExceptions:
+          let text = $gtk_editable_get_text(widget)
+          EntryState(data[].widget).text = text
+          data[].callback(text)
+          data[].redraw()
       
       state.connect(state.changed, "changed", changedCallback)
       state.connect(state.activate, "activate", eventCallback)
@@ -1292,10 +1297,11 @@ renderable SpinButton of BaseWidget:
       )
     connectEvents:
       proc valueChangedCallback(widget: GtkWidget, data: ptr EventObj[proc (value: float)]) {.cdecl.} =
-        let value = float(gtk_spin_button_get_value(widget))
-        SpinButtonState(data[].widget).value = value
-        data[].callback(value)
-        data[].redraw()
+        logExceptions:
+          let value = float(gtk_spin_button_get_value(widget))
+          SpinButtonState(data[].widget).value = value
+          data[].callback(value)
+          data[].redraw()
       
       state.connect(state.valueChanged, "value-changed", valueChangedCallback)
     disconnectEvents:
@@ -1605,11 +1611,12 @@ proc drawFunc(widget: GtkWidget,
               ctx: pointer,
               width, height: cint,
               data: pointer) {.cdecl.} =
-  let
-    event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
-    requiresRedraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
-  if requiresRedraw:
-    event[].redraw()
+  logExceptions:
+    let
+      event = cast[ptr EventObj[proc (ctx: CairoContext, size: (int, int)): bool]](data)
+      requiresRedraw = event[].callback(CairoContext(ctx), (int(width), int(height)))
+    if requiresRedraw:
+      event[].redraw()
 
 proc callbackOrNil[T](event: Event[T]): T =
   if event.isNil:
@@ -1671,27 +1678,29 @@ renderable DrawingArea of CustomWidget:
         ctx.stroke()
 
 proc setupEventCallback(widget: GtkWidget, data: ptr EventObj[proc (size: (int, int)): bool]) =
-  gtk_gl_area_make_current(widget)
-  if not gtk_gl_area_get_error(widget).isNil:
-    raise newException(IOError, "Failed to initialize OpenGL context")
-  
-  let
-    width = int(gtk_widget_get_allocated_width(widget))
-    height = int(gtk_widget_get_allocated_height(widget))
-    requiresRedraw = data[].callback((width, height))
-  if requiresRedraw:
-    data[].redraw()
+  logExceptions:
+    gtk_gl_area_make_current(widget)
+    if not gtk_gl_area_get_error(widget).isNil:
+      raise newException(IOError, "Failed to initialize OpenGL context")
+    
+    let
+      width = int(gtk_widget_get_allocated_width(widget))
+      height = int(gtk_widget_get_allocated_height(widget))
+      requiresRedraw = data[].callback((width, height))
+    if requiresRedraw:
+      data[].redraw()
 
 proc renderEventCallback(widget: GtkWidget,
                          context: pointer,
                          data: ptr EventObj[proc (size: (int, int)): bool]): cbool =
-  let
-    width = int(gtk_widget_get_allocated_width(widget))
-    height = int(gtk_widget_get_allocated_height(widget))
-    requiresRedraw = data[].callback((width, height))
-  if requiresRedraw:
-    data[].redraw()
-  result = cbool(ord(true))
+  logExceptions:
+    let
+      width = int(gtk_widget_get_allocated_width(widget))
+      height = int(gtk_widget_get_allocated_height(widget))
+      requiresRedraw = data[].callback((width, height))
+    if requiresRedraw:
+      data[].redraw()
+    result = cbool(ord(true))
 
 renderable GlArea of CustomWidget:
   ## Allows you to render 3d scenes using OpenGL.
@@ -1746,12 +1755,13 @@ renderable ColorButton of BaseWidget:
       state.internalWidget = gtk_color_button_new()
     connectEvents:
       proc colorSetCallback(widget: GtkWidget, data: ptr EventObj[proc (color: tuple[r, g, b, a: float])]) {.cdecl.} =
-        var gdkColor: GdkRgba
-        gtk_color_chooser_get_rgba(widget, gdkColor.addr)
-        let color = (gdkColor.r.float, gdkColor.g.float, gdkColor.b.float, gdkColor.a.float)
-        ColorButtonState(data[].widget).color = color
-        data[].callback(color)
-        data[].redraw()
+        logExceptions:
+          var gdkColor: GdkRgba
+          gtk_color_chooser_get_rgba(widget, gdkColor.addr)
+          let color = (gdkColor.r.float, gdkColor.g.float, gdkColor.b.float, gdkColor.a.float)
+          ColorButtonState(data[].widget).color = color
+          data[].callback(color)
+          data[].redraw()
       
       state.connect(state.changed, "color-set", colorSetCallback)
     disconnectEvents:
@@ -1782,10 +1792,11 @@ renderable Switch of BaseWidget:
       state.internalWidget = gtk_switch_new()
     connectEvents:
       proc stateSetCallback(widget: GtkWidget, state: cbool, data: ptr EventObj[proc (state: bool)]): cbool {.cdecl.} =
-        let state = state != 0
-        SwitchState(data[].widget).state = state
-        data[].callback(state)
-        data[].redraw()
+        logExceptions:
+          let state = state != 0
+          SwitchState(data[].widget).state = state
+          data[].callback(state)
+          data[].redraw()
       
       state.connect(state.changed, "state-set", stateSetCallback)
     disconnectEvents:
@@ -1811,10 +1822,11 @@ renderable ToggleButton of Button:
       state.internalWidget = gtk_toggle_button_new()
     connectEvents:
       proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
-        let state = gtk_toggle_button_get_active(widget) != 0
-        ToggleButtonState(data[].widget).state = state
-        data[].callback(state)
-        data[].redraw()
+        logExceptions:
+          let state = gtk_toggle_button_get_active(widget) != 0
+          ToggleButtonState(data[].widget).state = state
+          data[].callback(state)
+          data[].redraw()
       
       state.connect(state.changed, "toggled", toggledCallback)
     disconnectEvents:
@@ -1859,10 +1871,11 @@ renderable CheckButton of BaseWidget:
       state.internalWidget = gtk_check_button_new()
     connectEvents:
       proc toggledCallback(widget: GtkWidget, data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
-        let state = gtk_check_button_get_active(widget) != 0
-        CheckButtonState(data[].widget).state = state
-        data[].callback(state)
-        data[].redraw()
+        logExceptions:
+          let state = gtk_check_button_get_active(widget) != 0
+          CheckButtonState(data[].widget).state = state
+          data[].callback(state)
+          data[].redraw()
       
       state.connect(state.changed, "toggled", toggledCallback)
     disconnectEvents:
@@ -1959,12 +1972,13 @@ renderable RadioGroup of BaseWidget:
         let data = RadioGroupRowData(state: state, index: it)
         
         proc toggledCallback(widget: GtkWidget, data: ptr RadioGroupRowDataObj) =
-          if gtk_check_button_get_active(widget) != 0 and
-             data[].state.selected != data[].index:
-            data[].state.selected = data[].index
-            if not data[].state.select.isNil:
-              data[].state.select.callback(data[].index)
-              data[].state.select[].redraw()
+          logExceptions:
+            if gtk_check_button_get_active(widget) != 0 and
+               data[].state.selected != data[].index:
+              data[].state.selected = data[].index
+              if not data[].state.select.isNil:
+                data[].state.select.callback(data[].index)
+                data[].state.select[].redraw()
         
         discard g_signal_connect(radioButton, "toggled", toggledCallback, data[].addr)
         
@@ -2243,10 +2257,11 @@ renderable SearchEntry of BaseWidget:
       state.internalWidget = gtk_search_entry_new()
     connectEvents:
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc(searchString: string)]) =
-        let searchString = $gtk_editable_get_text(widget)
-        SearchEntryState(data[].widget).text = searchString
-        data[].callback(searchString)
-        data[].redraw()
+        logExceptions:
+          let searchString = $gtk_editable_get_text(widget)
+          SearchEntryState(data[].widget).text = searchString
+          data[].callback(searchString)
+          data[].redraw()
       
       state.connect(state.activate, "activate", eventCallback)
       state.connect(state.nextMatch, "next-match", eventCallback)
@@ -2365,7 +2380,8 @@ proc connectChanged*(buffer: TextBuffer, callback: proc(isUserChange: bool)): Te
   buffer.events.incl(result)
   
   proc changedCallback(widget: GtkWidget, event: ptr TextBufferEventObj) {.cdecl.} =
-    event[].callback(event[].buffer.isUserChange)
+    logExceptions:
+      event[].callback(event[].buffer.isUserChange)
   
   result.handler = g_signal_connect(
     pointer(buffer.gtk),
@@ -2703,17 +2719,18 @@ renderable ListBox of BaseWidget:
       discard g_signal_connect(state.internalWidget, "unrealize", handleUnrealize, data)
     connectEvents:
       proc selectedRowsChanged(widget: GtkWidget, data: ptr EventObj[proc (state: HashSet[int])]) {.cdecl.} =
-        let selected = gtk_list_box_get_selected_rows(widget)
-        var
-          rows = initHashSet[int]()
-          cur = selected
-        while not cur.isNil:
-          rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
-          cur = cur[].next
-        g_list_free(selected)
-        ListBoxState(data[].widget).selected = rows
-        data[].callback(rows)
-        data[].redraw()
+        logExceptions:
+          let selected = gtk_list_box_get_selected_rows(widget)
+          var
+            rows = initHashSet[int]()
+            cur = selected
+          while not cur.isNil:
+            rows.incl(int(gtk_list_box_row_get_index(GtkWidget(cur[].data))))
+            cur = cur[].next
+          g_list_free(selected)
+          ListBoxState(data[].widget).selected = rows
+          data[].callback(rows)
+          data[].redraw()
       
       state.connect(state.select, "selected-rows-changed", selectedRowsChanged)
     disconnectEvents:
@@ -2910,13 +2927,14 @@ renderable DropDown of BaseWidget:
       proc selectCallback(widget: GtkWidget,
                           pspec: pointer,
                           data: ptr EventObj[proc (item: int)]) {.cdecl.} =
-        let
-          selected = int(gtk_drop_down_get_selected(widget))
-          state = DropDownState(data[].widget)
-        if selected != state.selected:
-          state.selected = selected
-          data[].callback(selected)
-          data[].redraw()
+        logExceptions:
+          let
+            selected = int(gtk_drop_down_get_selected(widget))
+            state = DropDownState(data[].widget)
+          if selected != state.selected:
+            state.selected = selected
+            data[].callback(selected)
+            data[].redraw()
       
       state.connect(state.select, "notify::selected", selectCallback)
     disconnectEvents:
@@ -3382,14 +3400,15 @@ renderable Calendar of BaseWidget:
       state.internalWidget = gtk_calendar_new()
     connectEvents:
       proc selectedCallback(widget: GtkWidget, data: ptr EventObj[proc (state: DateTime)]) {.cdecl.} =
-        let
-          gtkDate = gtk_calendar_get_date(widget)
-          date = fromUnix(g_date_time_to_unix(gtkDate)).inZone(utc())
-        g_date_time_unref(gtkDate)
-        
-        CalendarState(data[].widget).date = date
-        data[].callback(date)
-        data[].redraw()
+        logExceptions:
+          let
+            gtkDate = gtk_calendar_get_date(widget)
+            date = fromUnix(g_date_time_to_unix(gtkDate)).inZone(utc())
+          g_date_time_unref(gtkDate)
+          
+          CalendarState(data[].widget).date = date
+          data[].callback(date)
+          data[].redraw()
       
       state.connect(state.daySelected, "day-selected", selectedCallback)
       state.connect(state.nextMonth, "next-month", selectedCallback)
@@ -3845,10 +3864,11 @@ renderable Scale of BaseWidget:
         widget: GtkWidget, 
         data: ptr EventObj[proc(newValue: float)]
       ) {.cdecl.} =
-        let scaleValue: float = gtk_range_get_value(widget).float
-        ScaleState(data[].widget).value = scaleValue
-        data[].callback(scaleValue)
-        data[].redraw()
+        logExceptions:
+          let scaleValue: float = gtk_range_get_value(widget).float
+          ScaleState(data[].widget).value = scaleValue
+          data[].callback(scaleValue)
+          data[].redraw()
       
       state.connect(state.valueChanged, "value-changed", valueChangedEventCallback)
       
@@ -4124,10 +4144,11 @@ renderable Expander of BaseWidget:
         widget: GtkWidget, 
         data: ptr EventObj[proc(activated: bool)]
       ) {.cdecl.} =
-        let expanded: bool = not gtk_expander_get_expanded(widget).bool # Necessary as widget hasn't updated itself yet, thus this returns the old value
-        ExpanderState(data[].widget).expanded = expanded
-        data[].callback(expanded)
-        data[].redraw()
+        logExceptions:
+          let expanded: bool = not gtk_expander_get_expanded(widget).bool # Necessary as widget hasn't updated itself yet, thus this returns the old value
+          ExpanderState(data[].widget).expanded = expanded
+          data[].callback(expanded)
+          data[].redraw()
 
       state.connect(state.activate, "activate", activateEventCallback)
 
@@ -4220,10 +4241,11 @@ renderable PasswordEntry of BaseWidget:
         widget: GtkWidget, 
         data: ptr EventObj[proc(password: string)]
       ) {.cdecl.} =
-        let password: string = $gtk_editable_get_text(widget)
-        PasswordEntryState(data[].widget).text = password
-        data[].callback(password)
-        data[].redraw()
+        logExceptions:
+          let password: string = $gtk_editable_get_text(widget)
+          PasswordEntryState(data[].widget).text = password
+          data[].callback(password)
+          data[].redraw()
 
       state.connect(state.activate, "activate", eventCallback)
       state.connect(state.changed, "changed", changedEventCallback)
@@ -4371,22 +4393,24 @@ renderable ListView of BaseWidget:
       proc bindCallback(factory: GtkListItemFactory,
                         listItem: GtkWidget,
                         stateObj: ptr ListViewStateObj) {.cdecl.} =
-        let
-          index = int(gtk_list_item_get_position(listItem))
-          updater = stateObj[].viewItem.callback(index)
-        updater.assignApp(stateObj[].app)
-        let widgetState = updater.build()
-        stateObj[].itemStates[index] = ItemState(
-          widgetState: widgetState,
-          listItem: listItem
-        )
-        gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+        logExceptions:
+          let
+            index = int(gtk_list_item_get_position(listItem))
+            updater = stateObj[].viewItem.callback(index)
+          updater.assignApp(stateObj[].app)
+          let widgetState = updater.build()
+          stateObj[].itemStates[index] = ItemState(
+            widgetState: widgetState,
+            listItem: listItem
+          )
+          gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
       
       proc unbindCallback(factory: GtkListItemFactory,
                           listItem: GtkWidget,
                           stateObj: ptr ListViewStateObj) {.cdecl.} =
-        let index = int(gtk_list_item_get_position(listItem))
-        stateObj[].itemStates.del(index)
+        logExceptions:
+          let index = int(gtk_list_item_get_position(listItem))
+          stateObj[].itemStates.del(index)
       
       discard g_signal_connect(state.factory, "bind", pointer(bindCallback), state[].addr)
       discard g_signal_connect(state.factory, "unbind", pointer(unbindCallback), state[].addr)
@@ -4402,8 +4426,9 @@ renderable ListView of BaseWidget:
       proc activateCallback(widget: GtkWidget,
                             position: cuint,
                             data: ptr EventObj[proc(index: int)]) =
-        data[].callback(int(position))
-        data[].redraw()
+        logExceptions:
+          data[].callback(int(position))
+          data[].redraw()
       
       state.connect(state.activate, "activate", activateCallback)
       
@@ -4411,14 +4436,15 @@ renderable ListView of BaseWidget:
                                     position: cuint,
                                     count: cuint,
                                     data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
-        let state = ListViewState(data[].widget)
-        for index in position..(position + count):
-          if bool(gtk_selection_model_is_selected(selectionModel, index)):
-            state.selected.incl(int(index))
-          else:
-            state.selected.excl(int(index))
-        data[].callback(state.selected)
-        data[].redraw()
+        logExceptions:
+          let state = ListViewState(data[].widget)
+          for index in position..(position + count):
+            if bool(gtk_selection_model_is_selected(selectionModel, index)):
+              state.selected.incl(int(index))
+            else:
+              state.selected.excl(int(index))
+          data[].callback(state.selected)
+          data[].redraw()
       
       if not state.select.isNil:
         state.select.widget = state
@@ -4562,8 +4588,9 @@ renderable ColumnView of BaseWidget:
       proc activateCallback(widget: GtkWidget,
                             position: cuint,
                             data: ptr EventObj[proc(index: int)]) =
-        data[].callback(int(position))
-        data[].redraw()
+        logExceptions:
+          data[].callback(int(position))
+          data[].redraw()
       
       state.connect(state.activate, "activate", activateCallback)
       
@@ -4571,14 +4598,15 @@ renderable ColumnView of BaseWidget:
                                     position: cuint,
                                     count: cuint,
                                     data: ptr EventObj[proc (rows: HashSet[int])]) {.cdecl.} =
-        let state = ColumnViewState(data[].widget)
-        for index in position..(position + count):
-          if bool(gtk_selection_model_is_selected(selectionModel, index)):
-            state.selected.incl(int(index))
-          else:
-            state.selected.excl(int(index))
-        data[].callback(state.selected)
-        data[].redraw()
+        logExceptions:
+          let state = ColumnViewState(data[].widget)
+          for index in position..(position + count):
+            if bool(gtk_selection_model_is_selected(selectionModel, index)):
+              state.selected.incl(int(index))
+            else:
+              state.selected.excl(int(index))
+          data[].callback(state.selected)
+          data[].redraw()
       
       if not state.select.isNil:
         state.select.widget = state
@@ -4604,22 +4632,24 @@ renderable ColumnView of BaseWidget:
         proc bindCallback(factory: GtkListItemFactory,
                           listItem: GtkWidget,
                           stateObj: ptr ColumnStateObj) {.cdecl.} =
-          let
-            index = int(gtk_list_item_get_position(listItem))
-            updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
-          updater.assignApp(stateObj[].widgetState.app)
-          let widgetState = updater.build()
-          stateObj[].cellStates[index] = CellState(
-            widgetState: widgetState,
-            listItem: listItem
-          )
-          gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
+          logExceptions:
+            let
+              index = int(gtk_list_item_get_position(listItem))
+              updater = stateObj[].widgetState.viewItem.callback(index, stateObj[].index)
+            updater.assignApp(stateObj[].widgetState.app)
+            let widgetState = updater.build()
+            stateObj[].cellStates[index] = CellState(
+              widgetState: widgetState,
+              listItem: listItem
+            )
+            gtk_list_item_set_child(listItem, widgetState.unwrapInternalWidget())
         
         proc unbindCallback(factory: GtkListItemFactory,
                             listItem: GtkWidget,
                             stateObj: ptr ColumnStateObj) {.cdecl.} =
-          let index = int(gtk_list_item_get_position(listItem))
-          stateObj[].cellStates.del(index)
+          logExceptions:
+            let index = int(gtk_list_item_get_position(listItem))
+            stateObj[].cellStates.del(index)
         
         var it = 0
         while it < state.columnStates.len and it < widget.valColumns.len:

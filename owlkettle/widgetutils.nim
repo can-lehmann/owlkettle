@@ -49,9 +49,19 @@ proc unwrapSharedCell*[T](data: ptr T): T =
   reset(data[])
   deallocShared(data)
 
-proc eventCallback*(widget: GtkWidget, data: ptr EventObj[proc ()]) =
-  data[].callback()
-  data[].redraw()
+template logExceptions*(body: untyped) =
+  try:
+    body
+  except Exception as exception:
+    var message = exception.getStackTrace()
+    message &= "Unhandled exception: "
+    message &= exception.msg & " [" & $exception.name & "]"
+    g_log(nil, G_LOG_LEVEL_CRITICAL, message.cstring)
+
+proc eventCallback*(widget: GtkWidget, data: ptr EventObj[proc ()]) {.cdecl.} =
+  logExceptions:
+    data[].callback()
+    data[].redraw()
 
 proc connect*[T](renderable: Renderable,
                  event: Event[T],

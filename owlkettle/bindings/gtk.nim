@@ -357,6 +357,17 @@ type
   GMenuModel* = distinct pointer
   GMenuItem* = distinct pointer
   GApplicationFlags* = distinct cuint
+  
+  GLogLevelFlags* = enum
+    G_LOG_LEVEL_MASK = not 3
+    G_LOG_FLAG_RECURSION = 1 shl 0
+    G_LOG_FLAG_FATAL = 1 shl 1
+    G_LOG_LEVEL_ERROR = 1 shl 2
+    G_LOG_LEVEL_CRITICAL = 1 shl 3
+    G_LOG_LEVEL_WARNING = 1 shl 4
+    G_LOG_LEVEL_MESSAGE = 1 shl 5
+    G_LOG_LEVEL_INFO = 1 shl 6
+    G_LOG_LEVEL_DEBUG = 1 shl 7
 
 proc isNil*(obj: GResource): bool {.borrow.}
 proc isNil*(obj: GIcon): bool {.borrow.}
@@ -412,6 +423,7 @@ proc g_idle_add_full*(priority: cint, fn: GSourceFunc, data: pointer, notify: GD
 proc g_timeout_add_full*(priority: cint, interval: cuint, fn: GSourceFunc, data: pointer, notify: GDestroyNotify): cuint
 proc g_strdup*(str: cstring): pointer
 proc g_free*(str: pointer)
+proc g_log*(domain: cstring, flags: GLogLevelFlags, format: cstring) {.varargs.}
 {.pop.}
 
 type OwnedGtkString* = distinct cstring

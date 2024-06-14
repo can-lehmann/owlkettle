@@ -363,12 +363,13 @@ renderable ExpanderRow of PreferencesRow:
         pspec: pointer,
         data: ptr EventObj[proc (isExpanded: bool)]
       ) {.cdecl.} =
-        let isExpanded = bool(adw_expander_row_get_expanded(widget))
-        
-        let state = ExpanderRowState(data[].widget)
-        state.expanded = isExpanded
-        data[].callback(isExpanded)
-        data[].redraw()
+        logExceptions:
+          let
+            isExpanded = bool(adw_expander_row_get_expanded(widget))
+            state = ExpanderRowState(data[].widget)
+          state.expanded = isExpanded
+          data[].callback(isExpanded)
+          data[].redraw()
         
       state.connect(state.expand, "notify::expanded", expandCallback)
     disconnectEvents:
@@ -455,13 +456,14 @@ renderable ComboRow of ActionRow:
       proc selectCallback(widget: GtkWidget,
                           pspec: pointer,
                           data: ptr EventObj[proc (item: int)]) {.cdecl.} =
-        let
-          selected = int(adw_combo_row_get_selected(widget))
-          state = ComboRowState(data[].widget)
-        if selected != state.selected:
-          state.selected = selected
-          data[].callback(selected)
-          data[].redraw()
+        logExceptions:
+          let
+            selected = int(adw_combo_row_get_selected(widget))
+            state = ComboRowState(data[].widget)
+          if selected != state.selected:
+            state.selected = selected
+            data[].callback(selected)
+            data[].redraw()
       
       state.connect(state.select, "notify::selected", selectCallback)
     disconnectEvents:
@@ -497,10 +499,11 @@ renderable EntryRow {.since: AdwVersion >= (1, 2).} of PreferencesRow:
       state.internalWidget = adw_entry_row_new()
     connectEvents:
       proc changedCallback(widget: GtkWidget, data: ptr EventObj[proc (text: string)]) {.cdecl.} =
-        let text = $gtk_editable_get_text(widget)
-        EntryRowState(data[].widget).text = text
-        data[].callback(text)
-        data[].redraw()
+        logExceptions:
+          let text = $gtk_editable_get_text(widget)
+          EntryRowState(data[].widget).text = text
+          data[].callback(text)
+          data[].redraw()
       
       state.connect(state.changed, "changed", changedCallback)
     disconnectEvents:
@@ -580,21 +583,23 @@ renderable Flap:
       proc changedCallback(widget: GtkWidget,
                            pspec: pointer,
                            data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
-        let
-          revealed = adw_flap_get_reveal_flap(widget) != 0
-          state = FlapState(data[].widget)
-        if state.revealed != revealed:
-          state.revealed = revealed
-          data[].callback(revealed)
-          data[].redraw()
+        logExceptions:
+          let
+            revealed = adw_flap_get_reveal_flap(widget) != 0
+            state = FlapState(data[].widget)
+          if state.revealed != revealed:
+            state.revealed = revealed
+            data[].callback(revealed)
+            data[].redraw()
       
       state.connect(state.changed, "notify::reveal-flap", changedCallback)
       
       proc foldCallback(widget: GtkWidget,
                         pspec: pointer,
                         data: ptr EventObj[proc (state: bool)]) {.cdecl.} =
-        data[].callback(adw_flap_get_folded(widget) != 0)
-        data[].redraw()
+        logExceptions:
+          data[].callback(adw_flap_get_folded(widget) != 0)
+          data[].redraw()
       
       state.connect(state.fold, "notify::folded", foldCallback)
     disconnectEvents:
@@ -730,13 +735,14 @@ renderable OverlaySplitView {.since: AdwVersion >= (1, 4).} of BaseWidget:
       proc toggleCallback(widget: GtkWidget,
                           spec: pointer,
                           data: ptr EventObj[proc (show: bool)]) {.cdecl.} =
-        let
-          showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
-          state = OverlaySplitViewState(data[].widget)
-        if showSidebar != state.showSidebar:
-          state.showSidebar = showSidebar
-          data[].callback(showSidebar)
-          data[].redraw()
+        logExceptions:
+          let
+            showSidebar = adw_overlay_split_view_get_show_sidebar(widget) != 0
+            state = OverlaySplitViewState(data[].widget)
+          if showSidebar != state.showSidebar:
+            state.showSidebar = showSidebar
+            data[].callback(showSidebar)
+            data[].redraw()
       
       state.connect(state.toggle, "notify::show-sidebar", toggleCallback)
     disconnectEvents:
@@ -1296,10 +1302,11 @@ renderable SwitchRow {.since: AdwVersion >= (1, 4).} of ActionRow:
         state.internalWidget = adw_switch_row_new()
     connectEvents:
       proc activatedCallback(widget: GtkWidget, data: ptr EventObj[proc (active: bool)]) {.cdecl.} =
-        let active: bool = adw_switch_row_get_active(widget).bool
-        SwitchRowState(data[].widget).active = active
-        data[].callback(active)
-        data[].redraw()
+        logExceptions:
+          let active: bool = adw_switch_row_get_active(widget).bool
+          SwitchRowState(data[].widget).active = active
+          data[].callback(active)
+          data[].redraw()
         
       state.connect(state.activated, "activated", activatedCallback)
     disconnectEvents:
