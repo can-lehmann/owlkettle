@@ -1147,7 +1147,7 @@ renderable ScrolledWindow of BaseWidget:
 
       proc edgeCallback(widget: GtkWidget, pos: GtkPositionType, data: ptr EventObj[proc(edge: Edge)]) =
         logExceptions:
-          data.callback(Edge(pos))
+          data.callback(Edge(ord(pos)))
           data[].redraw()
 
       state.connect(state.edgeReached, "edge-reached", edgeCallback)
