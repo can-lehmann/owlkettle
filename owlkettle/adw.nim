@@ -1395,26 +1395,19 @@ proc toGtk(toast: Toast): AdwToast =
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
 type ToastQueue* = ref object
-  initialToastBuffer: seq[Toast]
+  toasts: seq[Toast]
   addToOverlay: proc(toast: Toast) {.closure.}
 
 proc isInitialized(queue: ToastQueue): bool = not queue.addToOverlay.isNil()
 proc newToastQueue*(): ToastQueue = ToastQueue()
 proc add*(queue: ToastQueue, toast: Toast) = 
-  if queue.isInitialized():
-    queue.addToOverlay(toast)
-  else:
-    queue.initialToastBuffer.add(toast)
+  queue.toasts.add(toast)
     
 proc add*(queue: ToastQueue, toasts: openArray[Toast]) =
   for toast in toasts:
     queue.add(toast)
 
-proc dumpStoredToasts(queue: ToastQueue) =
-  for toast in queue.initialToastBuffer:
-    queue.addToOverlay(toast)
-  
-  queue.initialToastBuffer = @[]
+proc clear(queue: ToastQueue) = queue.toasts = @[]
 
 renderable ToastOverlay of BaseWidget:
   ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
@@ -1443,14 +1436,13 @@ renderable ToastOverlay of BaseWidget:
       state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
   
   hooks toastQueue:
-    update: # Runs only once during update phase
+    (build, update):
+      state.toastQueue = widget.valToastQueue
       if not state.toastQueue.isNil():
-        state.toastQueue.addToOverlay = proc(toast: Toast) =
-          let adwToast: AdwToast = toast.toGtk()
-          adw_toast_overlay_add_toast(state.internalWidget, adwToast)
-        
-        state.toastQueue.dumpStoredToasts()
-    
+        for toast in state.toastQueue.toasts:
+          adw_toast_overlay_add_toast(state.internalWidget, toast.toGtk())
+        state.toastQueue.clear()
+  
   adder add:
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
