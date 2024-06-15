@@ -49,10 +49,7 @@ proc buildToast(
     useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
   )
 
-import std/importutils
-privateAccess(ToastQueue)
 method view(app: AppState): Widget =  
-  echo "View: ", app.toastQueue.toasts.len
   result = gui:
     Window():
       defaultSize = (800, 600)

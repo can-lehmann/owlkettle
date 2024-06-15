@@ -1395,7 +1395,7 @@ proc toGtk(toast: Toast): AdwToast =
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
 type ToastQueue* = ref object
-  toasts: seq[Toast]
+  initialToastBuffer: seq[Toast]
   addToOverlay: proc(toast: Toast) {.closure.}
 
 proc isInitialized(queue: ToastQueue): bool = not queue.addToOverlay.isNil()
@@ -1404,17 +1404,17 @@ proc add*(queue: ToastQueue, toast: Toast) =
   if queue.isInitialized():
     queue.addToOverlay(toast)
   else:
-    queue.toasts.add(toast)
+    queue.initialToastBuffer.add(toast)
     
 proc add*(queue: ToastQueue, toasts: openArray[Toast]) =
   for toast in toasts:
     queue.add(toast)
 
 proc dumpStoredToasts(queue: ToastQueue) =
-  for toast in queue.toasts:
+  for toast in queue.initialToastBuffer:
     queue.addToOverlay(toast)
   
-  queue.toasts = @[]
+  queue.initialToastBuffer = @[]
 
 renderable ToastOverlay of BaseWidget:
   ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
