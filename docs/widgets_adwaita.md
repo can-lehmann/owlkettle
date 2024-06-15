@@ -629,10 +629,7 @@ renderable ToastOverlay of BaseWidget
 An overlay to display Toast messages that can be dismissed manually and automatically!<br>
 Use `newToast` to create a `Toast`.
 `Toast` has the following properties that can be assigned to:
-- actionName
-- actionTarget
 - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, the Toast will not contain a button.
-- detailedActionName
 - priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
 - timeout: The time in seconds after showing the toast after which it is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
 - title: The text to display in the toast. Gets hidden if customTitle is set.
@@ -644,11 +641,7 @@ Use `newToast` to create a `Toast`.
 
 - All fields from [BaseWidget](#BaseWidget)
 - `child: Widget`
-- `toasts: seq[Toast]` The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a First-In-First-Out queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a Last-In-First-Out queue.
-
-###### Setters
-
-- `toast: Toast`
+- `toastQueue: ToastQueue` The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a First-In-First-Out queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a Last-In-First-Out queue.
 
 ###### Adders
 
