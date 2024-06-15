@@ -78,11 +78,6 @@ method view(app: AppState): Widget =
             let toasts = (0..2).mapIt(buildToast(app, "Toast title", ToastPriorityNormal))
             app.toastQueue.add(toasts)
                   
-        Button() {.addRight.}:
-          text = "Redraw"
-          proc clicked() =
-            discard app.redraw()
-      
       Box(orient = OrientY):
         ToastOverlay():
           toastQueue = app.toastQueue
