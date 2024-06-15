@@ -1336,7 +1336,31 @@ proc newToast*(
     let isUsingUseMarkup = useMarkup == true
     if isUsingUseMarkup:
       raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
- 
+
+proc connectToastDismissalHandler(toast: AdwToast, dismissalHandler: proc() {.closure.}) =
+  proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
+    let event = unwrapSharedCell(data)
+    event.callback()
+    # Disconnect event-handler after Toast was dismissed
+    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+  
+  let event = EventObj[proc()]()
+  let data = allocSharedCell(event)
+  data.callback = dismissalHandler
+  data.handler = g_signal_connect(toast, "dismissed".cstring, dismissalCallback, data)
+
+proc connectToastClickedHandler(toast: AdwToast, clickedHandler: proc() {.closure.}) =
+  proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
+    let event = unwrapSharedCell(data)
+    event.callback()
+    # Disconnect event-handler after first click as that will dismisses the toast
+    g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
+  
+  let event = EventObj[proc()]()
+  let data = allocSharedCell(event)
+  data.callback = clickedHandler
+  data.handler = g_signal_connect(toast, "button-clicked".cstring, clickCallback, data)
+
 proc toGtk(toast: Toast): AdwToast =
   result = adw_toast_new(toast.title.cstring)
   if toast.buttonLabel != "":
@@ -1346,16 +1370,7 @@ proc toGtk(toast: Toast): AdwToast =
   
   # Set Dismissal Handler
   if not toast.dismissalHandler.isNil():
-    proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
-      let event = unwrapSharedCell(data)
-      event.callback()
-      # Disconnect event-handler after Toast was dismissed
-      g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
-    
-    let event = EventObj[proc()]()
-    let data = allocSharedCell(event)
-    data.callback = toast.dismissalHandler
-    data.handler = g_signal_connect(result, "dismissed".cstring, dismissalCallback, data)
+    result.connectToastDismissalHandler(toast.dismissalHandler)
   
   when AdwVersion >= (1, 2):
     if not toast.customTitle.isNil():
@@ -1364,17 +1379,8 @@ proc toGtk(toast: Toast): AdwToast =
 
     # Set Clicked Handler
     if not toast.clickedHandler.isNil():
-      proc clickCallback(dismissedToast: AdwToast, data: ptr EventObj[proc()]) {.cdecl.} =
-        let event = unwrapSharedCell(data)
-        event.callback()
-        # Disconnect event-handler after first click as that will dismisses the toast
-        g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
-      
-      let event = EventObj[proc()]()
-      let data = allocSharedCell(event)
-      data.callback = toast.clickedHandler
-      data.handler = g_signal_connect(result, "button-clicked".cstring, clickCallback, data)
-
+      result.connectToastClickedHandler(toast.clickedHandler)
+  
   when AdwVersion >= (1, 4):
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
