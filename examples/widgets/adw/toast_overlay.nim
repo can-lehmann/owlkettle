@@ -22,81 +22,75 @@
 
 import owlkettle
 import owlkettle/[playground, adw]
-import std/sugar
+import std/[sequtils, sugar]
 
 viewable App:
-  title: string
   buttonLabel: string = "Btn Label"
-  priority: ToastPriority = ToastPriorityNormal
   timeout: int = 3
   useMarkup: bool = true ## Enables using markup in title. Only available for Adwaita version 1.4 or higher. Compile for Adwaita version 1.4 or higher with -d:adwMinor=4.
-  
-  showToast: bool = false
-  toastCount: int = 1
+  toastQueue: ToastQueue = newToastQueue()
 
-proc buildToast(state: AppState): Toast =
+proc buildToast(
+  state: AppState,
+  title: string = "",
+  priority: ToastPriority = ToastPriorityNormal,
+): Toast =
   let dismissalHandler = proc(toast: Toast) = 
     echo "Dismissed: ", toast.title
-    state.showToast = false
   
   let clickedHandler = proc() = echo "Click"
   result = newToast(
-    title = state.title,
+    title = title,
     buttonLabel = state.buttonLabel,
-    priority = state.priority,
+    priority = priority,
     dismissalHandler = dismissalHandler,
     timeout = state.timeout,
-    # clickedHandler = clickedHandler,# Comment in if you compile with -d:adwminor=2 or higher 
-    # useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
+    clickedHandler = clickedHandler,# Comment in if you compile with -d:adwminor=2 or higher 
+    useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
   )
-  
-method view(app: AppState): Widget =
-  let toasts = collect(newSeq):
-    for num in 0..(app.toastCount - 1):
-      buildToast(app)
 
+import std/importutils
+privateAccess(ToastQueue)
+method view(app: AppState): Widget =  
+  echo "View: ", app.toastQueue.toasts.len
   result = gui:
     Window():
       defaultSize = (800, 600)
       title = "ToastOverlay Example"
       HeaderBar {.addTitlebar.}:
-        insert(app.toAutoFormMenu(sizeRequest = (400, 250))){.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["toastQueue"], sizeRequest = (400, 250))){.addRight.}
       
         Button() {.addRight.}:
           style = [ButtonFlat]
           text = "Urgent"
           proc clicked() = 
-            app.showToast = true
-            app.priority = ToastPriorityHigh
-            app.title = "Urgent Toast Title !!!"
-            app.toastCount = 1
+            let toast = buildToast(app, "Urgent Toast Title !!!", ToastPriorityHigh)
+            app.toastQueue.add(toast)
             
         Button() {.addRight.}:
           style = [ButtonFlat]
           text = "Notify"
           proc clicked() = 
-            app.showToast = true
-            app.priority = ToastPriorityNormal
-            app.title = "Toast title"
-            app.toastCount = 1
+            let toast = buildToast(app, "Toast title", ToastPriorityNormal)
+            app.toastQueue.add(toast)
 
         Button() {.addRight.}:
           style = [ButtonFlat]
           text = "Notify*3"
           proc clicked() = 
-            app.showToast = true
-            app.priority = ToastPriorityNormal
-            app.title = "Toast title"
-            app.toastCount = 3
+            let toasts = (0..2).mapIt(buildToast(app, "Toast title", ToastPriorityNormal))
+            app.toastQueue.add(toasts)
+                  
+        Button() {.addRight.}:
+          text = "Redraw"
+          proc clicked() =
+            discard app.redraw()
       
       Box(orient = OrientY):
         ToastOverlay():
-          if app.showToast and app.toastCount == 1:
-            toast = toasts[0]
-          elif app.showToast and app.toastCount > 1:
-            toasts = toasts
+          toastQueue = app.toastQueue
             
           Box():
             Label(text = "A widget within Toast Overlay!")
-        
+
 adw.brew(gui(App()))

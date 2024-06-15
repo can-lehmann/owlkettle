@@ -1394,6 +1394,28 @@ proc toGtk(toast: Toast): AdwToast =
   when AdwVersion >= (1, 4):
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
 
+type ToastQueue* = ref object
+  toasts: seq[Toast]
+  addToOverlay: proc(toast: Toast) {.closure.}
+
+proc isInitialized(queue: ToastQueue): bool = not queue.addToOverlay.isNil()
+proc newToastQueue*(): ToastQueue = ToastQueue()
+proc add*(queue: ToastQueue, toast: Toast) = 
+  if queue.isInitialized():
+    queue.addToOverlay(toast)
+  else:
+    queue.toasts.add(toast)
+    
+proc add*(queue: ToastQueue, toasts: openArray[Toast]) =
+  for toast in toasts:
+    queue.add(toast)
+
+proc dumpStoredToasts(queue: ToastQueue) =
+  for toast in queue.toasts:
+    queue.addToOverlay(toast)
+  
+  queue.toasts = @[]
+
 renderable ToastOverlay of BaseWidget:
   ## An overlay to display Toast messages that can be dismissed manually and automatically!<br>
   ## Use `newToast` to create a `Toast`.
@@ -1410,7 +1432,7 @@ renderable ToastOverlay of BaseWidget:
   ## - clickedHandler: An event-handler proc that gets called when the User clicks on the toast's button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.4 or higher.
 
   child: Widget
-  toasts: seq[Toast] ## The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a First-In-First-Out queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a Last-In-First-Out queue.
+  toastQueue: ToastQueue ## The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in order of a First-In-First-Out queue, after toasts of priority `ToastPriorityHigh` which are displayed in order of a Last-In-First-Out queue.
 
   hooks:
     beforeBuild:
@@ -1420,26 +1442,21 @@ renderable ToastOverlay of BaseWidget:
     (build, update):
       state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
   
-  hooks toasts:
-    property:
-      for toast in state.toasts:
-        let adwToast: AdwToast = toast.toGtk()
-        adw_toast_overlay_add_toast(state.internalWidget, adwToast)
-  
-  setter toast: Toast
-  
+  hooks toastQueue:
+    update: # Runs only once during update phase
+      if not state.toastQueue.isNil():
+        state.toastQueue.addToOverlay = proc(toast: Toast) =
+          let adwToast: AdwToast = toast.toGtk()
+          adw_toast_overlay_add_toast(state.internalWidget, adwToast)
+        
+        state.toastQueue.dumpStoredToasts()
+    
   adder add:
     if widget.hasChild:
       raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
     widget.hasChild = true
     widget.valChild = child
 
-proc `hasToast=`*(overlay: ToastOverlay, has: bool) =
-  overlay.hasToasts = has
-
-proc `valToast=`*(overlay: ToastOverlay, toast: Toast) =
-  overlay.valToasts = @[toast]
-    
 renderable SwitchRow {.since: AdwVersion >= (1, 4).} of ActionRow:
   active: bool
   
