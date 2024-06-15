@@ -35,20 +35,22 @@ proc buildToast(
   title: string = "",
   priority: ToastPriority = ToastPriorityNormal,
 ): Toast =
-  let dismissalHandler = proc(toast: Toast) = 
-    echo "Dismissed: ", toast.title
+
   
   let clickedHandler = proc() = echo "Click"
-  result = newToast(
+  let newToast = newToast(
     title = title,
     buttonLabel = state.buttonLabel,
     priority = priority,
-    dismissalHandler = dismissalHandler,
     timeout = state.timeout,
     clickedHandler = clickedHandler,# Comment in if you compile with -d:adwminor=2 or higher 
     useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
   )
+  
+  newToast.dismissalHandler = proc(toast: Toast) = 
+    echo "Dismissed: ", newToast.title
 
+  return newToast
 method view(app: AppState): Widget =  
   result = gui:
     Window():

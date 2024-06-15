@@ -1296,8 +1296,8 @@ type Toast* = ref object
   buttonLabel*: string
   priority*: ToastPriority
   timeout*: int
-  dismissalHandler: proc(toast: Toast)
-  clickedHandler: proc()
+  dismissalHandler*: proc(toast: Toast)
+  clickedHandler*: proc()
   useMarkup: bool
 
 proc newToast*(
