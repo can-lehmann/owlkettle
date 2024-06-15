@@ -47,7 +47,7 @@ proc buildToast(
     useMarkup = state.useMarkup # Comment in if you compile with -d:adwminor=2 or higher
   )
   
-  newToast.dismissalHandler = proc(toast: Toast) = 
+  newToast.dismissalHandler = proc() = 
     echo "Dismissed: ", newToast.title
 
   return newToast

@@ -1296,7 +1296,7 @@ type Toast* = ref object
   buttonLabel*: string
   priority*: ToastPriority
   timeout*: int
-  dismissalHandler*: proc(toast: Toast)
+  dismissalHandler*: proc()
   clickedHandler*: proc()
   useMarkup: bool
 
@@ -1304,7 +1304,7 @@ proc newToast*(
   title: string,
   buttonLabel: string = "", 
   priority: ToastPriority = ToastPriorityNormal, 
-  dismissalHandler: proc(toast: Toast) = nil, 
+  dismissalHandler: proc() = nil, 
   clickedHandler: proc() = nil,
   timeout: int = 5, 
   useMarkup: bool = false,
@@ -1336,39 +1336,23 @@ proc newToast*(
     let isUsingUseMarkup = useMarkup == true
     if isUsingUseMarkup:
       raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
-
-proc toOwl(adwToast: AdwToast): Toast =
-  when AdwVersion >= (1, 4):
-    let useMarkup = adw_toast_get_use_markup(adwToast).bool
-  else:
-    let useMarkup = false
-  
-  result = newToast(
-    title = $adw_toast_get_title(adwToast),
-    buttonLabel = $adw_toast_get_button_label(adwToast),
-    priority = adw_toast_get_priority(adwToast),
-    timeout = adw_toast_get_timeout(adwToast).int,
-    useMarkup = useMarkup
-  )
-  
+ 
 proc toGtk(toast: Toast): AdwToast =
   result = adw_toast_new(toast.title.cstring)
   if toast.buttonLabel != "":
     adw_toast_set_button_label(result, toast.buttonLabel.cstring)
   adw_toast_set_priority(result, toast.priority)
-  let timeout: cuint = cuint(toast.timeout)
-  adw_toast_set_timeout(result, timeout)
+  adw_toast_set_timeout(result, toast.timeout.cuint)
   
   # Set Dismissal Handler
   if not toast.dismissalHandler.isNil():
-    proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc (toast: Toast)]) {.cdecl.} = 
+    proc dismissalCallback(dismissedToast: AdwToast, data: ptr EventObj[proc ()]) {.cdecl.} = 
       let event = unwrapSharedCell(data)
-      let toast: Toast = dismissedToast.toOwl()
-      event.callback(toast)
+      event.callback()
       # Disconnect event-handler after Toast was dismissed
       g_signal_handler_disconnect(pointer(dismissedToast), event.handler)
     
-    let event = EventObj[proc(toast: Toast)]()
+    let event = EventObj[proc()]()
     let data = allocSharedCell(event)
     data.callback = toast.dismissalHandler
     data.handler = g_signal_connect(result, "dismissed".cstring, dismissalCallback, data)
