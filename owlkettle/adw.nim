@@ -1374,9 +1374,7 @@ proc toGtk(toast: Toast): AdwToast =
 
 type ToastQueue* = ref object
   toasts: seq[Toast]
-  addToOverlay: proc(toast: Toast) {.closure.}
 
-proc isInitialized(queue: ToastQueue): bool = not queue.addToOverlay.isNil()
 proc newToastQueue*(): ToastQueue = ToastQueue()
 proc add*(queue: ToastQueue, toast: Toast) = 
   queue.toasts.add(toast)
