@@ -1289,7 +1289,6 @@ renderable AboutWindow {.since: AdwVersion >= (1, 2).}:
 when AdwVersion >= (1, 2):
   export AboutWindow
 
-## Adw.Toast
 type Toast* = ref object
   title*: string
   customTitle*: Widget
@@ -1298,7 +1297,7 @@ type Toast* = ref object
   timeout*: int
   dismissalHandler*: proc()
   clickedHandler*: proc()
-  useMarkup: bool
+  useMarkup*: bool
 
 proc newToast*(
   title: string,
@@ -1306,7 +1305,7 @@ proc newToast*(
   priority: ToastPriority = ToastPriorityNormal, 
   dismissalHandler: proc() = nil, 
   clickedHandler: proc() = nil,
-  timeout: int = 5, 
+  timeout: int = 5,
   useMarkup: bool = false,
   customTitle: Widget = nil.Widget
 ): Toast =
@@ -1315,27 +1314,11 @@ proc newToast*(
     buttonLabel: buttonLabel,
     priority: priority,
     timeout: timeout,
-    dismissalHandler: dismissalHandler
+    dismissalHandler: dismissalHandler,
+    clickedHandler: clickedHandler,
+    customTitle: customTitle,
+    useMarkup: useMarkup
   )
-  
-  when AdwVersion >= (1, 2):
-    result.clickedHandler = clickedHandler
-    result.customTitle = customTitle
-  else:
-    let isUsingCustomTitle = not customTitle.isNil()
-    if isUsingCustomTitle:
-      raise newException(LibraryError, "The customTitle field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
-
-    let isUsingClickedHandler = not clickedHandler.isNil()
-    if isUsingClickedHandler:
-      raise newException(LibraryError, "The clickedHandler field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
-      
-  when AdwVersion >= (1, 4):
-    result.useMarkup = useMarkup
-  else:
-    let isUsingUseMarkup = useMarkup == true
-    if isUsingUseMarkup:
-      raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
 
 proc connectSignal(obj: pointer, userCallback: proc() {.closure.}, eventName: string) =
   proc callback(obj: pointer, data: ptr EventObj[proc ()]) {.cdecl.} = 
@@ -1368,9 +1351,20 @@ proc toGtk(toast: Toast): AdwToast =
     # Set Clicked Handler
     if not toast.clickedHandler.isNil():
       connectSignal(pointer(result), toast.clickedHandler, "button-clicked")
+  else:
+    let isUsingCustomTitle = not toast.customTitle.isNil()
+    if isUsingCustomTitle:
+      raise newException(LibraryError, "The customTitle field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+
+    let isUsingClickedHandler = not toast.clickedHandler.isNil()
+    if isUsingClickedHandler:
+      raise newException(LibraryError, "The clickedHandler field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
 
   when AdwVersion >= (1, 4):
     adw_toast_set_use_markup(result, toast.useMarkup.cbool)
+  else:
+    if toast.useMarkup:
+      raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
 
 type ToastQueue* = ref object
   toasts: seq[Toast]
