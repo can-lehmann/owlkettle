@@ -26,7 +26,6 @@ when defined(nimPreviewSlimSystem):
   import std/assertions
 import widgetdef, widgets, mainloop, widgetutils, common
 import ./bindings/[adw, gtk]
-import ../owlkettle
 import std/[strutils, sequtils, strformat, options, sugar]
 
 export adw.StyleManager
