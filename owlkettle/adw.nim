@@ -33,6 +33,7 @@ export adw.ColorScheme
 export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
+export adw.ToastPriority
 export adw.ToolbarStyle
 export adw.LengthUnit
 export adw.CenteringPolicy
@@ -1292,6 +1293,136 @@ renderable AboutWindow {.since: AdwVersion >= (1, 2).}:
 when AdwVersion >= (1, 2):
   export AboutWindow
 
+type Toast* = ref object
+  title*: string
+  customTitle*: Widget
+  buttonLabel*: string
+  priority*: ToastPriority
+  timeout*: int
+  dismissalHandler*: proc()
+  clickedHandler*: proc()
+  useMarkup*: bool
+
+proc newToast*(
+  title: string,
+  buttonLabel: string = "", 
+  priority: ToastPriority = ToastPriorityNormal, 
+  dismissalHandler: proc() = nil, 
+  clickedHandler: proc() = nil,
+  timeout: int = 5,
+  useMarkup: bool = false,
+  customTitle: Widget = nil.Widget
+): Toast =
+  result = Toast(
+    title: title, 
+    buttonLabel: buttonLabel,
+    priority: priority,
+    timeout: timeout,
+    dismissalHandler: dismissalHandler,
+    clickedHandler: clickedHandler,
+    customTitle: customTitle,
+    useMarkup: useMarkup
+  )
+
+proc connectSignal(obj: pointer, userCallback: proc() {.closure.}, eventName: string) =
+  proc callback(obj: pointer, data: ptr EventObj[proc ()]) {.cdecl.} = 
+    let event = unwrapSharedCell(data)
+    event.callback()
+    # Disconnect event-handler after Toast was dismissed
+    g_signal_handler_disconnect(obj, event.handler)
+  
+  let event = EventObj[proc()]()
+  let data = allocSharedCell(event)
+  data.callback = userCallback
+  data.handler = g_signal_connect(obj, eventName.cstring, callback, data)
+
+proc toGtk(toast: Toast): AdwToast =
+  result = adw_toast_new(toast.title.cstring)
+  if toast.buttonLabel != "":
+    adw_toast_set_button_label(result, toast.buttonLabel.cstring)
+  adw_toast_set_priority(result, toast.priority)
+  adw_toast_set_timeout(result, toast.timeout.cuint)
+  
+  # Set Dismissal Handler
+  if not toast.dismissalHandler.isNil():
+    connectSignal(pointer(result), toast.dismissalHandler, "dismissed")
+  
+  when AdwVersion >= (1, 2):
+    if not toast.customTitle.isNil():
+      let customTitleWidget = toast.customTitle.build().unwrapInternalWidget()
+      adw_toast_set_custom_title(result, customTitleWidget)
+
+    # Set Clicked Handler
+    if not toast.clickedHandler.isNil():
+      connectSignal(pointer(result), toast.clickedHandler, "button-clicked")
+  else:
+    let isUsingCustomTitle = not toast.customTitle.isNil()
+    if isUsingCustomTitle:
+      raise newException(LibraryError, "The customTitle field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+
+    let isUsingClickedHandler = not toast.clickedHandler.isNil()
+    if isUsingClickedHandler:
+      raise newException(LibraryError, "The clickedHandler field on a Toast instance is not available when compiling for Adwaita versions below 1.2. Compile for Adwaita version 1.2 or higher with -d:adwminor=2 to enable it")
+
+  when AdwVersion >= (1, 4):
+    adw_toast_set_use_markup(result, toast.useMarkup.cbool)
+  else:
+    if toast.useMarkup:
+      raise newException(LibraryError, "The useMarkup field on a Toast instance is not available when compiling for Adwaita versions below 1.4. Compile for Adwaita version 1.4 or higher with -d:adwminor=4 to enable it")
+
+type ToastQueue* = ref object
+  toasts: seq[Toast]
+
+proc newToastQueue*(): ToastQueue = ToastQueue()
+proc add*(queue: ToastQueue, toast: Toast) = 
+  queue.toasts.add(toast)
+    
+proc add*(queue: ToastQueue, toasts: openArray[Toast]) =
+  for toast in toasts:
+    queue.add(toast)
+
+proc clear(queue: ToastQueue) = queue.toasts = @[]
+
+renderable ToastOverlay of BaseWidget:
+  ## Displays messages (toasts) to the user.
+  ##
+  ## Use `newToast` to create a `Toast`.
+  ## `Toast` has the following properties that can be assigned to:
+  ##
+  ## - title: The text to display in the toast. Hidden if customTitle is set.
+  ## - customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+  ## - buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, the Toast will not contain a button.
+  ## - priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+  ## - timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+  ## - dismissalHandler: An event handler which is called when the toast is dismissed
+  ## - clickedHandler: An event handler which is called when the user clicks on the button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.2 or higher.
+  ## - useMarkup: Whether to interpret the title as Pango Markup. Only available when compiling for Adwaita version 1.4 or higher.
+
+  child: Widget
+  toastQueue: ToastQueue ## The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in First-In-First-Out order, after toasts of priority `ToastPriorityHigh` which are displayed in Last-In-First-Out order.
+
+  hooks:
+    beforeBuild:
+      state.internalWidget = adw_toast_overlay_new()
+  
+  hooks child:
+    (build, update):
+      state.updateChild(state.child, widget.valChild, adw_toast_overlay_set_child)
+  
+  hooks toastQueue:
+    (build, update):
+      state.toastQueue = widget.valToastQueue
+      if not state.toastQueue.isNil():
+        for toast in state.toastQueue.toasts:
+          adw_toast_overlay_add_toast(state.internalWidget, toast.toGtk())
+        state.toastQueue.clear()
+  
+  adder add:
+    if widget.hasChild:
+      raise newException(ValueError, "Unable to add multiple children to a ToastOverlay. Use a Box widget to display multiple widgets in a ToastOverlay.")
+    widget.hasChild = true
+    widget.valChild = child
+
 renderable SwitchRow {.since: AdwVersion >= (1, 4).} of ActionRow:
   active: bool
   
@@ -1354,6 +1485,7 @@ renderable Banner {.since: AdwVersion >= (1, 3).} of BaseWidget:
 when AdwVersion >= (1, 3):
   export Banner
 
+export ToastOverlay, Toast
 export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage
 
 proc defaultStyleManager*(): StyleManager =

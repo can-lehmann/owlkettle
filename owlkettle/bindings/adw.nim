@@ -68,7 +68,18 @@ type
     ToolbarRaised
     ToolbarRaisedBorder
 
+  ToastPriority* = enum
+    ToastPriorityNormal
+    ToastPriorityHigh
+
+  AdwToast* = distinct pointer
+
 proc isNil*(manager: StyleManager): bool {.borrow.}
+
+proc isNil*(widget: AdwToast): bool {.borrow.}
+
+proc g_signal_connect*(app: AdwToast, signal: cstring, closure, data: pointer): culong =
+  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
 {.push importc, cdecl.}
 # Adw
@@ -281,6 +292,37 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_add_credit_section*(window: GtkWidget, name: cstring, people: cstringArray)
   proc adw_about_window_add_acknowledgement_section*(window: GtkWidget, name: cstring, people: cstringArray)
   proc adw_about_window_add_link*(window: GtkWidget, title: cstring, url: cstring)
+
+# Adw.ToastOverlay
+proc adw_toast_overlay_new*(): GtkWidget
+proc adw_toast_overlay_add_toast*(self: GtkWidget, toast: AdwToast)
+proc adw_toast_overlay_set_child*(self: GtkWidget, child: GtkWidget)
+
+# Adw.Toast
+proc adw_toast_new*(title: cstring): AdwToast
+proc adw_toast_dismiss*(self: AdwToast)
+proc adw_toast_set_action_name*(self: AdwToast, action_name: cstring)
+proc adw_toast_get_action_name*(self: AdwToast): cstring
+proc adw_toast_set_action_target*(self: AdwToast, format_string: cstring)
+proc adw_toast_get_action_target*(self: AdwToast): cstring
+# proc adw_toast_set_action_target_value*(self: AdwToast, action_target: GVariant)
+proc adw_toast_set_button_label*(self: AdwToast, button_label: cstring)
+proc adw_toast_get_button_label*(self: AdwToast): cstring
+proc adw_toast_set_detailed_action_name*(self: AdwToast, detailed_action_name: cstring)
+proc adw_toast_set_priority*(self: AdwToast, priority: ToastPriority)
+proc adw_toast_get_priority*(self: AdwToast): ToastPriority
+proc adw_toast_set_timeout*(self: AdwToast, timeout: cuint)
+proc adw_toast_get_timeout*(self: AdwToast): cuint
+proc adw_toast_set_title*(self: AdwToast, title: cstring)
+proc adw_toast_get_title*(self: AdwToast): cstring
+
+when AdwVersion >= (1, 2):
+  proc adw_toast_set_custom_title*(self: AdwToast, widget: GtkWidget)
+  proc adw_toast_get_custom_title*(self: AdwToast): GtkWidget
+
+when AdwVersion >= (1, 4):
+  proc adw_toast_set_use_markup*(self: AdwToast, use_markup: cbool)
+  proc adw_toast_get_use_markup*(self: AdwToast): cbool
 
 when AdwVersion >= (1, 4):
   # Adw.SwitchRow

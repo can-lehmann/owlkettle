@@ -620,6 +620,38 @@ AboutWindow:
 ```
 
 
+## ToastOverlay
+
+```nim
+renderable ToastOverlay of BaseWidget
+```
+
+Displays messages (toasts) to the user.
+
+Use `newToast` to create a `Toast`.
+`Toast` has the following properties that can be assigned to:
+
+- title: The text to display in the toast. Hidden if customTitle is set.
+- customTitle: A Widget to display in the toast. Causes title to be hidden if it is set. Only available when compiling for Adwaita version 1.2 or higher.
+- buttonLabel: If set, the Toast will contain a button with this string as its text. If not set, the Toast will not contain a button.
+- priority: Defines the behaviour of the toast. `ToastPriorityNormal` will put the toast at the end of the queue of toasts to display. `ToastPriorityHigh` will display the toast **immediately**, ignoring any others.
+- timeout: The time in seconds after which the toast is dismissed automatically. Disables automatic dismissal if set to 0. Defaults to 5. 
+- dismissalHandler: An event handler which is called when the toast is dismissed
+- clickedHandler: An event handler which is called when the user clicks on the button that appears if `buttonLabel` is defined. Only available when compiling for Adwaita version 1.2 or higher.
+- useMarkup: Whether to interpret the title as Pango Markup. Only available when compiling for Adwaita version 1.4 or higher.
+
+###### Fields
+
+- All fields from [BaseWidget](#BaseWidget)
+- `child: Widget`
+- `toastQueue: ToastQueue` The Toasts to display. Toasts of priority `ToastPriorityNormal` are displayed in First-In-First-Out order, after toasts of priority `ToastPriorityHigh` which are displayed in Last-In-First-Out order.
+
+###### Adders
+
+- All adders from [BaseWidget](#BaseWidget)
+- `add`
+
+
 ## SwitchRow
 
 ```nim

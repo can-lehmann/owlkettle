@@ -281,6 +281,10 @@ The `widgets` directory contains examples for how to use different widgets.
     <td><img alt="Toolbar View" src="../docs/assets/examples/toolbar_view.png" width="622px"></td>
   </tr>
   <tr>
+    <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/toast_overlay.nim">Toast Overlay</a></td>
+    <td><img alt="Toast Overlay" src="../docs/assets/examples/toast_overlay.png" width="580px"></td>
+  </tr>
+  <tr>
     <td><a href="https://github.com/can-lehmann/owlkettle/blob/main/examples/widgets/adw/window_title.nim">Window Title</a></td>
     <td><img alt="Window Title" src="../docs/assets/examples/window_title.png" width="288px"></td>
   </tr>
