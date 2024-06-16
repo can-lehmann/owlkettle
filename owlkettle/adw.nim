@@ -34,7 +34,6 @@ export adw.FlapFoldPolicy
 export adw.FoldThresholdPolicy
 export adw.FlapTransitionType
 export adw.ToastPriority
-export adw.isNil
 export adw.ToolbarStyle
 export adw.LengthUnit
 export adw.CenteringPolicy
@@ -1414,7 +1413,7 @@ renderable ToastOverlay of BaseWidget:
   
   adder add:
     if widget.hasChild:
-      raise newException(ValueError, "Unable to add multiple children to a Toast Overlay.")
+      raise newException(ValueError, "Unable to add multiple children to a ToastOverlay. Use a Box widget to display multiple widgets in a ToastOverlay.")
     widget.hasChild = true
     widget.valChild = child
 
