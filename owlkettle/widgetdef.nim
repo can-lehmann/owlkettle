@@ -22,7 +22,7 @@
 
 # Macros used to define new widgets
 
-import std/[macros, strutils, tables]
+import std/[macros, strutils, tables, sets, options]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import common
@@ -81,6 +81,45 @@ proc redraw*(viewable: Viewable): bool =
   if not newWidget.isNil:
     viewable.viewed = newWidget
     result = true
+
+type
+  StateRef*[T] = ref object
+    state: T
+    observers: HashSet[proc(state: T)]
+
+proc hasRef*[T](stateRef: StateRef[T]): bool = not stateRef.state.isNil()
+
+proc newRef*[T](): StateRef[T] = 
+  StateRef[T](observers: initHashSet[proc(state: T)]())
+
+proc unwrap*[T](stateRef: StateRef[T]): T =
+  stateRef.state
+
+proc setRef*[T](stateRef: StateRef[T], state: T) =
+  if stateRef.isNil():
+    return
+  
+  let isStateChange = stateRef.state == state
+  if not isStateChange:
+    return
+  
+  stateRef.state = state
+  for observer in stateRef.observers:
+    observer(stateRef.state)
+
+proc widget*[T](stateRef: StateRef[T]): Option[GtkWidget] = 
+  echo "T is: ", $T
+  when T is Renderable:
+    some stateRef.state.internalWidget
+  else:
+    none(GtkWidget)
+
+proc subscribe*[T](stateRef: StateRef[T], observer: proc(state: T)) =
+  stateRef.observers.incl(observer)
+
+proc unsubscribe*[T](stateRef: StateRef[T], observer: proc(state: T)) =
+  stateRef.observers.excl(observer)
+
 
 type
   WidgetKind = enum WidgetRenderable, WidgetViewable
@@ -147,6 +186,10 @@ proc value(field: Field): NimNode =
   result.copyLineInfo(field.lineInfo)
 
 proc stateName(def: WidgetDef): string = def.name & "State"
+proc camelCase(s: string): string =
+  result = s
+  result[0] = ($result[0]).toLower()[0]
+proc refName(def: WidgetDef): string = def.name.camelCase() & "Ref"
 
 proc widgetBase(def: WidgetDef): NimNode =
   if def.base.len == 0:
