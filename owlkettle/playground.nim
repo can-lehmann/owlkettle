@@ -314,8 +314,9 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
   ## `sizeRequest` defines the requested size for the popover. 
   ## Displays a dummy widget if there is no `toFormField` implementation for a field with a custom type.
   var fieldWidgets: seq[Widget] = @[]
+  const privateGeneralFields = ["app", "viewed", "stateRef"]
   for name, value in app[].fieldPairs:
-    when name notin ["app", "viewed"] and name notin ignoreFields:
+    when name notin privateGeneralFields and name notin ignoreFields:
       let field: ptr = value.addr
       let fieldWidget = app.toFormField(field, name)
       fieldWidgets.add(fieldWidget)
