@@ -31,7 +31,9 @@ import bindings/gtk
 type
   Widget* = ref object of RootObj
     app*: Viewable
-  
+    hasStateRef*: bool
+    valStateRef*: StateRef
+    
   WidgetState* = ref object of RootObj
     app*: Viewable
   
@@ -48,6 +50,10 @@ type
     widget*: Renderable
   
   Event*[T] = ref EventObj[T]
+
+  StateRef* = ref object
+    state: WidgetState
+    observers: HashSet[proc(state: WidgetState)]
 
 method build*(widget: Widget): WidgetState {.base.} = discard
 method update*(widget: Widget, state: WidgetState): WidgetState {.base.} = discard
@@ -82,24 +88,19 @@ proc redraw*(viewable: Viewable): bool =
     viewable.viewed = newWidget
     result = true
 
-type
-  StateRef*[T] = ref object
-    state: T
-    observers: HashSet[proc(state: T)]
+proc hasRef*(stateRef: StateRef): bool = not stateRef.state.isNil()
 
-proc hasRef*[T](stateRef: StateRef[T]): bool = not stateRef.state.isNil()
+proc newRef*(subscribers: varargs[proc(state: WidgetState) {.closure.}]): StateRef = 
+  var observers = initHashSet[proc(state: WidgetState)]()
+  for subscriber in subscribers:
+    observers.incl(subscriber)
+  return StateRef(observers: observers)
 
-proc newRef*[T](): StateRef[T] = 
-  StateRef[T](observers: initHashSet[proc(state: T)]())
-
-proc unwrap*[T](stateRef: StateRef[T]): T =
-  stateRef.state
-
-proc setRef*[T](stateRef: StateRef[T], state: T) =
+proc setRef*(stateRef: StateRef, state: WidgetState) =
   if stateRef.isNil():
     return
   
-  let isStateChange = stateRef.state == state
+  let isStateChange = stateRef.state != state
   if not isStateChange:
     return
   
@@ -107,17 +108,10 @@ proc setRef*[T](stateRef: StateRef[T], state: T) =
   for observer in stateRef.observers:
     observer(stateRef.state)
 
-proc widget*[T](stateRef: StateRef[T]): Option[GtkWidget] = 
-  echo "T is: ", $T
-  when T is Renderable:
-    some stateRef.state.internalWidget
-  else:
-    none(GtkWidget)
-
-proc subscribe*[T](stateRef: StateRef[T], observer: proc(state: T)) =
+proc subscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
   stateRef.observers.incl(observer)
 
-proc unsubscribe*[T](stateRef: StateRef[T], observer: proc(state: T)) =
+proc unsubscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
   stateRef.observers.excl(observer)
 
 
@@ -548,6 +542,11 @@ proc genBuildState(def: WidgetDef): NimNode =
     body = result
   )
 
+proc genStateRef(widget: NimNode, state: NimNode): NimNode =
+  return quote:
+    if `widget`.hasStateRef:
+      `widget`.valStateRef.setRef(`state`)
+      
 proc genBuild(def: WidgetDef): NimNode =
   let (state, widget) = (ident("state"), ident("widget"))
   result = newStmtList(newVarStmt(state, newCall(ident(def.stateName))))
@@ -571,6 +570,8 @@ proc genBuild(def: WidgetDef): NimNode =
   
   for body in def.hooks[HookAfterBuild]:
     result.add(body)
+  
+  result.add: genStateRef(widget, state)
   
   result.add(newTree(nnkReturnStmt, state))
   result = newProc(
@@ -626,6 +627,8 @@ proc genUpdateState(def: WidgetDef): NimNode =
           field.since.copyNimTree(), updateField
         ])
       ]))
+  
+  result.add: genStateRef(widget, state)
   
   for event in def.events:
     result.add(newAssignment(
