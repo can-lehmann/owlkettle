@@ -292,10 +292,16 @@ proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
   
   when hasFields:
     var subFieldWidgets: Table[string, Widget] = initTable[string, Widget]()
-    for subFieldName, subFieldValue in field[].getIterator():      
-      let subField: ptr = subFieldValue.addr
-      let subFieldWidget = state.toFormField(subField, subFieldName)
-      subFieldWidgets[subFieldName] = subFieldWidget
+    let hasFieldValue = when field.typeOf() is ptr ref:
+        field[].isNil()
+      else:
+        true
+        
+    if hasFieldValue:
+      for subFieldName, subFieldValue in field[].getIterator():
+        let subField: ptr = subFieldValue.addr
+        let subFieldWidget = state.toFormField(subField, subFieldName)
+        subFieldWidgets[subFieldName] = subFieldWidget
     
     return gui:
       ExpanderRow:
