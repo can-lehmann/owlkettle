@@ -115,11 +115,16 @@ proc setRef*(stateRef: StateRef, state: WidgetState) =
     observer(stateRef.state)
 
 proc subscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
+  if stateRef.isNil():
+    return
+  
   stateRef.observers.incl(observer)
   if stateRef.hasRef():
     observer(stateRef.state)
 
 proc unsubscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
+  if stateRef.isNil():
+    return
   stateRef.observers.excl(observer)
 
 
