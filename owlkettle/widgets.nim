@@ -2241,7 +2241,7 @@ renderable ModelButton of BaseWidget:
 
 renderable SearchEntry of BaseWidget:
   text: string
-  # child: GtkWidget # This is currently not supported
+  keyCaptureRef: StateRef
   searchDelay {.since: GtkMinor >= 8.}: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted.
   placeholderText {.since: GtkMinor >= 10.}: string = "Search"
   
@@ -2277,10 +2277,16 @@ renderable SearchEntry of BaseWidget:
       # state.internalWidget.disconnect(state.searchStarted) # Currently not supported
       state.internalWidget.disconnect(state.stopSearch)
 
-  # hooks child:
-  #   property:
-  #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
-
+  hooks keyCaptureRef:
+    property:
+      if not state.keyCaptureRef.isNil():
+        proc observer(childState: WidgetState) =
+          let childWidget = childState.unwrapInternalWidget()
+          if not childWidget.isNil():
+            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+        
+        state.keyCaptureRef.subscribe(observer) # When do I unsubscribe? **How** do I unsubscribe when I need the proc to do so?
+    
   hooks text:
     property:
       gtk_editable_set_text(state.internalWidget, state.text.cstring)

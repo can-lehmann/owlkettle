@@ -30,7 +30,7 @@ viewable App:
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  
+  keyCaptureRef: StateRef = newRef()
   items: seq[string] = mapIt(0..<100, "Item " & $it)
   filteredItems: seq[string] = mapIt(0..<100, "Item " & $it)
   selected: int = 0
@@ -44,6 +44,7 @@ method view(app: AppState): Widget =
         insert(app.toAutoFormMenu(ignoreFields = @["filteredItems"])) {.addRight.}
       
         SearchEntry() {.addTitle, expand: true.}:
+          keyCaptureRef = app.keyCaptureRef
           margin = Margin(top:0, left: 48, bottom:0, right: 48)
           text = app.text
           searchDelay = app.searchDelay
@@ -74,6 +75,7 @@ method view(app: AppState): Widget =
             app.filteredItems = app.items
           
       ScrolledWindow:
+        stateRef = app.keyCaptureRef
         ListBox:
           selectionMode = SelectionSingle
           if app.selected < app.filteredItems.len:
