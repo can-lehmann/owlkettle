@@ -2291,9 +2291,8 @@ renderable SearchEntry of BaseWidget:
       # Add observer to new keyCaptureRef
       let hasNewKeyCaptureRef = widget.hasKeyCaptureRef
       let newKeyCaptureRef = if hasNewKeyCaptureRef:
-          let newKeyCaptureRef = widget.valKeyCaptureRef
-          newKeyCaptureRef.subscribe(observer)
-          newKeyCaptureRef        
+          widget.valKeyCaptureRef.subscribe(observer)
+          widget.valKeyCaptureRef        
         else:
           nil
       
