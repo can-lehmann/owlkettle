@@ -2278,15 +2278,27 @@ renderable SearchEntry of BaseWidget:
       state.internalWidget.disconnect(state.stopSearch)
 
   hooks keyCaptureRef:
-    property:
-      if not state.keyCaptureRef.isNil():
-        proc observer(childState: WidgetState) =
-          let childWidget = childState.unwrapInternalWidget()
-          if not childWidget.isNil():
-            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
-        
-        state.keyCaptureRef.subscribe(observer) # When do I unsubscribe? **How** do I unsubscribe when I need the proc to do so?
-    
+    update:
+      proc observer(childState: WidgetState) =
+        let childWidget = childState.unwrapInternalWidget()
+        if not childWidget.isNil():
+          gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+      
+      # Remove observer from old keyCaptureRef
+      let oldKeyCaptureRef = state.keyCaptureRef
+      oldKeyCaptureRef.unsubscribe(observer)
+      
+      # Add observer to new keyCaptureRef
+      let hasNewKeyCaptureRef = widget.hasKeyCaptureRef
+      let newKeyCaptureRef = if hasNewKeyCaptureRef:
+          let newKeyCaptureRef = widget.valKeyCaptureRef
+          newKeyCaptureRef.subscribe(observer)
+          newKeyCaptureRef        
+        else:
+          nil
+      
+      state.keyCaptureRef = newKeyCaptureRef
+      
   hooks text:
     property:
       gtk_editable_set_text(state.internalWidget, state.text.cstring)
