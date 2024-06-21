@@ -2278,25 +2278,39 @@ renderable SearchEntry of BaseWidget:
       state.internalWidget.disconnect(state.stopSearch)
 
   hooks keyCaptureRef:
+    build:
+      if widget.hasKeyCaptureRef:
+        proc observer(childState: WidgetState) =
+          let childWidget = childState.unwrapInternalWidget()
+          if not childWidget.isNil():
+            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+        
+        widget.valKeyCaptureRef.subscribe(observer)
+        state.keyCaptureRef = widget.valKeyCaptureRef        
+        
     update:
-      proc observer(childState: WidgetState) =
-        let childWidget = childState.unwrapInternalWidget()
-        if not childWidget.isNil():
-          gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
-      
-      # Remove observer from old keyCaptureRef
-      let oldKeyCaptureRef = state.keyCaptureRef
-      oldKeyCaptureRef.unsubscribe(observer)
-      
-      # Add observer to new keyCaptureRef
-      let hasNewKeyCaptureRef = widget.hasKeyCaptureRef
-      let newKeyCaptureRef = if hasNewKeyCaptureRef:
-          widget.valKeyCaptureRef.subscribe(observer)
-          widget.valKeyCaptureRef        
-        else:
-          nil
-      
-      state.keyCaptureRef = newKeyCaptureRef
+      let isChangeFromNoneToSome = state.keyCaptureRef.isNil() and widget.hasKeyCaptureRef
+      let isChangeFromSomeToNone = not state.keyCaptureRef.isNil() and not widget.hasKeyCaptureRef
+      let isRefChange = isChangeFromNoneToSome or isChangeFromSomeToNone or state.keyCaptureRef != widget.valKeyCaptureRef 
+      if isRefChange:
+        proc observer(childState: WidgetState) =
+          let childWidget = childState.unwrapInternalWidget()
+          if not childWidget.isNil():
+            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+        
+        # Remove observer from old keyCaptureRef
+        let oldKeyCaptureRef = state.keyCaptureRef
+        oldKeyCaptureRef.unsubscribe(observer)
+        
+        # Add observer to new keyCaptureRef
+        let hasNewKeyCaptureRef = widget.hasKeyCaptureRef
+        let newKeyCaptureRef = if hasNewKeyCaptureRef:
+            widget.valKeyCaptureRef.subscribe(observer)
+            widget.valKeyCaptureRef        
+          else:
+            nil
+        
+        state.keyCaptureRef = newKeyCaptureRef
       
   hooks text:
     property:
