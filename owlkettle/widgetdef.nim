@@ -192,10 +192,6 @@ proc value(field: Field): NimNode =
   result.copyLineInfo(field.lineInfo)
 
 proc stateName(def: WidgetDef): string = def.name & "State"
-proc camelCase(s: string): string =
-  result = s
-  result[0] = ($result[0]).toLower()[0]
-proc refName(def: WidgetDef): string = def.name.camelCase() & "Ref"
 
 proc widgetBase(def: WidgetDef): NimNode =
   if def.base.len == 0:
