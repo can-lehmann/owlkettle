@@ -104,7 +104,10 @@ proc parseGui(node: NimNode): Node =
         else: 
           error("Tried to use 'as' with invalid syntax", node)
           newEmptyNode() # Forces the compiler to acknowlege that all branches of the case statement return a NimNode
-      let widgetRefVar = node[2]
+      
+      let widgetRefVar = case node[2].kind:
+        of nnkPragmaExpr: node[2][0]
+        else: node[2]
       let widgetContent = node[3]
       
       if widgetName.isQualifiedName:
