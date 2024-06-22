@@ -30,10 +30,11 @@ viewable App:
   sensitive: bool = true
   tooltip: string = ""
   sizeRequest: tuple[x, y: int] = (-1, -1)
-  keyCaptureRef: StateRef = newRef()
+  keyCaptureRef: StateRef = newRef(proc(state: WidgetState){.closure.} = echo "Key Capture Ref was filled")
   items: seq[string] = mapIt(0..<100, "Item " & $it)
   filteredItems: seq[string] = mapIt(0..<100, "Item " & $it)
   selected: int = 0
+  dummyRef: StateRef = newRef(proc(state: WidgetState) {.closure.} = echo "Dummy Ref was filled, demonstrating that this works with adders")
   
 method view(app: AppState): Widget =
   let isInActiveSearch = app.text != ""
@@ -41,7 +42,7 @@ method view(app: AppState): Widget =
     Window():
       defaultSize = (600, 400)
       HeaderBar() {.addTitlebar.}:
-        insert(app.toAutoFormMenu(ignoreFields = @["filteredItems"])) {.addRight.}
+        insert(app.toAutoFormMenu(ignoreFields = @["filteredItems", "keyCapureRef", "dummyRef"])) {.addRight.}
       
         SearchEntry() {.addTitle, expand: true.}:
           keyCaptureRef = app.keyCaptureRef
@@ -87,8 +88,10 @@ method view(app: AppState): Widget =
               app.selected = num
           
           for index, item in app.filteredItems:
-            Box():
-              Label(text = item, margin = 6) {.hAlign: AlignStart, expand: false.}
-        
+            ListBoxRow() {.addRow.}:
+              Label(text = item, margin = 6)
+          
+          ListBoxRow() as app.dummyRef {.addRow.}:
+            Label(text = "Static last")
 
 adw.brew(gui(App()))
