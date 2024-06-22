@@ -2279,8 +2279,11 @@ renderable SearchEntry of BaseWidget:
 
   hooks keyCaptureRef:
     build:
-      if widget.hasKeyCaptureRef:
+      if widget.hasKeyCaptureRef and widget.valKeyCaptureRef.hasRef():
         proc observer(childState: WidgetState) =
+          if childState.isNil():
+            return
+          
           let childWidget = childState.unwrapInternalWidget()
           if not childWidget.isNil():
             gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)

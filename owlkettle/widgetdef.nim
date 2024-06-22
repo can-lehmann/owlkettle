@@ -87,7 +87,7 @@ proc redraw*(viewable: Viewable): bool =
     viewable.viewed = newWidget
     result = true
 
-proc hasRef*(stateRef: StateRef): bool = not stateRef.isNil() and not stateRef.state.isNil()
+proc hasRef*(stateRef: StateRef): bool = stateRef.state.isNil()
 
 proc newStateRef*(subscribers: varargs[proc(state: WidgetState) {.closure.}]): StateRef = 
   var observers = initHashSet[proc(state: WidgetState)]()
@@ -96,15 +96,12 @@ proc newStateRef*(subscribers: varargs[proc(state: WidgetState) {.closure.}]): S
   return StateRef(observers: observers)
 
 proc unwrapInternalWidget*(stateRef: StateRef): GtkWidget =
-  if stateRef.isNil() or stateRef.state.isNil():
+  if not stateRef.hasRef():
     return nil.GtkWidget
   
   return stateRef.state.unwrapInternalWidget()
 
 proc setRef*(stateRef: StateRef, state: WidgetState) =
-  if stateRef.isNil():
-    return
-  
   let isStateChange = stateRef.state != state
   if not isStateChange:
     return
@@ -114,16 +111,11 @@ proc setRef*(stateRef: StateRef, state: WidgetState) =
     observer(stateRef.state)
 
 proc subscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
-  if stateRef.isNil():
-    return
-  
   stateRef.observers.incl(observer)
   if stateRef.hasRef():
     observer(stateRef.state)
 
 proc unsubscribe*(stateRef: StateRef, observer: proc(state: WidgetState)) =
-  if stateRef.isNil():
-    return
   stateRef.observers.excl(observer)
 
 
