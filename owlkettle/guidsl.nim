@@ -82,6 +82,9 @@ proc parseAdder(node: NimNode): Adder =
         error("Unable to parse adder argument from " & $child.kind, child)
 
 proc parseGui(node: NimNode): Node =
+  if node.repr.contains "ScrolledWindow":
+    echo "Node: \n", node.repr
+    echo "Tree: \n", node.treeRepr 
   case node.kind:
     of nnkCallKinds - {nnkInfix}:
       if node[0].unwrapName().eqIdent("insert"):
@@ -99,7 +102,12 @@ proc parseGui(node: NimNode): Node =
       let isRefAssignmentExpression = asNode.kind == nnkIdent and $asNode == "as"
       if not isRefAssignmentExpression:
         error("You can only use infix for assigning stateReferences. That must be done via '<Widget> as <stateRefVariable>' syntax")
-      let widgetName = node[1]
+      let widgetName = case node[1].kind:
+        of nnkIdent: node[1]
+        of nnkCall: node[1][0]
+        else: 
+          error("Tried to use 'as' with invalid syntax", node)
+          newEmptyNode() # Forces the compiler to acknowlege that all branches of the case statement return a NimNode
       let widgetRefVar = node[2]
       let widgetContent = node[3]
       
