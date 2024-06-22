@@ -89,7 +89,7 @@ proc redraw*(viewable: Viewable): bool =
 
 proc hasRef*(stateRef: StateRef): bool = not stateRef.isNil() and not stateRef.state.isNil()
 
-proc newRef*(subscribers: varargs[proc(state: WidgetState) {.closure.}]): StateRef = 
+proc newStateRef*(subscribers: varargs[proc(state: WidgetState) {.closure.}]): StateRef = 
   var observers = initHashSet[proc(state: WidgetState)]()
   for subscriber in subscribers:
     observers.incl(subscriber)
