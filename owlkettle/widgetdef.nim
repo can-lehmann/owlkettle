@@ -448,36 +448,18 @@ proc substituteWidgets(node: NimNode): NimNode =
         result.add(substituteWidgets(child))
 
 proc genState(def: WidgetDef): NimNode =
-  ## Generates the WidgetState for the widget defined in def.
-  ## The type is generated according to the pattern:
-  ## ```
-  ## type <WidgetName>State = ref object of X
-  ##   <WidgetName>Ref: StateRef[<WidgetName>State]
-  ##   --- Repeat per field in def.fields - start ---
-  ##     <fieldName>: <fieldType>
-  ##   --- Repeat per field in def.fields - end ---
-  ##   --- Repeat per event in def.events - start ---
-  ##     <eventName>: Event[proc(<eventParameters>)]
-  ##   --- Repeat per event in def.events - end ---
-  ## ```
-  var fieldNodes = newTree(nnkRecList)
-  
-  # Add data fields  
+  result = newTree(nnkRecList)
   for field in def.fields:
     var fieldType = field.typ
     if def.kind == WidgetRenderable:
       fieldType = substituteWidgets(fieldType)
-    fieldNodes.add(newTree(nnkIdentDefs, [
+    result.add(newTree(nnkIdentDefs, [
       ident(field.name).newExport(not field.isPrivate),
       fieldType,
       newEmptyNode()
     ]))
-    
-  # Add event fields
   for event in def.events:
-    fieldNodes.add(event.genIdentDefs())
-  
-  # Generate Type
+    result.add(event.genIdentDefs())
   result = newTree(nnkTypeDef, [
     ident(def.stateName),
     newEmptyNode(),
@@ -485,7 +467,7 @@ proc genState(def: WidgetDef): NimNode =
       newTree(nnkObjectTy, [
         newEmptyNode(),
         newTree(nnkOfInherit, def.stateBase),
-        fieldNodes
+        result
       ])
     ])
   ])
