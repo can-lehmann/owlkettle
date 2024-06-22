@@ -22,7 +22,7 @@
 
 # Domain-specific language for specifying GUI layouts
 
-import std/[macros, strutils, genasts, options]
+import std/[macros, strutils, genasts]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import common, widgetdef
@@ -45,7 +45,7 @@ type
       of NodeWidget:
         widget: seq[string]
         adder: Adder
-        widgetRefVar: Option[NimNode] # Contains a variable of type StateRef that may receive a reference to the constructed widget.
+        stateRef: NimNode
       of NodeField:
         name: string
         value: NimNode
@@ -116,7 +116,7 @@ proc parseGui(node: NimNode): Node =
           kind: NodeWidget, 
           widget: widgetName.qualifiedName, 
           lineInfo: widgetContent,
-          widgetRefVar: some(widgetRefVar)
+          stateRef: widgetRefVar
         )
       else:
         result = widgetName.parseGui()
@@ -252,9 +252,9 @@ proc gen(node: Node, stmts, parent: NimNode) =
       for child in node.children:
         child.gen(body, name)
       
-      let hasRefAssignment = node.widgetRefVar.isSome()
+      let hasRefAssignment = not node.stateRef.isNil()
       if hasRefAssignment:
-        let refVar = node.widgetRefVar.get()
+        let refVar = node.stateRef
         let refAssignment = quote do:
           `name`.hasStateRef = true
           `name`.valStateRef = `refVar`
