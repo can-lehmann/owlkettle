@@ -82,9 +82,6 @@ proc parseAdder(node: NimNode): Adder =
         error("Unable to parse adder argument from " & $child.kind, child)
 
 proc parseGui(node: NimNode): Node =
-  if node.repr.contains "ScrolledWindow":
-    echo "Node: \n", node.repr
-    echo "Tree: \n", node.treeRepr 
   case node.kind:
     of nnkCallKinds - {nnkInfix}:
       if node[0].unwrapName().eqIdent("insert"):
