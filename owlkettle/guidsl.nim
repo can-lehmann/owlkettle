@@ -105,7 +105,7 @@ proc parseGui(node: NimNode): Node =
           error("Tried to use 'as' with invalid syntax", node)
           newEmptyNode() # Forces the compiler to acknowlege that all branches of the case statement return a NimNode
       
-      let widgetRefVar = case node[2].kind:
+      let stateRefVar = case node[2].kind:
         of nnkPragmaExpr: node[2][0]
         else: node[2]
       let widgetContent = node[3]
@@ -115,12 +115,12 @@ proc parseGui(node: NimNode): Node =
           kind: NodeWidget, 
           widget: widgetName.qualifiedName, 
           lineInfo: widgetContent,
-          stateRef: widgetRefVar
+          stateRef: stateRefVar
         )
       else:
         result = widgetName.parseGui()
       
-      for it in 3..<node.len: # Parse content of Widget. Ignore NimNodes for "as", WidgetName and WidgetRefVar
+      for it in 3..<node.len: # Parse content of Widget. Ignore NimNodes for "as", widgetName and stateRefVar
         result.children.add(node[it].parseGui())
         
     of nnkPragmaExpr:
@@ -251,8 +251,8 @@ proc gen(node: Node, stmts, parent: NimNode) =
       for child in node.children:
         child.gen(body, name)
       
-      let hasRefAssignment = not node.stateRef.isNil()
-      if hasRefAssignment:
+      let hasStateRef = not node.stateRef.isNil()
+      if hasStateRef:
         let refVar = node.stateRef
         let refAssignment = quote do:
           `name`.stateRef = `refVar`
