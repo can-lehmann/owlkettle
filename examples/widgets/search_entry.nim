@@ -74,8 +74,7 @@ method view(app: AppState): Widget =
             app.text = ""
             app.filteredItems = app.items
           
-      ScrolledWindow:
-        stateRef = app.keyCaptureRef
+      ScrolledWindow as app.keyCaptureRef:
         ListBox:
           selectionMode = SelectionSingle
           if app.selected < app.filteredItems.len:

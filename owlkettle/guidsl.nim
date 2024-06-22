@@ -22,7 +22,7 @@
 
 # Domain-specific language for specifying GUI layouts
 
-import std/[macros, strutils, genasts]
+import std/[macros, strutils, genasts, options]
 when defined(nimPreviewSlimSystem):
   import std/assertions
 import common, widgetdef
@@ -45,6 +45,7 @@ type
       of NodeWidget:
         widget: seq[string]
         adder: Adder
+        widgetRefVar: Option[NimNode] # Contains a variable of type StateRef that may receive a reference to the constructed widget.
       of NodeField:
         name: string
         value: NimNode
@@ -82,7 +83,7 @@ proc parseAdder(node: NimNode): Adder =
 
 proc parseGui(node: NimNode): Node =
   case node.kind:
-    of nnkCallKinds:
+    of nnkCallKinds - {nnkInfix}:
       if node[0].unwrapName().eqIdent("insert"):
         if node.len != 2:
           error("The insert statement must have exactly one argument", node)
@@ -93,6 +94,28 @@ proc parseGui(node: NimNode): Node =
         result = node[0].parseGui()
       for it in 1..<node.len:
         result.children.add(node[it].parseGui())
+    of nnkInfix: # For expressions like "<Widget> as <stateRefVariable>"
+      let asNode = node[0]
+      let isRefAssignmentExpression = asNode.kind == nnkIdent and $asNode == "as"
+      if not isRefAssignmentExpression:
+        error("You can only use infix for assigning stateReferences. That must be done via '<Widget> as <stateRefVariable>' syntax")
+      let widgetName = node[1]
+      let widgetRefVar = node[2]
+      let widgetContent = node[3]
+      
+      if widgetName.isQualifiedName:
+        result = Node(
+          kind: NodeWidget, 
+          widget: widgetName.qualifiedName, 
+          lineInfo: widgetContent,
+          widgetRefVar: some(widgetRefVar)
+        )
+      else:
+        result = widgetName.parseGui()
+      
+      for it in 3..<node.len: # Parse content of Widget. Ignore NimNodes for "as", WidgetName and WidgetRefVar
+        result.children.add(node[it].parseGui())
+        
     of nnkPragmaExpr:
       if node[0].isQualifiedName:
         result = Node(kind: NodeWidget, widget: node[0].qualifiedName, lineInfo: node)
@@ -220,6 +243,15 @@ proc gen(node: Node, stmts, parent: NimNode) =
       body.add(newLetStmt(name, newCall(widgetTyp)))
       for child in node.children:
         child.gen(body, name)
+      
+      let hasRefAssignment = node.widgetRefVar.isSome()
+      if hasRefAssignment:
+        let refVar = node.widgetRefVar.get()
+        let refAssignment = quote do:
+          `name`.hasStateRef = true
+          `name`.valStateRef = `refVar`
+        body.add(refAssignment)
+      
       if not parent.isNil:
         body.add(node.adder.gen(name, parent))
       else:
