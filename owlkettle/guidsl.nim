@@ -98,8 +98,7 @@ proc parseGui(node: NimNode): Node =
       for it in 1..<node.len:
         result.children.add(node[it].parseGui())
     of nnkInfix: # For expressions like "<Widget> as <stateRefVariable>"
-      let asNode = node[0]
-      let isRefAssignmentExpression = asNode.kind == nnkIdent and $asNode == "as"
+      let isRefAssignmentExpression = node[0].eqIdent("as")
       if not isRefAssignmentExpression:
         error("You can only use infix for assigning stateReferences. That must be done via '<Widget> as <stateRefVariable>' syntax")
       let widgetName = case node[1].kind:
