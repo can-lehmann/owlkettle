@@ -31,8 +31,7 @@ import bindings/gtk
 type
   Widget* = ref object of RootObj
     app*: Viewable
-    hasStateRef*: bool
-    valStateRef*: StateRef
+    stateRef*: StateRef
     
   WidgetState* = ref object of RootObj
     app*: Viewable
@@ -557,8 +556,8 @@ proc genBuildState(def: WidgetDef): NimNode =
 
 proc genStateRef(widget: NimNode, state: NimNode): NimNode =
   return quote:
-    if `widget`.hasStateRef:
-      `widget`.valStateRef.setRef(`state`)
+    if not `widget`.stateRef.isNil():
+      `widget`.stateRef.setRef(`state`)
       
 proc genBuild(def: WidgetDef): NimNode =
   let (state, widget) = (ident("state"), ident("widget"))

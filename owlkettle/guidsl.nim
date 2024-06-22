@@ -255,8 +255,7 @@ proc gen(node: Node, stmts, parent: NimNode) =
       if hasRefAssignment:
         let refVar = node.stateRef
         let refAssignment = quote do:
-          `name`.hasStateRef = true
-          `name`.valStateRef = `refVar`
+          `name`.stateRef = `refVar`
         body.add(refAssignment)
       
       if not parent.isNil:
