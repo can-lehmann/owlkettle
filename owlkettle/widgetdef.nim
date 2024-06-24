@@ -86,9 +86,11 @@ type
   WidgetKind = enum WidgetRenderable, WidgetViewable
   
   HookKind = enum
-    HookProperty, HookAfterBuild, HookUpdate,
-    HookBuild, HookBeforeBuild,
+    HookProperty,
+    HookBuild, HookBeforeBuild, HookAfterBuild,
+    HookUpdate,
     HookConnectEvents, HookDisconnectEvents,
+    HookDestroy, HookBeforeDestroy, HookAfterDestroy,
     HookRead
   
   FieldModifier = enum
@@ -147,6 +149,7 @@ proc value(field: Field): NimNode =
   result.copyLineInfo(field.lineInfo)
 
 proc stateName(def: WidgetDef): string = def.name & "State"
+proc stateObjName(def: WidgetDef): string = def.name & "StateObj"
 
 proc widgetBase(def: WidgetDef): NimNode =
   if def.base.len == 0:
@@ -195,11 +198,14 @@ proc parseHookKind(name: string): HookKind =
   case nimIdentNormalize(name):
     of "property": HookProperty
     of "build": HookBuild
-    of "update": HookUpdate
     of "beforebuild": HookBeforeBuild
     of "afterbuild": HookAfterBuild
+    of "update": HookUpdate
     of "connectevents": HookConnectEvents
     of "disconnectevents": HookDisconnectEvents
+    of "destroy": HookDestroy
+    of "beforedestroy": HookBeforeDestroy
+    of "afterdestroy": HookAfterDestroy
     of "read": HookRead
     else:
       error(name & " is not a valid hook")
@@ -362,29 +368,34 @@ proc genIdentDefs(event: EventDef): NimNode =
     newEmptyNode()
   ])
 
-proc genWidget(def: WidgetDef): NimNode =
-  result = newTree(nnkRecList)
+proc genWidget(def: WidgetDef): seq[NimNode] =
+  let recList = newTree(nnkRecList)
+  
   for field in def.fields:
     if not field.isOnlyState:
-      result.add(newTree(nnkIdentDefs, [
+      recList.add(newTree(nnkIdentDefs, [
         field.has().newExport(not field.isPrivate), bindSym("bool"), newEmptyNode()
       ]))
-      result.add(newTree(nnkIdentDefs, [
+      recList.add(newTree(nnkIdentDefs, [
         field.value().newExport(not field.isPrivate), field.typ, newEmptyNode()
       ]))
+  
   for event in def.events:
-    result.add(event.genIdentDefs())
-  result = newTree(nnkTypeDef, [
-    ident(def.name),
-    newEmptyNode(),
-    newTree(nnkRefTy, [
-      newTree(nnkObjectTy, [
-        newEmptyNode(),
-        newTree(nnkOfInherit, def.widgetBase),
-        result
+    recList.add(event.genIdentDefs())
+  
+  result = @[
+    newTree(nnkTypeDef, [
+      ident(def.name),
+      newEmptyNode(),
+      newTree(nnkRefTy, [
+        newTree(nnkObjectTy, [
+          newEmptyNode(),
+          newTree(nnkOfInherit, def.widgetBase),
+          recList
+        ])
       ])
     ])
-  ])
+  ]
 
 proc substituteWidgets(node: NimNode): NimNode =
   case node.kind:
@@ -398,30 +409,83 @@ proc substituteWidgets(node: NimNode): NimNode =
       for child in node:
         result.add(substituteWidgets(child))
 
-proc genState(def: WidgetDef): NimNode =
-  result = newTree(nnkRecList)
+proc genState(def: WidgetDef): seq[NimNode] =
+  let recList = newTree(nnkRecList)
+  
   for field in def.fields:
     var fieldType = field.typ
     if def.kind == WidgetRenderable:
       fieldType = substituteWidgets(fieldType)
-    result.add(newTree(nnkIdentDefs, [
+    recList.add(newTree(nnkIdentDefs, [
       ident(field.name).newExport(not field.isPrivate),
       fieldType,
       newEmptyNode()
     ]))
+  
   for event in def.events:
-    result.add(event.genIdentDefs())
-  result = newTree(nnkTypeDef, [
-    ident(def.stateName),
-    newEmptyNode(),
-    newTree(nnkRefTy, [
+    recList.add(event.genIdentDefs())
+  
+  result = @[
+    newTree(nnkTypeDef, [
+      ident(def.stateObjName),
+      newEmptyNode(),
       newTree(nnkObjectTy, [
         newEmptyNode(),
         newTree(nnkOfInherit, def.stateBase),
-        result
+        recList
       ])
+    ]),
+    newTree(nnkTypeDef, [
+      ident(def.stateName),
+      newEmptyNode(),
+      newTree(nnkRefTy, ident(def.stateObjName))
     ])
-  ])
+  ]
+
+proc genDestroyDecl(def: WidgetDef): NimNode =
+  result = newProc(
+    procType=nnkProcDef,
+    name=ident("=destroy"),
+    params=[newEmptyNode(),
+      newIdentDefs(ident("state"), ident(def.stateObjName))
+    ],
+    body=newEmptyNode()
+  )
+
+proc genDestroyState(def: WidgetDef): NimNode =
+  let stateObj = ident("state")
+  result = newStmtList()
+  
+  for body in def.hooks[HookDestroy]:
+    result.add(body)
+  
+  if def.base.len > 0:
+    result.add(newCall(ident("destroyState"),
+      newCall(ident(def.base & "StateObj"), stateObj)
+    ))
+  
+  result = newProc(
+    procType=nnkProcDef,
+    name=ident("destroyState"),
+    params=[newEmptyNode(),
+      newIdentDefs(stateObj, ident(def.stateObjName))
+    ],
+    body = result
+  )
+
+proc genDestroy(def: WidgetDef): NimNode =
+  let stmts = newStmtList()
+  
+  for body in def.hooks[HookBeforeDestroy]:
+    stmts.add(body)
+  
+  stmts.add(newCall(ident("destroyState"), ident("state")))
+  
+  for body in def.hooks[HookAfterDestroy]:
+    stmts.add(body)
+  
+  result = def.genDestroyDecl()
+  result.body = stmts
 
 proc genBuildState(def: WidgetDef): NimNode =
   let (state, widget) = (ident("state"), ident("widget"))
@@ -492,6 +556,7 @@ proc genBuild(def: WidgetDef): NimNode =
   result = newStmtList(newVarStmt(state, newCall(ident(def.stateName))))
   for body in def.hooks[HookBeforeBuild]:
     result.add(body)
+  
   result.add: quote:
     `state`.app = `widget`.app
   
@@ -768,10 +833,14 @@ proc genAdders(widget: WidgetDef): NimNode =
 
 proc gen(widget: WidgetDef): NimNode =
   result = newStmtList([
-    newTree(nnkTypeSection, @[
-      widget.genWidget(),
-      widget.genState()
-    ] & widget.types),
+    newTree(nnkTypeSection,
+      widget.genWidget() &
+      widget.genState() &
+      widget.types
+    ),
+    widget.genDestroyDecl(),
+    widget.genDestroyState(),
+    widget.genDestroy(),
     widget.genBuildState(),
     widget.genBuild(),
     widget.genUpdateState(),
