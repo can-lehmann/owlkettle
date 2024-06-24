@@ -22,8 +22,7 @@ jobs:
           # - windows-latest
           # - macOS-latest
         nim:
-          - '1.6.0'
-          - '1.6.x'
+          - '2.0.0'
           - 'stable'
     steps:
       - uses: actions/checkout@v3
