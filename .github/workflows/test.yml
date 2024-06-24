@@ -26,14 +26,14 @@ jobs:
           - 'stable'
     steps:
       - uses: actions/checkout@v3
-      - uses: jiro4989/setup-nim-action@v1
-        with:
-          nim-version: ${{ matrix.nim }}
-      - run: nimble install -Y
       - name: Setup dependencies
         run: |
           sudo apt update -y
           sudo apt install -y libgtk-4-dev libadwaita-1-dev
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: ${{ matrix.nim }}
+      - run: nimble install -Y
       - name: Setup config.nims
         run: |
           # For referencing latest source code
