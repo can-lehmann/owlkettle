@@ -102,6 +102,8 @@ proc newExport*(node: NimNode, addExport: bool): NimNode =
   else:
     result = node
 
+proc newExport*(name: string, addExport: bool): NimNode =
+  result = newExport(ident(name), addExport)
 
 template customPragmas*() =
   ## Definess a custom pragma called "locker".

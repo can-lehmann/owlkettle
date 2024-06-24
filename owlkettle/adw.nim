@@ -554,9 +554,6 @@ renderable PasswordEntryRow {.since: AdwVersion >= (1, 2).} of EntryRow:
       proc changed(password: string) =
         app.password = password
 
-when AdwVersion >= (1, 2):
-  export EntryRow, PasswordEntryRow
-
 type FlapChild[T] = object
   widget: T
   width: int
@@ -816,9 +813,6 @@ renderable OverlaySplitView {.since: AdwVersion >= (1, 4).} of BaseWidget:
       raise newException(ValueError, "Unable to add multiple sidebars to a OverlaySplitView. Use a Box widget to display multiple widgets!")
     widget.hasSidebar = true
     widget.valSidebar = child
-
-when AdwVersion >= (1, 4):
-  export OverlaySplitView
 
 renderable AdwHeaderBar of BaseWidget:
   ## Adwaita Headerbar that combines GTK Headerbar and WindowControls.
@@ -1092,9 +1086,6 @@ renderable ToolbarView {.since: AdwVersion >= (1, 4).} of BaseWidget:
     widget.hasTopBars = true
     widget.valTopBars.add(child)
 
-when AdwVersion >= (1, 4):
-  export ToolbarView
-
 type LicenseType* = enum
   LicenseUnknown = 0
   LicenseCustom = 1
@@ -1290,9 +1281,6 @@ renderable AboutWindow {.since: AdwVersion >= (1, 2).}:
       copyright = "Erika Mustermann"
       licenseType = LicenseMIT_X11
 
-when AdwVersion >= (1, 2):
-  export AboutWindow
-
 type Toast* = ref object
   title*: string
   customTitle*: Widget
@@ -1447,9 +1435,6 @@ renderable SwitchRow {.since: AdwVersion >= (1, 4).} of ActionRow:
     property:
       adw_switch_row_set_active(state.internalWidget, state.active.cbool)
 
-when AdwVersion >= (1, 4):
-  export SwitchRow
-
 renderable Banner {.since: AdwVersion >= (1, 3).} of BaseWidget:
   ## A rectangular Box taking up the entire vailable width with an optional button.
   buttonLabel: string ## Label of the optional banner button. Button will only be added to the banner if this Label has a value.
@@ -1482,11 +1467,6 @@ renderable Banner {.since: AdwVersion >= (1, 3).} of BaseWidget:
     property:
       adw_banner_set_revealed(state.internalWidget, state.revealed.cbool)
 
-when AdwVersion >= (1, 3):
-  export Banner
-
-export ToastOverlay, Toast
-export AdwWindow, WindowTitle, AdwHeaderBar, Avatar, ButtonContent, Clamp, PreferencesGroup, PreferencesRow, ActionRow, ExpanderRow, ComboRow, Flap, SplitButton, StatusPage, PreferencesPage
 
 proc defaultStyleManager*(): StyleManager =
   result = adw_style_manager_get_default()

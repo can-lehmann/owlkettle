@@ -90,8 +90,6 @@ nbCode:
           
           proc clicked() =
             view.model.increment()
-  
-  export CounterView, CounterViewState
 
 nbText: """
 We can then use `CounterView` to display the counter inside the main application.

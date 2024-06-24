@@ -128,6 +128,7 @@ type
     kind: WidgetKind
     base: string
     since: NimNode
+    private: bool
     events: seq[EventDef]
     fields: seq[Field]
     hooks: array[HookKind, seq[NimNode]]
@@ -171,6 +172,8 @@ proc parsePragma(pragma: NimNode, def: var WidgetDef) =
     if child.kind == nnkExprColonExpr and
        child[0].eqIdent("since"):
       def.since = child[1]
+    elif child.eqIdent("private"):
+      def.private = true
     else:
       error("Invalid widget pragma " & child.repr, pragma)
 
@@ -385,7 +388,7 @@ proc genWidget(def: WidgetDef): seq[NimNode] =
   
   result = @[
     newTree(nnkTypeDef, [
-      ident(def.name),
+      newExport(def.name, not def.private),
       newEmptyNode(),
       newTree(nnkRefTy, [
         newTree(nnkObjectTy, [
@@ -427,7 +430,7 @@ proc genState(def: WidgetDef): seq[NimNode] =
   
   result = @[
     newTree(nnkTypeDef, [
-      ident(def.stateObjName),
+      newExport(def.stateObjName, not def.private),
       newEmptyNode(),
       newTree(nnkObjectTy, [
         newEmptyNode(),
@@ -436,7 +439,7 @@ proc genState(def: WidgetDef): seq[NimNode] =
       ])
     ]),
     newTree(nnkTypeDef, [
-      ident(def.stateName),
+      newExport(def.stateName, not def.private),
       newEmptyNode(),
       newTree(nnkRefTy, ident(def.stateObjName))
     ])
@@ -466,7 +469,7 @@ proc genDestroyState(def: WidgetDef): NimNode =
   
   result = newProc(
     procType=nnkProcDef,
-    name=ident("destroyState"),
+    name=newExport("destroyState", not def.private),
     params=[newEmptyNode(),
       newIdentDefs(stateObj, ident(def.stateObjName))
     ],
@@ -543,7 +546,7 @@ proc genBuildState(def: WidgetDef): NimNode =
   
   result = newProc(
     procType=nnkProcDef,
-    name=ident("buildState"),
+    name=newExport("buildState", not def.private),
     params=[newEmptyNode(),
       newIdentDefs(state, ident(def.stateName)),
       newIdentDefs(widget, ident(def.name))
@@ -645,7 +648,7 @@ proc genUpdateState(def: WidgetDef): NimNode =
   
   result = newProc(
     procType=nnkProcDef,
-    name=ident("updateState"),
+    name=newExport("updateState", not def.private),
     params=[newEmptyNode(),
       newIdentDefs(state, ident(def.stateName)),
       newIdentDefs(widget, ident(def.name))
@@ -692,7 +695,7 @@ proc genAssignAppEvents(def: WidgetDef): NimNode =
   
   result = newProc(
     procType=nnkProcDef,
-    name=ident("assignAppEvents"),
+    name=newExport("assignAppEvents", not def.private),
     params=[newEmptyNode(),
       newIdentDefs(widget, ident(def.name)),
       newIdentDefs(app, bindSym("Viewable"))
@@ -826,7 +829,7 @@ proc genAdders(widget: WidgetDef): NimNode =
       ))
     
     result.add(newProc(
-      name = ident(adder.name).newExport(),
+      name = newExport(adder.name, not widget.private),
       params = params,
       body = adder.body
     ))

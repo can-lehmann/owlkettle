@@ -57,7 +57,7 @@ renderable BaseWidget:
   sensitive: bool = true ## If the widget is interactive
   sizeRequest: tuple[x, y: int] = (-1, -1) ## Requested widget size. A value of -1 means that the natural size of the widget will be used.
   tooltip: string = "" ## The widget's tooltip is shown on hover
-
+  
   hooks privateMargin:
     (build, update):
       if widget.hasPrivateMargin:
@@ -4748,29 +4748,3 @@ renderable ColumnView of BaseWidget:
   hooks reorderable:
     property:
       gtk_column_view_set_reorderable(state.internalWidget, cbool(ord(state.reorderable)))
-
-export BaseWidget, BaseWidgetState, BaseWindow, BaseWindowState
-export Window, Box, Overlay, Label, Icon, Picture, Button, HeaderBar, ScrolledWindow, Entry, Spinner
-export SpinButton, Paned, ColorButton, Switch, LinkButton, ToggleButton, CheckButton, RadioGroup
-export DrawingArea, GlArea, MenuButton, ModelButton, Separator, Popover, PopoverMenu
-export TextView, ListBox, ListBoxRow, ListBoxRowState, FlowBox, FlowBoxChild
-export Frame, DropDown, Grid, Fixed, ContextMenu, LevelBar, Calendar
-export Dialog, DialogState, DialogButton
-export BuiltinDialog, BuiltinDialogState
-export FileChooserDialog, FileChooserDialogState
-export ColorChooserDialog, ColorChooserDialogState
-export MessageDialog, MessageDialogState
-export AboutDialog, AboutDialogState
-export buildState, updateState, assignAppEvents
-export Scale
-export Expander
-export Video, MediaControls
-export SearchEntry
-export ProgressBar
-export EmojiChooser
-export EditableLabel
-export PasswordEntry
-export CenterBox
-export ListView
-export ActionBar
-export ColumnView
