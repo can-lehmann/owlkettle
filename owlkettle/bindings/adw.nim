@@ -22,13 +22,14 @@
 
 # Bindings for Adwaita
 
+import std/strutils as strutils
 import ./gtk
 
 const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
 const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwminor=X`. Defaults to 0.
 const AdwVersion* = (AdwMajor, AdwMinor)
 
-{.passl: "-ladwaita-1".}
+{.passl: strutils.strip(gorge("pkg-config --libs libadwaita-1")).}
 
 type
   StyleManager* = distinct pointer
