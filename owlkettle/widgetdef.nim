@@ -51,7 +51,8 @@ type
 
 method build*(widget: Widget): WidgetState {.base.} = discard
 method update*(widget: Widget, state: WidgetState): WidgetState {.base.} = discard
-method view*(viewable: Viewable): Widget {.base.} = discard
+method view*(viewable: Viewable): Widget {.base.} =
+  raise newException(Defect, "Unexpected call to `method view()`. Perhaps `method view(state: MyViewableState): Widget` for a `viewable MyViewable` is missing?")
 method read*(state: WidgetState) {.base.} = discard
 method assignApp*(widget: Widget, app: Viewable) {.base.} = discard
 
