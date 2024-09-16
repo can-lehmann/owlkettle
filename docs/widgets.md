@@ -35,6 +35,7 @@ renderable BaseWindow of BaseWidget
 - `defaultSize: tuple[width, height: int] = (800, 600)` Initial size of the window
 - `fullscreened: bool`
 - `iconName: string`
+- `resizable: bool = true`
 
 ###### Events
 

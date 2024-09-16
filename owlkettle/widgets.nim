@@ -121,6 +121,7 @@ renderable BaseWindow of BaseWidget:
   defaultSize: tuple[width, height: int] = (800, 600) ## Initial size of the window
   fullscreened: bool
   iconName: string
+  resizable: bool = true
   
   proc close() ## Called when the window is closed
   
@@ -148,6 +149,11 @@ renderable BaseWindow of BaseWidget:
     property:
       gtk_window_set_icon_name(state.internalWidget, state.iconName.cstring)
 
+  hooks resizable:
+    property:
+      gtk_window_set_resizable(state.internalWidget, cbool(state.resizable))
+
+
 renderable Window of BaseWindow:
   title: string
   titlebar: Widget ## Custom widget set as the titlebar of the window
@@ -156,7 +162,7 @@ renderable Window of BaseWindow:
   hooks:
     beforeBuild:
       state.internalWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-  
+
   hooks title:
     property:
       if state.titlebar.isNil:
