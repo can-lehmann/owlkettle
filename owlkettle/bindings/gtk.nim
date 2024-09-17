@@ -707,6 +707,8 @@ proc gtk_window_new*(windowType: GtkWindowType): GtkWidget
 proc gtk_window_set_title*(window: GtkWidget, title: cstring)
 proc gtk_window_set_titlebar*(window, titlebar: GtkWidget)
 proc gtk_window_set_default_size*(window: GtkWidget, width, height: cint)
+proc gtk_window_set_resizable*(window: GtkWidget, resizable: cbool)
+proc gtk_window_get_resizable*(window: GtkWidget): cbool
 proc gtk_window_set_transient_for*(window, parent: GtkWidget)
 proc gtk_window_set_modal*(window: GtkWidget, modal: cbool)
 proc gtk_window_set_focus*(window, focus: GtkWidget)
