@@ -117,8 +117,9 @@ template customPragmas*() =
     {.pragma: locker, locks: 0.}
     
 template crossVersionDestructor*(name: untyped, typ: typedesc, body: untyped) =
+  const arcLike = defined(gcArc) or defined(gcAtomicArc) or defined(gcOrc)
   ## Defines a =destroy to work for both nim 2 and nim 1.6.X
-  when NimMajor >= 2:
+  when NimMajor >= 2 and arcLike:
     proc `=destroy`*(name: typ) =
       body
   else:
