@@ -912,6 +912,7 @@ renderable SearchEntry of BaseWidget
 
 - All fields from [BaseWidget](#BaseWidget)
 - `text: string`
+- `keyCaptureRef: StateRef`
 - `searchDelay: uint = 100` Determines the minimum time after a `searchChanged` event occurred before the next can be emitted. Since: `GtkMinor >= 8`
 - `placeholderText: string = "Search"` Since: `GtkMinor >= 10`
 

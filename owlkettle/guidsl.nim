@@ -45,6 +45,7 @@ type
       of NodeWidget:
         widget: seq[string]
         adder: Adder
+        stateRef: NimNode
       of NodeField:
         name: string
         value: NimNode
@@ -82,7 +83,7 @@ proc parseAdder(node: NimNode): Adder =
 
 proc parseGui(node: NimNode): Node =
   case node.kind:
-    of nnkCallKinds:
+    of nnkCallKinds - {nnkInfix}:
       if node[0].unwrapName().eqIdent("insert"):
         if node.len != 2:
           error("The insert statement must have exactly one argument", node)
@@ -93,6 +94,35 @@ proc parseGui(node: NimNode): Node =
         result = node[0].parseGui()
       for it in 1..<node.len:
         result.children.add(node[it].parseGui())
+    of nnkInfix: # For expressions like "<Widget> as <stateRefVariable>"
+      let isRefAssignmentExpression = node[0].eqIdent("as")
+      if not isRefAssignmentExpression:
+        error("You can only use infix for assigning stateReferences. That must be done via '<Widget> as <stateRefVariable>' syntax")
+      let widgetName = case node[1].kind:
+        of nnkIdent: node[1]
+        of nnkCall: node[1][0]
+        else: 
+          error("Tried to use 'as' with invalid syntax", node)
+          newEmptyNode() # Forces the compiler to acknowlege that all branches of the case statement return a NimNode
+      
+      let stateRefVar = case node[2].kind:
+        of nnkPragmaExpr: node[2][0]
+        else: node[2]
+      let widgetContent = node[3]
+      
+      if widgetName.isQualifiedName:
+        result = Node(
+          kind: NodeWidget, 
+          widget: widgetName.qualifiedName, 
+          lineInfo: widgetContent,
+          stateRef: stateRefVar
+        )
+      else:
+        result = widgetName.parseGui()
+      
+      for it in 3..<node.len: # Parse content of Widget. Ignore NimNodes for "as", widgetName and stateRefVar
+        result.children.add(node[it].parseGui())
+        
     of nnkPragmaExpr:
       if node[0].isQualifiedName:
         result = Node(kind: NodeWidget, widget: node[0].qualifiedName, lineInfo: node)
@@ -220,6 +250,13 @@ proc gen(node: Node, stmts, parent: NimNode) =
       body.add(newLetStmt(name, newCall(widgetTyp)))
       for child in node.children:
         child.gen(body, name)
+      
+      if not node.stateRef.isNil():
+        let refVar = node.stateRef
+        let refAssignment = quote do:
+          `name`.stateRef = `refVar`
+        body.add(refAssignment)
+      
       if not parent.isNil:
         body.add(node.adder.gen(name, parent))
       else:
