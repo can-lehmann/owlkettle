@@ -1430,6 +1430,7 @@ A dialog for opening/saving files or folders.
 - `selectMultiple: bool = false`
 - `initialPath: string` Path of the initially shown folder
 - `filenames: seq[string]` The selected file paths
+- `filters: seq[FileFilter]`
 
 ###### Example
 
