@@ -186,6 +186,7 @@ type
   GtkListItemFactory* = distinct pointer
   GtkSelectionModel* = distinct pointer
   GtkColumnViewColumn* = distinct pointer
+  GtkFileFilter* = distinct pointer
 
 proc isNil*(obj: GtkTextBuffer): bool {.borrow.}
 proc isNil*(obj: GtkTextTag): bool {.borrow.}
@@ -206,6 +207,7 @@ proc isNil*(obj: GtkMediaStream): bool {.borrow.}
 proc isNil*(obj: GtkListItemFactory): bool {.borrow.}
 proc isNil*(obj: GtkSelectionModel): bool {.borrow.}
 proc isNil*(obj: GtkColumnViewColumn): bool {.borrow.}
+proc isNil*(obj: GtkFileFilter): bool {.borrow.}
 
 template defineBitSet(typ) =
   proc `==`*(a, b: typ): bool {.borrow.}
@@ -403,6 +405,7 @@ proc g_object_new*(typ: GType): pointer {.varargs.}
 proc g_object_ref*(obj: pointer)
 proc g_object_weak_ref*(obj: pointer, notify: proc (data, oldObjectPtr: pointer) {.cdecl.}, data: pointer)
 proc g_object_unref*(obj: pointer)
+proc g_object_is_floating*(obj: pointer): cbool
 proc g_object_set_property*(obj: pointer, name: cstring, value: ptr GValue)
 proc g_type_fundamental*(id: GType): GType
 
@@ -1138,6 +1141,7 @@ proc gtk_file_chooser_get_file*(fileChooser: GtkWidget): GFile
 proc gtk_file_chooser_get_files*(fileChooser: GtkWidget): GListModel
 proc gtk_file_chooser_set_select_multiple*(fileChooser: GtkWidget, select: cbool)
 proc gtk_file_chooser_set_current_folder*(fileChooser: GtkWidget, folder: GFile, error: ptr GError): cbool
+proc gtk_file_chooser_add_filter*(fileChooser: GtkWidget, filter: GtkFileFilter)
 
 # Gtk.FileChooserDialog
 proc gtk_file_chooser_dialog_new*(title: cstring,
@@ -1298,6 +1302,15 @@ proc gtk_column_view_column_get_resizable*(column: GtkColumnViewColumn): cbool
 proc g_list_store_new*(itemType: GType): GListModel
 proc g_list_store_append*(model: GListModel, item: pointer)
 proc g_list_store_remove*(model: GListModel, index: cuint)
+
+# Gtk.FileFilter
+proc gtk_file_filter_new*(): GtkFileFilter
+proc gtk_file_filter_add_pattern*(fileFilter: GtkFileFilter, pattern: cstring)
+proc gtk_file_filter_add_suffix*(fileFilter: GtkFileFilter, suffix: cstring)
+proc gtk_file_filter_add_mime_type*(fileFilter: GtkFileFilter, mimeType: cstring)
+proc gtk_file_filter_add_pixbuf_formats*(fileFilter: GtkFileFilter)
+proc gtk_file_filter_set_name*(fileFilter: GtkFileFilter, name: cstring)
+proc gtk_file_filter_get_name*(fileFilter: GtkFileFilter): cstring
 {.pop.}
 
 {.push hint[Name]: off.}

@@ -3642,6 +3642,62 @@ proc addButton*(dialog: BuiltinDialog, button: DialogButton) =
   dialog.hasButtons = true
   dialog.valButtons.add(button)
 
+type
+  FileFilterObj* = object
+    gtk*: GtkFileFilter
+  
+  FileFilter* = ref FileFilterObj
+
+crossVersionDestructor(fileFilter, FileFilterObj):
+  if isNil(fileFilter.gtk):
+    return
+  
+  g_object_unref(pointer(fileFilter.gtk))
+
+proc newFileFilter(gtk: GtkFileFilter): FileFilter =
+  if gtk.isNil:
+    raise newException(ValueError, "Unable to create FileFilter from GtkFileFilter(nil)")
+  
+  result = FileFilter(gtk: gtk)
+
+proc addPattern*(fileFilter: FileFilter, pattern: string) =
+  gtk_file_filter_add_pattern(fileFilter.gtk, pattern.cstring)
+
+proc addSuffix*(fileFilter: FileFilter, suffix: string) =
+  gtk_file_filter_add_suffix(fileFilter.gtk, suffix.cstring)
+
+proc addMimeType*(fileFilter: FileFilter, mimeType: string) =
+  gtk_file_filter_add_mime_type(fileFilter.gtk, mimeType.cstring)
+
+proc addPixbufFormats*(fileFilter: FileFilter) =
+  gtk_file_filter_add_pixbuf_formats(fileFilter.gtk)
+
+proc name*(fileFilter: FileFilter): string =
+  result = $gtk_file_filter_get_name(fileFilter.gtk)
+
+proc `name=`*(fileFilter: FileFilter, name: string) =
+  gtk_file_filter_set_name(fileFilter.gtk, name.cstring)
+
+proc newFileFilter*(name: string,
+                    patterns: openArray[string] = [],
+                    suffixes: openArray[string] = [],
+                    mimeTypes: openArray[string] = [],
+                    pixbufFormats: bool = false): FileFilter =
+  
+  result = newFileFilter(gtk_file_filter_new())
+  
+  result.name = name
+  
+  for pattern in patterns:
+    result.addPattern(pattern)
+  for suffix in suffixes:
+    result.addSuffix(suffix)
+  for mimeType in mimeTypes:
+    result.addMimeType(mimeType)
+  
+  if pixbufFormats:
+    result.addPixbufFormats()
+
 type FileChooserAction* = enum
   FileChooserOpen,
   FileChooserSave,
@@ -3655,6 +3711,7 @@ renderable FileChooserDialog of BuiltinDialog:
   selectMultiple: bool = false
   initialPath: string ## Path of the initially shown folder
   filenames: seq[string] ## The selected file paths
+  filters: seq[FileFilter]
   
   hooks:
     beforeBuild:
@@ -3691,6 +3748,13 @@ renderable FileChooserDialog of BuiltinDialog:
         state.filenames.add($g_file_get_path(GFile(file)))
         g_object_unref(file)
       g_object_unref(pointer(files))
+  
+  hooks filters:
+    build:
+      if widget.hasFilters:
+        state.filters = widget.valFilters
+      for filter in state.filters:
+        gtk_file_chooser_add_filter(state.internalWidget, filter.gtk)
   
   example:
     FileChooserDialog:
