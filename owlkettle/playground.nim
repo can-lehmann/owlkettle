@@ -292,10 +292,16 @@ proc toFormField(state: Viewable, field: ptr[auto], fieldName: string): Widget =
   
   when hasFields:
     var subFieldWidgets: Table[string, Widget] = initTable[string, Widget]()
-    for subFieldName, subFieldValue in field[].getIterator():      
-      let subField: ptr = subFieldValue.addr
-      let subFieldWidget = state.toFormField(subField, subFieldName)
-      subFieldWidgets[subFieldName] = subFieldWidget
+    let hasFieldValue = when field.typeOf() is ptr ref:
+        field[].isNil()
+      else:
+        true
+        
+    if hasFieldValue:
+      for subFieldName, subFieldValue in field[].getIterator():
+        let subField: ptr = subFieldValue.addr
+        let subFieldWidget = state.toFormField(subField, subFieldName)
+        subFieldWidgets[subFieldName] = subFieldWidget
     
     return gui:
       ExpanderRow:
@@ -314,8 +320,9 @@ proc toAutoFormMenu*[T](app: T, sizeRequest: tuple[x,y: int] = (400, 700), ignor
   ## `sizeRequest` defines the requested size for the popover. 
   ## Displays a dummy widget if there is no `toFormField` implementation for a field with a custom type.
   var fieldWidgets: seq[Widget] = @[]
+  const privateGeneralFields = ["app", "viewed", "stateRef"]
   for name, value in app[].fieldPairs:
-    when name notin ["app", "viewed"] and name notin ignoreFields:
+    when name notin privateGeneralFields and name notin ignoreFields:
       let field: ptr = value.addr
       let fieldWidget = app.toFormField(field, name)
       fieldWidgets.add(fieldWidget)
