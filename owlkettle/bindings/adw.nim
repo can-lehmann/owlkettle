@@ -25,40 +25,42 @@
 import std/strutils as strutils
 import ./gtk
 
-const AdwMajor {.intdefine: "adwmajor".}: int = 1 ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
-const AdwMinor {.intdefine: "adwminor".}: int = 0 ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwminor=X`. Defaults to 0.
+const AdwMajor {.intdefine: "adwmajor".}: int = 1
+  ## Specifies the minimum Adwaita major version required to run an application. Overwriteable via `-d:adwmajor=X`. Defaults to 1.
+const AdwMinor {.intdefine: "adwminor".}: int = 0
+  ## Specifies the minimum Adwaita minor version required to run an application. Overwriteable via `-d:adwminor=X`. Defaults to 0.
 const AdwVersion* = (AdwMajor, AdwMinor)
 
 {.passl: strutils.strip(gorge("pkg-config --libs libadwaita-1")).}
 
 type
   StyleManager* = distinct pointer
-  
+
   CenteringPolicy* = enum
     CenteringPolicyLoose
     CenteringPolicyStrict
-  
+
   ColorScheme* = enum
-    ColorSchemeDefault,
-    ColorSchemeForceLight,
-    ColorSchemeForceDark,
-    ColorSchemePreferDark,
+    ColorSchemeDefault
+    ColorSchemeForceLight
+    ColorSchemeForceDark
+    ColorSchemePreferDark
     ColorSchemePreferLight
-  
+
   FlapFoldPolicy* = enum
-    FlapFoldNever,
-    FlapFoldAlways,
+    FlapFoldNever
+    FlapFoldAlways
     FlapFoldAuto
-  
+
   FoldThresholdPolicy* = enum
-    FoldThresholdMinimum,
+    FoldThresholdMinimum
     FoldThresholdNatural
-  
+
   FlapTransitionType* = enum
     FlapTransitionOver
     FlapTransitionUnder
     FlapTransitionSlide
-  
+
   LengthUnit* = enum
     LengthPixel
     LengthPoint
@@ -80,7 +82,8 @@ proc isNil*(manager: StyleManager): bool {.borrow.}
 proc isNil*(widget: AdwToast): bool {.borrow.}
 
 proc g_signal_connect*(app: AdwToast, signal: cstring, closure, data: pointer): culong =
-  result = g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
+  result =
+    g_signal_connect_data(app.pointer, signal, closure, data, nil, G_CONNECT_AFTER)
 
 {.push importc, cdecl.}
 # Adw
@@ -91,7 +94,10 @@ proc adw_application_new*(id: cstring, flags: GApplicationFlags): GApplication
 
 # Adw.StyleManager
 proc adw_style_manager_get_default*(): StyleManager
-proc adw_style_manager_set_color_scheme*(manager: StyleManager, colorScheme: ColorScheme)
+proc adw_style_manager_set_color_scheme*(
+  manager: StyleManager, colorScheme: ColorScheme
+)
+
 proc adw_style_manager_get_color_scheme*(manager: StyleManager): ColorScheme
 proc adw_style_manager_get_dark*(manager: StyleManager): cbool
 proc adw_style_manager_get_high_contrast*(manager: StyleManager): cbool
@@ -168,7 +174,10 @@ proc adw_expander_row_add_row*(expanderRow, row: GtkWidget)
 proc adw_expander_row_remove*(row, child: GtkWidget)
 proc adw_expander_row_set_enable_expansion*(self: GtkWidget, enable_expansion: cbool)
 proc adw_expander_row_set_expanded*(self: GtkWidget, expanded: cbool)
-proc adw_expander_row_set_show_enable_switch*(self: GtkWidget, show_enable_switch: cbool)
+proc adw_expander_row_set_show_enable_switch*(
+  self: GtkWidget, show_enable_switch: cbool
+)
+
 proc adw_expander_row_get_expanded*(self: GtkWidget): cbool
 
 when AdwVersion >= (1, 3):
@@ -201,7 +210,10 @@ proc adw_flap_set_content*(flap, content: GtkWidget)
 proc adw_flap_set_flap*(flap, child: GtkWidget)
 proc adw_flap_set_separator*(flap, child: GtkWidget)
 proc adw_flap_set_fold_policy*(flap: GtkWidget, foldPolicy: FlapFoldPolicy)
-proc adw_flap_set_fold_threshold_policy*(flap: GtkWidget, foldThresholdPolicy: FoldThresholdPolicy)
+proc adw_flap_set_fold_threshold_policy*(
+  flap: GtkWidget, foldThresholdPolicy: FoldThresholdPolicy
+)
+
 proc adw_flap_set_transition_type*(flap: GtkWidget, transitionType: FlapTransitionType)
 proc adw_flap_set_reveal_flap*(flap: GtkWidget, revealed: cbool)
 proc adw_flap_set_modal*(flap: GtkWidget, modal: cbool)
@@ -217,17 +229,29 @@ when AdwVersion >= (1, 4):
   proc adw_overlay_split_view_get_show_sidebar*(self: GtkWidget): cbool
   proc adw_overlay_split_view_set_collapsed*(self: GtkWidget, collapsed: cbool)
   proc adw_overlay_split_view_set_content*(self, content: GtkWidget)
-  proc adw_overlay_split_view_set_enable_hide_gesture*(self: GtkWidget, enable_hide_gesture: cbool)
-  proc adw_overlay_split_view_set_enable_show_gesture*(self: GtkWidget, enable_show_gesture: cbool)
+  proc adw_overlay_split_view_set_enable_hide_gesture*(
+    self: GtkWidget, enable_hide_gesture: cbool
+  )
+
+  proc adw_overlay_split_view_set_enable_show_gesture*(
+    self: GtkWidget, enable_show_gesture: cbool
+  )
+
   proc adw_overlay_split_view_set_max_sidebar_width*(self: GtkWidget, width: cdouble)
   proc adw_overlay_split_view_set_min_sidebar_width*(self: GtkWidget, width: cdouble)
   proc adw_overlay_split_view_set_pin_sidebar*(self: GtkWidget, pin_sidebar: cbool)
   proc adw_overlay_split_view_set_show_sidebar*(self: GtkWidget, show_sidebar: cbool)
   proc adw_overlay_split_view_set_sidebar*(self, sidebar: GtkWidget)
-  proc adw_overlay_split_view_set_sidebar_position*(self: GtkWidget, position: GtkPackType)
-  proc adw_overlay_split_view_set_sidebar_width_fraction*(self: GtkWidget, fraction: cdouble)
+  proc adw_overlay_split_view_set_sidebar_position*(
+    self: GtkWidget, position: GtkPackType
+  )
+
+  proc adw_overlay_split_view_set_sidebar_width_fraction*(
+    self: GtkWidget, fraction: cdouble
+  )
+
   proc adw_overlay_split_view_set_sidebar_width_unit*(self: GtkWidget, unit: LengthUnit)
-  
+
 # Adw.SplitButton
 proc adw_split_button_new*(): GtkWidget
 proc adw_split_button_set_child*(button, child: GtkWidget)
@@ -248,7 +272,10 @@ when AdwVersion >= (1, 4):
   proc adw_toolbar_view_remove*(self, widget: GtkWidget)
   proc adw_toolbar_view_set_bottom_bar_style*(self: GtkWidget, style: ToolbarStyle)
   proc adw_toolbar_view_set_content*(self, content: GtkWidget)
-  proc adw_toolbar_view_set_extend_content_to_bottom_edge*(self: GtkWidget, extend: cbool)
+  proc adw_toolbar_view_set_extend_content_to_bottom_edge*(
+    self: GtkWidget, extend: cbool
+  )
+
   proc adw_toolbar_view_set_extend_content_to_top_edge*(self: GtkWidget, extend: cbool)
   proc adw_toolbar_view_set_reveal_bottom_bars*(self: GtkWidget, reveal: cbool)
   proc adw_toolbar_view_set_reveal_top_bars*(self: GtkWidget, reveal: cbool)
@@ -259,7 +286,10 @@ proc adw_header_bar_new*(): GtkWidget
 proc adw_header_bar_pack_end*(self, child: GtkWidget)
 proc adw_header_bar_pack_start*(self, child: GtkWidget)
 proc adw_header_bar_remove*(self, child: GtkWidget)
-proc adw_header_bar_set_centering_policy*(self: GtkWidget, centering_policy: CenteringPolicy)
+proc adw_header_bar_set_centering_policy*(
+  self: GtkWidget, centering_policy: CenteringPolicy
+)
+
 proc adw_header_bar_set_decoration_layout*(self: GtkWidget, layout: cstring)
 proc adw_header_bar_set_show_end_title_buttons*(self: GtkWidget, setting: cbool)
 proc adw_header_bar_set_show_start_title_buttons*(self: GtkWidget, setting: cbool)
@@ -281,7 +311,14 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_copyright*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_license_type*(window: GtkWidget, value: GtkLicenseType)
-  proc adw_about_window_add_legal_section*(window: GtkWidget, title: cstring, copyright: cstring, license_type: GtkLicenseType, license: cstring)
+  proc adw_about_window_add_legal_section*(
+    window: GtkWidget,
+    title: cstring,
+    copyright: cstring,
+    license_type: GtkLicenseType,
+    license: cstring,
+  )
+
   proc adw_about_window_set_application_icon*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_release_notes*(window: GtkWidget, value: cstring)
   proc adw_about_window_set_comments*(window: GtkWidget, value: cstring)
@@ -290,8 +327,14 @@ when AdwVersion >= (1, 2):
   proc adw_about_window_set_designers*(window: GtkWidget, value: cstringArray)
   proc adw_about_window_set_artists*(window: GtkWidget, value: cstringArray)
   proc adw_about_window_set_documenters*(window: GtkWidget, value: cstringArray)
-  proc adw_about_window_add_credit_section*(window: GtkWidget, name: cstring, people: cstringArray)
-  proc adw_about_window_add_acknowledgement_section*(window: GtkWidget, name: cstring, people: cstringArray)
+  proc adw_about_window_add_credit_section*(
+    window: GtkWidget, name: cstring, people: cstringArray
+  )
+
+  proc adw_about_window_add_acknowledgement_section*(
+    window: GtkWidget, name: cstring, people: cstringArray
+  )
+
   proc adw_about_window_add_link*(window: GtkWidget, title: cstring, url: cstring)
 
 # Adw.ToastOverlay
@@ -337,3 +380,7 @@ when AdwVersion >= (1, 3):
   proc adw_banner_set_title*(self: GtkWidget, title: cstring)
   proc adw_banner_set_use_markup*(self: GtkWidget, use_markup: cbool)
   proc adw_banner_set_revealed*(self: GtkWidget, revealed: cbool)
+
+when AdwVersion >= (1, 6):
+  # Adw.Spinner
+  proc adw_spinner_new*(): GtkWidget
