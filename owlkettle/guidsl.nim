@@ -184,7 +184,8 @@ macro customCapture(vars: varargs[typed], body: untyped): untyped =
   
   for variable in vars:
     let name = variable.unwrapName()
-    assert name.isName
+    if not name.isName:
+      return body
     params.add(newIdentDefs(
       ident(name.strVal),
       newTree(nnkTypeOfExpr, variable)
