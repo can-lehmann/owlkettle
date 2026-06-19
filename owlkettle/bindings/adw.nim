@@ -38,12 +38,12 @@ type
     CenteringPolicyLoose
     CenteringPolicyStrict
   
-  ColorScheme* = enum
+  ColorScheme* {.size: sizeof(cint).} = enum
     ColorSchemeDefault,
     ColorSchemeForceLight,
-    ColorSchemeForceDark,
+    ColorSchemePreferLight,
     ColorSchemePreferDark,
-    ColorSchemePreferLight
+    ColorSchemeForceDark
   
   FlapFoldPolicy* = enum
     FlapFoldNever,
