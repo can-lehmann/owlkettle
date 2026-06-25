@@ -34,42 +34,42 @@ const AdwVersion* = (AdwMajor, AdwMinor)
 type
   StyleManager* = distinct pointer
   
-  CenteringPolicy* = enum
+  CenteringPolicy* {.size: sizeof(cint).} = enum
     CenteringPolicyLoose
     CenteringPolicyStrict
   
-  ColorScheme* = enum
+  ColorScheme* {.size: sizeof(cint).} = enum
     ColorSchemeDefault,
     ColorSchemeForceLight,
-    ColorSchemeForceDark,
+    ColorSchemePreferLight,
     ColorSchemePreferDark,
-    ColorSchemePreferLight
+    ColorSchemeForceDark
   
-  FlapFoldPolicy* = enum
+  FlapFoldPolicy* {.size: sizeof(cint).} = enum
     FlapFoldNever,
     FlapFoldAlways,
     FlapFoldAuto
   
-  FoldThresholdPolicy* = enum
+  FoldThresholdPolicy* {.size: sizeof(cint).} = enum
     FoldThresholdMinimum,
     FoldThresholdNatural
   
-  FlapTransitionType* = enum
+  FlapTransitionType* {.size: sizeof(cint).} = enum
     FlapTransitionOver
     FlapTransitionUnder
     FlapTransitionSlide
   
-  LengthUnit* = enum
+  LengthUnit* {.size: sizeof(cint).} = enum
     LengthPixel
     LengthPoint
     LengthScaleIndependent
 
-  ToolbarStyle* = enum
+  ToolbarStyle* {.size: sizeof(cint).} = enum
     ToolbarFlat
     ToolbarRaised
     ToolbarRaisedBorder
 
-  ToastPriority* = enum
+  ToastPriority* {.size: sizeof(cint).} = enum
     ToastPriorityNormal
     ToastPriorityHigh
 

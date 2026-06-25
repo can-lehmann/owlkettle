@@ -37,29 +37,29 @@ type GtkWidget* = distinct pointer
 proc isNil*(widget: GtkWidget): bool {.borrow.}
 
 type
-  GtkWindowType* = enum
+  GtkWindowType* {.size: sizeof(cint).} = enum
     GTK_WINDOW_TOPLEVEL, GTK_WINDOW_POPUP
   
-  GtkOrientation* = enum
+  GtkOrientation* {.size: sizeof(cint).} = enum
     GTK_ORIENTATION_HORIZONTAL, GTK_ORIENTATION_VERTICAL
   
-  GtkBaselinePosition* = enum
+  GtkBaselinePosition* {.size: sizeof(cint).} = enum
     GTK_BASELINE_POSITION_TOP, GTK_BASELINE_POSITION_CENTER, GTK_BASELINE_POSITION_BOTTOM
   
-  GtkPackType* = enum
+  GtkPackType* {.size: sizeof(cint).} = enum
     GTK_PACK_START, GTK_PACK_END
   
-  GtkAlign* = enum
+  GtkAlign* {.size: sizeof(cint).} = enum
     GTK_ALIGN_FILL,
     GTK_ALIGN_START,
     GTK_ALIGN_END,
     GTK_ALIGN_CENTER,
     GTK_ALIGN_BASELINE
   
-  GConnectFlags* = enum
+  GConnectFlags* {.size: sizeof(cint).} = enum
     G_CONNECT_AFTER, G_CONNECT_SWAPPED # TODO: Correct enum names?
   
-  GtkIconSize* = enum
+  GtkIconSize* {.size: sizeof(cint).} = enum
     GTK_ICON_SIZE_INVALID,
     GTK_ICON_SIZE_MENU,
     GTK_ICON_SIZE_SMALL_TOOLBAR,
@@ -68,26 +68,26 @@ type
     GTK_ICON_SIZE_DND,
     GTK_ICON_SIZE_DIALOG
   
-  GtkSelectionMode* = enum
+  GtkSelectionMode* {.size: sizeof(cint).} = enum
     GTK_SELECTION_NONE,
     GTK_SELECTION_SINGLE,
     GTK_SELECTION_BROWSE,
     GTK_SELECTION_MULTIPLE
   
-  PangoEllipsizeMode* = enum
+  PangoEllipsizeMode* {.size: sizeof(cint).} = enum
     PANGO_ELLIPSIZE_NONE,
     PANGO_ELLIPSIZE_START,
     PANGO_ELLIPSIZE_MIDDLE,
     PANGO_ELLIPSIZE_END
   
-  GtkShadowType* = enum
+  GtkShadowType* {.size: sizeof(cint).} = enum
     GTK_SHADOW_NOME,
     GTK_SHADOW_IN,
     GTK_SHADOW_OUT,
     GTK_SHADOW_ETCHED_IN,
     GTK_SHADOW_ETCHED_OUT
 
-  GtkFileChooserAction* = enum
+  GtkFileChooserAction* {.size: sizeof(cint).} = enum
     GTK_FILE_CHOOSER_ACTION_OPEN,
     GTK_FILE_CHOOSER_ACTION_SAVE,
     GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
@@ -95,13 +95,13 @@ type
   
   GtkDialogFlags* = distinct cuint
   
-  GtkMessageType* = enum
+  GtkMessageType* {.size: sizeof(cint).} = enum
     GTK_MESSAGE_INFO,
     GTK_MESSAGE_WARNING,
     GTK_MESSAGE_QUESTION,
     GTK_MESSAGE_OTHER
   
-  GtkButtonsType* = enum
+  GtkButtonsType* {.size: sizeof(cint).} = enum
     GTK_BUTTONS_NONE,
     GTK_BUTTONS_OK,
     GTK_BUTTONS_CLOSE,
@@ -109,28 +109,28 @@ type
     GTK_BUTTONS_YES_NO,
     GTK_BUTTONS_OK_CANCEL
   
-  GtkShortcutScope* = enum
+  GtkShortcutScope* {.size: sizeof(cint).} = enum
     GTK_SHORTCUT_SCOPE_LOCAL
     GTK_SHORTCUT_SCOPE_MANAGED
     GTK_SHORTCUT_SCOPE_GLOBAL
   
-  GtkPositionType* = enum
+  GtkPositionType* {.size: sizeof(cint).} = enum
     GTK_POS_LEFT
     GTK_POS_RIGHT
     GTK_POS_TOP
     GTK_POS_BOTTOM
   
-  GtkContentFit* = enum
+  GtkContentFit* {.size: sizeof(cint).} = enum
     GTK_CONTENT_FIT_FILL
     GTK_CONTENT_FIT_CONTAIN
     GTK_CONTENT_FIT_COVER
     GTK_CONTENT_FIT_SCALE_DOWN
   
-  GtkLevelBarMode* = enum
+  GtkLevelBarMode* {.size: sizeof(cint).} = enum
     GTK_LEVEL_BAR_MODE_CONTINUOUS
     GTK_LEVEL_BAR_MODE_DISCRETE
 
-  GtkLicenseType* = enum
+  GtkLicenseType* {.size: sizeof(cint).} = enum
     GTK_LICENSE_UNKNOWN = 0
     GTK_LICENSE_CUSTOM = 1
     GTK_LICENSE_GPL_2_0 = 2
@@ -151,7 +151,7 @@ type
     GTK_LICENSE_MPL_2_0 = 17
     GTK_LICENSE_0BSD = 18
   
-  GtkWrapMode* = enum
+  GtkWrapMode* {.size: sizeof(cint).} = enum
     GTK_WRAP_NONE
     GTK_WRAP_CHAR
     GTK_WRAP_WORD
@@ -240,7 +240,7 @@ type
   GdkDisplay = distinct pointer
   GdkEvent* = distinct pointer
   
-  GdkEventType* = enum
+  GdkEventType* {.size: sizeof(cint).} = enum
     GDK_MOTION_NOTIFY = 1
     GDK_BUTTON_PRESS = 2
     GDK_BUTTON_RELEASE = 3
@@ -252,7 +252,7 @@ type
   GdkEventMask* = distinct cint
   GdkModifierType* = distinct cint
   
-  GdkScrollDirection* = enum
+  GdkScrollDirection* {.size: sizeof(cint).} = enum
     GDK_SCROLL_UP, GDK_SCROLL_DOWN,
     GDK_SCROLL_LEFT, GDK_SCROLL_RIGHT,
     GDK_SCROLL_SMOOTH
@@ -265,16 +265,16 @@ type
   
   GdkPixbuf* = distinct pointer
   
-  GdkColorspace* = enum
+  GdkColorspace* {.size: sizeof(cint).} = enum
     GDK_COLORSPACE_RGB
   
-  GdkInterpType* = enum
+  GdkInterpType* {.size: sizeof(cint).} = enum
     GDK_INTERP_NEAREST
     GDK_INTERP_TILES
     GDK_INTERP_BILINEAR
     GDK_INTERP_HYPER
   
-  GdkPixbufRotation* = enum
+  GdkPixbufRotation* {.size: sizeof(cint).} = enum
     GDK_PIXBUF_ROTATE_NONE = 0
     GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE = 90
     GDK_PIXBUF_ROTATE_UPSIDEDOWN = 180
@@ -306,7 +306,7 @@ proc isNil*(obj: GdkClipboard): bool {.borrow.}
 proc isNil*(obj: GdkPixbuf): bool {.borrow.}
 
 type
-  GNotificationPriority* = enum
+  GNotificationPriority* {.size: sizeof(cint).} = enum
     G_NOTIFICATION_PRIORITY_NORMAL
     G_NOTIFICATION_PRIORITY_LOW
     G_NOTIFICATION_PRIORITY_HIGH
@@ -360,7 +360,7 @@ type
   GMenuItem* = distinct pointer
   GApplicationFlags* = distinct cuint
   
-  GLogLevelFlags* = enum
+  GLogLevelFlags* {.size: sizeof(cint).} = enum
     G_LOG_LEVEL_MASK = not 3
     G_LOG_FLAG_RECURSION = 1 shl 0
     G_LOG_FLAG_FATAL = 1 shl 1
