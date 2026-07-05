@@ -2247,7 +2247,7 @@ renderable ModelButton of BaseWidget:
 
 renderable SearchEntry of BaseWidget:
   text: string
-  # child: GtkWidget # This is currently not supported
+  keyCaptureRef: StateRef
   searchDelay {.since: GtkMinor >= 8.}: uint = 100 ## Determines the minimum time after a `searchChanged` event occurred before the next can be emitted.
   placeholderText {.since: GtkMinor >= 10.}: string = "Search"
   
@@ -2283,10 +2283,44 @@ renderable SearchEntry of BaseWidget:
       # state.internalWidget.disconnect(state.searchStarted) # Currently not supported
       state.internalWidget.disconnect(state.stopSearch)
 
-  # hooks child:
-  #   property:
-  #     gtk_search_entry_set_key_capture_widget(state.internalWidget, state.child.pointer)
-
+  hooks keyCaptureRef:
+    build:
+      if widget.hasKeyCaptureRef and widget.valKeyCaptureRef.hasRef():
+        proc observer(childState: WidgetState) =
+          if childState.isNil():
+            return
+          
+          let childWidget = childState.unwrapInternalWidget()
+          if not childWidget.isNil():
+            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+        
+        widget.valKeyCaptureRef.subscribe(observer)
+        state.keyCaptureRef = widget.valKeyCaptureRef        
+        
+    update:
+      let isChangeFromNoneToSome = state.keyCaptureRef.isNil() and widget.hasKeyCaptureRef
+      let isChangeFromSomeToNone = not state.keyCaptureRef.isNil() and not widget.hasKeyCaptureRef
+      let isRefChange = isChangeFromNoneToSome or isChangeFromSomeToNone or state.keyCaptureRef != widget.valKeyCaptureRef 
+      if isRefChange:
+        proc observer(childState: WidgetState) =
+          let childWidget = childState.unwrapInternalWidget()
+          if not childWidget.isNil():
+            gtk_search_entry_set_key_capture_widget(state.internalWidget, childWidget)
+        
+        # Remove observer from old keyCaptureRef
+        let oldKeyCaptureRef = state.keyCaptureRef
+        oldKeyCaptureRef.unsubscribe(observer)
+        
+        # Add observer to new keyCaptureRef
+        let hasNewKeyCaptureRef = widget.hasKeyCaptureRef
+        let newKeyCaptureRef = if hasNewKeyCaptureRef:
+            widget.valKeyCaptureRef.subscribe(observer)
+            widget.valKeyCaptureRef        
+          else:
+            nil
+        
+        state.keyCaptureRef = newKeyCaptureRef
+      
   hooks text:
     property:
       gtk_editable_set_text(state.internalWidget, state.text.cstring)
