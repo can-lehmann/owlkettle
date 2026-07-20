@@ -892,6 +892,9 @@ proc gtk_event_controller_get_widget*(cont: GtkEventController): GtkWidget
 # Gtk.EventControllerLegacy
 proc gtk_event_controller_legacy_new*(): GtkEventController
 
+# Gtk.EventControllerKey
+proc gtk_event_controller_key_new*(): GtkEventController
+
 # Gtk.GestureSingle
 proc gtk_gesture_single_set_button*(gesture: GtkEventController, button: cuint)
 
