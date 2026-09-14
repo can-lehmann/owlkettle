@@ -147,4 +147,51 @@ block:
       Box:
         insert(childWidget) {.expand: false.}
 
+
+nbText: """
+## WidgetState references
+
+Some features require you to inform Widget A of another Widget B.
+In Owlkettle you can do this by sharing a `StateRef` object between Widget A and Widget B.
+A `StateRef` is an object that observes Widgets can subscribe to in order to get informed whenever its value changes.
+That way, the Widgets always share the same value and update themselves when changes occur.
+You can create it via `newStateRef` (typically as a field on a viewable or renderable state), let it get filled with a reference using the `as` syntax and then passing that reference to Widget B.
+
+See here where we pass SearchEntry a reference to the lower Box as keyCaptureRef.
+All keyboard events thrown while the Box is in focus will get forwarded to the SearchEntry widget.
+
+This also works as you would expect where adders or ather pragmas are concerned
+"""
+
+nbCode:
+  let boxRef = newStateRef()
+  let widget = gui:
+    Box():
+      SearchEntry():
+        keyCaptureRef = boxRef
+      Box as boxRef {.hAlign: AlignFill.}:
+        for value in 0..<3:
+          Label(text = $value)
+
+nbText: """
+  To get notified of any changes occurring to the reference inside `StateRef`, you can subscribe.
+"""
+
+nbCode:
+  let initialSubscriber = proc(state: WidgetState) {.closure.} = echo "Initial Subscriber says BoxRef state changed"
+  let boxRef2 = newStateRef(initialSubscriber)
+  
+  let laterSubscriber = proc(state: WidgetState) {.closure.} = echo "Later Subscriber says BoxRef state changed"
+  boxRef2.subscribe(laterSubscriber)
+  
+  let widget2 = gui:
+    Box():
+      SearchEntry():
+        keyCaptureRef = boxRef2
+      Box as boxRef2 {.hAlign: AlignFill.}:
+        for value in 0..<3:
+          Label(text = $value)
+  
+  boxRef2.unsubscribe(initialSubscriber)
+  boxRef2.unsubscribe(laterSubscriber)
 nbSave
